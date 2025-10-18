@@ -1,0 +1,1266 @@
+"use client";
+
+import { CanvaLayout } from "@/components/cv-builder/CanvaLayout";
+
+export default function CVBuilderPage() {
+	return <CanvaLayout />;
+}
+		location: z.string().optional(),
+		summary: z.string().min(50, "Summary should be at least 50 characters").optional(),
+		website: z.string().url().optional().or(z.literal("")),
+		linkedin: z.string().optional(),
+		github: z.string().optional(),
+		portfolio: z.string().url().optional().or(z.literal("")),
+		photo: z.string().optional(),
+	}),
+	experience: z.array(
+		z.object({
+			id: z.string(),
+			title: z.string().min(2, "Job title required"),
+			company: z.string().min(2, "Company name required"),
+			location: z.string().optional(),
+			startDate: z.string(),
+			endDate: z.string().optional(),
+			current: z.boolean().default(false),
+			description: z.string().optional(),
+			highlights: z.array(z.string()).default([]),
+		})
+	).default([]),
+	education: z.array(
+		z.object({
+			id: z.string(),
+			degree: z.string().min(2, "Degree required"),
+			institution: z.string().min(2, "Institution required"),
+			location: z.string().optional(),
+			startDate: z.string().optional(),
+			endDate: z.string().optional(),
+			gpa: z.string().optional(),
+			description: z.string().optional(),
+		})
+	).default([]),
+	skills: z.array(
+		z.object({
+			id: z.string(),
+			category: z.string(),
+			items: z.array(z.string()),
+			level: z.enum(["beginner", "intermediate", "advanced", "expert"]).optional(),
+		})
+	).default([]),
+	languages: z.array(
+		z.object({
+			id: z.string(),
+			language: z.string(),
+			proficiency: z.enum(["basic", "conversational", "professional", "native"]),
+		})
+	).default([]),
+	certifications: z.array(
+		z.object({
+			id: z.string(),
+			name: z.string(),
+			issuer: z.string(),
+			date: z.string().optional(),
+			url: z.string().optional(),
+		})
+	).default([]),
+	projects: z.array(
+		z.object({
+			id: z.string(),
+			name: z.string(),
+			description: z.string(),
+			technologies: z.array(z.string()).default([]),
+			url: z.string().optional(),
+			github: z.string().optional(),
+		})
+	).default([]),
+	awards: z.array(
+		z.object({
+			id: z.string(),
+			title: z.string(),
+			issuer: z.string(),
+			date: z.string().optional(),
+			description: z.string().optional(),
+		})
+	).default([]),
+});
+
+type CVFormData = z.infer<typeof cvSchema>;
+
+export default function CVBuilderPage() {
+	const [isGenerating, setIsGenerating] = useState(false);
+	const [isEnhancing, setIsEnhancing] = useState(false);
+	const [isSaving, setIsSaving] = useState(false);
+	const [activeTab, setActiveTab] = useState("personal");
+	const [selectedTemplate, setSelectedTemplate] = useState("modern");
+	const [previewMode, setPreviewMode] = useState(false);
+
+	const form = useForm<CVFormData>({
+		resolver: zodResolver(cvSchema),
+		defaultValues: {
+			personalInfo: {
+				fullName: "",
+				title: "",
+				email: "",
+				phone: "",
+				location: "",
+				summary: "",
+				website: "",
+				linkedin: "",
+				github: "",
+				portfolio: "",
+				photo: "",
+			},
+			experience: [],
+			education: [],
+			skills: [],
+			languages: [],
+			certifications: [],
+			projects: [],
+			awards: [],
+		},
+	});
+
+	const { fields: experienceFields, append: appendExperience, remove: removeExperience } = 
+		useFieldArray({ control: form.control, name: "experience" });
+	
+	const { fields: educationFields, append: appendEducation, remove: removeEducation } = 
+		useFieldArray({ control: form.control, name: "education" });
+	
+	const { fields: skillFields, append: appendSkill, remove: removeSkill } = 
+		useFieldArray({ control: form.control, name: "skills" });
+	
+	const { fields: languageFields, append: appendLanguage, remove: removeLanguage } = 
+		useFieldArray({ control: form.control, name: "languages" });
+	
+	const { fields: certificationFields, append: appendCertification, remove: removeCertification } = 
+		useFieldArray({ control: form.control, name: "certifications" });
+	
+	const { fields: projectFields, append: appendProject, remove: removeProject } = 
+		useFieldArray({ control: form.control, name: "projects" });
+	
+	const { fields: awardFields, append: appendAward, remove: removeAward } = 
+		useFieldArray({ control: form.control, name: "awards" });
+
+	// Photo upload with drag & drop
+	const onDropPhoto = useCallback((acceptedFiles: File[]) => {
+		const file = acceptedFiles[0];
+		if (file) {
+			const reader = new FileReader();
+			reader.onloadend = () => {
+				form.setValue("personalInfo.photo", reader.result as string);
+				toast.success("Photo uploaded successfully!");
+			};
+			reader.readAsDataURL(file);
+		}
+	}, [form]);
+
+	const { getRootProps, getInputProps, isDragActive } = useDropzone({
+		onDrop: onDropPhoto,
+		accept: { "image/*": [".png", ".jpg", ".jpeg", ".webp"] },
+		maxFiles: 1,
+		maxSize: 5242880, // 5MB
+	});
+
+	const handleGenerateCV = async () => {
+		const isValid = await form.trigger();
+		if (!isValid) {
+			toast.error("Please fill in all required fields");
+			return;
+		}
+
+		setIsGenerating(true);
+		try {
+			const cvData = form.getValues();
+			const response = await fetch("/api/cv/generate-pdf", {
+				method: "POST",
+				headers: { "Content-Type": "application/json" },
+				body: JSON.stringify({ ...cvData, template: selectedTemplate }),
+			});
+
+			if (!response.ok) throw new Error("Failed to generate CV");
+
+			const blob = await response.blob();
+			const url = window.URL.createObjectURL(blob);
+			const a = document.createElement("a");
+			a.href = url;
+			a.download = `${cvData.personalInfo.fullName.replace(/\s+/g, "_")}_CV.pdf`;
+			a.click();
+
+			toast.success("Your CV has been generated and downloaded!");
+		} catch (error) {
+			toast.error("Failed to generate CV. Please try again.");
+		} finally {
+			setIsGenerating(false);
+		}
+	};
+
+	const handleAIEnhance = async () => {
+		setIsEnhancing(true);
+		try {
+			const cvData = form.getValues();
+			const response = await fetch("/api/cv/enhance", {
+				method: "POST",
+				headers: { "Content-Type": "application/json" },
+				body: JSON.stringify(cvData),
+			});
+
+			if (!response.ok) throw new Error("Failed to enhance CV");
+
+			const enhanced = await response.json();
+			form.reset(enhanced);
+
+			toast.success("Your CV has been enhanced with AI suggestions!");
+		} catch (error) {
+			toast.error("Failed to enhance CV. Please try again.");
+		} finally {
+			setIsEnhancing(false);
+		}
+	};
+
+	const handleSaveCV = async () => {
+		setIsSaving(true);
+		try {
+			const cvData = form.getValues();
+			const response = await fetch("/api/cv/save", {
+				method: "POST",
+				headers: { "Content-Type": "application/json" },
+				body: JSON.stringify(cvData),
+			});
+
+			if (!response.ok) throw new Error("Failed to save CV");
+
+			toast.success("CV saved successfully!");
+		} catch (error) {
+			toast.error("Failed to save CV. Please try again.");
+		} finally {
+			setIsSaving(false);
+		}
+	};
+
+	const handleImportLinkedIn = () => {
+		toast.info("Opening LinkedIn import...");
+		window.open("/integrations/linkedin", "_blank");
+	};
+
+	return (
+		<div className="container mx-auto py-8 px-4 max-w-7xl">
+			<div className="space-y-6">
+				{/* Header */}
+				<div className="flex items-center justify-between">
+					<div>
+						<h1 className="text-3xl font-bold">Professional CV Builder</h1>
+						<p className="text-muted-foreground">
+							Create a standout resume with AI-powered assistance
+						</p>
+					</div>
+					<div className="flex gap-2">
+						<Button variant="outline" onClick={() => setPreviewMode(!previewMode)}>
+							<Eye className="w-4 h-4 mr-2" />
+							{previewMode ? "Edit" : "Preview"}
+						</Button>
+					</div>
+				</div>
+
+				{/* Action Buttons */}
+				<div className="flex flex-wrap gap-3">
+					<Button onClick={handleImportLinkedIn} variant="outline">
+						<Linkedin className="w-4 h-4 mr-2" />
+						Import from LinkedIn
+					</Button>
+					<Button onClick={handleSaveCV} disabled={isSaving} variant="outline">
+						{isSaving ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Save className="w-4 h-4 mr-2" />}
+						Save Draft
+					</Button>
+					<Button onClick={handleAIEnhance} disabled={isEnhancing} variant="outline">
+						{isEnhancing ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Sparkles className="w-4 h-4 mr-2" />}
+						AI Enhance
+					</Button>
+					<Button onClick={handleGenerateCV} disabled={isGenerating}>
+						{isGenerating ? (
+							<Loader2 className="w-4 h-4 mr-2 animate-spin" />
+						) : (
+							<Download className="w-4 h-4 mr-2" />
+						)}
+						Download PDF
+					</Button>
+				</div>
+
+				{/* Template Selector */}
+				<Card>
+					<CardHeader>
+						<CardTitle>CV Template</CardTitle>
+						<CardDescription>Choose your preferred style</CardDescription>
+					</CardHeader>
+					<CardContent>
+						<Select value={selectedTemplate} onValueChange={setSelectedTemplate}>
+							<SelectTrigger className="w-full max-w-xs">
+								<SelectValue placeholder="Select template" />
+							</SelectTrigger>
+							<SelectContent>
+								<SelectItem value="modern">Modern</SelectItem>
+								<SelectItem value="classic">Classic</SelectItem>
+								<SelectItem value="minimal">Minimal</SelectItem>
+								<SelectItem value="creative">Creative</SelectItem>
+								<SelectItem value="professional">Professional</SelectItem>
+							</SelectContent>
+						</Select>
+					</CardContent>
+				</Card>
+
+				{/* Main Form */}
+				<Tabs defaultValue="personal" className="w-full" onValueChange={setActiveTab}>
+					<TabsList className="grid w-full grid-cols-4 lg:grid-cols-8">
+						<TabsTrigger value="personal">
+							<Mail className="w-4 h-4 mr-2" />
+							Personal
+						</TabsTrigger>
+						<TabsTrigger value="experience">
+							<Briefcase className="w-4 h-4 mr-2" />
+							Experience
+						</TabsTrigger>
+						<TabsTrigger value="education">
+							<GraduationCap className="w-4 h-4 mr-2" />
+							Education
+						</TabsTrigger>
+						<TabsTrigger value="skills">
+							<Star className="w-4 h-4 mr-2" />
+							Skills
+						</TabsTrigger>
+						<TabsTrigger value="projects">
+							<FileText className="w-4 h-4 mr-2" />
+							Projects
+						</TabsTrigger>
+						<TabsTrigger value="certifications">
+							<Award className="w-4 h-4 mr-2" />
+							Certificates
+						</TabsTrigger>
+						<TabsTrigger value="languages">
+							<Languages className="w-4 h-4 mr-2" />
+							Languages
+						</TabsTrigger>
+						<TabsTrigger value="awards">
+							<Award className="w-4 h-4 mr-2" />
+							Awards
+						</TabsTrigger>
+					</TabsList>
+
+					{/* Personal Info Tab */}
+					<TabsContent value="personal" className="space-y-4">
+						<Card>
+							<CardHeader>
+								<CardTitle>Personal Information</CardTitle>
+								<CardDescription>Your contact details and professional summary</CardDescription>
+							</CardHeader>
+							<CardContent className="space-y-6">
+								{/* Photo Upload */}
+								<div className="space-y-2">
+									<Label>Profile Photo (Optional)</Label>
+									<div
+										{...getRootProps()}
+										className={cn(
+											"border-2 border-dashed rounded-lg p-6 text-center cursor-pointer transition-colors",
+											isDragActive ? "border-primary bg-primary/5" : "border-muted-foreground/25 hover:border-primary/50"
+										)}
+									>
+										<input {...getInputProps()} />
+										{form.watch("personalInfo.photo") ? (
+											<div className="flex flex-col items-center gap-2">
+												<div className="relative w-24 h-24">
+													<Image
+														src={form.watch("personalInfo.photo") || ""}
+														alt="Profile"
+														fill
+														className="rounded-full object-cover"
+													/>
+												</div>
+												<p className="text-sm text-muted-foreground">Click or drag to replace</p>
+											</div>
+										) : (
+											<div className="flex flex-col items-center gap-2">
+												<ImageIcon className="w-8 h-8 text-muted-foreground" />
+												<p className="text-sm">Drag & drop your photo here, or click to select</p>
+												<p className="text-xs text-muted-foreground">PNG, JPG up to 5MB</p>
+											</div>
+										)}
+									</div>
+								</div>
+
+								<Separator />
+
+								{/* Basic Info */}
+								<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+									<div className="space-y-2">
+										<Label htmlFor="fullName">Full Name *</Label>
+										<Input
+											id="fullName"
+											{...form.register("personalInfo.fullName")}
+											placeholder="John Doe"
+										/>
+										{form.formState.errors.personalInfo?.fullName && (
+											<p className="text-sm text-destructive">
+												{form.formState.errors.personalInfo.fullName.message}
+											</p>
+										)}
+									</div>
+									<div className="space-y-2">
+										<Label htmlFor="title">Professional Title</Label>
+										<Input
+											id="title"
+											{...form.register("personalInfo.title")}
+											placeholder="Senior Software Engineer"
+										/>
+									</div>
+								</div>
+
+								{/* Contact Info */}
+								<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+									<div className="space-y-2">
+										<Label htmlFor="email">Email *</Label>
+										<div className="relative">
+											<Mail className="absolute left-3 top-3 w-4 h-4 text-muted-foreground" />
+											<Input
+												id="email"
+												type="email"
+												{...form.register("personalInfo.email")}
+												placeholder="john@example.com"
+												className="pl-10"
+											/>
+										</div>
+										{form.formState.errors.personalInfo?.email && (
+											<p className="text-sm text-destructive">
+												{form.formState.errors.personalInfo.email.message}
+											</p>
+										)}
+									</div>
+									<div className="space-y-2">
+										<Label htmlFor="phone">Phone</Label>
+										<div className="relative">
+											<Phone className="absolute left-3 top-3 w-4 h-4 text-muted-foreground" />
+											<Input
+												id="phone"
+												{...form.register("personalInfo.phone")}
+												placeholder="+1 (555) 123-4567"
+												className="pl-10"
+											/>
+										</div>
+									</div>
+								</div>
+
+								<div className="space-y-2">
+									<Label htmlFor="location">Location</Label>
+									<div className="relative">
+										<MapPin className="absolute left-3 top-3 w-4 h-4 text-muted-foreground" />
+										<Input
+											id="location"
+											{...form.register("personalInfo.location")}
+											placeholder="New York, NY, USA"
+											className="pl-10"
+										/>
+									</div>
+								</div>
+
+								{/* Social Links */}
+								<Separator />
+								<div className="space-y-4">
+									<Label>Professional Links</Label>
+									<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+										<div className="space-y-2">
+											<div className="relative">
+												<Globe className="absolute left-3 top-3 w-4 h-4 text-muted-foreground" />
+												<Input
+													{...form.register("personalInfo.website")}
+													placeholder="https://yourwebsite.com"
+													className="pl-10"
+												/>
+											</div>
+											<p className="text-xs text-muted-foreground">Personal Website</p>
+										</div>
+										<div className="space-y-2">
+											<div className="relative">
+												<Linkedin className="absolute left-3 top-3 w-4 h-4 text-muted-foreground" />
+												<Input
+													{...form.register("personalInfo.linkedin")}
+													placeholder="linkedin.com/in/johndoe"
+													className="pl-10"
+												/>
+											</div>
+											<p className="text-xs text-muted-foreground">LinkedIn Profile</p>
+										</div>
+										<div className="space-y-2">
+											<div className="relative">
+												<Github className="absolute left-3 top-3 w-4 h-4 text-muted-foreground" />
+												<Input
+													{...form.register("personalInfo.github")}
+													placeholder="github.com/johndoe"
+													className="pl-10"
+												/>
+											</div>
+											<p className="text-xs text-muted-foreground">GitHub Profile</p>
+										</div>
+										<div className="space-y-2">
+											<div className="relative">
+												<Link2 className="absolute left-3 top-3 w-4 h-4 text-muted-foreground" />
+												<Input
+													{...form.register("personalInfo.portfolio")}
+													placeholder="https://portfolio.com"
+													className="pl-10"
+												/>
+											</div>
+											<p className="text-xs text-muted-foreground">Portfolio URL</p>
+										</div>
+									</div>
+								</div>
+
+								{/* Professional Summary */}
+								<Separator />
+								<div className="space-y-2">
+									<Label htmlFor="summary">Professional Summary *</Label>
+									<Textarea
+										id="summary"
+										{...form.register("personalInfo.summary")}
+										placeholder="Write a compelling summary that highlights your experience, skills, and career objectives..."
+										rows={6}
+										className="resize-none"
+									/>
+									<p className="text-xs text-muted-foreground">
+										{form.watch("personalInfo.summary")?.length || 0} characters (minimum 50 recommended)
+									</p>
+									{form.formState.errors.personalInfo?.summary && (
+										<p className="text-sm text-destructive">
+											{form.formState.errors.personalInfo.summary.message}
+										</p>
+									)}
+								</div>
+							</CardContent>
+						</Card>
+					</TabsContent>
+
+					{/* Experience Tab */}
+					<TabsContent value="experience" className="space-y-4">
+						<Card>
+							<CardHeader>
+								<div className="flex items-center justify-between">
+									<div>
+										<CardTitle>Work Experience</CardTitle>
+										<CardDescription>Add your professional work history</CardDescription>
+									</div>
+									<Button
+										onClick={() =>
+											appendExperience({
+												id: Date.now().toString(),
+												title: "",
+												company: "",
+												location: "",
+												startDate: "",
+												endDate: "",
+												current: false,
+												description: "",
+												highlights: [],
+											})
+										}
+									>
+										<Plus className="w-4 h-4 mr-2" />
+										Add Experience
+									</Button>
+								</div>
+							</CardHeader>
+							<CardContent className="space-y-6">
+								{experienceFields.length === 0 ? (
+									<div className="text-center py-8 text-muted-foreground">
+										<Briefcase className="w-12 h-12 mx-auto mb-4 opacity-50" />
+										<p>No work experience added yet</p>
+										<p className="text-sm">Click "Add Experience" to get started</p>
+									</div>
+								) : (
+									experienceFields.map((field, index) => (
+										<Card key={field.id} className="border-2">
+											<CardContent className="pt-6 space-y-4">
+												<div className="flex items-start justify-between gap-2">
+													<div className="flex items-center gap-2">
+														<GripVertical className="w-4 h-4 text-muted-foreground cursor-move" />
+														<Badge variant="outline">Experience #{index + 1}</Badge>
+													</div>
+													<Button
+														variant="ghost"
+														size="sm"
+														onClick={() => removeExperience(index)}
+													>
+														<Trash2 className="w-4 h-4 text-destructive" />
+													</Button>
+												</div>
+
+												<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+													<div className="space-y-2">
+														<Label>Job Title *</Label>
+														<Input
+															{...form.register(`experience.${index}.title`)}
+															placeholder="Software Engineer"
+														/>
+													</div>
+													<div className="space-y-2">
+														<Label>Company *</Label>
+														<Input
+															{...form.register(`experience.${index}.company`)}
+															placeholder="Tech Corp"
+														/>
+													</div>
+												</div>
+
+												<div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+													<div className="space-y-2">
+														<Label>Start Date</Label>
+														<Input
+															type="month"
+															{...form.register(`experience.${index}.startDate`)}
+														/>
+													</div>
+													<div className="space-y-2">
+														<Label>End Date</Label>
+														<Input
+															type="month"
+															{...form.register(`experience.${index}.endDate`)}
+															disabled={form.watch(`experience.${index}.current`)}
+														/>
+													</div>
+													<div className="flex items-end space-y-2">
+														<label className="flex items-center gap-2 cursor-pointer">
+															<input
+																type="checkbox"
+																{...form.register(`experience.${index}.current`)}
+																className="rounded border-gray-300"
+															/>
+															<span className="text-sm">Current Role</span>
+														</label>
+													</div>
+												</div>
+
+												<div className="space-y-2">
+													<Label>Location</Label>
+													<Input
+														{...form.register(`experience.${index}.location`)}
+														placeholder="San Francisco, CA"
+													/>
+												</div>
+
+												<div className="space-y-2">
+													<Label>Description & Achievements</Label>
+													<Textarea
+														{...form.register(`experience.${index}.description`)}
+														placeholder="• Led development of key features&#10;• Improved system performance by 40%&#10;• Mentored junior developers"
+														rows={5}
+													/>
+													<p className="text-xs text-muted-foreground">
+														Use bullet points to highlight achievements and quantifiable results
+													</p>
+												</div>
+											</CardContent>
+										</Card>
+									))
+								)}
+							</CardContent>
+						</Card>
+					</TabsContent>
+
+					{/* Education Tab */}
+					<TabsContent value="education" className="space-y-4">
+						<Card>
+							<CardHeader>
+								<div className="flex items-center justify-between">
+									<div>
+										<CardTitle>Education</CardTitle>
+										<CardDescription>Your academic qualifications</CardDescription>
+									</div>
+									<Button
+										onClick={() =>
+											appendEducation({
+												id: Date.now().toString(),
+												degree: "",
+												institution: "",
+												location: "",
+												startDate: "",
+												endDate: "",
+												gpa: "",
+												description: "",
+											})
+										}
+									>
+										<Plus className="w-4 h-4 mr-2" />
+										Add Education
+									</Button>
+								</div>
+							</CardHeader>
+							<CardContent className="space-y-6">
+								{educationFields.length === 0 ? (
+									<div className="text-center py-8 text-muted-foreground">
+										<GraduationCap className="w-12 h-12 mx-auto mb-4 opacity-50" />
+										<p>No education added yet</p>
+										<p className="text-sm">Click "Add Education" to get started</p>
+									</div>
+								) : (
+									educationFields.map((field, index) => (
+										<Card key={field.id} className="border-2">
+											<CardContent className="pt-6 space-y-4">
+												<div className="flex items-start justify-between gap-2">
+													<div className="flex items-center gap-2">
+														<GripVertical className="w-4 h-4 text-muted-foreground cursor-move" />
+														<Badge variant="outline">Education #{index + 1}</Badge>
+													</div>
+													<Button
+														variant="ghost"
+														size="sm"
+														onClick={() => removeEducation(index)}
+													>
+														<Trash2 className="w-4 h-4 text-destructive" />
+													</Button>
+												</div>
+
+												<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+													<div className="space-y-2">
+														<Label>Degree *</Label>
+														<Input
+															{...form.register(`education.${index}.degree`)}
+															placeholder="Bachelor of Science in Computer Science"
+														/>
+													</div>
+													<div className="space-y-2">
+														<Label>Institution *</Label>
+														<Input
+															{...form.register(`education.${index}.institution`)}
+															placeholder="Stanford University"
+														/>
+													</div>
+												</div>
+
+												<div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+													<div className="space-y-2">
+														<Label>Start Date</Label>
+														<Input
+															type="month"
+															{...form.register(`education.${index}.startDate`)}
+														/>
+													</div>
+													<div className="space-y-2">
+														<Label>End Date</Label>
+														<Input
+															type="month"
+															{...form.register(`education.${index}.endDate`)}
+														/>
+													</div>
+													<div className="space-y-2">
+														<Label>GPA (Optional)</Label>
+														<Input
+															{...form.register(`education.${index}.gpa`)}
+															placeholder="3.8/4.0"
+														/>
+													</div>
+												</div>
+
+												<div className="space-y-2">
+													<Label>Location</Label>
+													<Input
+														{...form.register(`education.${index}.location`)}
+														placeholder="Stanford, CA"
+													/>
+												</div>
+
+												<div className="space-y-2">
+													<Label>Description (Optional)</Label>
+													<Textarea
+														{...form.register(`education.${index}.description`)}
+														placeholder="Relevant coursework, honors, activities..."
+														rows={3}
+													/>
+												</div>
+											</CardContent>
+										</Card>
+									))
+								)}
+							</CardContent>
+						</Card>
+					</TabsContent>
+
+					{/* Skills Tab */}
+					<TabsContent value="skills" className="space-y-4">
+						<Card>
+							<CardHeader>
+								<div className="flex items-center justify-between">
+									<div>
+										<CardTitle>Skills</CardTitle>
+										<CardDescription>Organize your skills by category</CardDescription>
+									</div>
+									<Button
+										onClick={() =>
+											appendSkill({
+												id: Date.now().toString(),
+												category: "",
+												items: [],
+												level: "intermediate",
+											})
+										}
+									>
+										<Plus className="w-4 h-4 mr-2" />
+										Add Skill Category
+									</Button>
+								</div>
+							</CardHeader>
+							<CardContent className="space-y-6">
+								{skillFields.length === 0 ? (
+									<div className="text-center py-8 text-muted-foreground">
+										<Star className="w-12 h-12 mx-auto mb-4 opacity-50" />
+										<p>No skills added yet</p>
+										<p className="text-sm">Click "Add Skill Category" to get started</p>
+									</div>
+								) : (
+									skillFields.map((field, index) => (
+										<Card key={field.id} className="border-2">
+											<CardContent className="pt-6 space-y-4">
+												<div className="flex items-start justify-between gap-2">
+													<div className="flex items-center gap-2">
+														<GripVertical className="w-4 h-4 text-muted-foreground cursor-move" />
+														<Badge variant="outline">Category #{index + 1}</Badge>
+													</div>
+													<Button
+														variant="ghost"
+														size="sm"
+														onClick={() => removeSkill(index)}
+													>
+														<Trash2 className="w-4 h-4 text-destructive" />
+													</Button>
+												</div>
+
+												<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+													<div className="space-y-2">
+														<Label>Category Name</Label>
+														<Input
+															{...form.register(`skills.${index}.category`)}
+															placeholder="Programming Languages"
+														/>
+													</div>
+													<div className="space-y-2">
+														<Label>Proficiency Level</Label>
+														<Select
+															value={form.watch(`skills.${index}.level`)}
+															onValueChange={(value) =>
+																form.setValue(`skills.${index}.level`, value as any)
+															}
+														>
+															<SelectTrigger>
+																<SelectValue />
+															</SelectTrigger>
+															<SelectContent>
+																<SelectItem value="beginner">Beginner</SelectItem>
+																<SelectItem value="intermediate">Intermediate</SelectItem>
+																<SelectItem value="advanced">Advanced</SelectItem>
+																<SelectItem value="expert">Expert</SelectItem>
+															</SelectContent>
+														</Select>
+													</div>
+												</div>
+
+												<div className="space-y-2">
+													<Label>Skills (comma-separated)</Label>
+													<Textarea
+														placeholder="JavaScript, TypeScript, React, Node.js, Python"
+														rows={3}
+														value={form.watch(`skills.${index}.items`)?.join(", ") || ""}
+														onChange={(e) => {
+															const items = e.target.value.split(",").map((s) => s.trim()).filter(Boolean);
+															form.setValue(`skills.${index}.items`, items);
+														}}
+													/>
+													<p className="text-xs text-muted-foreground">
+														Separate each skill with a comma
+													</p>
+												</div>
+
+												<div className="flex flex-wrap gap-2">
+													{form.watch(`skills.${index}.items`)?.map((skill, skillIdx) => (
+														<Badge key={skillIdx} variant="secondary">
+															{skill}
+														</Badge>
+													))}
+												</div>
+											</CardContent>
+										</Card>
+									))
+								)}
+							</CardContent>
+						</Card>
+					</TabsContent>
+
+					{/* Projects Tab */}
+					<TabsContent value="projects" className="space-y-4">
+						<Card>
+							<CardHeader>
+								<div className="flex items-center justify-between">
+									<div>
+										<CardTitle>Projects</CardTitle>
+										<CardDescription>Showcase your notable projects</CardDescription>
+									</div>
+									<Button
+										onClick={() =>
+											appendProject({
+												id: Date.now().toString(),
+												name: "",
+												description: "",
+												technologies: [],
+												url: "",
+												github: "",
+											})
+										}
+									>
+										<Plus className="w-4 h-4 mr-2" />
+										Add Project
+									</Button>
+								</div>
+							</CardHeader>
+							<CardContent className="space-y-6">
+								{projectFields.length === 0 ? (
+									<div className="text-center py-8 text-muted-foreground">
+										<FileText className="w-12 h-12 mx-auto mb-4 opacity-50" />
+										<p>No projects added yet</p>
+										<p className="text-sm">Click "Add Project" to get started</p>
+									</div>
+								) : (
+									projectFields.map((field, index) => (
+										<Card key={field.id} className="border-2">
+											<CardContent className="pt-6 space-y-4">
+												<div className="flex items-start justify-between gap-2">
+													<div className="flex items-center gap-2">
+														<GripVertical className="w-4 h-4 text-muted-foreground cursor-move" />
+														<Badge variant="outline">Project #{index + 1}</Badge>
+													</div>
+													<Button
+														variant="ghost"
+														size="sm"
+														onClick={() => removeProject(index)}
+													>
+														<Trash2 className="w-4 h-4 text-destructive" />
+													</Button>
+												</div>
+
+												<div className="space-y-2">
+													<Label>Project Name</Label>
+													<Input
+														{...form.register(`projects.${index}.name`)}
+														placeholder="E-commerce Platform"
+													/>
+												</div>
+
+												<div className="space-y-2">
+													<Label>Description</Label>
+													<Textarea
+														{...form.register(`projects.${index}.description`)}
+														placeholder="Describe the project, your role, and impact..."
+														rows={4}
+													/>
+												</div>
+
+												<div className="space-y-2">
+													<Label>Technologies Used</Label>
+													<Textarea
+														placeholder="React, Node.js, PostgreSQL, AWS"
+														rows={2}
+														value={form.watch(`projects.${index}.technologies`)?.join(", ") || ""}
+														onChange={(e) => {
+															const techs = e.target.value.split(",").map((s) => s.trim()).filter(Boolean);
+															form.setValue(`projects.${index}.technologies`, techs);
+														}}
+													/>
+												</div>
+
+												<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+													<div className="space-y-2">
+														<Label>Live URL</Label>
+														<div className="relative">
+															<Globe className="absolute left-3 top-3 w-4 h-4 text-muted-foreground" />
+															<Input
+																{...form.register(`projects.${index}.url`)}
+																placeholder="https://project.com"
+																className="pl-10"
+															/>
+														</div>
+													</div>
+													<div className="space-y-2">
+														<Label>GitHub Repository</Label>
+														<div className="relative">
+															<Github className="absolute left-3 top-3 w-4 h-4 text-muted-foreground" />
+															<Input
+																{...form.register(`projects.${index}.github`)}
+																placeholder="github.com/username/repo"
+																className="pl-10"
+															/>
+														</div>
+													</div>
+												</div>
+											</CardContent>
+										</Card>
+									))
+								)}
+							</CardContent>
+						</Card>
+					</TabsContent>
+
+					{/* Certifications Tab */}
+					<TabsContent value="certifications" className="space-y-4">
+						<Card>
+							<CardHeader>
+								<div className="flex items-center justify-between">
+									<div>
+										<CardTitle>Certifications</CardTitle>
+										<CardDescription>Professional certifications and licenses</CardDescription>
+									</div>
+									<Button
+										onClick={() =>
+											appendCertification({
+												id: Date.now().toString(),
+												name: "",
+												issuer: "",
+												date: "",
+												url: "",
+											})
+										}
+									>
+										<Plus className="w-4 h-4 mr-2" />
+										Add Certification
+									</Button>
+								</div>
+							</CardHeader>
+							<CardContent className="space-y-6">
+								{certificationFields.length === 0 ? (
+									<div className="text-center py-8 text-muted-foreground">
+										<Award className="w-12 h-12 mx-auto mb-4 opacity-50" />
+										<p>No certifications added yet</p>
+										<p className="text-sm">Click "Add Certification" to get started</p>
+									</div>
+								) : (
+									certificationFields.map((field, index) => (
+										<Card key={field.id} className="border-2">
+											<CardContent className="pt-6 space-y-4">
+												<div className="flex items-start justify-between gap-2">
+													<div className="flex items-center gap-2">
+														<Badge variant="outline">Certification #{index + 1}</Badge>
+													</div>
+													<Button
+														variant="ghost"
+														size="sm"
+														onClick={() => removeCertification(index)}
+													>
+														<Trash2 className="w-4 h-4 text-destructive" />
+													</Button>
+												</div>
+
+												<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+													<div className="space-y-2">
+														<Label>Certification Name</Label>
+														<Input
+															{...form.register(`certifications.${index}.name`)}
+															placeholder="AWS Certified Solutions Architect"
+														/>
+													</div>
+													<div className="space-y-2">
+														<Label>Issuing Organization</Label>
+														<Input
+															{...form.register(`certifications.${index}.issuer`)}
+															placeholder="Amazon Web Services"
+														/>
+													</div>
+												</div>
+
+												<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+													<div className="space-y-2">
+														<Label>Issue Date</Label>
+														<Input
+															type="month"
+															{...form.register(`certifications.${index}.date`)}
+														/>
+													</div>
+													<div className="space-y-2">
+														<Label>Credential URL</Label>
+														<Input
+															{...form.register(`certifications.${index}.url`)}
+															placeholder="https://credential.com"
+														/>
+													</div>
+												</div>
+											</CardContent>
+										</Card>
+									))
+								)}
+							</CardContent>
+						</Card>
+					</TabsContent>
+
+					{/* Languages Tab */}
+					<TabsContent value="languages" className="space-y-4">
+						<Card>
+							<CardHeader>
+								<div className="flex items-center justify-between">
+									<div>
+										<CardTitle>Languages</CardTitle>
+										<CardDescription>Languages you can speak</CardDescription>
+									</div>
+									<Button
+										onClick={() =>
+											appendLanguage({
+												id: Date.now().toString(),
+												language: "",
+												proficiency: "conversational",
+											})
+										}
+									>
+										<Plus className="w-4 h-4 mr-2" />
+										Add Language
+									</Button>
+								</div>
+							</CardHeader>
+							<CardContent className="space-y-6">
+								{languageFields.length === 0 ? (
+									<div className="text-center py-8 text-muted-foreground">
+										<Languages className="w-12 h-12 mx-auto mb-4 opacity-50" />
+										<p>No languages added yet</p>
+										<p className="text-sm">Click "Add Language" to get started</p>
+									</div>
+								) : (
+									<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+										{languageFields.map((field, index) => (
+											<Card key={field.id} className="border-2">
+												<CardContent className="pt-6 space-y-4">
+													<div className="flex items-start justify-between gap-2">
+														<Badge variant="outline">Language #{index + 1}</Badge>
+														<Button
+															variant="ghost"
+															size="sm"
+															onClick={() => removeLanguage(index)}
+														>
+															<Trash2 className="w-4 h-4 text-destructive" />
+														</Button>
+													</div>
+
+													<div className="space-y-2">
+														<Label>Language</Label>
+														<Input
+															{...form.register(`languages.${index}.language`)}
+															placeholder="Spanish"
+														/>
+													</div>
+
+													<div className="space-y-2">
+														<Label>Proficiency</Label>
+														<Select
+															value={form.watch(`languages.${index}.proficiency`)}
+															onValueChange={(value) =>
+																form.setValue(`languages.${index}.proficiency`, value as any)
+															}
+														>
+															<SelectTrigger>
+																<SelectValue />
+															</SelectTrigger>
+															<SelectContent>
+																<SelectItem value="basic">Basic</SelectItem>
+																<SelectItem value="conversational">Conversational</SelectItem>
+																<SelectItem value="professional">Professional</SelectItem>
+																<SelectItem value="native">Native</SelectItem>
+															</SelectContent>
+														</Select>
+													</div>
+												</CardContent>
+											</Card>
+										))}
+									</div>
+								)}
+							</CardContent>
+						</Card>
+					</TabsContent>
+
+					{/* Awards Tab */}
+					<TabsContent value="awards" className="space-y-4">
+						<Card>
+							<CardHeader>
+								<div className="flex items-center justify-between">
+									<div>
+										<CardTitle>Awards & Honors</CardTitle>
+										<CardDescription>Recognition and achievements</CardDescription>
+									</div>
+									<Button
+										onClick={() =>
+											appendAward({
+												id: Date.now().toString(),
+												title: "",
+												issuer: "",
+												date: "",
+												description: "",
+											})
+										}
+									>
+										<Plus className="w-4 h-4 mr-2" />
+										Add Award
+									</Button>
+								</div>
+							</CardHeader>
+							<CardContent className="space-y-6">
+								{awardFields.length === 0 ? (
+									<div className="text-center py-8 text-muted-foreground">
+										<Award className="w-12 h-12 mx-auto mb-4 opacity-50" />
+										<p>No awards added yet</p>
+										<p className="text-sm">Click "Add Award" to get started</p>
+									</div>
+								) : (
+									awardFields.map((field, index) => (
+										<Card key={field.id} className="border-2">
+											<CardContent className="pt-6 space-y-4">
+												<div className="flex items-start justify-between gap-2">
+													<Badge variant="outline">Award #{index + 1}</Badge>
+													<Button
+														variant="ghost"
+														size="sm"
+														onClick={() => removeAward(index)}
+													>
+														<Trash2 className="w-4 h-4 text-destructive" />
+													</Button>
+												</div>
+
+												<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+													<div className="space-y-2">
+														<Label>Award Title</Label>
+														<Input
+															{...form.register(`awards.${index}.title`)}
+															placeholder="Employee of the Year"
+														/>
+													</div>
+													<div className="space-y-2">
+														<Label>Issuing Organization</Label>
+														<Input
+															{...form.register(`awards.${index}.issuer`)}
+															placeholder="Company Name"
+														/>
+													</div>
+												</div>
+
+												<div className="space-y-2">
+													<Label>Date Received</Label>
+													<Input
+														type="month"
+														{...form.register(`awards.${index}.date`)}
+													/>
+												</div>
+
+												<div className="space-y-2">
+													<Label>Description</Label>
+													<Textarea
+														{...form.register(`awards.${index}.description`)}
+														placeholder="Brief description of the award..."
+														rows={3}
+													/>
+												</div>
+											</CardContent>
+										</Card>
+									))
+								)}
+							</CardContent>
+						</Card>
+					</TabsContent>
+				</Tabs>
+			</div>
+		</div>
+	);
+}

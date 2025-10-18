@@ -1,6 +1,33 @@
-import { createAuthClient } from "better-auth/react"; // make sure to import from better-auth/react
+import { createAuthClient } from "better-auth/react";
+import {
+  usernameClient,
+  twoFactorClient,
+  adminClient,
+  organizationClient,
+  magicLinkClient,
+  emailOTPClient,
+  phoneNumberClient,
+  passkeyClient,
+  multiSessionClient,
+} from "better-auth/client/plugins";
 
 export const authClient = createAuthClient({
-    
-  //you can pass client configuration here
+  baseURL: process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000",
+  plugins: [
+    usernameClient(),
+    twoFactorClient(),
+    adminClient(),
+    organizationClient(),
+    magicLinkClient(),
+    emailOTPClient(),
+    phoneNumberClient(),
+    passkeyClient(),
+    multiSessionClient(),
+  ],
 });
+
+// Export commonly used methods for convenience
+export const { signIn, signUp, signOut, useSession } = authClient;
+
+// For plugin-specific methods, use authClient.pluginName
+// e.g., authClient.twoFactor, authClient.admin, authClient.organization, etc.

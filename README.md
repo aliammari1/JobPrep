@@ -1,5 +1,29 @@
 This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
+## 📱 PWA Support
+
+This application is configured as a **Progressive Web App (PWA)** with full offline support!
+
+### Features
+
+- ✅ **Install on any device** (desktop, mobile, tablet)
+- ✅ **Works offline** - access cached content without internet
+- ✅ **Fast loading** - service worker caches assets
+- ✅ **Network-first strategy** - always tries to fetch fresh content
+- ✅ **Auto-sync** - changes sync when back online
+
+### Quick PWA Setup
+
+The PWA is already configured! Just run:
+
+```bash
+npm run dev
+# or
+npm run build && npm start
+```
+
+For detailed PWA documentation, see [docs/PWA_SETUP.md](docs/PWA_SETUP.md)
+
 ## Getting Started
 
 First, run the development server:
