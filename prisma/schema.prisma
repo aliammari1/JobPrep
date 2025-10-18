@@ -15,30 +15,56 @@ datasource db {
 }
 
 model User {
-  id            String    @id
-  name          String
-  email         String
-  emailVerified Boolean   @default(false)
-  image         String?
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @default(now()) @updatedAt
-  sessions      Session[]
-  accounts      Account[]
+  id               String       @id
+  name             String
+  email            String
+  emailVerified    Boolean      @default(false)
+  image            String?
+  createdAt        DateTime     @default(now())
+  updatedAt        DateTime     @default(now()) @updatedAt
+  username         String?
+  displayUsername  String?
+  twoFactorEnabled Boolean?     @default(false)
+  role             String?
+  banned           Boolean?     @default(false)
+  banReason        String?
+  banExpires       DateTime?
+  sessions         Session[]
+  accounts         Account[]
+  twofactors       TwoFactor[]
+  members          Member[]
+  invitations      Invitation[]
+
+  phoneNumber         String?
+  phoneNumberVerified Boolean?
+  passkeys            Passkey[]
+
+  // AI Interview Platform Relations
+  createdTemplates    InterviewTemplate[]   @relation("CreatedTemplates")
+  candidateInterviews Interview[]           @relation("CandidateInterviews")
+  interviewerSessions Interview[]           @relation("InterviewerSessions")
+  evaluations         InterviewEvaluation[] @relation("EvaluatorAssessments")
+  candidateProfile    CandidateProfile?     @relation("CandidateProfile")
+  aiMockSessions      AIMockSession[]       @relation("AIMockSessions")
 
   @@unique([email])
+  @@unique([username])
+  @@unique([phoneNumber])
   @@map("user")
 }
 
 model Session {
-  id        String   @id
-  expiresAt DateTime
-  token     String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  ipAddress String?
-  userAgent String?
-  userId    String
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id                   String   @id
+  expiresAt            DateTime
+  token                String
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+  ipAddress            String?
+  userAgent            String?
+  userId               String
+  user                 User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  impersonatedBy       String?
+  activeOrganizationId String?
 
   @@unique([token])
   @@map("session")
@@ -72,4 +98,297 @@ model Verification {
   updatedAt  DateTime @default(now()) @updatedAt
 
   @@map("verification")
+}
+
+model TwoFactor {
+  id          String @id
+  secret      String
+  backupCodes String
+  userId      String
+  user        User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("twoFactor")
+}
+
+model Organization {
+  id          String       @id
+  name        String
+  slug        String
+  logo        String?
+  createdAt   DateTime
+  metadata    String?
+  members     Member[]
+  invitations Invitation[]
+
+  @@unique([slug])
+  @@map("organization")
+}
+
+model Member {
+  id             String       @id
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  userId         String
+  user           User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role           String
+  createdAt      DateTime
+
+  @@map("member")
+}
+
+model Invitation {
+  id             String       @id
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  email          String
+  role           String?
+  status         String
+  expiresAt      DateTime
+  inviterId      String
+  user           User         @relation(fields: [inviterId], references: [id], onDelete: Cascade)
+
+  @@map("invitation")
+}
+
+model Passkey {
+  id           String    @id
+  name         String?
+  publicKey    String
+  userId       String
+  user         User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  credentialID String
+  counter      Int
+  deviceType   String
+  backedUp     Boolean
+  transports   String?
+  createdAt    DateTime?
+  aaguid       String?
+
+  @@map("passkey")
+}
+
+// AI Interview Platform Models
+
+model InterviewTemplate {
+  id          String   @id @default(cuid())
+  title       String
+  description String?
+  category    String // Technical, Behavioral, System Design, etc.
+  difficulty  String // Easy, Medium, Hard
+  duration    Int // in minutes
+  isPublic    Boolean  @default(false)
+  createdBy   String
+  creator     User     @relation("CreatedTemplates", fields: [createdBy], references: [id], onDelete: Cascade)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  questions  InterviewQuestion[]
+  interviews Interview[]
+  tags       String[] // JSON array stored as string
+
+  @@map("interview_template")
+}
+
+model InterviewQuestion {
+  id                 String            @id @default(cuid())
+  templateId         String
+  template           InterviewTemplate @relation(fields: [templateId], references: [id], onDelete: Cascade)
+  question           String            @db.Text
+  questionType       String // coding, behavioral, technical, system-design
+  difficulty         String
+  expectedAnswer     String?           @db.Text
+  timeLimit          Int? // in minutes
+  codeLanguages      String[] // JSON array for coding questions
+  evaluationCriteria String?           @db.Text
+  order              Int
+  createdAt          DateTime          @default(now())
+
+  responses InterviewResponse[]
+
+  @@map("interview_question")
+}
+
+model Interview {
+  id            String            @id @default(cuid())
+  candidateId   String
+  candidate     User              @relation("CandidateInterviews", fields: [candidateId], references: [id], onDelete: Cascade)
+  interviewerId String?
+  interviewer   User?             @relation("InterviewerSessions", fields: [interviewerId], references: [id], onDelete: SetNull)
+  templateId    String
+  template      InterviewTemplate @relation(fields: [templateId], references: [id], onDelete: Cascade)
+
+  status      String    @default("scheduled") // scheduled, in-progress, completed, cancelled
+  scheduledAt DateTime?
+  startedAt   DateTime?
+  completedAt DateTime?
+  duration    Int? // actual duration in minutes
+
+  // Recording and Analytics
+  videoRecordingUrl String?
+  audioRecordingUrl String?
+  aiAnalysisReport  String? @db.Text // JSON report from AI analysis
+
+  // Scores and Evaluation
+  overallScore       Float?
+  technicalScore     Float?
+  behavioralScore    Float?
+  communicationScore Float?
+
+  // Settings
+  isAIInterviewer Boolean @default(false)
+  allowRecording  Boolean @default(true)
+  settings        String? @db.Text // JSON settings
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  responses   InterviewResponse[]
+  evaluations InterviewEvaluation[]
+  analytics   InterviewAnalytics[]
+
+  @@map("interview")
+}
+
+model InterviewResponse {
+  id          String            @id @default(cuid())
+  interviewId String
+  interview   Interview         @relation(fields: [interviewId], references: [id], onDelete: Cascade)
+  questionId  String
+  question    InterviewQuestion @relation(fields: [questionId], references: [id], onDelete: Cascade)
+
+  responseText String? @db.Text
+  codeResponse String? @db.Text
+  language     String?
+
+  // Time tracking
+  timeSpent   Int? // in seconds
+  startedAt   DateTime?
+  submittedAt DateTime?
+
+  // AI Analysis
+  aiScore    Float?
+  aiFeedback String? @db.Text
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("interview_response")
+}
+
+model InterviewEvaluation {
+  id          String    @id @default(cuid())
+  interviewId String
+  interview   Interview @relation(fields: [interviewId], references: [id], onDelete: Cascade)
+  evaluatorId String
+  evaluator   User      @relation("EvaluatorAssessments", fields: [evaluatorId], references: [id], onDelete: Cascade)
+
+  technicalScore     Float?
+  behavioralScore    Float?
+  communicationScore Float?
+  overallScore       Float?
+
+  strengths      String? @db.Text
+  improvements   String? @db.Text
+  recommendation String? // hire, reject, maybe
+  notes          String? @db.Text
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("interview_evaluation")
+}
+
+model InterviewAnalytics {
+  id          String    @id @default(cuid())
+  interviewId String
+  interview   Interview @relation(fields: [interviewId], references: [id], onDelete: Cascade)
+
+  // Voice/Speech Analytics
+  speechClarity Float?
+  speechPace    Float?
+  fillerWords   Int?
+  confidence    Float?
+
+  // Behavioral Analytics
+  eyeContact        Float?
+  facialExpressions String? @db.Text // JSON data
+  bodyLanguage      String? @db.Text // JSON data
+
+  // Performance Metrics
+  responseTime        Float? // average response time
+  accuracyScore       Float?
+  problemSolvingScore Float?
+
+  // Engagement Metrics
+  attention     Float?
+  participation Float?
+
+  analysisData String? @db.Text // Full JSON analysis data
+
+  createdAt DateTime @default(now())
+
+  @@map("interview_analytics")
+}
+
+model CandidateProfile {
+  id     String @id @default(cuid())
+  userId String @unique
+  user   User   @relation("CandidateProfile", fields: [userId], references: [id], onDelete: Cascade)
+
+  // Basic Info
+  resume      String? @db.Text
+  coverLetter String? @db.Text
+  portfolio   String?
+  linkedIn    String?
+  github      String?
+
+  // Skills and Experience
+  skills         String[] // JSON array
+  experience     String?  @db.Text // JSON experience data
+  education      String?  @db.Text // JSON education data
+  certifications String[] // JSON array
+
+  // Preferences
+  jobTitle       String?
+  expectedSalary String?
+  location       String?
+  remote         Boolean @default(false)
+
+  // AI Assessments
+  skillAssessments String? @db.Text // JSON data
+  personalityType  String?
+  careerGoals      String? @db.Text
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("candidate_profile")
+}
+
+model AIMockSession {
+  id     String @id @default(cuid())
+  userId String
+  user   User   @relation("AIMockSessions", fields: [userId], references: [id], onDelete: Cascade)
+
+  sessionType     String // practice, assessment, mock-interview
+  aiPersonality   String // friendly, professional, challenging
+  difficultyLevel String // beginner, intermediate, advanced
+
+  topics   String[] // JSON array of topics
+  duration Int // in minutes
+
+  // Session Data
+  conversationLog  String?  @db.Text // JSON conversation history
+  feedback         String?  @db.Text // AI generated feedback
+  improvementAreas String[] // JSON array
+
+  // Scores
+  overallScore   Float?
+  specificScores String? @db.Text // JSON detailed scores
+
+  startedAt   DateTime?
+  completedAt DateTime?
+  createdAt   DateTime  @default(now())
+
+  @@map("ai_mock_session")
 }
