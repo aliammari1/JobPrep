@@ -47,7 +47,6 @@ export async function sendEmail({ to, subject, html, text, replyTo, tags, schedu
     return { success: false, error: 'Email service not configured' };
   }
 
-  /*
   try {
     const { data, error } = await resend.emails.send({
       from: process.env.RESEND_FROM_EMAIL || 'onboarding@resend.dev',
@@ -62,19 +61,14 @@ export async function sendEmail({ to, subject, html, text, replyTo, tags, schedu
 
     if (error) {
       console.error('Email sending failed:', error);
-      throw error;
+      return { success: false, error: error.message };
     }
 
-    return { success: true, data };
+    return { success: true, emailId: data?.id };
   } catch (error) {
     console.error('Email sending error:', error);
-    throw error;
+    return { success: false, error: 'Failed to send email' };
   }
-  */
-
-  // For now, just log in production too (until you set up email service)
-  console.log(`Email would be sent to ${to} with subject: ${subject}`);
-  return { success: true };
 }
 
 export const emailTemplates = {
