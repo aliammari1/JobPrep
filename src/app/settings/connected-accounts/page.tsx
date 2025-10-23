@@ -46,6 +46,7 @@ export default function ConnectedAccountsPage() {
     if (session) {
       loadAccounts();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [session]);
 
   const loadAccounts = async () => {
@@ -62,14 +63,14 @@ export default function ConnectedAccountsPage() {
     }
   };
 
-  const handleLinkAccount = async (provider: "github" | "google") => {
+  const handleLinkAccount = async (provider: "google") => {
     setError(null);
     try {
       await authClient.linkSocial({
         provider,
         callbackURL: "/settings/connected-accounts",
       });
-    } catch (err) {
+    } catch {
       setError(`Failed to link ${provider} account`);
     }
   };
@@ -87,33 +88,17 @@ export default function ConnectedAccountsPage() {
         providerId,
         accountId,
       });
-
       setSuccess("Account unlinked successfully");
       loadAccounts();
       setTimeout(() => setSuccess(null), 3000);
-    } catch (err) {
+    } catch {
       setError("Failed to unlink account");
     }
   };
 
-  const getProviderIcon = (provider: string) => {
-    switch (provider.toLowerCase()) {
-      case "github":
-        return <Icons.github className="h-5 w-5" />;
-      case "google":
-        return <Icons.google className="h-5 w-5" />;
-      default:
-        return <Icons.link className="h-5 w-5" />;
-    }
-  };
-
-  const getProviderName = (provider: string) => {
-    return provider.charAt(0).toUpperCase() + provider.slice(1);
-  };
-
   const isAccountLinked = (provider: string) => {
     return accounts.some(
-      (acc) => acc.providerId.toLowerCase() === provider.toLowerCase()
+      (acc) => acc.providerId.toLowerCase() === provider.toLowerCase(),
     );
   };
 
@@ -193,71 +178,6 @@ export default function ConnectedAccountsPage() {
         )}
 
         <div className="space-y-4">
-          {/* GitHub */}
-          <Card>
-            <CardHeader>
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <div className="h-10 w-10 rounded-full bg-muted flex items-center justify-center">
-                    <Icons.github className="h-5 w-5" />
-                  </div>
-                  <div>
-                    <CardTitle className="text-lg">GitHub</CardTitle>
-                    <CardDescription>
-                      {isAccountLinked("github")
-                        ? "Connected to your GitHub account"
-                        : "Connect your GitHub account"}
-                    </CardDescription>
-                  </div>
-                </div>
-                {isAccountLinked("github") ? (
-                  <Badge
-                    variant="secondary"
-                    className="bg-green-100 text-green-700"
-                  >
-                    Connected
-                  </Badge>
-                ) : null}
-              </div>
-            </CardHeader>
-            <CardContent>
-              {isAccountLinked("github") ? (
-                <div className="flex items-center justify-between">
-                  <p className="text-sm text-muted-foreground">
-                    Linked on{" "}
-                    {new Date(
-                      accounts.find(
-                        (a) => a.providerId.toLowerCase() === "github"
-                      )?.createdAt || ""
-                    ).toLocaleDateString()}
-                  </p>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => {
-                      const account = accounts.find(
-                        (a) => a.providerId.toLowerCase() === "github"
-                      );
-                      if (account) handleUnlinkAccount(account.providerId, account.accountId);
-                    }}
-                  >
-                    <Icons.unlink className="mr-2 h-4 w-4" />
-                    Unlink
-                  </Button>
-                </div>
-              ) : (
-                <Button
-                  onClick={() => handleLinkAccount("github")}
-                  variant="outline"
-                  className="w-full"
-                >
-                  <Icons.link className="mr-2 h-4 w-4" />
-                  Connect GitHub
-                </Button>
-              )}
-            </CardContent>
-          </Card>
-
           {/* Google */}
           <Card>
             <CardHeader>
@@ -292,8 +212,8 @@ export default function ConnectedAccountsPage() {
                     Linked on{" "}
                     {new Date(
                       accounts.find(
-                        (a) => a.providerId.toLowerCase() === "google"
-                      )?.createdAt || ""
+                        (a) => a.providerId.toLowerCase() === "google",
+                      )?.createdAt || "",
                     ).toLocaleDateString()}
                   </p>
                   <Button
@@ -301,9 +221,13 @@ export default function ConnectedAccountsPage() {
                     size="sm"
                     onClick={() => {
                       const account = accounts.find(
-                        (a) => a.providerId.toLowerCase() === "google"
+                        (a) => a.providerId.toLowerCase() === "google",
                       );
-                      if (account) handleUnlinkAccount(account.providerId, account.accountId);
+                      if (account)
+                        handleUnlinkAccount(
+                          account.providerId,
+                          account.accountId,
+                        );
                     }}
                   >
                     <Icons.unlink className="mr-2 h-4 w-4" />

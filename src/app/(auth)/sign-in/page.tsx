@@ -55,7 +55,7 @@ export default function SignInPage() {
               setError(ctx.error.message || "An error occurred during sign in");
               setIsLoading(false);
             },
-          }
+          },
         );
       } else {
         await authClient.signIn.username(
@@ -75,30 +75,30 @@ export default function SignInPage() {
               setError(ctx.error.message || "An error occurred during sign in");
               setIsLoading(false);
             },
-          }
+          },
         );
       }
     } catch (err) {
       setError(
-        err instanceof Error ? err.message : "An unexpected error occurred"
+        err instanceof Error ? err.message : "An unexpected error occurred",
       );
     } finally {
       setIsLoading(false);
     }
   };
 
-  const handleSocialSignIn = async (provider: "google" | "github") => {
+  const handleGoogleSignIn = async () => {
     setIsLoading(true);
     setError(null);
 
     try {
       await authClient.signIn.social({
-        provider,
+        provider: "google",
         callbackURL: "/dashboard",
       });
     } catch (err) {
       setError(
-        err instanceof Error ? err.message : "An unexpected error occurred"
+        err instanceof Error ? err.message : "An unexpected error occurred",
       );
       setIsLoading(false);
     }
@@ -197,36 +197,20 @@ export default function SignInPage() {
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-3">
-            <Button
-              variant="outline"
-              type="button"
-              disabled={isLoading}
-              onClick={() => handleSocialSignIn("github")}
-              className="h-11"
-            >
-              {isLoading ? (
-                <Icons.spinner className="mr-2 h-4 w-4 animate-spin" />
-              ) : (
-                <Icons.gitHub className="mr-2 h-4 w-4" />
-              )}
-              GitHub
-            </Button>
-            <Button
-              variant="outline"
-              type="button"
-              disabled={isLoading}
-              onClick={() => handleSocialSignIn("google")}
-              className="h-11"
-            >
-              {isLoading ? (
-                <Icons.spinner className="mr-2 h-4 w-4 animate-spin" />
-              ) : (
-                <Icons.google className="mr-2 h-4 w-4" />
-              )}
-              Google
-            </Button>
-          </div>
+          <Button
+            variant="outline"
+            type="button"
+            disabled={isLoading}
+            onClick={handleGoogleSignIn}
+            className="w-full h-11"
+          >
+            {isLoading ? (
+              <Icons.spinner className="mr-2 h-4 w-4 animate-spin" />
+            ) : (
+              <Icons.google className="mr-2 h-4 w-4" />
+            )}
+            Continue with Google
+          </Button>
         </CardContent>
         <CardFooter className="flex flex-col space-y-4">
           <div className="flex items-center justify-center gap-4 text-sm">

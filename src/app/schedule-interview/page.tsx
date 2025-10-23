@@ -107,8 +107,10 @@ export default function ScheduleInterview() {
   const [interviews, setInterviews] = useState<Interview[]>([]);
   const [loading, setLoading] = useState(true);
   const [templates, setTemplates] = useState<any[]>([]);
+  const [users, setUsers] = useState<any[]>([]);
 
   const [formData, setFormData] = useState({
+    candidateId: "",
     candidateName: "",
     candidateEmail: "",
     position: "",
@@ -199,6 +201,24 @@ export default function ScheduleInterview() {
     }
   }, [session]);
 
+  // Fetch users (for candidate selection)
+  useEffect(() => {
+    const fetchUsers = async () => {
+      try {
+        const response = await fetch("/api/users?limit=100");
+        if (!response.ok) throw new Error("Failed to fetch users");
+        const data = await response.json();
+        setUsers(data);
+      } catch (error) {
+        console.error("Error fetching users:", error);
+      }
+    };
+
+    if (session) {
+      fetchUsers();
+    }
+  }, [session]);
+
   const timeSlots = [
     "09:00",
     "09:30",
@@ -271,6 +291,17 @@ export default function ScheduleInterview() {
 
   const handleSchedule = async () => {
     try {
+      // Validate required fields
+      if (!formData.candidateId) {
+        alert("Please select a candidate");
+        return;
+      }
+
+      if (!formData.templateId) {
+        alert("Please select an interview template");
+        return;
+      }
+
       // Create interview via API
       const response = await fetch("/api/interviews", {
         method: "POST",
@@ -278,9 +309,9 @@ export default function ScheduleInterview() {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          candidateId: session?.user?.id, // In real app, you'd select/create a candidate
+          candidateId: formData.candidateId,
           templateId: formData.templateId,
-          interviewerId: formData.interviewers[0], // First interviewer as lead
+          interviewerId: formData.interviewers[0] || session?.user?.id, // First interviewer as lead or current user
           scheduledAt: new Date(
             formData.date.setHours(
               parseInt(formData.time.split(":")[0]),
@@ -299,7 +330,10 @@ export default function ScheduleInterview() {
         }),
       });
 
-      if (!response.ok) throw new Error("Failed to create interview");
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || "Failed to create interview");
+      }
 
       const newInterview = await response.json();
 
@@ -338,6 +372,7 @@ export default function ScheduleInterview() {
 
       // Reset form
       setFormData({
+        candidateId: "",
         candidateName: "",
         candidateEmail: "",
         position: "",
@@ -355,9 +390,9 @@ export default function ScheduleInterview() {
         recordSession: false,
         templateId: "",
       });
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error scheduling interview:", error);
-      alert("Failed to schedule interview. Please try again.");
+      alert(error.message || "Failed to schedule interview. Please try again.");
     }
   };
 
@@ -811,33 +846,31 @@ export default function ScheduleInterview() {
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label>Candidate Name</Label>
-                    <Input
-                      value={formData.candidateName}
-                      onChange={(e) =>
+                  <div className="space-y-2 col-span-2">
+                    <Label>Select Candidate *</Label>
+                    <Select
+                      value={formData.candidateId}
+                      onValueChange={(value) => {
+                        const selectedUser = users.find(u => u.id === value);
                         setFormData((prev) => ({
                           ...prev,
-                          candidateName: e.target.value,
-                        }))
-                      }
-                      placeholder="Enter candidate name"
-                    />
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label>Candidate Email</Label>
-                    <Input
-                      type="email"
-                      value={formData.candidateEmail}
-                      onChange={(e) =>
-                        setFormData((prev) => ({
-                          ...prev,
-                          candidateEmail: e.target.value,
-                        }))
-                      }
-                      placeholder="Enter candidate email"
-                    />
+                          candidateId: value,
+                          candidateName: selectedUser?.name || "",
+                          candidateEmail: selectedUser?.email || "",
+                        }));
+                      }}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select a candidate" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {users.map((user) => (
+                          <SelectItem key={user.id} value={user.id}>
+                            {user.name} ({user.email})
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                   </div>
 
                   <div className="space-y-2">
@@ -963,6 +996,27 @@ export default function ScheduleInterview() {
                         </SelectItem>
                         <SelectItem value="Marketing">Marketing</SelectItem>
                         <SelectItem value="Sales">Sales</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="space-y-2 col-span-2">
+                    <Label>Interview Template *</Label>
+                    <Select
+                      value={formData.templateId}
+                      onValueChange={(value) =>
+                        setFormData((prev) => ({ ...prev, templateId: value }))
+                      }
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select interview template" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {templates.map((template) => (
+                          <SelectItem key={template.id} value={template.id}>
+                            {template.title} - {template.category} ({template.difficulty})
+                          </SelectItem>
+                        ))}
                       </SelectContent>
                     </Select>
                   </div>

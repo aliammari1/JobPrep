@@ -24,6 +24,35 @@ npm run build && npm start
 
 For detailed PWA documentation, see [docs/PWA_SETUP.md](docs/PWA_SETUP.md)
 
+## 🔐 Authentication
+
+This application uses **Better Auth** with the following authentication methods:
+
+- ✅ **Email & Password** - Traditional authentication with email verification
+- ✅ **Google OAuth** - Sign in with Google account
+- ✅ **Magic Link** - Passwordless email authentication
+- ✅ **Email OTP** - One-time password via email
+- ✅ **Phone Number** - SMS-based authentication
+- ✅ **Two-Factor Authentication (2FA)** - Additional security layer
+- ✅ **Passkey (WebAuthn)** - Biometric authentication
+- ✅ **Username** - Username-based login support
+
+### Setting Up Google OAuth
+
+To enable Google Sign-In, follow the detailed setup guide:
+
+📖 **[GOOGLE_OAUTH_SETUP.md](GOOGLE_OAUTH_SETUP.md)** - Complete step-by-step instructions
+
+Quick start:
+1. Create a Google Cloud project
+2. Configure OAuth consent screen
+3. Create OAuth 2.0 credentials
+4. Add credentials to `.env.local`:
+   ```bash
+   GOOGLE_CLIENT_ID="your-client-id"
+   GOOGLE_CLIENT_SECRET="your-client-secret"
+   ```
+
 ## Getting Started
 
 First, run the development server:

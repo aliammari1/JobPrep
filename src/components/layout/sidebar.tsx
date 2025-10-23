@@ -2,8 +2,9 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
+import { useSession, signOut } from "@/lib/auth-client";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -100,16 +101,10 @@ const sidebarItems: SidebarItem[] = [
     icon: Users,
     children: [
       {
-        id: "schedule",
-        label: "Schedule Interview",
-        icon: Calendar,
-        href: "/schedule-interview",
-      },
-      {
-        id: "interview-scheduler",
-        label: "Interview Scheduler",
-        icon: CalendarCheck,
-        href: "/interview-scheduler",
+        id: "mock-interview",
+        label: "Mock Interview",
+        icon: Target,
+        href: "/mock-interview",
       },
       {
         id: "interview-room",
@@ -118,168 +113,16 @@ const sidebarItems: SidebarItem[] = [
         href: "/interview-room",
       },
       {
-        id: "mock-interview",
-        label: "Mock Interview",
-        icon: Target,
-        href: "/mock-interview",
-      },
-      {
-        id: "mock-simulator",
-        label: "Mock Simulator",
-        icon: Zap,
-        href: "/mock-simulator",
-        isNew: true,
-      },
-      {
-        id: "practice-interview",
-        label: "Practice Session",
-        icon: BookOpen,
-        href: "/practice-interview",
-      },
-      {
-        id: "voice-interview",
-        label: "Voice Interview",
-        icon: Mic,
-        href: "/voice-interview",
+        id: "interview-scheduler",
+        label: "Interview Scheduler",
+        icon: CalendarCheck,
+        href: "/interview-scheduler",
       },
       {
         id: "code-challenge",
         label: "Code Challenge",
         icon: Code2,
         href: "/code-challenge",
-      },
-    ],
-  },
-  {
-    id: "evaluation",
-    label: "Evaluation & Review",
-    icon: Scale,
-    children: [
-      {
-        id: "collaborative-eval",
-        label: "Collaborative Evaluation",
-        icon: Handshake,
-        href: "/collaborative-evaluation",
-      },
-      {
-        id: "replay-center",
-        label: "Replay Center",
-        icon: RotateCcw,
-        href: "/replay-center",
-        isNew: true,
-      },
-      {
-        id: "ai-analysis",
-        label: "AI Analysis",
-        icon: Brain,
-        href: "/ai-analysis",
-        isPro: true,
-      },
-      {
-        id: "feedback-system",
-        label: "Feedback System",
-        icon: MessageSquare,
-        href: "/feedback",
-      },
-      {
-        id: "ai-feedback",
-        label: "AI Feedback",
-        icon: Bot,
-        href: "/ai-feedback",
-        isPro: true,
-      },
-      {
-        id: "skill-assessment",
-        label: "Skill Assessment",
-        icon: Award,
-        href: "/skill-assessment",
-      },
-    ],
-  },
-  {
-    id: "analytics",
-    label: "Analytics & Insights",
-    icon: BarChart3,
-    children: [
-      {
-        id: "performance-analytics",
-        label: "Performance Analytics",
-        icon: TrendingUp,
-        href: "/performance-analytics",
-      },
-      {
-        id: "interview-insights",
-        label: "Interview Insights AI",
-        icon: Brain,
-        href: "/interview-insights",
-        isPro: true,
-      },
-      {
-        id: "interview-analytics",
-        label: "Interview Analytics",
-        icon: BarChart,
-        href: "/interview-analytics",
-      },
-      {
-        id: "interview-dashboard",
-        label: "Interview Dashboard",
-        icon: Monitor,
-        href: "/interview-dashboard",
-      },
-      {
-        id: "reports",
-        label: "Advanced Reports",
-        icon: FileText,
-        href: "/reports",
-      },
-      {
-        id: "real-time-metrics",
-        label: "Real-time Metrics",
-        icon: Activity,
-        href: "/real-time-metrics",
-      },
-    ],
-  },
-  {
-    id: "candidates",
-    label: "Candidate Management",
-    icon: Users2,
-    children: [
-      {
-        id: "candidate-profile",
-        label: "Candidate Profile",
-        icon: User,
-        href: "/candidate-profile",
-      },
-      {
-        id: "candidate-profiles",
-        label: "Candidate Profiles",
-        icon: Users,
-        href: "/candidate-profiles",
-      },
-      {
-        id: "talent-pipeline",
-        label: "Talent Pipeline",
-        icon: Workflow,
-        href: "/talent-pipeline",
-      },
-      {
-        id: "screening-tools",
-        label: "Screening Tools",
-        icon: Shield,
-        href: "/screening-tools",
-      },
-      {
-        id: "candidate-tracking",
-        label: "Candidate Tracking",
-        icon: Eye,
-        href: "/candidate-tracking",
-      },
-      {
-        id: "organizations",
-        label: "Organizations",
-        icon: Building,
-        href: "/organizations",
       },
     ],
   },
@@ -302,121 +145,6 @@ const sidebarItems: SidebarItem[] = [
         icon: Mail,
         href: "/cover-letter",
         isNew: true,
-      },
-    ],
-  },
-  {
-    id: "ai-features",
-    label: "AI Features",
-    icon: Brain,
-    badge: "Pro",
-    children: [
-      {
-        id: "adaptive-questions",
-        label: "Adaptive Question Flow",
-        icon: Zap,
-        href: "/adaptive-questions",
-        isNew: true,
-      },
-      {
-        id: "question-builder",
-        label: "Smart Question Builder",
-        icon: Wrench,
-        href: "/question-builder",
-        isNew: true,
-      },
-      {
-        id: "interview-coach",
-        label: "Interview Prep Coach",
-        icon: BookOpen,
-        href: "/interview-coach",
-      },
-      {
-        id: "smart-matching",
-        label: "Smart Candidate Matching",
-        icon: Target,
-        href: "/smart-matching",
-      },
-      {
-        id: "predictive-analytics",
-        label: "Predictive Analytics",
-        icon: LineChart,
-        href: "/predictive-analytics",
-      },
-    ],
-  },
-  {
-    id: "collaboration",
-    label: "Collaboration",
-    icon: Users2,
-    children: [
-      {
-        id: "team-workspace",
-        label: "Team Workspace",
-        icon: Users,
-        href: "/team-workspace",
-      },
-      {
-        id: "real-time-collab",
-        label: "Real-time Collaboration",
-        icon: Globe,
-        href: "/real-time-collaboration",
-        isNew: true,
-      },
-      {
-        id: "shared-notes",
-        label: "Shared Notes",
-        icon: FileText,
-        href: "/shared-notes",
-      },
-      {
-        id: "team-calendar",
-        label: "Team Calendar",
-        icon: Calendar,
-        href: "/team-calendar",
-      },
-      {
-        id: "screen-sharing",
-        label: "Screen Sharing",
-        icon: Share,
-        href: "/screen-sharing",
-      },
-      {
-        id: "video-recorder",
-        label: "Video Recorder",
-        icon: VideoIcon,
-        href: "/video-recorder",
-      },
-    ],
-  },
-  {
-    id: "templates",
-    label: "Templates & Resources",
-    icon: FileText,
-    children: [
-      {
-        id: "templates-library",
-        label: "Templates Library",
-        icon: BookOpen,
-        href: "/templates-library",
-      },
-      {
-        id: "question-templates",
-        label: "Question Templates",
-        icon: MessageSquare,
-        href: "/question-templates",
-      },
-      {
-        id: "evaluation-forms",
-        label: "Evaluation Forms",
-        icon: Scale,
-        href: "/evaluation-forms",
-      },
-      {
-        id: "resource-center",
-        label: "Resource Center",
-        icon: Database,
-        href: "/resource-center",
       },
     ],
   },
@@ -538,16 +266,23 @@ const sidebarItems: SidebarItem[] = [
 
 export function Sidebar({ isOpen, onToggle, onClose }: SidebarProps) {
   const pathname = usePathname();
+  const router = useRouter();
+  const { data: session, isPending } = useSession();
   const [expandedItems, setExpandedItems] = useState<string[]>([
     "interviews",
     "evaluation",
   ]);
 
+  const handleSignOut = async () => {
+    await signOut();
+    router.push("/");
+  };
+
   const toggleExpanded = (itemId: string) => {
     setExpandedItems((prev) =>
       prev.includes(itemId)
         ? prev.filter((id) => id !== itemId)
-        : [...prev, itemId]
+        : [...prev, itemId],
     );
   };
 
@@ -575,7 +310,7 @@ export function Sidebar({ isOpen, onToggle, onClose }: SidebarProps) {
               "w-full justify-between h-10 px-3 font-medium transition-colors",
               level > 0 && "ml-4 w-auto",
               active &&
-                "bg-indigo-50 text-indigo-700 dark:bg-indigo-950 dark:text-indigo-300"
+                "bg-indigo-50 text-indigo-700 dark:bg-indigo-950 dark:text-indigo-300",
             )}
             onClick={() => toggleExpanded(item.id)}
           >
@@ -612,7 +347,7 @@ export function Sidebar({ isOpen, onToggle, onClose }: SidebarProps) {
                 "w-full justify-start h-10 px-3 font-medium transition-colors",
                 level > 0 && "ml-4 w-auto",
                 active &&
-                  "bg-indigo-50 text-indigo-700 dark:bg-indigo-950 dark:text-indigo-300"
+                  "bg-indigo-50 text-indigo-700 dark:bg-indigo-950 dark:text-indigo-300",
               )}
             >
               <div className="flex items-center gap-3 w-full">
@@ -652,7 +387,7 @@ export function Sidebar({ isOpen, onToggle, onClose }: SidebarProps) {
             >
               <div className="space-y-1 ml-4">
                 {item.children?.map((child) =>
-                  renderSidebarItem(child, level + 1)
+                  renderSidebarItem(child, level + 1),
                 )}
               </div>
             </motion.div>
@@ -682,7 +417,7 @@ export function Sidebar({ isOpen, onToggle, onClose }: SidebarProps) {
         className={cn(
           "fixed left-0 top-0 z-50 h-full w-80 bg-white dark:bg-gray-900 border-r border-gray-200 dark:border-gray-800 flex flex-col transition-transform duration-300",
           isOpen ? "translate-x-0" : "-translate-x-full",
-          "lg:relative lg:translate-x-0 lg:z-0"
+          "lg:relative lg:translate-x-0 lg:z-0",
         )}
       >
         {/* Header */}
@@ -711,7 +446,7 @@ export function Sidebar({ isOpen, onToggle, onClose }: SidebarProps) {
           <Link href="/schedule-interview">
             <Button className="w-full justify-start gap-2" size="sm">
               <Plus className="w-4 h-4" />
-              Schedule Interview
+              Mock Interview
             </Button>
           </Link>
           <Button
@@ -733,30 +468,72 @@ export function Sidebar({ isOpen, onToggle, onClose }: SidebarProps) {
 
         {/* User Profile */}
         <div className="p-4 border-t border-gray-200 dark:border-gray-800">
-          <div className="flex items-center gap-3 mb-3">
-            <Avatar className="w-10 h-10">
-              <AvatarImage src="/placeholder-avatar.jpg" />
-              <AvatarFallback>JD</AvatarFallback>
-            </Avatar>
-            <div className="flex-1 min-w-0">
-              <p className="font-medium text-sm truncate">John Doe</p>
-              <p className="text-xs text-gray-500 truncate">HR Manager</p>
+          {isPending ? (
+            <div className="flex items-center gap-3 mb-3">
+              <div className="w-10 h-10 bg-gray-200 dark:bg-gray-700 rounded-full animate-pulse" />
+              <div className="flex-1">
+                <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-24 mb-1 animate-pulse" />
+                <div className="h-3 bg-gray-200 dark:bg-gray-700 rounded w-16 animate-pulse" />
+              </div>
             </div>
-            <Button variant="ghost" size="sm">
-              <Settings className="w-4 h-4" />
-            </Button>
-          </div>
+          ) : session?.user ? (
+            <>
+              <div className="flex items-center gap-3 mb-3">
+                <Avatar className="w-10 h-10">
+                  <AvatarImage src={session.user.image || ""} />
+                  <AvatarFallback>
+                    {session.user.name
+                      ?.split(" ")
+                      .map((n) => n[0])
+                      .join("")
+                      .toUpperCase() || "U"}
+                  </AvatarFallback>
+                </Avatar>
+                <div className="flex-1 min-w-0">
+                  <p className="font-medium text-sm truncate">
+                    {session.user.name || "User"}
+                  </p>
+                  <p className="text-xs text-gray-500 truncate">
+                    {session.user.email}
+                  </p>
+                </div>
+                <Link href="/settings">
+                  <Button variant="ghost" size="sm">
+                    <Settings className="w-4 h-4" />
+                  </Button>
+                </Link>
+              </div>
 
-          <div className="grid grid-cols-2 gap-2">
-            <Button variant="outline" size="sm" className="justify-start gap-2">
-              <HelpCircle className="w-3 h-3" />
-              Help
-            </Button>
-            <Button variant="outline" size="sm" className="justify-start gap-2">
-              <LogOut className="w-3 h-3" />
-              Logout
-            </Button>
-          </div>
+              <div className="grid grid-cols-2 gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="justify-start gap-2"
+                >
+                  <HelpCircle className="w-3 h-3" />
+                  Help
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="justify-start gap-2"
+                  onClick={handleSignOut}
+                >
+                  <LogOut className="w-3 h-3" />
+                  Logout
+                </Button>
+              </div>
+            </>
+          ) : (
+            <div className="text-center py-4">
+              <p className="text-sm text-gray-500 mb-3">Not signed in</p>
+              <Link href="/sign-in">
+                <Button size="sm" className="w-full">
+                  Sign In
+                </Button>
+              </Link>
+            </div>
+          )}
         </div>
       </aside>
     </>
