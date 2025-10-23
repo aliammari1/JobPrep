@@ -43,7 +43,6 @@ export interface CVSkill {
 	id: string;
 	category: string;
 	items: string[];
-	level: "beginner" | "intermediate" | "advanced" | "expert";
 	order: number;
 }
 
@@ -94,7 +93,7 @@ export interface CVData {
 }
 
 export interface CVSettings {
-	template: "modern" | "classic" | "minimal" | "creative" | "professional";
+	template: "modern" | "classic" | "minimal" ;
 	colorScheme: string;
 	fontSize: "small" | "medium" | "large";
 	spacing: "compact" | "normal" | "relaxed";
@@ -149,6 +148,7 @@ interface CVStore {
 	canUndo: () => boolean;
 	canRedo: () => boolean;
 }
+
 
 const initialCVData: CVData = {
 	personalInfo: {

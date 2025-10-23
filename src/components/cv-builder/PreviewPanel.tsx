@@ -191,10 +191,6 @@ export function PreviewPanel() {
         return <ClassicTemplate cvData={cvData} settings={settings} />;
       case "minimal":
         return <MinimalTemplate cvData={cvData} settings={settings} />;
-      case "creative":
-        return <ModernTemplate cvData={cvData} settings={settings} />; // Fallback for now
-      case "professional":
-        return <ClassicTemplate cvData={cvData} settings={settings} />; // Fallback for now
       default:
         return <ModernTemplate cvData={cvData} settings={settings} />;
     }
