@@ -1,12 +1,13 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { useSession } from "@/lib/auth-client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
@@ -14,7 +15,6 @@ import {
   Clock,
   Users,
   Video,
-  Mail,
   Phone,
   MapPin,
   Globe,
@@ -33,7 +33,6 @@ import {
   MessageSquare,
   CheckCircle2,
   AlertCircle,
-  XCircle,
   Zap,
   BarChart3,
   TrendingUp,
@@ -68,13 +67,90 @@ interface TimeSlot {
   interview?: Interview;
 }
 
+// API interview shape coming from server
+interface ApiInterview {
+  id?: string;
+  candidateName?: string;
+  title?: string;
+  scheduledAt?: string;
+  createdAt?: string;
+  duration?: number;
+  type?: Interview["type"];
+  status?: Interview["status"];
+  candidateEmail?: string;
+  notes?: string;
+}
+
+interface NewInterviewForm {
+  candidateName: string;
+  position: string;
+  date: string;
+  time: string;
+  duration: number;
+  type: Interview["type"];
+  status: Interview["status"];
+  candidateEmail: string;
+  candidatePhone: string;
+  notes: string;
+}
+
+// simple mock data fallback (module-level)
+const mockInterviews: Interview[] = [
+  {
+    id: "1",
+    candidateName: "Sarah Johnson",
+    position: "Senior Frontend Developer",
+    date: new Date(),
+    time: "09:00",
+    duration: 60,
+    type: "video",
+    status: "confirmed",
+    interviewer: "Alex Chen",
+    candidateEmail: "sarah.johnson@email.com",
+    candidatePhone: "+1 (555) 123-4567",
+    notes: "Focus on React expertise and system design",
+    reminderSent: true,
+  },
+  {
+    id: "2",
+    candidateName: "Michael Torres",
+    position: "Backend Engineer",
+    date: new Date(Date.now() + 24 * 60 * 60 * 1000),
+    time: "14:00",
+    duration: 45,
+    type: "in-person",
+    status: "scheduled",
+    interviewer: "Jessica Park",
+    location: "Conference Room A",
+    candidateEmail: "michael.torres@email.com",
+    notes: "Technical interview with coding challenge",
+    reminderSent: false,
+  },
+  {
+    id: "3",
+    candidateName: "Emily Rodriguez",
+    position: "UX Designer",
+    date: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000),
+    time: "11:30",
+    duration: 90,
+    type: "video",
+    status: "confirmed",
+    interviewer: "David Kim",
+    candidateEmail: "emily.rodriguez@email.com",
+    notes: "Portfolio review and design thinking exercise",
+    reminderSent: true,
+  },
+];
+
 function InterviewScheduler() {
-  const [selectedDate, setSelectedDate] = useState(new Date());
+  const [selectedDate, _setSelectedDate] = useState(new Date());
   const [selectedView, setSelectedView] = useState<"day" | "week" | "month">(
-    "week"
+    "week",
   );
   const [interviews, setInterviews] = useState<Interview[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [_loading, setLoading] = useState(true);
+
+  // mock data used as fallback (moved to module scope below)
 
   useEffect(() => {
     const fetchInterviews = async () => {
@@ -83,13 +159,15 @@ function InterviewScheduler() {
         if (response.ok) {
           const data = await response.json();
           const transformedInterviews = (data.interviews || []).map(
-            (interview: any) => ({
-              id: interview.id,
+            (interview: ApiInterview) => ({
+              id: interview.id || Date.now().toString(),
               candidateName: interview.candidateName || "Anonymous",
               position: interview.title || "Position",
-              date: new Date(interview.scheduledAt || interview.createdAt),
+              date: new Date(
+                interview.scheduledAt || interview.createdAt || Date.now(),
+              ),
               time: new Date(
-                interview.scheduledAt || interview.createdAt
+                interview.scheduledAt || interview.createdAt || Date.now(),
               ).toLocaleTimeString("en-US", {
                 hour: "2-digit",
                 minute: "2-digit",
@@ -102,13 +180,13 @@ function InterviewScheduler() {
               candidateEmail: interview.candidateEmail || "",
               notes: interview.notes || "",
               reminderSent: false,
-            })
+            }),
           );
           setInterviews(transformedInterviews);
         } else {
           setInterviews(mockInterviews);
         }
-      } catch (error) {
+      } catch {
         setInterviews(mockInterviews);
       } finally {
         setLoading(false);
@@ -116,61 +194,66 @@ function InterviewScheduler() {
     };
 
     fetchInterviews();
+
+    // Check calendar connection status
+    const checkCalendarConnection = async () => {
+      try {
+        const response = await fetch("/api/google/calendar/status");
+        if (response.ok) {
+          const { connected } = await response.json();
+          setCalendarConnected(connected);
+        }
+      } catch (error) {
+        console.error("Error checking calendar status:", error);
+      }
+    };
+    checkCalendarConnection();
+
+    // Check URL params for OAuth success/error
+    const params = new URLSearchParams(window.location.search);
+    if (params.get("success") === "calendar_connected") {
+      setSuccessMessage("Google Calendar connected successfully!");
+      setCalendarConnected(true);
+      setTimeout(() => setSuccessMessage(null), 5000);
+      // Clean URL
+      window.history.replaceState({}, "", window.location.pathname);
+    } else if (params.get("error")) {
+      const errorType = params.get("error");
+      const errorMessages: Record<string, string> = {
+        oauth_denied: "Calendar access was denied",
+        invalid_callback: "Invalid OAuth callback",
+        unauthorized: "Unauthorized access",
+        token_exchange_failed: "Failed to exchange tokens",
+        callback_failed: "OAuth callback failed",
+      };
+      setErrorMessage(
+        errorMessages[errorType || ""] || "Failed to connect calendar",
+      );
+      setTimeout(() => setErrorMessage(null), 5000);
+      window.history.replaceState({}, "", window.location.pathname);
+    }
   }, []);
-
-  const mockInterviews: Interview[] = [
-    {
-      id: "1",
-      candidateName: "Sarah Johnson",
-      position: "Senior Frontend Developer",
-      date: new Date(),
-      time: "09:00",
-      duration: 60,
-      type: "video",
-      status: "confirmed",
-      interviewer: "Alex Chen",
-      candidateEmail: "sarah.johnson@email.com",
-      candidatePhone: "+1 (555) 123-4567",
-      notes: "Focus on React expertise and system design",
-      reminderSent: true,
-    },
-    {
-      id: "2",
-      candidateName: "Michael Torres",
-      position: "Backend Engineer",
-      date: new Date(Date.now() + 24 * 60 * 60 * 1000),
-      time: "14:00",
-      duration: 45,
-      type: "in-person",
-      status: "scheduled",
-      interviewer: "Jessica Park",
-      location: "Conference Room A",
-      candidateEmail: "michael.torres@email.com",
-      notes: "Technical interview with coding challenge",
-      reminderSent: false,
-    },
-    {
-      id: "3",
-      candidateName: "Emily Rodriguez",
-      position: "UX Designer",
-      date: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000),
-      time: "11:30",
-      duration: 90,
-      type: "video",
-      status: "confirmed",
-      interviewer: "David Kim",
-      candidateEmail: "emily.rodriguez@email.com",
-      notes: "Portfolio review and design thinking exercise",
-      reminderSent: true,
-    },
-  ];
-
   const [showNewInterviewModal, setShowNewInterviewModal] = useState(false);
-  const [selectedInterview, setSelectedInterview] = useState<Interview | null>(
-    null
-  );
-  const [filterStatus, setFilterStatus] = useState<string>("all");
+  const [newInterviewForm, setNewInterviewForm] = useState<NewInterviewForm>({
+    candidateName: "",
+    position: "",
+    date: new Date().toISOString().slice(0, 10),
+    time: "09:00",
+    duration: 60,
+    type: "video",
+    status: "scheduled",
+    candidateEmail: "",
+    candidatePhone: "",
+    notes: "",
+  });
+  const [filterStatus, _setFilterStatus] = useState<string>("all");
   const [searchQuery, setSearchQuery] = useState("");
+  const [formErrors, setFormErrors] = useState<Record<string, string>>({});
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [calendarConnected, setCalendarConnected] = useState(false);
+  const { data: session } = useSession();
 
   // Generate time slots for the selected date
   const generateTimeSlots = (): TimeSlot[] => {
@@ -186,7 +269,7 @@ function InterviewScheduler() {
         const interview = interviews.find(
           (i) =>
             i.date.toDateString() === selectedDate.toDateString() &&
-            i.time === time
+            i.time === time,
         );
 
         slots.push({
@@ -268,7 +351,7 @@ function InterviewScheduler() {
   const getDayStats = () => {
     const today = new Date();
     const todayInterviews = interviews.filter(
-      (i) => i.date.toDateString() === today.toDateString()
+      (i) => i.date.toDateString() === today.toDateString(),
     );
 
     return {
@@ -296,9 +379,77 @@ function InterviewScheduler() {
   const upcomingInterviews = getUpcomingInterviews();
   const dayStats = getDayStats();
 
+  const validateForm = (): boolean => {
+    const errors: Record<string, string> = {};
+
+    if (!newInterviewForm.candidateName.trim()) {
+      errors.candidateName = "Candidate name is required";
+    }
+
+    if (!newInterviewForm.position.trim()) {
+      errors.position = "Position is required";
+    }
+
+    if (!newInterviewForm.candidateEmail.trim()) {
+      errors.candidateEmail = "Email is required";
+    } else if (
+      !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(newInterviewForm.candidateEmail)
+    ) {
+      errors.candidateEmail = "Invalid email format";
+    }
+
+    if (!newInterviewForm.date) {
+      errors.date = "Date is required";
+    } else {
+      const selectedDate = new Date(newInterviewForm.date);
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      if (selectedDate < today) {
+        errors.date = "Date cannot be in the past";
+      }
+    }
+
+    if (!newInterviewForm.time) {
+      errors.time = "Time is required";
+    }
+
+    if (newInterviewForm.duration < 15) {
+      errors.duration = "Duration must be at least 15 minutes";
+    }
+
+    setFormErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-white to-teal-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
       <div className="container mx-auto p-6 space-y-8">
+        {/* Success/Error Messages */}
+        <AnimatePresence>
+          {successMessage && (
+            <motion.div
+              initial={{ opacity: 0, y: -50 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -50 }}
+              className="fixed top-4 right-4 z-50 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg flex items-center gap-2"
+            >
+              <CheckCircle2 className="w-5 h-5" />
+              {successMessage}
+            </motion.div>
+          )}
+          {errorMessage && (
+            <motion.div
+              initial={{ opacity: 0, y: -50 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -50 }}
+              className="fixed top-4 right-4 z-50 bg-red-500 text-white px-6 py-3 rounded-lg shadow-lg flex items-center gap-2"
+            >
+              <AlertCircle className="w-5 h-5" />
+              {errorMessage}
+            </motion.div>
+          )}
+        </AnimatePresence>
+
         {/* Header */}
         <AnimatedContainer>
           <div className="flex items-center justify-between">
@@ -319,6 +470,68 @@ function InterviewScheduler() {
                 <Plus className="w-4 h-4" />
                 Schedule Interview
               </Button>
+              <Button
+                variant="outline"
+                onClick={() => {
+                  if (!session?.user?.id) {
+                    setErrorMessage(
+                      "You must be logged in to connect Google Calendar",
+                    );
+                    return;
+                  }
+
+                  // Navigate directly to Google OAuth
+                  window.location.href = "/api/google/oauth";
+                }}
+                className="flex items-center gap-2"
+              >
+                <Globe className="w-4 h-4" />
+                {calendarConnected
+                  ? "Calendar Connected ✓"
+                  : "Sync Google Calendar"}
+              </Button>
+              {calendarConnected && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={async () => {
+                    try {
+                      setSuccessMessage(
+                        "Syncing interviews to Google Calendar...",
+                      );
+                      const response = await fetch(
+                        "/api/interviews/sync-calendar",
+                        {
+                          method: "POST",
+                        },
+                      );
+
+                      if (response.ok) {
+                        const result = await response.json();
+                        setSuccessMessage(
+                          `Synced ${result.synced} interview(s) to Google Calendar!` +
+                            (result.skipped > 0
+                              ? ` (${result.skipped} already synced)`
+                              : ""),
+                        );
+                      } else {
+                        throw new Error("Failed to sync");
+                      }
+
+                      setTimeout(() => setSuccessMessage(null), 5000);
+                    } catch {
+                      setErrorMessage(
+                        "Failed to sync interviews to Google Calendar",
+                      );
+                      setTimeout(() => setErrorMessage(null), 5000);
+                    }
+                  }}
+                  className="flex items-center gap-2"
+                >
+                  <Calendar className="h-4 w-4" />
+                  Sync All Interviews
+                </Button>
+              )}
               <Button variant="outline" size="icon">
                 <Settings className="w-4 h-4" />
               </Button>
@@ -444,7 +657,9 @@ function InterviewScheduler() {
                     <div className="flex items-center gap-2">
                       <Tabs
                         value={selectedView}
-                        onValueChange={(v) => setSelectedView(v as any)}
+                        onValueChange={(v: string) =>
+                          setSelectedView(v as "day" | "week" | "month")
+                        }
                       >
                         <TabsList>
                           <TabsTrigger value="day">Day</TabsTrigger>
@@ -468,11 +683,17 @@ function InterviewScheduler() {
                             "flex items-center p-3 rounded-lg border transition-colors cursor-pointer",
                             slot.available
                               ? "border-dashed border-gray-300 hover:border-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-900/10"
-                              : "border-solid bg-muted"
+                              : "border-solid bg-muted",
                           )}
-                          onClick={() =>
-                            slot.available && setShowNewInterviewModal(true)
-                          }
+                          onClick={() => {
+                            if (!slot.available) return;
+                            setNewInterviewForm((f) => ({
+                              ...f,
+                              time: slot.time,
+                              date: selectedDate.toISOString().slice(0, 10),
+                            }));
+                            setShowNewInterviewModal(true);
+                          }}
                         >
                           <div className="w-16 text-sm font-medium text-muted-foreground">
                             {slot.time}
@@ -495,7 +716,7 @@ function InterviewScheduler() {
                               <div className="flex items-center gap-2">
                                 <Badge
                                   className={getStatusColor(
-                                    slot.interview.status
+                                    slot.interview.status,
                                   )}
                                 >
                                   {slot.interview.status}
@@ -524,7 +745,7 @@ function InterviewScheduler() {
                             <div key={day} className="p-2">
                               {day}
                             </div>
-                          )
+                          ),
                         )}
                       </div>
 
@@ -532,17 +753,17 @@ function InterviewScheduler() {
                         {Array.from({ length: 7 }, (_, i) => {
                           const date = new Date(selectedDate);
                           date.setDate(
-                            selectedDate.getDate() - selectedDate.getDay() + i
+                            selectedDate.getDate() - selectedDate.getDay() + i,
                           );
                           const dayInterviews = interviews.filter(
                             (interview) =>
                               interview.date.toDateString() ===
-                              date.toDateString()
+                              date.toDateString(),
                           );
 
                           return (
                             <motion.div
-                              key={i}
+                              key={date.toDateString()}
                               initial={{ opacity: 0, y: 20 }}
                               animate={{ opacity: 1, y: 0 }}
                               transition={{ delay: i * 0.1 }}
@@ -551,7 +772,7 @@ function InterviewScheduler() {
                                 date.toDateString() ===
                                   new Date().toDateString()
                                   ? "border-emerald-500 bg-emerald-50 dark:bg-emerald-900/10"
-                                  : "border-gray-200 hover:border-gray-300"
+                                  : "border-gray-200 hover:border-gray-300",
                               )}
                             >
                               <div className="text-sm font-medium mb-2">
@@ -608,6 +829,452 @@ function InterviewScheduler() {
                   </div>
                 </CardHeader>
                 <CardContent>
+                  {/* New Interview Modal - simple, local modal using AnimatePresence */}
+                  <AnimatePresence>
+                    {showNewInterviewModal && (
+                      <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        className="fixed inset-0 z-50 flex items-center justify-center p-4"
+                      >
+                        <button
+                          type="button"
+                          aria-label="Close modal overlay"
+                          className="absolute inset-0 bg-black/40"
+                          onClick={() => setShowNewInterviewModal(false)}
+                          onKeyDown={(e) => {
+                            if (e.key === "Escape") {
+                              setShowNewInterviewModal(false);
+                            }
+                          }}
+                        />
+
+                        <motion.div
+                          initial={{ y: 20, opacity: 0 }}
+                          animate={{ y: 0, opacity: 1 }}
+                          exit={{ y: 20, opacity: 0 }}
+                          transition={{ type: "spring", stiffness: 300 }}
+                          className="relative w-full max-w-2xl bg-white dark:bg-gray-800 rounded-lg p-6 shadow-lg"
+                        >
+                          <h3 className="text-lg font-semibold mb-3">
+                            Schedule New Interview
+                          </h3>
+
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                            <div>
+                              <Label>Candidate Name *</Label>
+                              <Input
+                                value={newInterviewForm.candidateName}
+                                onChange={(e) => {
+                                  setNewInterviewForm((f) => ({
+                                    ...f,
+                                    candidateName: e.target.value,
+                                  }));
+                                  if (formErrors.candidateName) {
+                                    setFormErrors((prev) => ({
+                                      ...prev,
+                                      candidateName: "",
+                                    }));
+                                  }
+                                }}
+                                placeholder="Full name"
+                                className={
+                                  formErrors.candidateName
+                                    ? "border-red-500"
+                                    : ""
+                                }
+                              />
+                              {formErrors.candidateName && (
+                                <p className="text-xs text-red-500 mt-1">
+                                  {formErrors.candidateName}
+                                </p>
+                              )}
+                            </div>
+
+                            <div>
+                              <Label>Position *</Label>
+                              <Input
+                                value={newInterviewForm.position}
+                                onChange={(e) => {
+                                  setNewInterviewForm((f) => ({
+                                    ...f,
+                                    position: e.target.value,
+                                  }));
+                                  if (formErrors.position) {
+                                    setFormErrors((prev) => ({
+                                      ...prev,
+                                      position: "",
+                                    }));
+                                  }
+                                }}
+                                placeholder="Position / title"
+                                className={
+                                  formErrors.position ? "border-red-500" : ""
+                                }
+                              />
+                              {formErrors.position && (
+                                <p className="text-xs text-red-500 mt-1">
+                                  {formErrors.position}
+                                </p>
+                              )}
+                            </div>
+
+                            <div>
+                              <Label>Date *</Label>
+                              <Input
+                                type="date"
+                                value={newInterviewForm.date}
+                                onChange={(e) => {
+                                  setNewInterviewForm((f) => ({
+                                    ...f,
+                                    date: e.target.value,
+                                  }));
+                                  if (formErrors.date) {
+                                    setFormErrors((prev) => ({
+                                      ...prev,
+                                      date: "",
+                                    }));
+                                  }
+                                }}
+                                className={
+                                  formErrors.date ? "border-red-500" : ""
+                                }
+                              />
+                              {formErrors.date && (
+                                <p className="text-xs text-red-500 mt-1">
+                                  {formErrors.date}
+                                </p>
+                              )}
+                            </div>
+
+                            <div>
+                              <Label>Time *</Label>
+                              <Input
+                                type="time"
+                                value={newInterviewForm.time}
+                                onChange={(e) => {
+                                  setNewInterviewForm((f) => ({
+                                    ...f,
+                                    time: e.target.value,
+                                  }));
+                                  if (formErrors.time) {
+                                    setFormErrors((prev) => ({
+                                      ...prev,
+                                      time: "",
+                                    }));
+                                  }
+                                }}
+                                className={
+                                  formErrors.time ? "border-red-500" : ""
+                                }
+                              />
+                              {formErrors.time && (
+                                <p className="text-xs text-red-500 mt-1">
+                                  {formErrors.time}
+                                </p>
+                              )}
+                            </div>
+
+                            <div>
+                              <Label>Duration (minutes) *</Label>
+                              <Input
+                                type="number"
+                                min="15"
+                                value={newInterviewForm.duration}
+                                onChange={(e) => {
+                                  setNewInterviewForm((f) => ({
+                                    ...f,
+                                    duration: Number(e.target.value) || 30,
+                                  }));
+                                  if (formErrors.duration) {
+                                    setFormErrors((prev) => ({
+                                      ...prev,
+                                      duration: "",
+                                    }));
+                                  }
+                                }}
+                                className={
+                                  formErrors.duration ? "border-red-500" : ""
+                                }
+                              />
+                              {formErrors.duration && (
+                                <p className="text-xs text-red-500 mt-1">
+                                  {formErrors.duration}
+                                </p>
+                              )}
+                            </div>
+
+                            <div>
+                              <Label>Type</Label>
+                              <select
+                                aria-label="Interview type"
+                                className="w-full rounded border px-2 py-1 bg-transparent text-sm"
+                                value={newInterviewForm.type}
+                                onChange={(e) =>
+                                  setNewInterviewForm((f) => ({
+                                    ...f,
+                                    type: e.target.value as Interview["type"],
+                                  }))
+                                }
+                              >
+                                <option value="video">Video</option>
+                                <option value="in-person">In-Person</option>
+                                <option value="phone">Phone</option>
+                              </select>
+                            </div>
+
+                            <div>
+                              <Label>Status</Label>
+                              <select
+                                aria-label="Interview status"
+                                className="w-full rounded border px-2 py-1 bg-transparent text-sm"
+                                value={newInterviewForm.status}
+                                onChange={(e) =>
+                                  setNewInterviewForm((f) => ({
+                                    ...f,
+                                    status: e.target
+                                      .value as Interview["status"],
+                                  }))
+                                }
+                              >
+                                <option value="scheduled">Scheduled</option>
+                                <option value="confirmed">Confirmed</option>
+                                <option value="completed">Completed</option>
+                                <option value="cancelled">Cancelled</option>
+                                <option value="no-show">No-show</option>
+                              </select>
+                            </div>
+
+                            <div>
+                              <Label>Email *</Label>
+                              <Input
+                                type="email"
+                                value={newInterviewForm.candidateEmail}
+                                onChange={(e) => {
+                                  setNewInterviewForm((f) => ({
+                                    ...f,
+                                    candidateEmail: e.target.value,
+                                  }));
+                                  if (formErrors.candidateEmail) {
+                                    setFormErrors((prev) => ({
+                                      ...prev,
+                                      candidateEmail: "",
+                                    }));
+                                  }
+                                }}
+                                placeholder="candidate@email.com"
+                                className={
+                                  formErrors.candidateEmail
+                                    ? "border-red-500"
+                                    : ""
+                                }
+                              />
+                              {formErrors.candidateEmail && (
+                                <p className="text-xs text-red-500 mt-1">
+                                  {formErrors.candidateEmail}
+                                </p>
+                              )}
+                            </div>
+
+                            <div>
+                              <Label>Phone</Label>
+                              <Input
+                                value={newInterviewForm.candidatePhone}
+                                onChange={(e) =>
+                                  setNewInterviewForm((f) => ({
+                                    ...f,
+                                    candidatePhone: e.target.value,
+                                  }))
+                                }
+                              />
+                            </div>
+
+                            <div className="md:col-span-2">
+                              <Label>Notes</Label>
+                              <Input
+                                value={newInterviewForm.notes}
+                                onChange={(e) =>
+                                  setNewInterviewForm((f) => ({
+                                    ...f,
+                                    notes: e.target.value,
+                                  }))
+                                }
+                                placeholder="Optional notes"
+                              />
+                            </div>
+                          </div>
+
+                          <div className="mt-4 flex justify-end gap-2">
+                            <Button
+                              variant="outline"
+                              onClick={() => {
+                                setShowNewInterviewModal(false);
+                                setFormErrors({});
+                              }}
+                              disabled={isSubmitting}
+                            >
+                              Cancel
+                            </Button>
+                            <Button
+                              onClick={async () => {
+                                // Validate form
+                                if (!validateForm()) {
+                                  return;
+                                }
+
+                                if (!session?.user?.id) {
+                                  setErrorMessage(
+                                    "You must be logged in to create interviews",
+                                  );
+                                  return;
+                                }
+
+                                setIsSubmitting(true);
+
+                                try {
+                                  // Combine date and time for scheduledAt
+                                  const [hours, minutes] =
+                                    newInterviewForm.time.split(":");
+                                  const scheduledDate = new Date(
+                                    newInterviewForm.date,
+                                  );
+                                  scheduledDate.setHours(
+                                    parseInt(hours),
+                                    parseInt(minutes),
+                                  );
+
+                                  // Create payload (no templateId required - API creates default)
+                                  const payload = {
+                                    candidateId: session.user.id,
+                                    interviewerId: session.user.id,
+                                    scheduledAt: scheduledDate.toISOString(),
+                                    isAIInterviewer: false,
+                                    allowRecording: true,
+                                    settings: {
+                                      candidateName:
+                                        newInterviewForm.candidateName,
+                                      position: newInterviewForm.position,
+                                      candidateEmail:
+                                        newInterviewForm.candidateEmail,
+                                      candidatePhone:
+                                        newInterviewForm.candidatePhone,
+                                      notes: newInterviewForm.notes,
+                                      type: newInterviewForm.type,
+                                      duration: newInterviewForm.duration,
+                                    },
+                                  };
+
+                                  const response = await fetch(
+                                    "/api/interviews",
+                                    {
+                                      method: "POST",
+                                      headers: {
+                                        "Content-Type": "application/json",
+                                      },
+                                      body: JSON.stringify(payload),
+                                    },
+                                  );
+
+                                  if (!response.ok) {
+                                    const error = await response.json();
+                                    throw new Error(
+                                      error.error ||
+                                        "Failed to create interview",
+                                    );
+                                  }
+
+                                  await response.json();
+
+                                  // Refetch all interviews to get the latest data from the server
+                                  const refetchResponse =
+                                    await fetch("/api/interviews");
+                                  if (refetchResponse.ok) {
+                                    const data = await refetchResponse.json();
+                                    const transformedInterviews = (
+                                      data.interviews || []
+                                    ).map((interview: ApiInterview) => ({
+                                      id: interview.id || Date.now().toString(),
+                                      candidateName:
+                                        interview.candidateName || "Anonymous",
+                                      position: interview.title || "Position",
+                                      date: new Date(
+                                        interview.scheduledAt ||
+                                          interview.createdAt ||
+                                          Date.now(),
+                                      ),
+                                      time: new Date(
+                                        interview.scheduledAt ||
+                                          interview.createdAt ||
+                                          Date.now(),
+                                      ).toLocaleTimeString("en-US", {
+                                        hour: "2-digit",
+                                        minute: "2-digit",
+                                        hour12: false,
+                                      }),
+                                      duration: interview.duration || 60,
+                                      type: interview.type || "video",
+                                      status: interview.status || "scheduled",
+                                      interviewer: "Interviewer",
+                                      candidateEmail:
+                                        interview.candidateEmail || "",
+                                      notes: interview.notes || "",
+                                      reminderSent: false,
+                                    }));
+                                    setInterviews(transformedInterviews);
+                                  }
+
+                                  setSuccessMessage(
+                                    "Interview scheduled successfully!" +
+                                      (calendarConnected
+                                        ? " Synced to Google Calendar."
+                                        : ""),
+                                  );
+                                  setShowNewInterviewModal(false);
+                                  setFormErrors({});
+
+                                  // Reset form
+                                  setNewInterviewForm({
+                                    candidateName: "",
+                                    position: "",
+                                    date: new Date().toISOString().slice(0, 10),
+                                    time: "09:00",
+                                    duration: 60,
+                                    type: "video",
+                                    status: "scheduled",
+                                    candidateEmail: "",
+                                    candidatePhone: "",
+                                    notes: "",
+                                  });
+
+                                  setTimeout(
+                                    () => setSuccessMessage(null),
+                                    5000,
+                                  );
+                                } catch (error) {
+                                  console.error(
+                                    "Error creating interview:",
+                                    error,
+                                  );
+                                  setErrorMessage(
+                                    error instanceof Error
+                                      ? error.message
+                                      : "Failed to create interview",
+                                  );
+                                  setTimeout(() => setErrorMessage(null), 5000);
+                                } finally {
+                                  setIsSubmitting(false);
+                                }
+                              }}
+                              disabled={isSubmitting}
+                            >
+                              {isSubmitting ? "Saving..." : "Save Interview"}
+                            </Button>
+                          </div>
+                        </motion.div>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
                   <div className="space-y-4">
                     {filteredInterviews.map((interview, index) => (
                       <motion.div
