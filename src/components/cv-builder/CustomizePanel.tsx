@@ -38,8 +38,6 @@ export function CustomizePanel() {
 		{ id: "modern", name: "Modern", description: "Clean and contemporary design" },
 		{ id: "classic", name: "Classic", description: "Traditional professional look" },
 		{ id: "minimal", name: "Minimal", description: "Simple and elegant" },
-		{ id: "creative", name: "Creative", description: "Bold and unique" },
-		{ id: "professional", name: "Professional", description: "Corporate and formal" },
 	];
 
 	const fonts = [

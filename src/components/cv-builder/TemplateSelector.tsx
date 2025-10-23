@@ -12,8 +12,6 @@ export function TemplateSelector() {
 		{ id: "modern", name: "Modern", description: "Two-column with colored headers" },
 		{ id: "classic", name: "Classic", description: "Traditional centered layout" },
 		{ id: "minimal", name: "Minimal", description: "Clean with lots of whitespace" },
-		{ id: "creative", name: "Creative", description: "Bold and unique design" },
-		{ id: "professional", name: "Professional", description: "Corporate standard" },
 	];
 
 	return (

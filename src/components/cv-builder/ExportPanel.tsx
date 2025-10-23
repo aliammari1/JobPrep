@@ -314,7 +314,7 @@ export function ExportPanel() {
 					<TabsContent value="template" className="space-y-4">
 						<RadioGroup value={selectedTemplate} onValueChange={(value: any) => setSelectedTemplate(value)}>
 							<div className="grid gap-3 grid-cols-2">
-								{["modern", "classic", "minimal", "creative", "professional"].map((template) => (
+								{["modern", "classic", "minimal"].map((template) => (
 									<Card
 										key={template}
 										className={`p-4 cursor-pointer transition-all ${
