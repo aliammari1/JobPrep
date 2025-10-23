@@ -100,7 +100,7 @@ export default function ScheduleInterview() {
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
   const [showForm, setShowForm] = useState(false);
   const [selectedView, setSelectedView] = useState<"calendar" | "list">(
-    "calendar"
+    "calendar",
   );
   const [searchTerm, setSearchTerm] = useState("");
   const [filterStatus, setFilterStatus] = useState<string>("all");
@@ -315,8 +315,8 @@ export default function ScheduleInterview() {
           scheduledAt: new Date(
             formData.date.setHours(
               parseInt(formData.time.split(":")[0]),
-              parseInt(formData.time.split(":")[1])
-            )
+              parseInt(formData.time.split(":")[1]),
+            ),
           ).toISOString(),
           allowRecording: formData.recordSession,
           settings: {
@@ -631,7 +631,7 @@ export default function ScheduleInterview() {
                               .filter(
                                 (interview) =>
                                   format(interview.date, "yyyy-MM-dd") ===
-                                  format(day, "yyyy-MM-dd")
+                                  format(day, "yyyy-MM-dd"),
                               )
                               .map((interview) => {
                                 const TypeIcon = getTypeIcon(interview.type);
@@ -697,7 +697,7 @@ export default function ScheduleInterview() {
                                 <Badge
                                   className={cn(
                                     "text-xs",
-                                    getStatusColor(interview.status)
+                                    getStatusColor(interview.status),
                                   )}
                                 >
                                   {interview.status}
@@ -786,7 +786,7 @@ export default function ScheduleInterview() {
                                         )}
                                       </span>
                                     </div>
-                                  )
+                                  ),
                                 )}
                               </div>
                             </div>
@@ -851,7 +851,7 @@ export default function ScheduleInterview() {
                     <Select
                       value={formData.candidateId}
                       onValueChange={(value) => {
-                        const selectedUser = users.find(u => u.id === value);
+                        const selectedUser = users.find((u) => u.id === value);
                         setFormData((prev) => ({
                           ...prev,
                           candidateId: value,
@@ -1014,7 +1014,8 @@ export default function ScheduleInterview() {
                       <SelectContent>
                         {templates.map((template) => (
                           <SelectItem key={template.id} value={template.id}>
-                            {template.title} - {template.category} ({template.difficulty})
+                            {template.title} - {template.category} (
+                            {template.difficulty})
                           </SelectItem>
                         ))}
                       </SelectContent>
