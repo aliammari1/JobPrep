@@ -26,6 +26,7 @@ interface HeyGenAvatarProps {
 	voiceId?: string;
 	quality?: AvatarQuality;
 	onError?: (error: string) => void;
+	questionToSpeak?: string; // Auto-speak this question when it changes
 }
 
 export default function HeyGenAvatar({
@@ -33,6 +34,7 @@ export default function HeyGenAvatar({
   voiceId,
   quality = AvatarQuality.Low,
   onError,
+  questionToSpeak,
 }: HeyGenAvatarProps) {
   const [isLoadingSession, setIsLoadingSession] = useState(false);
   const [isLoadingVoiceChat, setIsLoadingVoiceChat] = useState(false);
@@ -58,6 +60,18 @@ export default function HeyGenAvatar({
       }
     };
   }, []);
+
+  // Auto-speak question when it changes
+  useEffect(() => {
+    if (questionToSpeak && avatarRef.current && sessionData) {
+      avatarRef.current.speak({
+        text: questionToSpeak,
+        task_type: TaskType.TALK,
+      }).catch((error) => {
+        console.error("Error speaking question:", error);
+      });
+    }
+  }, [questionToSpeak, sessionData]);
 
   useEffect(() => {
     if (stream && mediaStreamRef.current) {
@@ -153,6 +167,7 @@ export default function HeyGenAvatar({
         avatarName: avatarId,
         language: "en",
         voiceChatTransport: VoiceChatTransport.WEBSOCKET,
+        knowledgeBase: "You are an interview assistant. Your ONLY job is to read the interview questions exactly as provided to you. Do NOT add any business advice, commentary, suggestions, or extra information. Just read the questions word-for-word and wait for the candidate's response. Never talk about business topics unless specifically asked in the question itself.",
       });
 
       console.log("Avatar session created successfully:", session);
@@ -403,30 +418,6 @@ export default function HeyGenAvatar({
           >
             <VolumeX className="w-4 h-4 mr-2" />
             Interrupt
-          </Button>
-        </div>
-      )}
-
-      {/* Text Input */}
-      {sessionData && (
-        <div className="flex gap-2">
-          <Input
-            value={textInput}
-            onChange={(e) => setTextInput(e.target.value)}
-            placeholder="Type a message to the avatar..."
-            onKeyDown={(e) => {
-              if (e.key === "Enter" && !e.shiftKey) {
-                e.preventDefault();
-                sendTextMessage();
-              }
-            }}
-          />
-          <Button
-            onClick={sendTextMessage}
-            disabled={!textInput.trim()}
-            size="icon"
-          >
-            <Send className="w-4 h-4" />
           </Button>
         </div>
       )}
