@@ -20,9 +20,20 @@ import { Separator } from "@/components/ui/separator";
 import Link from "next/link";
 import { UserNav } from "@/components/custom/user-nav";
 import { Badge } from "@/components/ui/badge";
-import { FileText, Download, Calendar, Clock, TrendingUp } from "lucide-react";
+import { FileText, Download, Calendar, Clock, TrendingUp, Eye, Trash2 } from "lucide-react";
 import { generateInterviewPDF, downloadPDF } from "@/lib/pdf-generator";
 import { toast } from "sonner";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 interface SavedInterview {
   id: string;
@@ -43,6 +54,7 @@ export default function ProfileSettingsPage() {
   const [success, setSuccess] = useState<string | null>(null);
   const [savedInterviews, setSavedInterviews] = useState<SavedInterview[]>([]);
   const [isLoadingInterviews, setIsLoadingInterviews] = useState(false);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
 
   const [formData, setFormData] = useState({
     name: session?.user?.name || "",
@@ -72,6 +84,32 @@ export default function ProfileSettingsPage() {
 
     fetchSavedInterviews();
   }, [session]);
+
+  const handleDeleteInterview = async (interviewId: string) => {
+    setDeletingId(interviewId);
+    try {
+      const response = await fetch(`/api/save-interview/${interviewId}`, {
+        method: "DELETE",
+      });
+
+      if (response.ok) {
+        toast.success("Interview deleted successfully");
+        // Remove the deleted interview from the list
+        setSavedInterviews(prev => prev.filter(interview => interview.id !== interviewId));
+      } else {
+        toast.error("Failed to delete interview");
+      }
+    } catch (error) {
+      console.error("Error deleting interview:", error);
+      toast.error("Failed to delete interview");
+    } finally {
+      setDeletingId(null);
+    }
+  };
+
+  const handleViewInterview = (interviewId: string) => {
+    router.push(`/saved-interviews/${interviewId}`);
+  };
 
   const handleDownloadInterview = async (interview: SavedInterview) => {
     try {
@@ -501,15 +539,59 @@ export default function ProfileSettingsPage() {
                         </p>
                       </div>
 
-                      <Button
-                        onClick={() => handleDownloadInterview(interview)}
-                        variant="outline"
-                        size="sm"
-                        className="ml-4"
-                      >
-                        <Download className="h-4 w-4 mr-2" />
-                        Download PDF
-                      </Button>
+                      <div className="flex items-center gap-2 ml-4">
+                        <Button
+                          onClick={() => handleViewInterview(interview.id)}
+                          variant="outline"
+                          size="sm"
+                        >
+                          <Eye className="h-4 w-4 mr-2" />
+                          Preview
+                        </Button>
+
+                        <Button
+                          onClick={() => handleDownloadInterview(interview)}
+                          variant="outline"
+                          size="sm"
+                        >
+                          <Download className="h-4 w-4 mr-2" />
+                          Download
+                        </Button>
+
+                        <AlertDialog>
+                          <AlertDialogTrigger asChild>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              className="text-destructive hover:text-destructive"
+                              disabled={deletingId === interview.id}
+                            >
+                              {deletingId === interview.id ? (
+                                <Icons.spinner className="h-4 w-4 animate-spin" />
+                              ) : (
+                                <Trash2 className="h-4 w-4" />
+                              )}
+                            </Button>
+                          </AlertDialogTrigger>
+                          <AlertDialogContent>
+                            <AlertDialogHeader>
+                              <AlertDialogTitle>Delete Interview?</AlertDialogTitle>
+                              <AlertDialogDescription>
+                                Are you sure you want to delete this interview report? This action cannot be undone.
+                              </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                              <AlertDialogCancel>Cancel</AlertDialogCancel>
+                              <AlertDialogAction
+                                onClick={() => handleDeleteInterview(interview.id)}
+                                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                              >
+                                Delete
+                              </AlertDialogAction>
+                            </AlertDialogFooter>
+                          </AlertDialogContent>
+                        </AlertDialog>
+                      </div>
                     </div>
                   );
                 })}
