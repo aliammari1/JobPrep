@@ -30,9 +30,7 @@ import {
   Zap,
   Loader2,
   Target,
-  User,
 } from "lucide-react";
-import HeyGenAvatar from "@/components/interview/HeyGenAvatar";
 import { cn } from "@/lib/utils";
 import { useInterviewStore } from "@/hooks/use-interview-store";
 import { useAITranscription } from "@/hooks/use-ai-transcription";
@@ -53,7 +51,7 @@ export default function InterviewRoom() {
   const [participantName, setParticipantName] = useState("User");
   const [token, setToken] = useState("");
   const [isLoadingToken, setIsLoadingToken] = useState(true);
-  const [showAvatar, setShowAvatar] = useState(false);
+  
   // Interview store
   const {
     isRecording,
@@ -444,16 +442,6 @@ export default function InterviewRoom() {
                     <Download className="w-4 h-4" />
                   </Button>
 
-                  <Button
-                    variant={showAvatar ? "default" : "outline"}
-                    size="sm"
-                    onClick={() => setShowAvatar(!showAvatar)}
-                    title="Toggle AI Avatar"
-                  >
-                    <User className="w-4 h-4 mr-2" />
-                    AI Avatar
-                  </Button>
-
                   <div className="flex-1" />
 
                   <Button variant="destructive" onClick={() => window.close()}>
@@ -463,35 +451,15 @@ export default function InterviewRoom() {
                 </div>
               </LiveKitRoom>
             </div>
-
-            {/* HeyGen Avatar */}
-            {showAvatar && (
-              <div className="mt-4">
-                <HeyGenAvatar
-                  onError={(error) => {
-                    console.error("Avatar error:", error);
-                    addChatMessage({
-                      id: `error-${Date.now()}`,
-                      senderId: "system",
-                      senderName: "System",
-                      message: `Avatar error: ${error}`,
-                      timestamp: new Date(),
-                      type: "note",
-                    });
-                  }}
-                />
-              </div>
-            )}
           </div>
 
           {/* Sidebar */}
           <div className="space-y-4">
             <Tabs defaultValue="chat" className="h-full flex flex-col">
-              <TabsList className="grid w-full grid-cols-4 bg-gray-800">
+              <TabsList className="grid w-full grid-cols-3 bg-gray-800">
                 <TabsTrigger value="chat">Chat</TabsTrigger>
                 <TabsTrigger value="notes">Notes</TabsTrigger>
                 <TabsTrigger value="ai">AI Insights</TabsTrigger>
-                <TabsTrigger value="avatar">Avatar</TabsTrigger>
               </TabsList>
 
               {/* Chat */}
@@ -780,23 +748,6 @@ export default function InterviewRoom() {
                     </div>
                   </CardContent>
                 </Card>
-              </TabsContent>
-
-              {/* Avatar Tab */}
-              <TabsContent value="avatar" className="flex-1 flex flex-col">
-                <HeyGenAvatar
-                  onError={(error) => {
-                    console.error("Avatar error:", error);
-                    addChatMessage({
-                      id: `error-${Date.now()}`,
-                      senderId: "system",
-                      senderName: "System",
-                      message: `Avatar error: ${error}`,
-                      timestamp: new Date(),
-                      type: "note",
-                    });
-                  }}
-                />
               </TabsContent>
             </Tabs>
           </div>

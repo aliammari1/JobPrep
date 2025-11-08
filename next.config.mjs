@@ -111,6 +111,8 @@ const pwa = withPWA({
 });
 
 const nextConfig = {
+  // Silence workspace root warning by explicitly setting the project root
+  outputFileTracingRoot: process.cwd(),
   images: {
     remotePatterns: [
       {
