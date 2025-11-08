@@ -116,7 +116,7 @@ Keep ALL answers very concise. Focus on job-relevant questions.`;
 
     // Validate the response structure
     if (!questionsData.questions || !Array.isArray(questionsData.questions)) {
-      throw new Error("Invalid response structure from Gemini");
+      throw new Error("Invalid response structure from Ollama");
     }
 
     // Ensure we have the requested number of questions
