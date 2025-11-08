@@ -303,13 +303,14 @@ export default function PracticeInterview() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-green-50 via-white to-blue-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
+    <div className="min-h-screen bg-gradient-to-br from-background via-primary/5 to-muted/10 relative overflow-hidden">
+      <div className="absolute inset-0 -z-10 bg-gradient-to-br from-primary/5 via-primary/10 to-transparent" />
       <div className="container mx-auto p-6 space-y-8">
         {/* Header */}
         <AnimatedContainer>
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-4xl font-bold bg-gradient-to-r from-green-600 to-blue-600 bg-clip-text text-transparent">
+              <h1 className="text-4xl font-bold bg-gradient-to-b from-foreground to-muted-foreground/70 bg-clip-text text-transparent">
                 Practice Interview
               </h1>
               <p className="text-muted-foreground mt-2">
@@ -322,7 +323,7 @@ export default function PracticeInterview() {
                 <Settings className="w-4 h-4 mr-2" />
                 Preferences
               </Button>
-              <Button className="bg-gradient-to-r from-green-600 to-blue-600 hover:from-green-700 hover:to-blue-700">
+              <Button>
                 <Plus className="w-4 h-4 mr-2" />
                 Custom Session
               </Button>
@@ -353,9 +354,9 @@ export default function PracticeInterview() {
                     <p className="text-sm text-muted-foreground">
                       Average Score
                     </p>
-                    <p className="text-2xl font-bold text-blue-600">84%</p>
+                    <p className="text-2xl font-bold text-primary">84%</p>
                   </div>
-                  <Star className="w-8 h-8 text-blue-500" />
+                  <Star className="w-8 h-8 text-primary" />
                 </div>
               </CardContent>
             </Card>
@@ -366,9 +367,9 @@ export default function PracticeInterview() {
                     <p className="text-sm text-muted-foreground">
                       Practice Hours
                     </p>
-                    <p className="text-2xl font-bold text-purple-600">45</p>
+                    <p className="text-2xl font-bold text-secondary-foreground">45</p>
                   </div>
-                  <Clock className="w-8 h-8 text-purple-500" />
+                  <Clock className="w-8 h-8 text-secondary-foreground" />
                 </div>
               </CardContent>
             </Card>
@@ -377,9 +378,9 @@ export default function PracticeInterview() {
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm text-muted-foreground">Streak Days</p>
-                    <p className="text-2xl font-bold text-orange-600">12</p>
+                    <p className="text-2xl font-bold text-accent-foreground">12</p>
                   </div>
-                  <Award className="w-8 h-8 text-orange-500" />
+                  <Award className="w-8 h-8 text-accent-foreground" />
                 </div>
               </CardContent>
             </Card>
@@ -389,7 +390,7 @@ export default function PracticeInterview() {
         {/* Active Practice Session */}
         {selectedQuestion && (
           <AnimatedContainer delay={0.2}>
-            <Card className="border-green-200 bg-gradient-to-r from-green-50 to-blue-50 dark:from-green-950/50 dark:to-blue-950/50">
+            <Card className="border-border bg-gradient-to-r from-primary/5 to-secondary/5 dark:from-primary/10 dark:to-secondary/10">
               <CardHeader>
                 <CardTitle className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
@@ -427,7 +428,7 @@ export default function PracticeInterview() {
                     )}
                   </div>
 
-                  <div className="bg-white dark:bg-gray-800 rounded-lg p-6 border">
+                  <div className="bg-card rounded-lg p-6 border border-border">
                     <p className="text-lg leading-relaxed">
                       {selectedQuestion.text}
                     </p>
@@ -462,17 +463,17 @@ export default function PracticeInterview() {
                   />
 
                   {showHints && selectedQuestion.hints && (
-                    <div className="bg-blue-50 dark:bg-blue-950/20 rounded-lg p-4 space-y-2">
-                      <div className="font-medium text-blue-700 dark:text-blue-300">
+                    <div className="bg-primary/10 dark:bg-primary/20 rounded-lg p-4 space-y-2">
+                      <div className="font-medium text-primary">
                         Hints:
                       </div>
                       <ul className="space-y-1">
                         {selectedQuestion.hints.map((hint, index) => (
                           <li
                             key={index}
-                            className="text-sm text-blue-600 dark:text-blue-400 flex items-start gap-2"
+                            className="text-sm text-primary/80 dark:text-primary/70 flex items-start gap-2"
                           >
-                            <Lightbulb className="w-3 h-3 mt-1 text-blue-500" />
+                            <Lightbulb className="w-3 h-3 mt-1 text-primary" />
                             {hint}
                           </li>
                         ))}

@@ -95,13 +95,14 @@ export default function DashboardPage() {
     "U";
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20">
+    <div className="min-h-screen bg-gradient-to-br from-background via-primary/5 to-muted/10 relative overflow-hidden">
+      <div className="absolute inset-0 -z-10 bg-gradient-to-br from-primary/5 via-primary/10 to-transparent" />
       <div className="container mx-auto p-4 md:p-8 max-w-7xl">
         {/* Header */}
         <div className="mb-8">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-4xl font-bold bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">
+              <h1 className="text-4xl font-bold bg-gradient-to-b from-foreground to-muted-foreground/70 bg-clip-text text-transparent">
                 Welcome back, {user.name?.split(" ")[0] || "User"}!
               </h1>
               <p className="text-muted-foreground mt-2">
@@ -120,7 +121,7 @@ export default function DashboardPage() {
         </div>
 
         {/* User Profile Card */}
-        <Card className="mb-8 shadow-lg">
+        <Card className="mb-8 shadow-lg bg-gradient-to-br from-background to-muted/40 border-muted hover:border-primary/60 transition">
           <CardHeader>
             <CardTitle>Profile Information</CardTitle>
             <CardDescription>Your account details and status</CardDescription>
@@ -205,7 +206,7 @@ export default function DashboardPage() {
         {/* Statistics */}
         {stats && (
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4 mb-8">
-            <Card>
+            <Card className="bg-gradient-to-br from-background to-muted/40 border-muted hover:border-primary/60 transition">
               <CardHeader className="pb-2">
                 <CardTitle className="text-sm font-medium text-muted-foreground">
                   Total Interviews
@@ -218,7 +219,7 @@ export default function DashboardPage() {
               </CardContent>
             </Card>
 
-            <Card>
+            <Card className="bg-gradient-to-br from-background to-muted/40 border-muted hover:border-primary/60 transition">
               <CardHeader className="pb-2">
                 <CardTitle className="text-sm font-medium text-muted-foreground">
                   Completed
@@ -231,7 +232,7 @@ export default function DashboardPage() {
               </CardContent>
             </Card>
 
-            <Card>
+            <Card className="bg-gradient-to-br from-background to-muted/40 border-muted hover:border-primary/60 transition">
               <CardHeader className="pb-2">
                 <CardTitle className="text-sm font-medium text-muted-foreground">
                   Upcoming
@@ -244,7 +245,7 @@ export default function DashboardPage() {
               </CardContent>
             </Card>
 
-            <Card>
+            <Card className="bg-gradient-to-br from-background to-muted/40 border-muted hover:border-primary/60 transition">
               <CardHeader className="pb-2">
                 <CardTitle className="text-sm font-medium text-muted-foreground">
                   Completion Rate
@@ -261,7 +262,7 @@ export default function DashboardPage() {
 
         {/* Recent Interviews */}
         {stats && stats.recentInterviews.length > 0 && (
-          <Card className="mb-8">
+          <Card className="mb-8 bg-gradient-to-br from-background to-muted/40 border-muted hover:border-primary/60 transition">
             <CardHeader>
               <CardTitle>Recent Interviews</CardTitle>
               <CardDescription>Your latest interview activity</CardDescription>
@@ -283,10 +284,10 @@ export default function DashboardPage() {
                       <span
                         className={`px-2 py-1 rounded-full text-xs font-medium ${
                           interview.status === "completed"
-                            ? "bg-green-100 text-green-800"
+                            ? "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300"
                             : interview.status === "scheduled"
-                            ? "bg-blue-100 text-blue-800"
-                            : "bg-gray-100 text-gray-800"
+                            ? "bg-primary/10 text-primary dark:bg-primary/20 dark:text-primary"
+                            : "bg-muted text-muted-foreground dark:bg-muted dark:text-muted-foreground"
                         }`}
                       >
                         {interview.status}
@@ -301,12 +302,12 @@ export default function DashboardPage() {
 
         {/* Quick Actions */}
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 mb-8">
-          <Card className="hover:shadow-lg transition-shadow cursor-pointer">
+          <Card className="hover:shadow-lg transition-shadow cursor-pointer bg-gradient-to-br from-background to-muted/40 border-muted hover:border-primary/60">
             <Link href="/settings/profile">
               <CardHeader>
                 <div className="flex items-center gap-3">
-                  <div className="h-12 w-12 rounded-lg bg-blue-100 dark:bg-blue-900/20 flex items-center justify-center">
-                    <Icons.user className="h-6 w-6 text-blue-600 dark:text-blue-400" />
+                  <div className="h-12 w-12 rounded-lg bg-primary/10 dark:bg-primary/20 flex items-center justify-center ring-1 ring-primary/20">
+                    <Icons.user className="h-6 w-6 text-primary" />
                   </div>
                   <div>
                     <CardTitle className="text-lg">Profile</CardTitle>
@@ -317,11 +318,11 @@ export default function DashboardPage() {
             </Link>
           </Card>
 
-          <Card className="hover:shadow-lg transition-shadow cursor-pointer">
+          <Card className="hover:shadow-lg transition-shadow cursor-pointer bg-gradient-to-br from-background to-muted/40 border-muted hover:border-primary/60">
             <Link href="/settings/security">
               <CardHeader>
                 <div className="flex items-center gap-3">
-                  <div className="h-12 w-12 rounded-lg bg-green-100 dark:bg-green-900/20 flex items-center justify-center">
+                  <div className="h-12 w-12 rounded-lg bg-green-100 dark:bg-green-900/20 flex items-center justify-center ring-1 ring-green-200 dark:ring-green-900/50">
                     <Icons.shield className="h-6 w-6 text-green-600 dark:text-green-400" />
                   </div>
                   <div>
@@ -333,12 +334,12 @@ export default function DashboardPage() {
             </Link>
           </Card>
 
-          <Card className="hover:shadow-lg transition-shadow cursor-pointer">
+          <Card className="hover:shadow-lg transition-shadow cursor-pointer bg-gradient-to-br from-background to-muted/40 border-muted hover:border-primary/60">
             <Link href="/settings/sessions">
               <CardHeader>
                 <div className="flex items-center gap-3">
-                  <div className="h-12 w-12 rounded-lg bg-purple-100 dark:bg-purple-900/20 flex items-center justify-center">
-                    <Icons.key className="h-6 w-6 text-purple-600 dark:text-purple-400" />
+                  <div className="h-12 w-12 rounded-lg bg-secondary/10 dark:bg-secondary/20 flex items-center justify-center ring-1 ring-secondary/20">
+                    <Icons.key className="h-6 w-6 text-secondary-foreground dark:text-secondary" />
                   </div>
                   <div>
                     <CardTitle className="text-lg">Sessions</CardTitle>
@@ -349,11 +350,11 @@ export default function DashboardPage() {
             </Link>
           </Card>
 
-          <Card className="hover:shadow-lg transition-shadow cursor-pointer">
+          <Card className="hover:shadow-lg transition-shadow cursor-pointer bg-gradient-to-br from-background to-muted/40 border-muted hover:border-primary/60">
             <Link href="/settings/two-factor">
               <CardHeader>
                 <div className="flex items-center gap-3">
-                  <div className="h-12 w-12 rounded-lg bg-orange-100 dark:bg-orange-900/20 flex items-center justify-center">
+                  <div className="h-12 w-12 rounded-lg bg-orange-100 dark:bg-orange-900/20 flex items-center justify-center ring-1 ring-orange-200 dark:ring-orange-900/50">
                     <Icons.shield className="h-6 w-6 text-orange-600 dark:text-orange-400" />
                   </div>
                   <div>
@@ -365,11 +366,11 @@ export default function DashboardPage() {
             </Link>
           </Card>
 
-          <Card className="hover:shadow-lg transition-shadow cursor-pointer">
+          <Card className="hover:shadow-lg transition-shadow cursor-pointer bg-gradient-to-br from-background to-muted/40 border-muted hover:border-primary/60">
             <Link href="/settings/passkeys">
               <CardHeader>
                 <div className="flex items-center gap-3">
-                  <div className="h-12 w-12 rounded-lg bg-pink-100 dark:bg-pink-900/20 flex items-center justify-center">
+                  <div className="h-12 w-12 rounded-lg bg-pink-100 dark:bg-pink-900/20 flex items-center justify-center ring-1 ring-pink-200 dark:ring-pink-900/50">
                     <Icons.fingerprint className="h-6 w-6 text-pink-600 dark:text-pink-400" />
                   </div>
                   <div>
@@ -381,11 +382,11 @@ export default function DashboardPage() {
             </Link>
           </Card>
 
-          <Card className="hover:shadow-lg transition-shadow cursor-pointer">
+          <Card className="hover:shadow-lg transition-shadow cursor-pointer bg-gradient-to-br from-background to-muted/40 border-muted hover:border-primary/60">
             <Link href="/settings/connected-accounts">
               <CardHeader>
                 <div className="flex items-center gap-3">
-                  <div className="h-12 w-12 rounded-lg bg-cyan-100 dark:bg-cyan-900/20 flex items-center justify-center">
+                  <div className="h-12 w-12 rounded-lg bg-cyan-100 dark:bg-cyan-900/20 flex items-center justify-center ring-1 ring-cyan-200 dark:ring-cyan-900/50">
                     <Icons.link className="h-6 w-6 text-cyan-600 dark:text-cyan-400" />
                   </div>
                   <div>
@@ -401,8 +402,8 @@ export default function DashboardPage() {
             <Link href="/organizations">
               <CardHeader>
                 <div className="flex items-center gap-3">
-                  <div className="h-12 w-12 rounded-lg bg-indigo-100 dark:bg-indigo-900/20 flex items-center justify-center">
-                    <Icons.users className="h-6 w-6 text-indigo-600 dark:text-indigo-400" />
+                  <div className="h-12 w-12 rounded-lg bg-accent/10 dark:bg-accent/20 flex items-center justify-center">
+                    <Icons.users className="h-6 w-6 text-accent-foreground dark:text-accent" />
                   </div>
                   <div>
                     <CardTitle className="text-lg">Organizations</CardTitle>
@@ -443,13 +444,13 @@ export default function DashboardPage() {
                   className={`h-8 w-8 rounded-full flex items-center justify-center ${
                     user.emailVerified
                       ? "bg-green-100 dark:bg-green-900/20"
-                      : "bg-yellow-100 dark:bg-yellow-900/20"
+                      : "bg-primary/10 dark:bg-primary/20"
                   }`}
                 >
                   {user.emailVerified ? (
                     <Icons.check className="h-4 w-4 text-green-600 dark:text-green-400" />
                   ) : (
-                    <Icons.mail className="h-4 w-4 text-yellow-600 dark:text-yellow-400" />
+                    <Icons.mail className="h-4 w-4 text-primary" />
                   )}
                 </div>
                 <div className="flex-1">

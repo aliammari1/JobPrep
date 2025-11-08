@@ -92,23 +92,35 @@ export function cleanJsonResponse(text: string): string {
   }
 
   // Extract JSON object if text has extra content
-  if (!cleaned.startsWith("{")) {
-    const jsonMatch = cleaned.match(/\{[\s\S]*\}/);
+  if (!cleaned.startsWith("{") && !cleaned.startsWith("[")) {
+    const jsonMatch = cleaned.match(/[\{\[][\s\S]*[\}\]]/);
     if (jsonMatch) {
       cleaned = jsonMatch[0];
     }
   }
 
+  // Fix improperly escaped quotes (common LLM issue)
+  // Replace standalone backslash-quote with proper escaped quote
+  cleaned = cleaned.replace(/\\"/g, '"');  // Remove escape chars - they're causing issues
+  
   // Remove any trailing commas before closing braces/brackets
   cleaned = cleaned.replace(/,(\s*[}\]])/g, "$1");
 
   // Fix common JSON issues
   cleaned = cleaned.replace(/[\u0000-\u001F\u007F-\u009F]/g, ""); // Remove control characters
+  
+  // Remove newlines within string values (can break JSON)
+  cleaned = cleaned.replace(/("\w+":\s*")([^"]*?)"/g, (match, prefix, content) => {
+    return prefix + content.replace(/\n/g, ' ').replace(/\r/g, '') + '"';
+  });
 
-  // Fix unterminated strings by closing incomplete JSON objects
+  // Try to parse first
   try {
     JSON.parse(cleaned);
+    return cleaned; // If it works, return as-is
   } catch (e) {
+    console.log("⚠️ JSON parsing failed, attempting repair...");
+    
     // If parsing fails, try to fix common issues
     // Add missing closing bracket if needed
     const openBraces = (cleaned.match(/\{/g) || []).length;
@@ -124,13 +136,15 @@ export function cleanJsonResponse(text: string): string {
     }
 
     // Remove trailing incomplete properties
-    // Look for incomplete string values or property names
     cleaned = cleaned.replace(/,?\s*"[^"]*$/, "");
     
     // Ensure proper closing
     if (!cleaned.endsWith("}") && !cleaned.endsWith("]")) {
       if (cleaned.includes("{")) cleaned += "}";
+      if (cleaned.includes("[")) cleaned += "]";
     }
+    
+    console.log("🔧 Repaired JSON, last 100 chars:", cleaned.slice(-100));
   }
 
   return cleaned;

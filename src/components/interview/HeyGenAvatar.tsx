@@ -27,6 +27,7 @@ interface HeyGenAvatarProps {
 	quality?: AvatarQuality;
 	onError?: (error: string) => void;
 	questionToSpeak?: string; // Auto-speak this question when it changes
+	compact?: boolean; // New: renders without card wrapper and minimal controls
 }
 
 export default function HeyGenAvatar({
@@ -35,6 +36,7 @@ export default function HeyGenAvatar({
   quality = AvatarQuality.Low,
   onError,
   questionToSpeak,
+  compact = false,
 }: HeyGenAvatarProps) {
   const [isLoadingSession, setIsLoadingSession] = useState(false);
   const [isLoadingVoiceChat, setIsLoadingVoiceChat] = useState(false);
@@ -51,12 +53,32 @@ export default function HeyGenAvatar({
 
   const mediaStreamRef = useRef<HTMLVideoElement>(null);
   const avatarRef = useRef<StreamingAvatar | null>(null);
+  const originalConsoleErrorRef = useRef<typeof console.error>(console.error);
 
   useEffect(() => {
+    // Suppress non-critical DataChannel errors on mount
+    const errorHandler = (...args: any[]) => {
+      const errorMessage = args.join(' ');
+      // Suppress known non-critical WebRTC errors
+      if (
+        errorMessage.includes('DataChannel error') ||
+        errorMessage.includes('lossy') ||
+        errorMessage.includes('ICE connection') ||
+        errorMessage.includes('STUN') ||
+        errorMessage.includes('ICE failed')
+      ) {
+        // These are non-critical warnings, ignore them
+        return;
+      }
+      originalConsoleErrorRef.current.apply(console, args);
+    };
+    console.error = errorHandler;
+
     return () => {
       // Cleanup on unmount
+      console.error = originalConsoleErrorRef.current;
       if (avatarRef.current) {
-        avatarRef.current.stopAvatar().catch(console.error);
+        avatarRef.current.stopAvatar().catch(() => {});
       }
     };
   }, []);
@@ -121,7 +143,9 @@ export default function HeyGenAvatar({
 			const avatar = new StreamingAvatar({ token });
 			avatarRef.current = avatar;
 			
-			console.log("Avatar SDK initialized, creating session...");      // Setup event listeners
+			console.log("Avatar SDK initialized, creating session...");      
+      
+      // Setup event listeners
       avatar.on(StreamingEvents.AVATAR_START_TALKING, () => {
         console.log("Avatar started talking");
         setIsSpeaking(true);
@@ -297,36 +321,52 @@ export default function HeyGenAvatar({
   };
 
   return (
-    <Card className="p-4 space-y-4 bg-card/95 backdrop-blur-sm">
-      <div className="flex items-center justify-between">
-        <h3 className="text-lg font-semibold">AI Interview Avatar</h3>
-        <div className="flex items-center gap-2">
-          {isSpeaking && (
-            <span className="flex items-center gap-1 text-sm text-blue-500">
-              <Volume2 className="w-4 h-4 animate-pulse" />
-              Speaking
-            </span>
-          )}
-          {isListening && (
-            <span className="flex items-center gap-1 text-sm text-green-500">
-              <Mic className="w-4 h-4 animate-pulse" />
-              Listening
-            </span>
-          )}
+    <div className={compact ? "space-y-2" : "p-4 space-y-4"}>
+      {!compact && (
+        <div className="flex items-center justify-between">
+          <h3 className="text-lg font-semibold">AI Interview Avatar</h3>
+          <div className="flex items-center gap-2">
+            {isSpeaking && (
+              <span className="flex items-center gap-1 text-sm text-blue-500">
+                <Volume2 className="w-4 h-4 animate-pulse" />
+                Speaking
+              </span>
+            )}
+            {isListening && (
+              <span className="flex items-center gap-1 text-sm text-green-500">
+                <Mic className="w-4 h-4 animate-pulse" />
+                Listening
+              </span>
+            )}
+          </div>
         </div>
-      </div>
+      )}
 
       {/* Video Stream */}
-      <div className="relative aspect-video bg-black rounded-lg overflow-hidden">
+      <div className={`relative ${compact ? 'aspect-square' : 'aspect-video'} bg-gradient-to-br from-primary/20 to-primary/5 rounded-lg overflow-hidden`}>
         {!stream && (
-          <div className="absolute inset-0 flex items-center justify-center text-muted-foreground">
+          <div className="absolute inset-0 flex items-center justify-center text-muted-foreground z-10">
             {isLoadingSession ? (
               <div className="flex flex-col items-center gap-2">
-                <Loader2 className="w-8 h-8 animate-spin" />
-                <p className="text-sm">Starting avatar session...</p>
+                <Loader2 className="w-8 h-8 animate-spin text-primary" />
+                {!compact && <p className="text-sm">Starting avatar session...</p>}
               </div>
             ) : (
-              <p className="text-sm">Avatar not started</p>
+              <div className="flex flex-col items-center gap-3 p-4">
+                <div className="w-16 h-16 rounded-full bg-primary/20 flex items-center justify-center">
+                  <Play className="w-8 h-8 text-primary" />
+                </div>
+                <Button
+                  onClick={initializeAvatar}
+                  disabled={isLoadingSession}
+                  size={compact ? "sm" : "default"}
+                  className="mt-2 shadow-lg z-20"
+                >
+                  <Play className="w-3 h-3 mr-2" />
+                  Start Avatar
+                </Button>
+                {!compact && <p className="text-xs text-muted-foreground mt-1">Click to begin</p>}
+              </div>
             )}
           </div>
         )}
@@ -335,100 +375,136 @@ export default function HeyGenAvatar({
           autoPlay
           playsInline
           aria-label="AI Avatar Video Stream"
-          className="w-full h-full object-contain"
+          className="w-full h-full object-cover"
         />
-      </div>
-
-      {/* Session Controls */}
-      <div className="flex gap-2">
-        {!sessionData ? (
-          <Button
-            onClick={initializeAvatar}
-            disabled={isLoadingSession}
-            className="flex-1"
-          >
-            {isLoadingSession ? (
-              <>
-                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                Starting...
-              </>
-            ) : (
-              <>
-                <Play className="w-4 h-4 mr-2" />
-                Start Avatar
-              </>
+        
+        {/* Compact mode: Show speaking/listening indicators over video */}
+        {compact && stream && (
+          <div className="absolute top-2 right-2 flex gap-1 z-20">
+            {isSpeaking && (
+              <div className="px-2 py-1 bg-blue-500/90 rounded-full flex items-center gap-1">
+                <Volume2 className="w-3 h-3 text-white animate-pulse" />
+              </div>
             )}
-          </Button>
-        ) : (
-          <>
+            {isListening && (
+              <div className="px-2 py-1 bg-green-500/90 rounded-full flex items-center gap-1">
+                <Mic className="w-3 h-3 text-white animate-pulse" />
+              </div>
+            )}
+          </div>
+        )}
+        
+        {/* Compact mode: Show stop button over video */}
+        {compact && sessionData && (
+          <div className="absolute bottom-2 right-2 z-20">
             <Button
               onClick={stopAvatar}
               variant="destructive"
-              className="flex-1"
+              size="sm"
+              className="shadow-lg"
             >
-              <Square className="w-4 h-4 mr-2" />
-              Stop Avatar
+              <Square className="w-3 h-3 mr-1" />
+              Stop
             </Button>
-            {!isVoiceChatActive ? (
+          </div>
+        )}
+      </div>
+
+      {/* Full controls only in non-compact mode */}
+      {!compact && (
+        <>
+          {/* Session Controls */}
+          <div className="flex gap-2">
+            {!sessionData ? (
               <Button
-                onClick={startVoiceChat}
-                disabled={isLoadingVoiceChat}
+                onClick={initializeAvatar}
+                disabled={isLoadingSession}
                 className="flex-1"
               >
-                {isLoadingVoiceChat ? (
+                {isLoadingSession ? (
                   <>
                     <Loader2 className="w-4 h-4 mr-2 animate-spin" />
                     Starting...
                   </>
                 ) : (
                   <>
-                    <Mic className="w-4 h-4 mr-2" />
-                    Start Voice Chat
+                    <Play className="w-4 h-4 mr-2" />
+                    Start Avatar
                   </>
                 )}
               </Button>
             ) : (
+              <>
+                <Button
+                  onClick={stopAvatar}
+                  variant="destructive"
+                  className="flex-1"
+                >
+                  <Square className="w-4 h-4 mr-2" />
+                  Stop Avatar
+                </Button>
+                {!isVoiceChatActive ? (
+                  <Button
+                    onClick={startVoiceChat}
+                    disabled={isLoadingVoiceChat}
+                    className="flex-1"
+                  >
+                    {isLoadingVoiceChat ? (
+                      <>
+                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                        Starting...
+                      </>
+                    ) : (
+                      <>
+                        <Mic className="w-4 h-4 mr-2" />
+                        Start Voice Chat
+                      </>
+                    )}
+                  </Button>
+                ) : (
+                  <Button
+                    onClick={stopVoiceChat}
+                    variant="secondary"
+                    className="flex-1"
+                  >
+                    <MicOff className="w-4 h-4 mr-2" />
+                    Stop Voice Chat
+                  </Button>
+                )}
+              </>
+            )}
+          </div>
+
+          {/* Voice Chat Controls */}
+          {isVoiceChatActive && (
+            <div className="flex gap-2">
+              <Button onClick={toggleMute} variant="outline" size="icon">
+                {isMuted ? (
+                  <MicOff className="w-4 h-4" />
+                ) : (
+                  <Mic className="w-4 h-4" />
+                )}
+              </Button>
               <Button
-                onClick={stopVoiceChat}
-                variant="secondary"
+                onClick={interruptAvatar}
+                variant="outline"
                 className="flex-1"
               >
-                <MicOff className="w-4 h-4 mr-2" />
-                Stop Voice Chat
+                <VolumeX className="w-4 h-4 mr-2" />
+                Interrupt
               </Button>
-            )}
-          </>
-        )}
-      </div>
+            </div>
+          )}
 
-      {/* Voice Chat Controls */}
-      {isVoiceChatActive && (
-        <div className="flex gap-2">
-          <Button onClick={toggleMute} variant="outline" size="icon">
-            {isMuted ? (
-              <MicOff className="w-4 h-4" />
-            ) : (
-              <Mic className="w-4 h-4" />
-            )}
-          </Button>
-          <Button
-            onClick={interruptAvatar}
-            variant="outline"
-            className="flex-1"
-          >
-            <VolumeX className="w-4 h-4 mr-2" />
-            Interrupt
-          </Button>
-        </div>
+          {/* Session Info */}
+          {sessionData && (
+            <div className="text-xs text-muted-foreground space-y-1">
+              <p>Session ID: {sessionData.sessionId}</p>
+              <p>Avatar: {sessionData.avatarName}</p>
+            </div>
+          )}
+        </>
       )}
-
-      {/* Session Info */}
-      {sessionData && (
-        <div className="text-xs text-muted-foreground space-y-1">
-          <p>Session ID: {sessionData.sessionId}</p>
-          <p>Avatar: {sessionData.avatarName}</p>
-        </div>
-      )}
-    </Card>
+    </div>
   );
 }
