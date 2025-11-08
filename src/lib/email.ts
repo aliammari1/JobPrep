@@ -1,16 +1,33 @@
 /**
- * Email Service with Resend
+ * Email Service with Google Gmail API
  *
- * Real email service implementation using Resend.
+ * Real email service implementation using Google Gmail API.
  * Supports verification, password reset, interview reminders, and more.
  */
 
-import { Resend } from 'resend';
+import nodemailer from "nodemailer";
 
-// Initialize Resend client
-const resend = process.env.RESEND_API_KEY 
-  ? new Resend(process.env.RESEND_API_KEY)
-  : null;
+// Initialize Gmail transporter
+let emailTransporter: nodemailer.Transporter | null = null;
+
+async function getGmailTransporter() {
+  if (emailTransporter) return emailTransporter;
+
+  try {
+    emailTransporter = nodemailer.createTransport({
+      service: "gmail",
+      auth: {
+        user: process.env.GMAIL_USER_EMAIL,
+        pass: process.env.GMAIL_APP_PASSWORD,
+      },
+    });
+
+    return emailTransporter;
+  } catch (error) {
+    console.error("Failed to initialize Gmail transporter:", error);
+    return null;
+  }
+}
 
 export interface EmailOptions {
   to: string | string[];
@@ -26,9 +43,9 @@ export interface SendEmailOptions extends EmailOptions {}
 
 export async function sendEmail({ to, subject, html, text, replyTo, tags, scheduledAt }: EmailOptions) {
   // Development mode: Log to console
-  if (process.env.NODE_ENV === "development" && !resend) {
+  if (process.env.NODE_ENV === "development" && !process.env.GMAIL_USER_EMAIL) {
     console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
-    console.log("📧 Email Service (Development Mode - No Resend Key)");
+    console.log("📧 Email Service (Development Mode - No Gmail Credentials)");
     console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
     console.log(`To: ${Array.isArray(to) ? to.join(', ') : to}`);
     console.log(`Subject: ${subject}`);
@@ -41,30 +58,30 @@ export async function sendEmail({ to, subject, html, text, replyTo, tags, schedu
     return { success: true, emailId: 'dev-' + Date.now() };
   }
 
-  // Production mode: Use Resend
-  if (!resend) {
-    console.error('RESEND_API_KEY not configured');
+  // Production mode: Use Google Gmail
+  if (!process.env.GMAIL_USER_EMAIL) {
+    console.error('Gmail credentials not configured');
     return { success: false, error: 'Email service not configured' };
   }
 
   try {
-    const { data, error } = await resend.emails.send({
-      from: process.env.RESEND_FROM_EMAIL || 'onboarding@resend.dev',
-      to,
-      subject,
-      html,
-      text,
-      replyTo,
-      tags,
-      scheduledAt,
-    });
-
-    if (error) {
-      console.error('Email sending failed:', error);
-      return { success: false, error: error.message };
+    const transporter = await getGmailTransporter();
+    if (!transporter) {
+      return { success: false, error: 'Failed to initialize email service' };
     }
 
-    return { success: true, emailId: data?.id };
+    const mailOptions = {
+      from: process.env.GMAIL_USER_EMAIL,
+      to: Array.isArray(to) ? to.join(', ') : to,
+      subject,
+      html,
+      text: text || html,
+      replyTo: replyTo || process.env.GMAIL_USER_EMAIL,
+    };
+
+    const info = await transporter.sendMail(mailOptions);
+
+    return { success: true, emailId: info.messageId };
   } catch (error) {
     console.error('Email sending error:', error);
     return { success: false, error: 'Failed to send email' };
