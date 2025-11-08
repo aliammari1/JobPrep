@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Image from "next/image";
 import { useSession } from "@/lib/auth-client";
@@ -204,38 +204,46 @@ export default function MockInterview() {
   const [isRecording, setIsRecording] = useState(false);
   const [mediaRecorder, setMediaRecorder] = useState<MediaRecorder | null>(null);
   const [isTranscribing, setIsTranscribing] = useState(false);
+  const audioChunksRef = useRef<BlobPart[]>([]);
 
-  // Initialize media recorder for Whisper transcription
-  useEffect(() => {
-    const initializeMediaRecorder = async () => {
-      try {
-        if (typeof window !== "undefined" && navigator.mediaDevices) {
-          const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-          const recorder = new MediaRecorder(stream, { mimeType: "audio/webm" });
-          let chunks: BlobPart[] = [];
+  // Initialize or re-initialize media recorder for Whisper transcription
+  const initializeMediaRecorder = async () => {
+    try {
+      if (typeof window !== "undefined" && navigator.mediaDevices) {
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        const recorder = new MediaRecorder(stream, { mimeType: "audio/webm" });
+        
+        audioChunksRef.current = [];
 
-          recorder.ondataavailable = (e) => {
-            chunks.push(e.data);
-          };
+        recorder.ondataavailable = (e) => {
+          audioChunksRef.current.push(e.data);
+        };
 
-          recorder.onstop = async () => {
-            const audioBlob = new Blob(chunks, { type: "audio/webm" });
-            chunks = [];
-            
-            // Send to Whisper transcription API
-            await transcribeAudio(audioBlob);
-            
-            // Stop all tracks
-            stream.getTracks().forEach(track => track.stop());
-          };
+        recorder.onstop = async () => {
+          const audioBlob = new Blob(audioChunksRef.current, { type: "audio/webm" });
+          audioChunksRef.current = [];
+          
+          // Send to Whisper transcription API
+          await transcribeAudio(audioBlob);
+          
+          // Stop current tracks
+          stream.getTracks().forEach(track => track.stop());
+          
+          // Re-initialize for next recording
+          await initializeMediaRecorder();
+        };
 
-          setMediaRecorder(recorder);
-        }
-      } catch (error) {
-        console.log("⚠️ Media recorder not available:", error);
+        setMediaRecorder(recorder);
+        return recorder;
       }
-    };
+    } catch (error) {
+      console.log("⚠️ Media recorder not available:", error);
+      return null;
+    }
+  };
 
+  // Initialize media recorder on mount
+  useEffect(() => {
     initializeMediaRecorder();
 
     return () => {

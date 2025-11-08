@@ -1,5 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 
+// Pin to Node.js runtime for serverless compatibility
+export const runtime = 'nodejs';
+
 export async function POST(request: NextRequest) {
   try {
     const { url } = await request.json();
@@ -19,19 +22,37 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Dynamic import for puppeteer
-    const puppeteer = await import("puppeteer");
+    // Dynamic imports for puppeteer-core and chromium
+    const puppeteer = await import("puppeteer-core");
+    const chromiumModule = await import("@sparticuz/chromium");
+    const chromium = chromiumModule.default;
 
-    // Launch browser
+    // Determine if we're in production (Vercel) or development
+    const isProduction = process.env.VERCEL || process.env.NODE_ENV === 'production';
+
+    // Launch browser with appropriate configuration
     const browser = await puppeteer.launch({
+      args: isProduction 
+        ? chromium.args
+        : [
+            '--no-sandbox',
+            '--disable-setuid-sandbox',
+            '--disable-dev-shm-usage',
+            '--disable-accelerated-2d-canvas',
+            '--disable-gpu',
+          ],
+      defaultViewport: {
+        width: 1920,
+        height: 1080,
+      },
+      executablePath: isProduction
+        ? await chromium.executablePath()
+        : process.platform === 'win32'
+          ? 'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe'
+          : process.platform === 'darwin'
+            ? '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome'
+            : '/usr/bin/google-chrome',
       headless: true,
-      args: [
-        '--no-sandbox',
-        '--disable-setuid-sandbox',
-        '--disable-dev-shm-usage',
-        '--disable-accelerated-2d-canvas',
-        '--disable-gpu',
-      ],
     });
 
     const page = await browser.newPage();
