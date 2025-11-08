@@ -107,7 +107,7 @@ export function AppLayout({ children }: AppLayoutProps) {
   // Dashboard layout with sidebar and navbar
   if (showDashboardLayout) {
     return (
-      <div className="h-screen bg-gray-50 dark:bg-gray-950 flex overflow-hidden">
+      <div className="h-screen bg-gradient-to-br from-background via-background to-muted/20 dark:from-background dark:via-background dark:to-muted/10 flex overflow-hidden">
         {/* Sidebar */}
         <Sidebar
           isOpen={sidebarOpen}
