@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Image from "next/image";
 import { useSession } from "@/lib/auth-client";
@@ -65,6 +65,9 @@ import {
   Link as LinkIcon,
   Loader2,
   Edit,
+  ChevronRight,
+  MessageCircle,
+  Square,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
@@ -173,8 +176,9 @@ export default function MockInterview() {
   const [showAvatar, setShowAvatar] = useState(false);
   const [avatarErrors, setAvatarErrors] = useState<string[]>([]);
   
-  // Setup Dialog states
-  const [showSetupDialog, setShowSetupDialog] = useState(false);
+  // Setup states
+  const [showSetup, setShowSetup] = useState(false);
+  const [setupStep, setSetupStep] = useState(1);
   const [jobDescriptionText, setJobDescriptionText] = useState("");
   const [jobTitle, setJobTitle] = useState("");
   const [companyName, setCompanyName] = useState("");
@@ -198,59 +202,106 @@ export default function MockInterview() {
   const [currentAnswer, setCurrentAnswer] = useState("");
   const [answerStartTime, setAnswerStartTime] = useState<number>(0);
   const [isRecording, setIsRecording] = useState(false);
-  const [recognition, setRecognition] = useState<any>(null);
+  const [mediaRecorder, setMediaRecorder] = useState<MediaRecorder | null>(null);
+  const [isTranscribing, setIsTranscribing] = useState(false);
+  const audioChunksRef = useRef<BlobPart[]>([]);
 
-  // Initialize speech recognition
-  useEffect(() => {
-    if (typeof window !== "undefined" && "webkitSpeechRecognition" in window) {
-      const SpeechRecognition = (window as any).webkitSpeechRecognition;
-      const recognitionInstance = new SpeechRecognition();
-      recognitionInstance.continuous = true;
-      recognitionInstance.interimResults = true;
-      recognitionInstance.lang = "en-US";
+  // Initialize or re-initialize media recorder for Whisper transcription
+  const initializeMediaRecorder = async () => {
+    try {
+      if (typeof window !== "undefined" && navigator.mediaDevices) {
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        const recorder = new MediaRecorder(stream, { mimeType: "audio/webm" });
+        
+        audioChunksRef.current = [];
 
-      recognitionInstance.onresult = (event: any) => {
-        let finalTranscript = "";
-        let interimTranscript = "";
+        recorder.ondataavailable = (e) => {
+          audioChunksRef.current.push(e.data);
+        };
 
-        for (let i = event.resultIndex; i < event.results.length; i++) {
-          const transcript = event.results[i][0].transcript;
-          if (event.results[i].isFinal) {
-            finalTranscript += transcript + " ";
-          } else {
-            interimTranscript += transcript;
-          }
-        }
+        recorder.onstop = async () => {
+          const audioBlob = new Blob(audioChunksRef.current, { type: "audio/webm" });
+          audioChunksRef.current = [];
+          
+          // Send to Whisper transcription API
+          await transcribeAudio(audioBlob);
+          
+          // Stop current tracks
+          stream.getTracks().forEach(track => track.stop());
+          
+          // Re-initialize for next recording
+          await initializeMediaRecorder();
+        };
 
-        if (finalTranscript) {
-          setCurrentAnswer((prev) => prev + finalTranscript);
-        }
-      };
-
-      recognitionInstance.onerror = (event: any) => {
-        console.error("Speech recognition error:", event.error);
-        setIsRecording(false);
-      };
-
-      recognitionInstance.onend = () => {
-        setIsRecording(false);
-      };
-
-      setRecognition(recognitionInstance);
+        setMediaRecorder(recorder);
+        return recorder;
+      }
+    } catch (error) {
+      console.log("⚠️ Media recorder not available:", error);
+      return null;
     }
+  };
+
+  // Initialize media recorder on mount
+  useEffect(() => {
+    initializeMediaRecorder();
+
+    return () => {
+      if (mediaRecorder) {
+        mediaRecorder.stream.getTracks().forEach(track => track.stop());
+      }
+    };
   }, []);
 
+  // Transcribe audio using Whisper API
+  const transcribeAudio = async (audioBlob: Blob) => {
+    try {
+      setIsTranscribing(true);
+      console.log("🎤 Sending audio to Whisper transcription...");
+
+      const formData = new FormData();
+      formData.append("audio", audioBlob, "audio.webm");
+
+      const response = await fetch("/api/transcribe-audio", {
+        method: "POST",
+        body: formData,
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        console.error("Transcription failed:", errorData);
+        setIsTranscribing(false);
+        return;
+      }
+
+      const result = await response.json();
+      console.log("✅ Transcription result:", result.text?.substring(0, 100));
+
+      if (result.text) {
+        setCurrentAnswer((prev) => (prev ? prev + " " + result.text : result.text));
+      }
+
+      setIsTranscribing(false);
+    } catch (error) {
+      console.error("Transcription error:", error);
+      setIsTranscribing(false);
+    }
+  };
+
+  // Toggle voice recording with Whisper
   const toggleVoiceRecording = () => {
-    if (!recognition) {
-      alert("Speech recognition is not supported in your browser. Please use Chrome.");
+    if (!mediaRecorder) {
+      alert("Microphone access is required for voice recording. Please allow access and refresh.");
       return;
     }
 
     if (isRecording) {
-      recognition.stop();
+      // Stop recording
+      mediaRecorder.stop();
       setIsRecording(false);
     } else {
-      recognition.start();
+      // Start recording
+      mediaRecorder.start();
       setIsRecording(true);
     }
   };
@@ -467,13 +518,13 @@ export default function MockInterview() {
   const getDifficultyColor = (difficulty: string) => {
     switch (difficulty) {
       case "beginner":
-        return "bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-300";
+        return "bg-primary/10 text-primary dark:bg-primary/20 dark:text-primary/80";
       case "intermediate":
-        return "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-300";
+        return "bg-secondary/10 text-secondary dark:bg-secondary/20 dark:text-secondary/80";
       case "advanced":
-        return "bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-300";
+        return "bg-destructive/10 text-destructive dark:bg-destructive/20 dark:text-destructive/80";
       default:
-        return "bg-gray-100 text-gray-800 dark:bg-gray-900/20 dark:text-gray-300";
+        return "bg-muted text-muted-foreground dark:bg-muted/20 dark:text-muted-foreground";
     }
   };
 
@@ -634,7 +685,7 @@ export default function MockInterview() {
     setIsGeneratingQuestions(true);
 
     try {
-      // Call Gemini API to generate questions
+      // Call generate questions API with streaming
       const response = await fetch("/api/generate-questions", {
         method: "POST",
         headers: {
@@ -659,42 +710,101 @@ export default function MockInterview() {
         throw new Error(errorData.error || "Failed to generate questions");
       }
 
-      const data = await response.json();
-      
-      if (!data.questions || data.questions.length === 0) {
-        throw new Error("No questions generated");
+      // Handle streaming response (NDJSON format)
+      const reader = response.body?.getReader();
+      if (!reader) {
+        throw new Error("Response body is not readable");
       }
 
-      // Store generated questions
-      setGeneratedQuestions(data.questions);
-      setCurrentQuestionIndex(0);
-      setInterviewResults([]);
-      setAnswerStartTime(Date.now());
+      const decoder = new TextDecoder();
+      const collectedQuestions: any[] = [];
+      let totalQuestions = 0;
+      let interviewStarted = false;
+
+      try {
+        while (true) {
+          const { done, value } = await reader.read();
+          
+          if (done) break;
+
+          const chunk = decoder.decode(value, { stream: true });
+          const lines = chunk.split("\n").filter(line => line.trim());
+
+          for (const line of lines) {
+            try {
+              const message = JSON.parse(line);
+
+              if (message.type === "init") {
+                totalQuestions = message.totalQuestions;
+                console.log(`📊 Total questions to generate: ${totalQuestions}`);
+              } else if (message.type === "question") {
+                collectedQuestions.push(message.question);
+                console.log(`✅ Question ${message.received}/${message.total} received`);
+                
+                // START INTERVIEW AS SOON AS FIRST QUESTION ARRIVES!
+                if (!interviewStarted && collectedQuestions.length === 1) {
+                  interviewStarted = true;
+                  setIsGeneratingQuestions(false);
+                  
+                  // Store the questions we have so far
+                  setGeneratedQuestions([...collectedQuestions]);
+                  setCurrentQuestionIndex(0);
+                  setInterviewResults([]);
+                  setAnswerStartTime(Date.now());
+                  
+                  // Close setup and start the interview immediately
+                  setShowSetup(false);
+                  
+                  // Start the interview session
+                  const aiInterviewSession: MockSession = {
+                    id: "ai-interview-" + Date.now(),
+                    title: "AI-Generated Interview",
+                    type: "technical",
+                    difficulty: "intermediate",
+                    duration: 60,
+                    currentQuestion: 1,
+                    totalQuestions: totalQuestions,
+                    isActive: true,
+                    sessionTime: 0,
+                    aiInterviewer: {
+                      name: "AI Interviewer",
+                      personality: "professional",
+                      avatar: "",
+                    },
+                  };
+                  
+                  setCurrentSession(aiInterviewSession);
+                  setIsSessionActive(true);
+                  setSessionComplete(false);
+                  
+                  console.log("🎬 Interview started with first question!");
+                } else {
+                  // Update questions as they arrive (in background while interview continues)
+                  setGeneratedQuestions([...collectedQuestions]);
+                  console.log(`📥 Updated questions array: ${collectedQuestions.length} total`);
+                }
+              } else if (message.type === "complete") {
+                console.log(`📋 All ${message.totalQuestions} questions generated`);
+              }
+            } catch (parseError) {
+              console.error("Error parsing stream message:", parseError, line);
+            }
+          }
+        }
+      } finally {
+        reader.releaseLock();
+      }
+
+      // Only throw error if no questions received at all
+      if (collectedQuestions.length === 0) {
+        throw new Error("No questions received from stream");
+      }
+
+      console.log(`✨ Final count: ${collectedQuestions.length} questions collected`);
       
-      // Close setup dialog and start the interview
-      setShowSetupDialog(false);
-      
-      // Start the interview session
-      const aiInterviewSession: MockSession = {
-        id: "ai-interview-" + Date.now(),
-        title: "AI-Generated Interview",
-        type: "technical",
-        difficulty: "intermediate",
-        duration: 60,
-        currentQuestion: 1,
-        totalQuestions: data.questions.length,
-        isActive: true,
-        sessionTime: 0,
-        aiInterviewer: {
-          name: "AI Interviewer",
-          personality: "professional",
-          avatar: "",
-        },
-      };
-      
-      setCurrentSession(aiInterviewSession);
-      setIsSessionActive(true);
-      setSessionComplete(false);
+      // Questions are already being updated in real-time during streaming
+      // Final update with all collected questions (in case any were missed)
+      setGeneratedQuestions([...collectedQuestions]);
       
     } catch (error) {
       console.error("Error generating questions:", error);
@@ -878,66 +988,66 @@ export default function MockInterview() {
   // Show premium loading screen when evaluating final assessment
   if (isEvaluatingAnswer && currentQuestionIndex >= generatedQuestions.length - 1) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-indigo-900 via-purple-900 to-pink-900 flex items-center justify-center p-6">
+      <div className="min-h-screen bg-gradient-to-br from-primary/20 via-primary/10 to-secondary/10 flex items-center justify-center p-6">
         <div className="max-w-2xl w-full">
-          <Card className="bg-white/10 backdrop-blur-xl border-white/20 shadow-2xl">
+          <Card className="bg-background/80 backdrop-blur-xl border-border shadow-2xl">
             <CardContent className="p-12 text-center space-y-8">
               {/* Animated Icon */}
               <div className="relative w-32 h-32 mx-auto">
-                <div className="absolute inset-0 bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 rounded-full animate-spin" 
+                <div className="absolute inset-0 bg-gradient-to-r from-primary to-secondary rounded-full animate-spin" 
                      style={{ animationDuration: '3s' }} />
-                <div className="absolute inset-2 bg-gradient-to-br from-indigo-900 to-purple-900 rounded-full flex items-center justify-center">
-                  <Brain className="w-16 h-16 text-white animate-pulse" />
+                <div className="absolute inset-2 bg-gradient-to-br from-background to-muted rounded-full flex items-center justify-center">
+                  <Brain className="w-16 h-16 text-primary animate-pulse" />
                 </div>
               </div>
 
               {/* Title */}
               <div className="space-y-3">
-                <h1 className="text-4xl font-bold text-white">
+                <h1 className="text-4xl font-bold text-foreground">
                   Analyzing Your Performance
                 </h1>
-                <p className="text-xl text-purple-200">
+                <p className="text-xl text-muted-foreground">
                   Our AI is evaluating your answers with Ollama
                 </p>
               </div>
 
               {/* Progress Steps */}
               <div className="space-y-4 text-left">
-                <div className="flex items-center gap-4 p-4 bg-white/5 rounded-xl border border-white/10">
+                <div className="flex items-center gap-4 p-4 bg-primary/5 rounded-xl border border-border">
                   <div className="w-10 h-10 rounded-full bg-green-500 flex items-center justify-center flex-shrink-0">
                     <CheckCircle2 className="w-6 h-6 text-white" />
                   </div>
                   <div>
-                    <p className="text-white font-semibold">Questions Answered</p>
-                    <p className="text-purple-200 text-sm">{generatedQuestions.length} responses recorded</p>
+                    <p className="text-foreground font-semibold">Questions Answered</p>
+                    <p className="text-muted-foreground text-sm">{generatedQuestions.length} responses recorded</p>
                   </div>
                 </div>
 
-                <div className="flex items-center gap-4 p-4 bg-white/5 rounded-xl border border-white/10">
-                  <div className="w-10 h-10 rounded-full bg-gradient-to-r from-blue-500 to-purple-500 flex items-center justify-center flex-shrink-0 animate-pulse">
+                <div className="flex items-center gap-4 p-4 bg-primary/5 rounded-xl border border-border">
+                  <div className="w-10 h-10 rounded-full bg-gradient-to-r from-primary to-secondary flex items-center justify-center flex-shrink-0 animate-pulse">
                     <Loader2 className="w-6 h-6 text-white animate-spin" />
                   </div>
                   <div>
-                    <p className="text-white font-semibold">Evaluating Responses</p>
-                    <p className="text-purple-200 text-sm">Comparing against ideal answers</p>
+                    <p className="text-foreground font-semibold">Evaluating Responses</p>
+                    <p className="text-muted-foreground text-sm">Comparing against ideal answers</p>
                   </div>
                 </div>
 
-                <div className="flex items-center gap-4 p-4 bg-white/5 rounded-xl border border-white/10 opacity-50">
-                  <div className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center flex-shrink-0">
-                    <BarChart3 className="w-6 h-6 text-white" />
+                <div className="flex items-center gap-4 p-4 bg-primary/5 rounded-xl border border-border opacity-50">
+                  <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center flex-shrink-0">
+                    <BarChart3 className="w-6 h-6 text-foreground" />
                   </div>
                   <div>
-                    <p className="text-white font-semibold">Generating Final Report</p>
-                    <p className="text-purple-200 text-sm">Creating comprehensive assessment</p>
+                    <p className="text-foreground font-semibold">Generating Final Report</p>
+                    <p className="text-muted-foreground text-sm">Creating comprehensive assessment</p>
                   </div>
                 </div>
               </div>
 
               {/* Fun Fact */}
-              <div className="pt-6 border-t border-white/10">
-                <p className="text-purple-200 text-sm">
-                  💡 <strong className="text-white">Did you know?</strong> Our local Ollama AI analyzes your answers 10-20x faster than cloud-based solutions!
+              <div className="pt-6 border-t border-border">
+                <p className="text-muted-foreground text-sm">
+                  💡 <strong className="text-foreground">Did you know?</strong> Our local Ollama AI analyzes your answers 10-20x faster than cloud-based solutions!
                 </p>
               </div>
             </CardContent>
@@ -961,22 +1071,22 @@ export default function MockInterview() {
       };
 
       return (
-        <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-green-50 to-teal-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
+        <div className="min-h-screen bg-gradient-to-br from-background via-primary/5 to-muted/10 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
           <div className="container mx-auto p-6 md:p-8 lg:p-12 space-y-8">
             {/* Premium Header with Celebration */}
             <AnimatedContainer>
               <div className="text-center space-y-6 relative">
                 {/* Celebration Badge */}
                 <div className="relative inline-block">
-                  <div className="absolute inset-0 bg-gradient-to-r from-emerald-400 to-teal-400 blur-3xl opacity-50 animate-pulse" />
-                  <div className="relative w-32 h-32 bg-gradient-to-br from-emerald-100 to-teal-100 dark:from-emerald-900/40 dark:to-teal-900/40 rounded-full flex items-center justify-center mx-auto border-4 border-white dark:border-gray-800 shadow-2xl">
-                    <Award className="w-16 h-16 text-emerald-600 dark:text-emerald-400" />
+                  <div className="absolute inset-0 bg-gradient-to-r from-primary/40 to-secondary/40 blur-3xl opacity-50 animate-pulse" />
+                  <div className="relative w-32 h-32 bg-gradient-to-br from-primary/20 to-secondary/20 dark:from-primary/30 dark:to-secondary/30 rounded-full flex items-center justify-center mx-auto border-4 border-white dark:border-gray-800 shadow-2xl">
+                    <Award className="w-16 h-16 text-primary dark:text-primary" />
                   </div>
                 </div>
                 
                 {/* Title */}
                 <div className="space-y-3">
-                  <h1 className="text-5xl md:text-6xl font-bold bg-gradient-to-r from-emerald-600 via-green-600 to-teal-600 bg-clip-text text-transparent">
+                  <h1 className="text-5xl md:text-6xl font-bold bg-gradient-to-b from-foreground to-muted-foreground/70 bg-clip-text text-transparent">
                     Interview Complete! 🎉
                   </h1>
                   <p className="text-xl text-gray-600 dark:text-gray-300 max-w-2xl mx-auto leading-relaxed">
@@ -987,17 +1097,17 @@ export default function MockInterview() {
                 {/* Quick Stats Banner */}
                 <div className="flex items-center justify-center gap-6 pt-6">
                   <div className="text-center">
-                    <div className="text-3xl font-bold text-emerald-600">{interviewResults.length}</div>
+                    <div className="text-3xl font-bold text-primary">{interviewResults.length}</div>
                     <div className="text-sm text-gray-600 dark:text-gray-400">Questions</div>
                   </div>
                   <div className="w-px h-12 bg-gray-300 dark:bg-gray-700" />
                   <div className="text-center">
-                    <div className="text-3xl font-bold text-blue-600">{stats.percentage}%</div>
+                    <div className="text-3xl font-bold text-primary">{stats.percentage}%</div>
                     <div className="text-sm text-gray-600 dark:text-gray-400">Score</div>
                   </div>
                   <div className="w-px h-12 bg-gray-300 dark:bg-gray-700" />
                   <div className="text-center">
-                    <div className="text-3xl font-bold text-purple-600">{finalAssessment.confidenceLevel}%</div>
+                    <div className="text-3xl font-bold text-primary">{finalAssessment.confidenceLevel}%</div>
                     <div className="text-sm text-gray-600 dark:text-gray-400">Confidence</div>
                   </div>
                 </div>
@@ -1007,7 +1117,7 @@ export default function MockInterview() {
             {/* Premium Score Cards */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               <AnimatedContainer delay={0.1}>
-                <Card className="bg-gradient-to-br from-emerald-500 to-teal-500 border-0 shadow-2xl text-white overflow-hidden">
+                <Card className="bg-gradient-to-br from-primary to-primary/60 border-0 shadow-2xl text-white overflow-hidden">
                   <div className="absolute top-0 right-0 w-40 h-40 bg-white/10 rounded-full -mr-20 -mt-20" />
                   <CardHeader className="relative">
                     <CardTitle className="text-white/90 text-lg">Overall Score</CardTitle>
@@ -1024,7 +1134,7 @@ export default function MockInterview() {
               </AnimatedContainer>
 
               <AnimatedContainer delay={0.2}>
-                <Card className="bg-gradient-to-br from-blue-500 to-indigo-500 border-0 shadow-2xl text-white overflow-hidden">
+                <Card className="bg-gradient-to-br from-primary to-primary/60 border-0 shadow-2xl text-white overflow-hidden">
                   <div className="absolute top-0 right-0 w-40 h-40 bg-white/10 rounded-full -mr-20 -mt-20" />
                   <CardHeader className="relative">
                     <CardTitle className="text-white/90 text-lg">AI Confidence</CardTitle>
@@ -1039,7 +1149,7 @@ export default function MockInterview() {
               </AnimatedContainer>
 
               <AnimatedContainer delay={0.3}>
-                <Card className="bg-gradient-to-br from-purple-500 to-pink-500 border-0 shadow-2xl text-white overflow-hidden">
+                <Card className="bg-gradient-to-br from-secondary to-secondary/70 border-0 shadow-2xl text-white overflow-hidden">
                   <div className="absolute top-0 right-0 w-40 h-40 bg-white/10 rounded-full -mr-20 -mt-20" />
                   <CardHeader className="relative">
                     <CardTitle className="text-white/90 text-lg">Recommendation</CardTitle>
@@ -1060,7 +1170,7 @@ export default function MockInterview() {
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
-                  <ThumbsUp className="w-5 h-5 text-green-600" />
+                  <ThumbsUp className="w-5 h-5 text-primary" />
                   Key Strengths
                 </CardTitle>
               </CardHeader>
@@ -1068,7 +1178,7 @@ export default function MockInterview() {
                 <ul className="space-y-2">
                   {finalAssessment.keyStrengths.map((strength, idx) => (
                     <li key={idx} className="flex items-start gap-2">
-                      <CheckCircle2 className="w-5 h-5 text-green-600 mt-0.5 flex-shrink-0" />
+                      <CheckCircle2 className="w-5 h-5 text-primary mt-0.5 flex-shrink-0" />
                       <span>{strength}</span>
                     </li>
                   ))}
@@ -1080,7 +1190,7 @@ export default function MockInterview() {
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
-                  <TrendingUp className="w-5 h-5 text-orange-600" />
+                  <TrendingUp className="w-5 h-5 text-primary" />
                   Areas for Development
                 </CardTitle>
               </CardHeader>
@@ -1088,7 +1198,7 @@ export default function MockInterview() {
                 <ul className="space-y-2">
                   {finalAssessment.developmentAreas.map((area, idx) => (
                     <li key={idx} className="flex items-start gap-2">
-                      <AlertTriangle className="w-5 h-5 text-orange-600 mt-0.5 flex-shrink-0" />
+                      <AlertTriangle className="w-5 h-5 text-primary mt-0.5 flex-shrink-0" />
                       <span>{area}</span>
                     </li>
                   ))}
@@ -1176,12 +1286,12 @@ export default function MockInterview() {
 
     // Fallback to default completion screen
     return (
-      <div className="min-h-screen bg-gradient-to-br from-green-50 via-white to-blue-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
+      <div className="min-h-screen bg-gradient-to-br from-background via-primary/5 to-muted/10 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
         <div className="container mx-auto p-6 space-y-8">
           <AnimatedContainer>
             <div className="text-center space-y-4">
-              <div className="w-20 h-20 bg-green-100 dark:bg-green-900/20 rounded-full flex items-center justify-center mx-auto">
-                <CheckCircle2 className="w-10 h-10 text-green-600" />
+              <div className="w-20 h-20 bg-primary/10 dark:bg-primary/20 rounded-full flex items-center justify-center mx-auto">
+                <CheckCircle2 className="w-10 h-10 text-primary" />
               </div>
               <h1 className="text-4xl font-bold">Interview Complete!</h1>
               <p className="text-muted-foreground">
@@ -1220,18 +1330,18 @@ export default function MockInterview() {
                         strokeDashoffset={`${
                           2 * Math.PI * 56 * (1 - aiFeedback.overall / 100)
                         }`}
-                        className="text-green-500"
+                        className="text-primary"
                         strokeLinecap="round"
                       />
                     </svg>
                     <div className="absolute inset-0 flex items-center justify-center">
-                      <span className="text-3xl font-bold text-green-600">
+                      <span className="text-3xl font-bold text-primary">
                         {aiFeedback.overall}%
                       </span>
                     </div>
                   </div>
                   <div className="space-y-2">
-                    <Badge className="bg-green-100 text-green-800">
+                    <Badge className="bg-primary/10 text-primary">
                       Excellent Performance
                     </Badge>
                     <p className="text-sm text-muted-foreground">
@@ -1384,7 +1494,8 @@ export default function MockInterview() {
     const currentQuestion = generatedQuestions[currentQuestionIndex];
     
     return (
-    <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-purple-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 p-4 md:p-6">
+    <div className="min-h-screen bg-gradient-to-br from-background via-primary/5 to-muted/10 relative overflow-hidden p-4 md:p-6">
+      <div className="absolute inset-0 -z-10 bg-gradient-to-br from-primary/5 via-primary/10 to-transparent" />
       <div className="max-w-7xl mx-auto">
         <AnimatedContainer>
           {/* Premium Header with Stats Bar */}
@@ -1392,10 +1503,10 @@ export default function MockInterview() {
             {/* Top Bar - Title and End Button */}
             <div className="flex items-center justify-between mb-6">
               <div>
-                <h1 className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
+                <h1 className="text-3xl md:text-4xl font-bold bg-gradient-to-b from-foreground to-muted-foreground/70 bg-clip-text text-transparent">
                   AI Interview Session
                 </h1>
-                <p className="text-sm text-gray-500 dark:text-gray-400 mt-2 font-medium">
+                <p className="text-sm text-muted-foreground mt-2 font-medium">
                   Powered by Ollama AI • Real-time Evaluation
                 </p>
               </div>
@@ -1408,14 +1519,14 @@ export default function MockInterview() {
                     setIsSessionActive(false);
                   }
                 }}
-                className="border-red-200 hover:bg-red-50 dark:border-red-900 dark:hover:bg-red-950/20"
+                className="border-destructive/30 hover:bg-destructive/10"
               >
                 End Interview
               </Button>
             </div>
 
             {/* Premium Stats Bar */}
-            <Card className="bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 border-0 shadow-2xl">
+            <Card className="bg-gradient-to-br from-primary/10 via-primary/5 to-transparent border-muted ring-1 ring-primary/20 shadow-lg hover:shadow-xl transition">
               <CardContent className="p-6">
                 <div className="grid grid-cols-4 gap-6">
                   {/* Progress with circular indicator */}
@@ -1426,7 +1537,7 @@ export default function MockInterview() {
                           cx="32"
                           cy="32"
                           r="28"
-                          stroke="rgba(255,255,255,0.2)"
+                          stroke="rgba(var(--primary-rgb),0.1)"
                           strokeWidth="6"
                           fill="none"
                         />
@@ -1497,195 +1608,306 @@ export default function MockInterview() {
             </Card>
           </div>
 
-          {/* Main Content - Enhanced Layout */}
-          <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
-            {/* Left Column - Large Avatar (1/3 width) */}
-            <div className="xl:col-span-1">
-              <Card className="sticky top-6 bg-gradient-to-br from-indigo-50 to-purple-50 dark:from-gray-800 dark:to-gray-900 border-2 border-indigo-100 dark:border-indigo-900 shadow-xl">
-                <CardHeader className="pb-4">
-                  <CardTitle className="text-xl font-bold flex items-center gap-3">
-                    <div className="p-2 bg-indigo-100 dark:bg-indigo-900/50 rounded-lg">
-                      <User className="w-6 h-6 text-indigo-600" />
-                    </div>
-                    AI Interviewer
-                  </CardTitle>
-                  <p className="text-sm text-gray-600 dark:text-gray-400">
-                    Your virtual interviewer
-                  </p>
-                </CardHeader>
-                <CardContent className="p-6">
-                  {/* Larger Avatar Container */}
-                  <div className="aspect-square w-full max-w-md mx-auto">
-                    <HeyGenAvatar 
-                      onError={handleAvatarError}
-                      questionToSpeak={currentQuestion?.question}
-                    />
-                  </div>
-                  {avatarErrors.length > 0 && (
-                    <div className="mt-4 space-y-2">
-                      {avatarErrors.map((error, idx) => (
-                        <div
-                          key={idx}
-                          className="text-xs text-red-600 p-3 bg-red-100 dark:bg-red-950/20 rounded-lg"
-                        >
-                          {error}
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
-            </div>
+          {/* Main Content - Redesigned Layout with Avatar Prominence */}
+          <div className="space-y-6">
+            {/* Top: Progress Bar */}
+            <motion.div 
+              initial={{ opacity: 0, y: -20 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="flex items-center gap-4"
+            >
+              <div className="flex-1">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-sm font-semibold text-foreground">
+                    Question Progress
+                  </span>
+                  <span className="text-sm font-bold text-primary">
+                    {currentQuestionIndex + 1} of {generatedQuestions.length}
+                  </span>
+                </div>
+                <Progress 
+                  value={((currentQuestionIndex + 1) / generatedQuestions.length) * 100} 
+                  className="h-3 bg-muted rounded-full"
+                />
+              </div>
+              <div className="text-right">
+                <p className="text-2xl font-bold text-primary">
+                  {Math.round(((currentQuestionIndex + 1) / generatedQuestions.length) * 100)}%
+                </p>
+              </div>
+            </motion.div>
 
-            {/* Right Column - Question and Answer (2/3 width) */}
-            <div className="xl:col-span-2 space-y-6">
-              {/* Large Question Card - Most Prominent */}
-              <Card className="bg-gradient-to-br from-emerald-50 via-green-50 to-teal-50 dark:from-gray-800 dark:to-gray-900 border-2 border-emerald-200 dark:border-emerald-900 shadow-2xl">
-                <CardHeader className="pb-4 bg-gradient-to-r from-emerald-500 to-teal-500 text-white rounded-t-lg">
-                  <div className="flex items-center justify-between">
-                    <CardTitle className="text-2xl font-bold flex items-center gap-3">
-                      <div className="p-2 bg-white/20 rounded-lg backdrop-blur-sm">
-                        <MessageSquare className="w-7 h-7" />
-                      </div>
-                      Question #{currentQuestionIndex + 1}
+            {/* Main Section: Avatar (Left) + Question (Center) + Answer (Right) */}
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+              {/* LEFT: AI Avatar - Prominent and Visible */}
+              <motion.div
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ delay: 0.1 }}
+                className="lg:col-span-3"
+              >
+                <Card className="bg-gradient-to-br from-primary/20 via-primary/10 to-transparent border-2 border-primary/40 shadow-xl h-full flex flex-col sticky top-6">
+                  <CardHeader className="bg-gradient-to-r from-primary to-primary/80 text-primary-foreground rounded-t-xl pb-4">
+                    <CardTitle className="text-lg flex items-center gap-2">
+                      <User className="w-5 h-5" />
+                      AI Interviewer
                     </CardTitle>
-                    <Badge className="bg-white/20 text-white border-white/30 text-sm px-4 py-1">
-                      {currentQuestion?.type || "Technical"}
-                    </Badge>
-                  </div>
-                </CardHeader>
-                <CardContent className="p-8">
-                  <p className="text-xl md:text-2xl leading-relaxed text-gray-900 dark:text-white font-medium">
-                    {currentQuestion?.question}
-                  </p>
-                  
-                  {/* Ideal Answer Hint */}
-                  {currentQuestion?.evaluationCriteria && (
-                    <div className="mt-6 p-4 bg-emerald-100 dark:bg-emerald-950/20 rounded-lg border border-emerald-200 dark:border-emerald-900">
-                      <p className="text-sm font-semibold text-emerald-800 dark:text-emerald-300 mb-2 flex items-center gap-2">
-                        <Lightbulb className="w-4 h-4" />
-                        Evaluation Criteria:
-                      </p>
-                      <ul className="text-sm text-emerald-700 dark:text-emerald-400 space-y-1 ml-6">
-                        {currentQuestion.evaluationCriteria.map((criteria: string, idx: number) => (
-                          <li key={idx} className="list-disc">{criteria}</li>
-                        ))}
-                      </ul>
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
-
-              {/* Answer Input Card - Enhanced */}
-              <Card className="bg-gradient-to-br from-amber-50 via-orange-50 to-yellow-50 dark:from-gray-800 dark:to-gray-900 border-2 border-amber-200 dark:border-amber-900 shadow-xl">
-                <CardHeader className="pb-4 bg-gradient-to-r from-amber-500 to-orange-500 text-white rounded-t-lg">
-                  <CardTitle className="text-2xl font-bold flex items-center gap-3">
-                    <div className="p-2 bg-white/20 rounded-lg backdrop-blur-sm">
-                      <Edit className="w-7 h-7" />
-                    </div>
-                    Your Answer
-                  </CardTitle>
-                  <p className="text-amber-100 text-sm mt-1">
-                    Take your time and provide a detailed response
-                  </p>
-                </CardHeader>
-                <CardContent className="p-6 space-y-6">
-                  {/* Browser Compatibility Warning */}
-                  {typeof window !== 'undefined' && !(window as any).webkitSpeechRecognition && (
-                    <div className="bg-yellow-100 dark:bg-yellow-900/20 border-2 border-yellow-300 dark:border-yellow-700 rounded-xl p-4 flex items-start gap-3">
-                      <AlertTriangle className="w-5 h-5 text-yellow-600 mt-0.5 flex-shrink-0" />
-                      <p className="text-sm text-yellow-800 dark:text-yellow-200">
-                        <strong>Note:</strong> Voice recording is only available in Chrome browser.
-                      </p>
-                    </div>
-                  )}
-
-                  {/* Answer Textarea - Larger */}
-                  <div className="relative">
-                    <Textarea
-                      placeholder="Type your answer here... Be specific and provide examples when possible."
-                      value={currentAnswer}
-                      onChange={(e) => setCurrentAnswer(e.target.value)}
-                      className="min-h-[280px] text-base resize-none border-2 focus:border-amber-400 dark:focus:border-amber-600 rounded-xl p-5 font-medium"
-                      disabled={isEvaluatingAnswer}
-                    />
-                    <div className="absolute bottom-3 right-3 text-xs text-gray-400">
-                      {currentAnswer.length} characters
-                    </div>
-                  </div>
-
-                  {/* Action Buttons - Enhanced */}
-                  <div className="flex flex-col sm:flex-row gap-4">
-                    <Button
-                      onClick={handleSubmitAnswer}
-                      disabled={isEvaluatingAnswer || !currentAnswer.trim()}
-                      className="flex-1 h-14 text-lg font-semibold bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 hover:from-indigo-700 hover:via-purple-700 hover:to-pink-700 shadow-lg"
-                    >
-                      {isEvaluatingAnswer ? (
-                        <>
-                          <Loader2 className="w-5 h-5 mr-3 animate-spin" />
-                          {currentQuestionIndex === generatedQuestions.length - 1 
-                            ? 'Generating Final Report...'
-                            : 'Evaluating...'}
-                        </>
-                      ) : (
-                        <>
-                          <CheckCircle2 className="w-5 h-5 mr-3" />
-                          {currentQuestionIndex === generatedQuestions.length - 1 
-                            ? 'Submit Final Answer'
-                            : 'Submit & Continue'}
-                        </>
-                      )}
-                    </Button>
-
-                    {/* Voice Recording Button - Enhanced */}
-                    {typeof window !== 'undefined' && (window as any).webkitSpeechRecognition && (
-                      <Button
-                        onClick={toggleVoiceRecording}
-                        variant={isRecording ? "destructive" : "outline"}
-                        size="lg"
-                        className={cn(
-                          "h-14 px-6",
-                          isRecording && "animate-pulse shadow-lg shadow-red-500/50"
-                        )}
-                        disabled={isEvaluatingAnswer}
-                        title={isRecording ? "Stop recording" : "Start voice recording"}
-                      >
-                        <Mic className="w-6 h-6" />
-                        <span className="ml-2 font-semibold hidden sm:inline">
-                          {isRecording ? "Stop" : "Voice"}
-                        </span>
-                      </Button>
-                    )}
-                  </div>
-
-                  {/* Recording Indicator - Enhanced */}
-                  {isRecording && (
-                    <div className="flex items-center justify-center gap-3 p-4 bg-red-100 dark:bg-red-950/20 rounded-xl border-2 border-red-300 dark:border-red-800">
-                      <div className="relative flex items-center justify-center">
-                        <div className="w-4 h-4 bg-red-600 rounded-full animate-pulse" />
-                        <div className="absolute w-8 h-8 bg-red-600 rounded-full animate-ping opacity-75" />
-                      </div>
-                      <span className="text-base font-bold text-red-700 dark:text-red-300">
-                        Recording in progress... Speak now
-                      </span>
-                    </div>
-                  )}
-
-                  {/* Tips Section */}
-                  <div className="p-4 bg-blue-50 dark:bg-blue-950/20 rounded-xl border border-blue-200 dark:border-blue-900">
-                    <p className="text-sm font-semibold text-blue-800 dark:text-blue-300 mb-2 flex items-center gap-2">
-                      <Lightbulb className="w-4 h-4" />
-                      Pro Tips:
+                    <p className="text-xs text-primary-foreground/80 mt-1">
+                      {currentQuestion?.type === "technical" ? "🔧 Technical Question" : "💬 Behavioral Question"}
                     </p>
-                    <ul className="text-xs text-blue-700 dark:text-blue-400 space-y-1 ml-6">
-                      <li className="list-disc">Use the STAR method (Situation, Task, Action, Result)</li>
-                      <li className="list-disc">Provide specific examples and quantifiable results</li>
-                      <li className="list-disc">Keep your answer focused and relevant</li>
-                    </ul>
-                  </div>
-                </CardContent>
-              </Card>
+                  </CardHeader>
+                  <CardContent className="flex-1 p-4">
+                    <div className="space-y-4">
+                      {/* Avatar */}
+                      <div className="aspect-square w-full rounded-2xl overflow-hidden border-2 border-primary/30 shadow-lg bg-gradient-to-br from-primary/10 to-primary/5">
+                        <HeyGenAvatar 
+                          onError={handleAvatarError}
+                          questionToSpeak={currentQuestion?.question}
+                          compact={true}
+                        />
+                      </div>
+
+                      {/* Mini Stats Below Avatar */}
+                      <div className="space-y-3 pt-4 border-t border-primary/20">
+                        <div className="flex items-center justify-between">
+                          <span className="text-xs font-semibold text-muted-foreground uppercase">Completed</span>
+                          <span className="text-lg font-bold text-primary">{currentQuestionIndex}</span>
+                        </div>
+                        <div className="flex items-center justify-between">
+                          <span className="text-xs font-semibold text-muted-foreground uppercase">Remaining</span>
+                          <span className="text-lg font-bold text-secondary">{generatedQuestions.length - currentQuestionIndex}</span>
+                        </div>
+                        <div className="flex items-center justify-between">
+                          <span className="text-xs font-semibold text-muted-foreground uppercase">Time</span>
+                          <span className="text-lg font-bold font-mono text-blue-600">
+                            {Math.floor(questionTime / 60)}:{(questionTime % 60).toString().padStart(2, '0')}
+                          </span>
+                        </div>
+                        <div className="flex items-center justify-between">
+                          <span className="text-xs font-semibold text-muted-foreground uppercase">Avg Score</span>
+                          <span className="text-lg font-bold text-purple-600">
+                            {interviewResults.length > 0 
+                              ? Math.round((interviewResults.reduce((sum, r) => sum + (r.evaluation?.score || 0), 0) / (interviewResults.length * 10)) * 100)
+                              : 0}%
+                          </span>
+                        </div>
+                      </div>
+
+                      {/* Avatar Errors */}
+                      {avatarErrors.length > 0 && (
+                        <div className="mt-4 space-y-2 pt-4 border-t border-destructive/20">
+                          {avatarErrors.slice(0, 2).map((error, idx) => (
+                            <div key={idx} className="text-xs text-destructive p-2 bg-destructive/10 rounded">
+                              {error}
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  </CardContent>
+                </Card>
+              </motion.div>
+
+              {/* CENTER: Question Card */}
+              <motion.div
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ duration: 0.5, delay: 0.2 }}
+                className="lg:col-span-4"
+              >
+                <Card className="bg-gradient-to-br from-primary/10 via-primary/5 to-transparent border-2 border-primary/25 shadow-xl h-full flex flex-col">
+                  <CardHeader className="bg-gradient-to-r from-primary to-primary/80 text-primary-foreground rounded-t-xl pb-4">
+                    <div className="flex items-center gap-3 mb-2">
+                      <div className="w-10 h-10 rounded-lg bg-white/20 flex items-center justify-center backdrop-blur-sm">
+                        <Brain className="w-6 h-6" />
+                      </div>
+                      <div>
+                        <span className="text-base font-bold uppercase tracking-wide">
+                          Question {currentQuestionIndex + 1}
+                        </span>
+                        <p className="text-xs text-primary-foreground/80">
+                          of {generatedQuestions.length} total
+                        </p>
+                      </div>
+                    </div>
+                  </CardHeader>
+                  <CardContent className="flex-1 p-6 flex flex-col justify-between overflow-y-auto max-h-[calc(100vh-300px)]">
+                    <div className="space-y-5">
+                      {/* Main Question */}
+                      <div>
+                        <p className="text-lg md:text-xl leading-relaxed font-bold text-foreground">
+                          {currentQuestion?.question}
+                        </p>
+                      </div>
+
+                      {/* Ideal Answer Preview */}
+                      {currentQuestion?.idealAnswer && (
+                        <motion.div
+                          initial={{ opacity: 0, y: 10 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ delay: 0.3 }}
+                          className="p-3 rounded-lg bg-primary/10 border border-primary/20"
+                        >
+                          <p className="text-xs font-bold text-primary/80 uppercase tracking-wider mb-2">
+                            💡 Ideal Structure:
+                          </p>
+                          <p className="text-sm text-primary/70 italic leading-snug">
+                            "{currentQuestion.idealAnswer}"
+                          </p>
+                        </motion.div>
+                      )}
+
+                      {/* Evaluation Criteria */}
+                      {currentQuestion?.evaluationCriteria && (
+                        <motion.div
+                          initial={{ opacity: 0, y: 10 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ delay: 0.4 }}
+                          className="space-y-2"
+                        >
+                          <p className="text-xs font-bold text-muted-foreground uppercase tracking-wider">
+                            ✓ Evaluation Criteria:
+                          </p>
+                          <div className="space-y-2">
+                            {currentQuestion.evaluationCriteria.map((criteria: string, idx: number) => (
+                              <div key={idx} className="flex items-start gap-2 p-2 rounded-lg bg-muted/60 border border-muted/40">
+                                <div className="w-5 h-5 rounded-full bg-primary/20 flex items-center justify-center flex-shrink-0 mt-0.5">
+                                  <span className="text-xs font-bold text-primary">{idx + 1}</span>
+                                </div>
+                                <span className="text-xs text-foreground/80">{criteria}</span>
+                              </div>
+                            ))}
+                          </div>
+                        </motion.div>
+                      )}
+                    </div>
+                  </CardContent>
+                </Card>
+              </motion.div>
+
+              {/* RIGHT: Answer Card */}
+              <motion.div
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ duration: 0.5, delay: 0.3 }}
+                className="lg:col-span-5"
+              >
+                <Card className="bg-gradient-to-br from-secondary/10 via-secondary/5 to-transparent border-2 border-secondary/25 shadow-xl h-full flex flex-col">
+                  <CardHeader className="bg-gradient-to-r from-secondary to-secondary/80 text-secondary-foreground rounded-t-xl pb-4">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-lg bg-white/20 flex items-center justify-center backdrop-blur-sm">
+                        <MessageCircle className="w-6 h-6" />
+                      </div>
+                      <div>
+                        <h3 className="text-base font-bold uppercase tracking-wide">Your Answer</h3>
+                        <p className="text-xs text-secondary-foreground/80 mt-0.5">Be specific and include examples</p>
+                      </div>
+                    </div>
+                  </CardHeader>
+                  <CardContent className="flex-1 p-6 flex flex-col justify-between space-y-3">
+                    {/* Whisper Info */}
+                    {typeof window !== 'undefined' && mediaRecorder && (
+                      <motion.div
+                        initial={{ opacity: 0, scale: 0.95 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        className="p-2 bg-blue-50/50 dark:bg-blue-950/20 rounded-lg border border-blue-200 dark:border-blue-800 flex items-start gap-2"
+                      >
+                        <Mic className="w-4 h-4 text-blue-600 mt-0.5 flex-shrink-0" />
+                        <p className="text-xs text-blue-700 dark:text-blue-300">
+                          Using AI Whisper for accurate transcription
+                        </p>
+                      </motion.div>
+                    )}
+
+                    {/* Answer Textarea */}
+                    <div className="flex-1 relative min-h-[200px]">
+                      <Textarea
+                        placeholder="Share your answer here... Include specific examples, metrics, and outcomes."
+                        value={currentAnswer}
+                        onChange={(e) => setCurrentAnswer(e.target.value)}
+                        className="w-full h-full min-h-[200px] text-sm resize-none border-2 border-secondary/30 focus:border-secondary rounded-xl p-4 bg-white dark:bg-slate-950"
+                        disabled={isEvaluatingAnswer}
+                      />
+                      <div className="absolute bottom-2 right-2 text-xs text-muted-foreground bg-background/80 px-2 py-1 rounded">
+                        {currentAnswer.length} / 500
+                      </div>
+                    </div>
+
+                    {/* Action Buttons */}
+                    <div className="flex flex-col gap-2">
+                      <Button
+                        onClick={handleSubmitAnswer}
+                        disabled={isEvaluatingAnswer || !currentAnswer.trim()}
+                        className="w-full h-10 text-sm font-bold bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 shadow-lg transition-all"
+                      >
+                        {isEvaluatingAnswer ? (
+                          <>
+                            <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                            {currentQuestionIndex === generatedQuestions.length - 1 
+                              ? 'Finalizing...'
+                              : 'Evaluating...'}
+                          </>
+                        ) : (
+                          <>
+                            <CheckCircle2 className="w-4 h-4 mr-2" />
+                            {currentQuestionIndex === generatedQuestions.length - 1 
+                              ? 'Submit & View Results'
+                              : 'Next Question'}
+                          </>
+                        )}
+                      </Button>
+
+                      {/* Voice Recording Button - Using Whisper */}
+                      {typeof window !== 'undefined' && mediaRecorder && (
+                        <Button
+                          onClick={toggleVoiceRecording}
+                          variant={isRecording ? "destructive" : "outline"}
+                          size="sm"
+                          className={cn(
+                            "w-full font-semibold transition-all text-xs",
+                            isRecording && "animate-pulse bg-destructive text-white border-destructive"
+                          )}
+                          disabled={isEvaluatingAnswer || isTranscribing}
+                        >
+                          {isTranscribing ? (
+                            <>
+                              <Loader2 className="w-3 h-3 mr-2 animate-spin" />
+                              Transcribing...
+                            </>
+                          ) : isRecording ? (
+                            <>
+                              <Square className="w-3 h-3 mr-2" />
+                              Stop Recording
+                            </>
+                          ) : (
+                            <>
+                              <Mic className="w-3 h-3 mr-2" />
+                              Voice Record
+                            </>
+                          )}
+                        </Button>
+                      )}
+                    </div>
+
+                    {/* Recording Indicator */}
+                    {isRecording && (
+                      <motion.div
+                        initial={{ opacity: 0, scale: 0.9 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        className="flex items-center justify-center gap-2 p-3 bg-red-100 dark:bg-red-950/30 rounded-lg border-2 border-red-300 dark:border-red-800"
+                      >
+                        <div className="relative w-2 h-2">
+                          <div className="absolute inset-0 bg-red-600 rounded-full animate-pulse" />
+                          <div className="absolute inset-0 bg-red-600 rounded-full animate-ping" />
+                        </div>
+                        <span className="text-xs font-bold text-red-700 dark:text-red-300">
+                          Recording...
+                        </span>
+                      </motion.div>
+                    )}
+                  </CardContent>
+                </Card>
+              </motion.div>
             </div>
           </div>
         </AnimatedContainer>
@@ -1694,15 +1916,352 @@ export default function MockInterview() {
   );
   }
 
+  // If showing setup flow, render that instead
+  if (showSetup) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-background via-primary/5 to-muted/10 relative overflow-hidden">
+        <div className="absolute inset-0 -z-10 bg-gradient-to-br from-primary/5 via-primary/10 to-transparent" />
+        
+        <div className="py-16 px-6 md:px-8">
+          <div className="max-w-3xl mx-auto">
+            {/* Back Button */}
+            <button 
+              onClick={() => setShowSetup(false)}
+              className="mb-12 inline-flex items-center gap-2 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
+            >
+              <ChevronRight className="w-4 h-4 rotate-180" />
+              Back to Interview
+            </button>
+            
+            {/* Header Section */}
+            <div className="mb-16 space-y-4">
+              <h1 className="text-5xl md:text-6xl font-bold tracking-tight bg-gradient-to-b from-foreground to-muted-foreground/70 bg-clip-text text-transparent">
+                Setup Your Interview
+              </h1>
+              <p className="text-lg text-muted-foreground max-w-xl leading-relaxed">
+                Customize your mock interview experience by providing a few key details. We'll use this to personalize your questions and feedback.
+              </p>
+            </div>
+
+            {/* Step Indicator - More Prominent */}
+            <div className="mb-16">
+              <div className="flex items-center justify-between gap-2">
+                {[1, 2, 3].map((step, idx) => (
+                  <div key={step} className="flex items-center flex-1">
+                    <div className="flex flex-col items-center flex-shrink-0 w-20">
+                      <div className={`w-12 h-12 rounded-full flex items-center justify-center font-bold text-base transition-all ${
+                        step < setupStep ? 'bg-primary text-primary-foreground scale-110' :
+                        step === setupStep ? 'bg-primary text-primary-foreground ring-4 ring-primary/30 scale-110' :
+                        'bg-muted text-muted-foreground'
+                      }`}>
+                        {step < setupStep ? (
+                          <CheckCircle2 className="w-6 h-6" />
+                        ) : (
+                          step
+                        )}
+                      </div>
+                      <span className="text-xs font-medium text-muted-foreground mt-2 text-center">
+                        {step === 1 ? "Questions" : step === 2 ? "Job Details" : "Your Profile"}
+                      </span>
+                    </div>
+                    {idx < 2 && (
+                      <div className={`flex-1 h-1 mx-2 transition-all ${
+                        step < setupStep ? 'bg-primary' : 'bg-muted'
+                      }`} />
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Step Content - Larger Cards with Better Spacing */}
+            <div className="mb-16">
+              {/* Step 1: Question Types */}
+              {setupStep === 1 && (
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -20 }}
+                  transition={{ duration: 0.3 }}
+                >
+                  <Card className="bg-gradient-to-br from-background to-muted/40 border border-muted shadow-lg hover:shadow-xl transition-shadow">
+                    <CardHeader className="pb-8">
+                      <div className="flex items-start gap-4">
+                        <div className="w-14 h-14 rounded-xl bg-primary/10 flex items-center justify-center ring-1 ring-primary/20 flex-shrink-0">
+                          <MessageSquare className="w-7 h-7 text-primary" />
+                        </div>
+                        <div className="flex-1">
+                          <CardTitle className="text-2xl mb-2">Select Question Types</CardTitle>
+                          <p className="text-muted-foreground text-base">
+                            Choose the mix of technical and behavioral questions that best suits your interview preparation needs.
+                          </p>
+                        </div>
+                      </div>
+                    </CardHeader>
+                    <CardContent className="space-y-8">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                        <div className="space-y-4">
+                          <div>
+                            <Label className="text-base font-semibold mb-3 block">Technical Questions</Label>
+                            <p className="text-sm text-muted-foreground mb-4">Focus on coding, algorithms, and technical concepts</p>
+                          </div>
+                          <Input
+                            type="number"
+                            min="0"
+                            max="40"
+                            value={technicalQuestions}
+                            onChange={(e) => setTechnicalQuestions(Math.min(Math.max(parseInt(e.target.value) || 0, 0), 40))}
+                            className="text-center text-3xl font-bold border-2 border-muted hover:border-primary/60 focus:border-primary transition h-16"
+                          />
+                          <p className="text-xs text-muted-foreground text-center">0-40 questions</p>
+                        </div>
+                        <div className="space-y-4">
+                          <div>
+                            <Label className="text-base font-semibold mb-3 block">Behavioral Questions</Label>
+                            <p className="text-sm text-muted-foreground mb-4">Cover your experience, soft skills, and past projects</p>
+                          </div>
+                          <Input
+                            type="number"
+                            min="0"
+                            max="40"
+                            value={behavioralQuestions}
+                            onChange={(e) => setBehavioralQuestions(Math.min(Math.max(parseInt(e.target.value) || 0, 0), 40))}
+                            className="text-center text-3xl font-bold border-2 border-muted hover:border-primary/60 focus:border-primary transition h-16"
+                          />
+                          <p className="text-xs text-muted-foreground text-center">0-40 questions</p>
+                        </div>
+                      </div>
+                      
+                      <div className="p-6 bg-primary/5 rounded-xl border border-muted ring-1 ring-primary/20">
+                        <p className="text-center">
+                          <span className="text-3xl font-bold text-primary">{technicalQuestions + behavioralQuestions}</span>
+                          <span className="text-muted-foreground ml-2">total questions</span>
+                        </p>
+                        {(technicalQuestions + behavioralQuestions < 5 || technicalQuestions + behavioralQuestions > 50) && (
+                          <p className="text-xs text-amber-600 dark:text-amber-500 text-center mt-3">
+                            ⚠️ Must be between 5-50 questions
+                          </p>
+                        )}
+                      </div>
+                    </CardContent>
+                  </Card>
+                </motion.div>
+              )}
+
+              {/* Step 2: Job Description */}
+              {setupStep === 2 && (
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -20 }}
+                  transition={{ duration: 0.3 }}
+                >
+                  <Card className="bg-gradient-to-br from-background to-muted/40 border border-muted shadow-lg hover:shadow-xl transition-shadow">
+                    <CardHeader className="pb-8">
+                      <div className="flex items-start gap-4">
+                        <div className="w-14 h-14 rounded-xl bg-primary/10 flex items-center justify-center ring-1 ring-primary/20 flex-shrink-0">
+                          <FileText className="w-7 h-7 text-primary" />
+                        </div>
+                        <div className="flex-1">
+                          <CardTitle className="text-2xl mb-2">Job Details</CardTitle>
+                          <p className="text-muted-foreground text-base">
+                            Add the job posting details so we can tailor questions to match the role requirements.
+                          </p>
+                        </div>
+                      </div>
+                    </CardHeader>
+                    <CardContent className="space-y-6">
+                      <div className="space-y-4">
+                        <Label className="text-base font-semibold">LinkedIn Job URL</Label>
+                        <div className="flex gap-3">
+                          <div className="relative flex-1">
+                            <LinkIcon className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+                            <Input
+                              type="url"
+                              placeholder="https://linkedin.com/jobs/123456..."
+                              value={linkedinUrl}
+                              onChange={(e) => setLinkedinUrl(e.target.value)}
+                              className="pl-12 border-2 border-muted hover:border-primary/60 focus:border-primary transition h-12 text-base"
+                            />
+                          </div>
+                          <Button 
+                            onClick={handleLinkedinScrape}
+                            disabled={!linkedinUrl || isScrapingLinkedin}
+                            className="bg-primary hover:bg-primary/90 px-8 font-semibold"
+                            size="lg"
+                          >
+                            {isScrapingLinkedin ? (
+                              <>
+                                <Loader2 className="w-5 h-5 animate-spin mr-2" />
+                                Fetching...
+                              </>
+                            ) : (
+                              <>
+                                <LinkIcon className="w-5 h-5 mr-2" />
+                                Fetch
+                              </>
+                            )}
+                          </Button>
+                        </div>
+                      </div>
+
+                      {jobDescriptionText && (
+                        <motion.div
+                          initial={{ opacity: 0, y: 10 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          className="p-6 bg-primary/5 rounded-xl border border-muted ring-1 ring-primary/20"
+                        >
+                          <p className="font-semibold text-base mb-3 flex items-center gap-2">
+                            <CheckCircle2 className="w-5 h-5 text-primary" />
+                            Job Description Loaded
+                          </p>
+                          <p className="text-sm text-muted-foreground line-clamp-4">
+                            {jobDescriptionText.substring(0, 400)}...
+                          </p>
+                        </motion.div>
+                      )}
+                    </CardContent>
+                  </Card>
+                </motion.div>
+              )}
+
+              {/* Step 3: Profile & Skills */}
+              {setupStep === 3 && (
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -20 }}
+                  transition={{ duration: 0.3 }}
+                >
+                  <Card className="bg-gradient-to-br from-background to-muted/40 border border-muted shadow-lg hover:shadow-xl transition-shadow">
+                    <CardHeader className="pb-8">
+                      <div className="flex items-start gap-4">
+                        <div className="w-14 h-14 rounded-xl bg-primary/10 flex items-center justify-center ring-1 ring-primary/20 flex-shrink-0">
+                          <Brain className="w-7 h-7 text-primary" />
+                        </div>
+                        <div className="flex-1">
+                          <CardTitle className="text-2xl mb-2">Your Profile</CardTitle>
+                          <p className="text-muted-foreground text-base">
+                            Upload your resume to help us personalize the interview experience.
+                          </p>
+                        </div>
+                      </div>
+                    </CardHeader>
+                    <CardContent className="space-y-6">
+                      <div className="space-y-4">
+                        <Label className="text-base font-semibold">Upload CV/Resume</Label>
+                        <div className="relative">
+                          <Input
+                            type="file"
+                            accept=".pdf,.txt,.doc,.docx"
+                            onChange={handleCvFileChange}
+                            className="cursor-pointer border-2 border-dashed border-muted hover:border-primary/60 transition-all h-20 file:mr-4 file:py-3 file:px-6 file:rounded-lg file:border-0 file:bg-primary/10 file:text-primary file:font-semibold hover:file:bg-primary/20"
+                            disabled={isProcessingFiles}
+                          />
+                          {(isProcessingFiles || cvFile) && (
+                            <motion.div
+                              initial={{ opacity: 0, y: -10 }}
+                              animate={{ opacity: 1, y: 0 }}
+                              className="absolute right-4 top-1/2 -translate-y-1/2 bg-primary/10 text-primary ring-1 ring-primary/20 px-4 py-2 rounded-lg text-sm font-medium flex items-center gap-2"
+                            >
+                              {isProcessingFiles ? (
+                                <>
+                                  <Loader2 className="w-4 h-4 animate-spin" />
+                                  Processing...
+                                </>
+                              ) : (
+                                <>
+                                  <CheckCircle2 className="w-4 h-4" />
+                                  {cvFile?.name}
+                                </>
+                              )}
+                            </motion.div>
+                          )}
+                        </div>
+                      </div>
+
+                      {skillsText && (
+                        <motion.div
+                          initial={{ opacity: 0, y: 10 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          className="p-6 bg-primary/5 rounded-xl border border-muted ring-1 ring-primary/20"
+                        >
+                          <p className="font-semibold text-base mb-3 flex items-center gap-2">
+                            <CheckCircle2 className="w-5 h-5 text-primary" />
+                            Skills & Experience Loaded
+                          </p>
+                          <p className="text-sm text-muted-foreground line-clamp-4">
+                            {skillsText.substring(0, 400)}...
+                          </p>
+                        </motion.div>
+                      )}
+                    </CardContent>
+                  </Card>
+                </motion.div>
+              )}
+            </div>
+
+            {/* Navigation Buttons - More Prominent */}
+            <div className="flex gap-4">
+              <Button
+                variant="outline"
+                onClick={() => setSetupStep(Math.max(1, setupStep - 1))}
+                className="flex-1 h-14 text-base font-semibold border-2"
+                disabled={setupStep === 1}
+              >
+                ← Previous
+              </Button>
+              {setupStep < 3 && (
+                <Button
+                  onClick={() => setSetupStep(setupStep + 1)}
+                  className="flex-1 h-14 text-base font-semibold bg-primary hover:bg-primary/90"
+                >
+                  Next →
+                </Button>
+              )}
+              {setupStep === 3 && (
+                <Button
+                  onClick={handleSetupComplete}
+                  disabled={
+                    isGeneratingQuestions ||
+                    isProcessingFiles ||
+                    !jobDescriptionText || 
+                    !skillsText ||
+                    technicalQuestions + behavioralQuestions < 5 ||
+                    technicalQuestions + behavioralQuestions > 50
+                  }
+                  className="flex-1 h-14 text-base font-semibold bg-primary hover:bg-primary/90"
+                >
+                  {isGeneratingQuestions ? (
+                    <>
+                      <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+                      Starting Interview...
+                    </>
+                  ) : (
+                    <>
+                      <Play className="w-5 h-5 mr-2" />
+                      Start Interview
+                    </>
+                  )}
+                </Button>
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   // Landing page before interview starts
   return (
-    <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-purple-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 flex items-center justify-center p-6">
+    <div className="min-h-screen bg-gradient-to-br from-background via-primary/5 to-muted/10 relative overflow-hidden flex items-center justify-center p-6">
+      <div className="absolute inset-0 -z-10 bg-gradient-to-br from-primary/5 via-primary/10 to-transparent" />
       <div className="max-w-2xl w-full">
         <AnimatedContainer>
-          <Card className="border-2 shadow-2xl">
+          <Card className="border shadow-lg bg-gradient-to-br from-background to-muted/40 border-muted hover:border-primary/60 transition">
             <CardContent className="p-12 text-center space-y-8">
               {/* Icon */}
-              <div className="w-24 h-24 mx-auto rounded-full flex items-center justify-center bg-gradient-to-br from-indigo-50 to-purple-50 dark:from-indigo-950/20 dark:to-purple-950/20 p-4">
+              <div className="w-24 h-24 mx-auto rounded-full flex items-center justify-center bg-primary/10 dark:bg-primary/20 p-4 ring-1 ring-primary/20">
                 <Image 
                   src="/icons/one_logo.png" 
                   alt="JobPrep Logo" 
@@ -1714,7 +2273,7 @@ export default function MockInterview() {
 
               {/* Title */}
               <div className="space-y-3">
-                <h1 className="text-5xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
+                <h1 className="text-5xl font-bold bg-gradient-to-b from-foreground to-muted-foreground/70 bg-clip-text text-transparent">
                   Mock Interview Simulator
                 </h1>
                 <p className="text-lg text-muted-foreground">
@@ -1724,16 +2283,16 @@ export default function MockInterview() {
 
               {/* Features */}
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
-                <div className="flex flex-col items-center gap-2 p-4 rounded-lg bg-indigo-50 dark:bg-indigo-950/20">
-                  <Brain className="w-6 h-6 text-indigo-600" />
+                <div className="flex flex-col items-center gap-2 p-4 rounded-lg bg-primary/10 dark:bg-primary/20 ring-1 ring-primary/20">
+                  <Brain className="w-6 h-6 text-primary" />
                   <span className="font-medium">AI Interviewer</span>
                 </div>
-                <div className="flex flex-col items-center gap-2 p-4 rounded-lg bg-purple-50 dark:bg-purple-950/20">
-                  <MessageSquare className="w-6 h-6 text-purple-600" />
+                <div className="flex flex-col items-center gap-2 p-4 rounded-lg bg-secondary/10 dark:bg-secondary/20 ring-1 ring-secondary/20">
+                  <MessageSquare className="w-6 h-6 text-secondary-foreground" />
                   <span className="font-medium">Real-time Feedback</span>
                 </div>
-                <div className="flex flex-col items-center gap-2 p-4 rounded-lg bg-pink-50 dark:bg-pink-950/20">
-                  <BarChart3 className="w-6 h-6 text-pink-600" />
+                <div className="flex flex-col items-center gap-2 p-4 rounded-lg bg-accent/10 dark:bg-accent/20 ring-1 ring-accent/20">
+                  <BarChart3 className="w-6 h-6 text-accent-foreground" />
                   <span className="font-medium">Performance Analytics</span>
                 </div>
               </div>
@@ -1742,9 +2301,10 @@ export default function MockInterview() {
               <Button
                 size="lg"
                 onClick={() => {
-                  setShowSetupDialog(true);
+                  setShowSetup(true);
+                  setSetupStep(1);
                 }}
-                className="w-full h-14 text-lg bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700"
+                className="w-full h-14 text-lg"
               >
                 <Play className="w-6 h-6 mr-2" />
                 Start Interview
@@ -1757,246 +2317,6 @@ export default function MockInterview() {
             </CardContent>
           </Card>
         </AnimatedContainer>
-
-        {/* Setup Dialog */}
-        <Dialog open={showSetupDialog} onOpenChange={setShowSetupDialog}>
-          <DialogContent className="max-w-[95vw] w-full lg:max-w-7xl max-h-[95vh] overflow-hidden p-0 bg-gradient-to-br from-slate-50 to-indigo-50/30 dark:from-slate-950 dark:to-indigo-950/20">
-            <DialogHeader className="px-4 sm:px-6 lg:px-8 pt-6 lg:pt-8 pb-4 bg-gradient-to-r from-indigo-600 to-purple-600 text-white">
-              <DialogTitle className="text-2xl sm:text-3xl font-bold flex items-center gap-2 sm:gap-3">
-                <div className="p-1.5 sm:p-2 bg-white/20 rounded-lg backdrop-blur-sm">
-                  <Zap className="w-5 h-5 sm:w-6 sm:h-6" />
-                </div>
-                Interview Preparation
-              </DialogTitle>
-              <p className="text-indigo-100 text-xs sm:text-sm mt-2">
-                Upload or paste your details to create a personalized interview experience
-              </p>
-            </DialogHeader>
-
-            <div className="px-4 sm:px-6 lg:px-8 py-4 lg:py-6 overflow-y-auto max-h-[calc(95vh-240px)] sm:max-h-[calc(95vh-220px)]">
-              {/* Question Types Selector Card - FIRST */}
-              <motion.div
-                initial={{ opacity: 0, y: -20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.3 }}
-                className="mb-6 lg:mb-8"
-              >
-                <div className="bg-white dark:bg-slate-900 rounded-xl p-4 sm:p-5 lg:p-6 shadow-lg border border-green-100 dark:border-green-900/50">
-                  <h3 className="text-lg sm:text-xl font-bold flex items-center gap-2 sm:gap-3 mb-4 lg:mb-5 text-green-600 dark:text-green-400">
-                    <div className="p-1.5 sm:p-2 bg-green-100 dark:bg-green-900/50 rounded-lg">
-                      <MessageSquare className="w-4 h-4 sm:w-5 sm:h-5" />
-                    </div>
-                    Question Types
-                  </h3>
-
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 lg:gap-5">
-                    {/* Technical Questions */}
-                    <div className="space-y-2 lg:space-y-3">
-                      <Label htmlFor="technical-questions" className="text-xs sm:text-sm font-semibold text-slate-700 dark:text-slate-300">
-                        Technical Questions
-                      </Label>
-                      <Input
-                        id="technical-questions"
-                        type="number"
-                        min="0"
-                        max="40"
-                        value={technicalQuestions}
-                        onChange={(e) => setTechnicalQuestions(Math.min(Math.max(parseInt(e.target.value) || 0, 0), 40))}
-                        className="text-center text-lg font-semibold border-2 border-green-200 dark:border-green-800 focus:border-green-400 dark:focus:border-green-600"
-                        placeholder="12"
-                      />
-                      <p className="text-xs text-slate-500 dark:text-slate-400">
-                        Range: 0-40 questions
-                      </p>
-                    </div>
-
-                    {/* Behavioral Questions */}
-                    <div className="space-y-2 lg:space-y-3">
-                      <Label htmlFor="behavioral-questions" className="text-xs sm:text-sm font-semibold text-slate-700 dark:text-slate-300">
-                        Behavioral Questions
-                      </Label>
-                      <Input
-                        id="behavioral-questions"
-                        type="number"
-                        min="0"
-                        max="40"
-                        value={behavioralQuestions}
-                        onChange={(e) => setBehavioralQuestions(Math.min(Math.max(parseInt(e.target.value) || 0, 0), 40))}
-                        className="text-center text-lg font-semibold border-2 border-green-200 dark:border-green-800 focus:border-green-400 dark:focus:border-green-600"
-                        placeholder="8"
-                      />
-                      <p className="text-xs text-slate-500 dark:text-slate-400">
-                        Range: 0-40 questions
-                      </p>
-                    </div>
-                  </div>
-
-                  {/* Total Display */}
-                  <div className="mt-4 lg:mt-5 p-3 sm:p-4 bg-green-50 dark:bg-green-900/20 rounded-lg border border-green-200 dark:border-green-800">
-                    <p className="text-sm sm:text-base font-semibold text-green-700 dark:text-green-300 text-center">
-                      Total: {technicalQuestions + behavioralQuestions} questions
-                      <span className="text-xs sm:text-sm text-slate-600 dark:text-slate-400 ml-2">
-                        (must be between 5-50)
-                      </span>
-                    </p>
-                  </div>
-                </div>
-              </motion.div>
-
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 lg:gap-6">
-                {/* Job Description Section */}
-                <motion.div
-                  initial={{ opacity: 0, x: -20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ duration: 0.4, delay: 0.1 }}
-                  className="space-y-3 lg:space-y-4"
-                >
-                  <div className="bg-white dark:bg-slate-900 rounded-xl p-4 sm:p-5 lg:p-6 shadow-lg border border-indigo-100 dark:border-indigo-900/50">
-                    <h3 className="text-lg sm:text-xl font-bold flex items-center gap-2 sm:gap-3 mb-4 lg:mb-5 text-indigo-600 dark:text-indigo-400">
-                      <div className="p-1.5 sm:p-2 bg-indigo-100 dark:bg-indigo-900/50 rounded-lg">
-                        <FileText className="w-4 h-4 sm:w-5 sm:h-5" />
-                      </div>
-                      Job Description
-                    </h3>
-
-
-                    {/* LinkedIn URL - PRIMARY */}
-                    <div className="space-y-2 lg:space-y-3">
-                      <Label htmlFor="linkedin-url" className="text-xs sm:text-sm font-semibold text-slate-700 dark:text-slate-300">
-                        LinkedIn Job URL
-                      </Label>
-                      <div className="flex gap-2">
-                        <div className="relative flex-1">
-                          <LinkIcon className="absolute left-2 sm:left-3 top-1/2 -translate-y-1/2 w-3 h-3 sm:w-4 sm:h-4 text-slate-400" />
-                          <Input
-                            id="linkedin-url"
-                            type="url"
-                            placeholder="https://linkedin.com/jobs/..."
-                            value={linkedinUrl}
-                            onChange={(e) => setLinkedinUrl(e.target.value)}
-                            className="pl-8 sm:pl-10 text-xs sm:text-sm border-2 border-indigo-100 dark:border-indigo-900/50 focus:border-indigo-400 dark:focus:border-indigo-600"
-                          />
-                        </div>
-                        <Button 
-                          onClick={handleLinkedinScrape}
-                          disabled={!linkedinUrl || isScrapingLinkedin}
-                          className="bg-indigo-600 hover:bg-indigo-700 text-white px-3 sm:px-6 text-xs sm:text-sm"
-                        >
-                          {isScrapingLinkedin ? (
-                            <Loader2 className="w-3 h-3 sm:w-4 sm:h-4 animate-spin" />
-                          ) : (
-                            <span className="hidden sm:inline">Fetch</span>
-                          )}
-                          {!isScrapingLinkedin && <LinkIcon className="w-3 h-3 sm:hidden" />}
-                        </Button>
-                      </div>
-                    </div>
-
-                    {/* Job Description Preview (auto-filled) */}
-                    {jobDescriptionText && (
-                      <div className="mt-4 lg:mt-5 p-3 sm:p-4 bg-green-50 dark:bg-green-900/20 rounded-lg border border-green-200 dark:border-green-800">
-                        <p className="text-xs sm:text-sm font-semibold text-green-700 dark:text-green-300 mb-2">
-                          ✓ Job Description Loaded
-                        </p>
-                        <p className="text-xs text-slate-600 dark:text-slate-400 line-clamp-3">
-                          {jobDescriptionText.substring(0, 200)}...
-                        </p>
-                      </div>
-                    )}
-                  </div>
-                </motion.div>
-
-                {/* Employee Skills Section */}
-                <motion.div
-                  initial={{ opacity: 0, x: 20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ duration: 0.4, delay: 0.2 }}
-                  className="space-y-3 lg:space-y-4"
-                >
-                  <div className="bg-white dark:bg-slate-900 rounded-xl p-4 sm:p-5 lg:p-6 shadow-lg border border-purple-100 dark:border-purple-900/50">
-                    <h3 className="text-lg sm:text-xl font-bold flex items-center gap-2 sm:gap-3 mb-4 lg:mb-5 text-purple-600 dark:text-purple-400">
-                      <div className="p-1.5 sm:p-2 bg-purple-100 dark:bg-purple-900/50 rounded-lg">
-                        <Brain className="w-4 h-4 sm:w-5 sm:h-5" />
-                      </div>
-                      Your Profile
-                    </h3>
-
-                    {/* CV Upload - PRIMARY */}
-                    <div className="space-y-2 lg:space-y-3">
-                      <Label htmlFor="cv-file" className="text-xs sm:text-sm font-semibold text-slate-700 dark:text-slate-300">
-                        Upload CV/Resume (PDF)
-                      </Label>
-                      <div className="relative">
-                        <Input
-                          id="cv-file"
-                          type="file"
-                          accept=".pdf,.txt"
-                          onChange={handleCvFileChange}
-                          className="cursor-pointer text-xs sm:text-sm border-2 border-dashed border-purple-200 dark:border-purple-800 hover:border-purple-400 dark:hover:border-purple-600 transition-colors file:mr-2 sm:file:mr-4 file:py-1.5 sm:file:py-2 file:px-3 sm:file:px-4 file:rounded-lg file:border-0 file:bg-purple-50 dark:file:bg-purple-900/50 file:text-purple-700 dark:file:text-purple-300 file:text-xs sm:file:text-sm file:font-semibold hover:file:bg-purple-100 dark:hover:file:bg-purple-900"
-                          disabled={isProcessingFiles}
-                        />
-                        {isProcessingFiles && cvFile ? (
-                          <Badge className="absolute right-2 top-1/2 -translate-y-1/2 bg-purple-100 text-purple-700 dark:bg-purple-900/50 dark:text-purple-300 flex items-center gap-1 sm:gap-2 text-xs">
-                            <Loader2 className="w-3 h-3 animate-spin" />
-                            <span className="hidden sm:inline">Processing...</span>
-                          </Badge>
-                        ) : cvFile ? (
-                          <Badge className="absolute right-2 top-1/2 -translate-y-1/2 bg-green-100 text-green-700 dark:bg-green-900/50 dark:text-green-300 text-xs max-w-[120px] sm:max-w-none truncate">
-                            ✓ {cvFile.name}
-                          </Badge>
-                        ) : null}
-                      </div>
-                    </div>
-
-                    {/* Skills Preview (auto-filled) */}
-                    {skillsText && (
-                      <div className="mt-4 lg:mt-5 p-3 sm:p-4 bg-green-50 dark:bg-green-900/20 rounded-lg border border-green-200 dark:border-green-800">
-                        <p className="text-xs sm:text-sm font-semibold text-green-700 dark:text-green-300 mb-2">
-                          ✓ Skills & Experience Loaded
-                        </p>
-                        <p className="text-xs text-slate-600 dark:text-slate-400 line-clamp-3">
-                          {skillsText.substring(0, 200)}...
-                        </p>
-                      </div>
-                    )}
-                  </div>
-                </motion.div>
-              </div>
-            </div>
-
-            <DialogFooter className="px-4 sm:px-6 lg:px-8 py-4 lg:py-6 bg-slate-50 dark:bg-slate-900/50 border-t border-slate-200 dark:border-slate-800 flex flex-col sm:flex-row gap-2 sm:gap-3">
-              <Button
-                variant="outline"
-                onClick={() => setShowSetupDialog(false)}
-                className="w-full sm:flex-1 border-2 hover:bg-slate-100 dark:hover:bg-slate-800 text-sm"
-              >
-                Cancel
-              </Button>
-              <Button
-                onClick={handleSetupComplete}
-                disabled={
-                  isGeneratingQuestions ||
-                  isProcessingFiles ||
-                  !jobDescriptionText || 
-                  !skillsText
-                }
-                className="w-full sm:flex-1 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white shadow-lg disabled:opacity-50 disabled:cursor-not-allowed transition-all hover:scale-[1.02] text-sm"
-              >
-                {isGeneratingQuestions ? (
-                  <>
-                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                    Generating Questions...
-                  </>
-                ) : (
-                  <>
-                    <Play className="w-4 h-4 mr-2" />
-                    Start Interview
-                  </>
-                )}
-              </Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
       </div>
     </div>
   );

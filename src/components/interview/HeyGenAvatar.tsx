@@ -27,6 +27,7 @@ interface HeyGenAvatarProps {
 	quality?: AvatarQuality;
 	onError?: (error: string) => void;
 	questionToSpeak?: string; // Auto-speak this question when it changes
+	compact?: boolean; // New: renders without card wrapper and minimal controls
 }
 
 export default function HeyGenAvatar({
@@ -35,6 +36,7 @@ export default function HeyGenAvatar({
   quality = AvatarQuality.Low,
   onError,
   questionToSpeak,
+  compact = false,
 }: HeyGenAvatarProps) {
   const [isLoadingSession, setIsLoadingSession] = useState(false);
   const [isLoadingVoiceChat, setIsLoadingVoiceChat] = useState(false);
@@ -51,12 +53,37 @@ export default function HeyGenAvatar({
 
   const mediaStreamRef = useRef<HTMLVideoElement>(null);
   const avatarRef = useRef<StreamingAvatar | null>(null);
+  const sdkErrorListenerRef = useRef<((error: any) => void) | null>(null);
+
+  // Filter non-critical errors
+  const isNonCriticalError = (message: string): boolean => {
+    return (
+      message.includes('DataChannel error') ||
+      message.includes('lossy') ||
+      message.includes('ICE connection') ||
+      message.includes('STUN') ||
+      message.includes('ICE failed')
+    );
+  };
 
   useEffect(() => {
+    // Setup SDK error event listener
+    const handleSDKError = (event: any) => {
+      const errorMsg = event?.message || event?.toString?.() || String(event);
+      
+      // Only log critical errors
+      if (!isNonCriticalError(errorMsg)) {
+        console.error('HeyGen SDK Error:', event);
+      }
+    };
+
+    sdkErrorListenerRef.current = handleSDKError;
+
     return () => {
       // Cleanup on unmount
+      sdkErrorListenerRef.current = null;
       if (avatarRef.current) {
-        avatarRef.current.stopAvatar().catch(console.error);
+        avatarRef.current.stopAvatar().catch(() => {});
       }
     };
   }, []);
@@ -121,7 +148,9 @@ export default function HeyGenAvatar({
 			const avatar = new StreamingAvatar({ token });
 			avatarRef.current = avatar;
 			
-			console.log("Avatar SDK initialized, creating session...");      // Setup event listeners
+			console.log("Avatar SDK initialized, creating session...");      
+      
+      // Setup event listeners
       avatar.on(StreamingEvents.AVATAR_START_TALKING, () => {
         console.log("Avatar started talking");
         setIsSpeaking(true);
@@ -162,13 +191,29 @@ export default function HeyGenAvatar({
         language: "en" 
       });
       
-      const session = await avatar.createStartAvatar({
-        quality,
-        avatarName: avatarId,
-        language: "en",
-        voiceChatTransport: VoiceChatTransport.WEBSOCKET,
-        knowledgeBase: "You are an interview assistant. Your ONLY job is to read the interview questions exactly as provided to you. Do NOT add any business advice, commentary, suggestions, or extra information. Just read the questions word-for-word and wait for the candidate's response. Never talk about business topics unless specifically asked in the question itself.",
-      });
+      let session;
+      try {
+        session = await avatar.createStartAvatar({
+          quality,
+          avatarName: avatarId,
+          language: "en",
+          voiceChatTransport: VoiceChatTransport.WEBSOCKET,
+          knowledgeBase: "You are an interview assistant. Your ONLY job is to read the interview questions exactly as provided to you. Do NOT add any business advice, commentary, suggestions, or extra information. Just read the questions word-for-word and wait for the candidate's response. Never talk about business topics unless specifically asked in the question itself.",
+        });
+      } catch (sdkError: any) {
+        // Filter and ignore non-critical SDK errors
+        const errorMsg = sdkError?.message || String(sdkError);
+        if (!isNonCriticalError(errorMsg)) {
+          throw sdkError; // Re-throw critical errors
+        }
+        // Non-critical error - continue with null session handling
+        console.log("⚠️ Non-critical SDK error (ignored):", errorMsg);
+        session = null;
+      }
+
+      if (!session) {
+        throw new Error("Failed to create avatar session");
+      }
 
       console.log("Avatar session created successfully:", session);
 
@@ -177,12 +222,16 @@ export default function HeyGenAvatar({
         avatarName: avatarId,
       });
     } catch (error) {
-      console.error("Error initializing avatar:", error);
-      console.error("Error details:", {
-        name: error instanceof Error ? error.name : 'Unknown',
-        message: error instanceof Error ? error.message : String(error),
-        stack: error instanceof Error ? error.stack : undefined
-      });
+      // Log only critical errors
+      const errorMsg = error instanceof Error ? error.message : String(error);
+      if (!isNonCriticalError(errorMsg)) {
+        console.error("Error initializing avatar:", error);
+        console.error("Error details:", {
+          name: error instanceof Error ? error.name : 'Unknown',
+          message: errorMsg,
+          stack: error instanceof Error ? error.stack : undefined
+        });
+      }
       
       let errorMessage = "Failed to initialize avatar";
 
@@ -222,9 +271,13 @@ export default function HeyGenAvatar({
       });
       setIsVoiceChatActive(true);
       console.log("Voice chat started");
-    } catch (error) {
-      console.error("Error starting voice chat:", error);
-      onError?.("Failed to start voice chat");
+    } catch (error: any) {
+      const errorMsg = error?.message || String(error);
+      // Only report critical errors to user
+      if (!isNonCriticalError(errorMsg)) {
+        console.error("Error starting voice chat:", error);
+        onError?.("Failed to start voice chat");
+      }
     } finally {
       setIsLoadingVoiceChat(false);
     }
@@ -238,8 +291,12 @@ export default function HeyGenAvatar({
       setIsVoiceChatActive(false);
       setIsListening(false);
       console.log("Voice chat stopped");
-    } catch (error) {
-      console.error("Error stopping voice chat:", error);
+    } catch (error: any) {
+      const errorMsg = error?.message || String(error);
+      // Only log critical errors
+      if (!isNonCriticalError(errorMsg)) {
+        console.error("Error stopping voice chat:", error);
+      }
     }
   };
 
@@ -253,8 +310,12 @@ export default function HeyGenAvatar({
       setIsVoiceChatActive(false);
       avatarRef.current = null;
       console.log("Avatar stopped");
-    } catch (error) {
-      console.error("Error stopping avatar:", error);
+    } catch (error: any) {
+      const errorMsg = error?.message || String(error);
+      // Only log critical errors
+      if (!isNonCriticalError(errorMsg)) {
+        console.error("Error stopping avatar:", error);
+      }
     }
   };
 
@@ -267,9 +328,13 @@ export default function HeyGenAvatar({
         task_type: TaskType.TALK,
       });
       setTextInput("");
-    } catch (error) {
-      console.error("Error sending text:", error);
-      onError?.("Failed to send message");
+    } catch (error: any) {
+      const errorMsg = error?.message || String(error);
+      // Only report critical errors
+      if (!isNonCriticalError(errorMsg)) {
+        console.error("Error sending text:", error);
+        onError?.("Failed to send message");
+      }
     }
   };
 
@@ -280,8 +345,12 @@ export default function HeyGenAvatar({
       const newMutedState = !isMuted;
       // You can implement mute logic here if needed
       setIsMuted(newMutedState);
-    } catch (error) {
-      console.error("Error toggling mute:", error);
+    } catch (error: any) {
+      const errorMsg = error?.message || String(error);
+      // Only log critical errors
+      if (!isNonCriticalError(errorMsg)) {
+        console.error("Error toggling mute:", error);
+      }
     }
   };
 
@@ -291,42 +360,62 @@ export default function HeyGenAvatar({
     try {
       await avatarRef.current.interrupt();
       console.log("Avatar interrupted");
-    } catch (error) {
-      console.error("Error interrupting avatar:", error);
+    } catch (error: any) {
+      const errorMsg = error?.message || String(error);
+      // Only log critical errors
+      if (!isNonCriticalError(errorMsg)) {
+        console.error("Error interrupting avatar:", error);
+      }
     }
   };
 
   return (
-    <Card className="p-4 space-y-4 bg-card/95 backdrop-blur-sm">
-      <div className="flex items-center justify-between">
-        <h3 className="text-lg font-semibold">AI Interview Avatar</h3>
-        <div className="flex items-center gap-2">
-          {isSpeaking && (
-            <span className="flex items-center gap-1 text-sm text-blue-500">
-              <Volume2 className="w-4 h-4 animate-pulse" />
-              Speaking
-            </span>
-          )}
-          {isListening && (
-            <span className="flex items-center gap-1 text-sm text-green-500">
-              <Mic className="w-4 h-4 animate-pulse" />
-              Listening
-            </span>
-          )}
+    <div className={compact ? "space-y-2" : "p-4 space-y-4"}>
+      {!compact && (
+        <div className="flex items-center justify-between">
+          <h3 className="text-lg font-semibold">AI Interview Avatar</h3>
+          <div className="flex items-center gap-2">
+            {isSpeaking && (
+              <span className="flex items-center gap-1 text-sm text-blue-500">
+                <Volume2 className="w-4 h-4 animate-pulse" />
+                Speaking
+              </span>
+            )}
+            {isListening && (
+              <span className="flex items-center gap-1 text-sm text-green-500">
+                <Mic className="w-4 h-4 animate-pulse" />
+                Listening
+              </span>
+            )}
+          </div>
         </div>
-      </div>
+      )}
 
       {/* Video Stream */}
-      <div className="relative aspect-video bg-black rounded-lg overflow-hidden">
+      <div className={`relative ${compact ? 'aspect-square' : 'aspect-video'} bg-gradient-to-br from-primary/20 to-primary/5 rounded-lg overflow-hidden`}>
         {!stream && (
-          <div className="absolute inset-0 flex items-center justify-center text-muted-foreground">
+          <div className="absolute inset-0 flex items-center justify-center text-muted-foreground z-10">
             {isLoadingSession ? (
               <div className="flex flex-col items-center gap-2">
-                <Loader2 className="w-8 h-8 animate-spin" />
-                <p className="text-sm">Starting avatar session...</p>
+                <Loader2 className="w-8 h-8 animate-spin text-primary" />
+                {!compact && <p className="text-sm">Starting avatar session...</p>}
               </div>
             ) : (
-              <p className="text-sm">Avatar not started</p>
+              <div className="flex flex-col items-center gap-3 p-4">
+                <div className="w-16 h-16 rounded-full bg-primary/20 flex items-center justify-center">
+                  <Play className="w-8 h-8 text-primary" />
+                </div>
+                <Button
+                  onClick={initializeAvatar}
+                  disabled={isLoadingSession}
+                  size={compact ? "sm" : "default"}
+                  className="mt-2 shadow-lg z-20"
+                >
+                  <Play className="w-3 h-3 mr-2" />
+                  Start Avatar
+                </Button>
+                {!compact && <p className="text-xs text-muted-foreground mt-1">Click to begin</p>}
+              </div>
             )}
           </div>
         )}
@@ -335,100 +424,136 @@ export default function HeyGenAvatar({
           autoPlay
           playsInline
           aria-label="AI Avatar Video Stream"
-          className="w-full h-full object-contain"
+          className="w-full h-full object-cover"
         />
-      </div>
-
-      {/* Session Controls */}
-      <div className="flex gap-2">
-        {!sessionData ? (
-          <Button
-            onClick={initializeAvatar}
-            disabled={isLoadingSession}
-            className="flex-1"
-          >
-            {isLoadingSession ? (
-              <>
-                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                Starting...
-              </>
-            ) : (
-              <>
-                <Play className="w-4 h-4 mr-2" />
-                Start Avatar
-              </>
+        
+        {/* Compact mode: Show speaking/listening indicators over video */}
+        {compact && stream && (
+          <div className="absolute top-2 right-2 flex gap-1 z-20">
+            {isSpeaking && (
+              <div className="px-2 py-1 bg-blue-500/90 rounded-full flex items-center gap-1">
+                <Volume2 className="w-3 h-3 text-white animate-pulse" />
+              </div>
             )}
-          </Button>
-        ) : (
-          <>
+            {isListening && (
+              <div className="px-2 py-1 bg-green-500/90 rounded-full flex items-center gap-1">
+                <Mic className="w-3 h-3 text-white animate-pulse" />
+              </div>
+            )}
+          </div>
+        )}
+        
+        {/* Compact mode: Show stop button over video */}
+        {compact && sessionData && (
+          <div className="absolute bottom-2 right-2 z-20">
             <Button
               onClick={stopAvatar}
               variant="destructive"
-              className="flex-1"
+              size="sm"
+              className="shadow-lg"
             >
-              <Square className="w-4 h-4 mr-2" />
-              Stop Avatar
+              <Square className="w-3 h-3 mr-1" />
+              Stop
             </Button>
-            {!isVoiceChatActive ? (
+          </div>
+        )}
+      </div>
+
+      {/* Full controls only in non-compact mode */}
+      {!compact && (
+        <>
+          {/* Session Controls */}
+          <div className="flex gap-2">
+            {!sessionData ? (
               <Button
-                onClick={startVoiceChat}
-                disabled={isLoadingVoiceChat}
+                onClick={initializeAvatar}
+                disabled={isLoadingSession}
                 className="flex-1"
               >
-                {isLoadingVoiceChat ? (
+                {isLoadingSession ? (
                   <>
                     <Loader2 className="w-4 h-4 mr-2 animate-spin" />
                     Starting...
                   </>
                 ) : (
                   <>
-                    <Mic className="w-4 h-4 mr-2" />
-                    Start Voice Chat
+                    <Play className="w-4 h-4 mr-2" />
+                    Start Avatar
                   </>
                 )}
               </Button>
             ) : (
+              <>
+                <Button
+                  onClick={stopAvatar}
+                  variant="destructive"
+                  className="flex-1"
+                >
+                  <Square className="w-4 h-4 mr-2" />
+                  Stop Avatar
+                </Button>
+                {!isVoiceChatActive ? (
+                  <Button
+                    onClick={startVoiceChat}
+                    disabled={isLoadingVoiceChat}
+                    className="flex-1"
+                  >
+                    {isLoadingVoiceChat ? (
+                      <>
+                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                        Starting...
+                      </>
+                    ) : (
+                      <>
+                        <Mic className="w-4 h-4 mr-2" />
+                        Start Voice Chat
+                      </>
+                    )}
+                  </Button>
+                ) : (
+                  <Button
+                    onClick={stopVoiceChat}
+                    variant="secondary"
+                    className="flex-1"
+                  >
+                    <MicOff className="w-4 h-4 mr-2" />
+                    Stop Voice Chat
+                  </Button>
+                )}
+              </>
+            )}
+          </div>
+
+          {/* Voice Chat Controls */}
+          {isVoiceChatActive && (
+            <div className="flex gap-2">
+              <Button onClick={toggleMute} variant="outline" size="icon">
+                {isMuted ? (
+                  <MicOff className="w-4 h-4" />
+                ) : (
+                  <Mic className="w-4 h-4" />
+                )}
+              </Button>
               <Button
-                onClick={stopVoiceChat}
-                variant="secondary"
+                onClick={interruptAvatar}
+                variant="outline"
                 className="flex-1"
               >
-                <MicOff className="w-4 h-4 mr-2" />
-                Stop Voice Chat
+                <VolumeX className="w-4 h-4 mr-2" />
+                Interrupt
               </Button>
-            )}
-          </>
-        )}
-      </div>
+            </div>
+          )}
 
-      {/* Voice Chat Controls */}
-      {isVoiceChatActive && (
-        <div className="flex gap-2">
-          <Button onClick={toggleMute} variant="outline" size="icon">
-            {isMuted ? (
-              <MicOff className="w-4 h-4" />
-            ) : (
-              <Mic className="w-4 h-4" />
-            )}
-          </Button>
-          <Button
-            onClick={interruptAvatar}
-            variant="outline"
-            className="flex-1"
-          >
-            <VolumeX className="w-4 h-4 mr-2" />
-            Interrupt
-          </Button>
-        </div>
+          {/* Session Info */}
+          {sessionData && (
+            <div className="text-xs text-muted-foreground space-y-1">
+              <p>Session ID: {sessionData.sessionId}</p>
+              <p>Avatar: {sessionData.avatarName}</p>
+            </div>
+          )}
+        </>
       )}
-
-      {/* Session Info */}
-      {sessionData && (
-        <div className="text-xs text-muted-foreground space-y-1">
-          <p>Session ID: {sessionData.sessionId}</p>
-          <p>Avatar: {sessionData.avatarName}</p>
-        </div>
-      )}
-    </Card>
+    </div>
   );
 }

@@ -277,13 +277,14 @@ export default function CodeChallengeArena() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
+    <div className="min-h-screen bg-gradient-to-br from-background via-primary/5 to-muted/10 relative overflow-hidden">
+      <div className="absolute inset-0 -z-10 bg-gradient-to-br from-primary/5 via-primary/10 to-transparent" />
       <div className="container mx-auto p-6 space-y-8">
         {/* Header */}
         <AnimatedContainer>
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
+              <h1 className="text-4xl font-bold bg-gradient-to-b from-foreground to-muted-foreground/70 bg-clip-text text-transparent">
                 Code Challenge Arena
               </h1>
               <p className="text-muted-foreground mt-2">
@@ -293,7 +294,7 @@ export default function CodeChallengeArena() {
             </div>
             <div className="flex items-center gap-4">
               <div className="text-right">
-                <div className="text-2xl font-mono font-bold text-blue-600">
+                <div className="text-2xl font-mono font-bold text-primary">
                   {formatTime(timeElapsed)}
                 </div>
                 <div className="text-xs text-muted-foreground">
