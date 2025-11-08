@@ -49,19 +49,19 @@ const ENV_CHECKS: EnvCheck[] = [
     category: "database",
   },
 
-  // Email Service (Resend)
+  // Email Service (Gmail)
   {
-    key: "RESEND_API_KEY",
+    key: "GMAIL_USER_EMAIL",
     required: false,
     description:
-      "Resend API key for email sending (verification, notifications)",
+      "Gmail email address for sending emails (e.g., your-email@gmail.com)",
     category: "email",
   },
   {
-    key: "RESEND_FROM_EMAIL",
+    key: "GMAIL_APP_PASSWORD",
     required: false,
     description:
-      "From email address for Resend (e.g., onboarding@yourdomain.com)",
+      "Gmail App Password (16-character password from myaccount.google.com/apppasswords)",
     category: "email",
   },
 
