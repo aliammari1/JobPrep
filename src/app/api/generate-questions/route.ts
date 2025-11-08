@@ -67,69 +67,144 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const prompt = `Generate exactly ${totalQuestions} interview questions based on this job and candidate profile.
+    // Strategy: Generate questions ONE AT A TIME for true streaming
+    // This way the first question arrives in ~2-3 seconds instead of waiting for all 20
+    
+    console.log("⏱️ Starting REAL streaming generation...");
+    
+    // Create a streaming response that generates questions on-the-fly
+    const encoder = new TextEncoder();
+    const stream = new ReadableStream({
+      async start(controller) {
+        try {
+          // Send initial message immediately
+          const initMessage = JSON.stringify({
+            type: "init",
+            totalQuestions: totalQuestions,
+          });
+          controller.enqueue(encoder.encode(initMessage + "\n"));
+          console.log("📤 Sent init message");
+
+          let generatedCount = 0;
+
+          // Generate technical questions one by one
+          for (let i = 0; i < numTechnical; i++) {
+            const questionPrompt = `Generate 1 technical interview question based on:
 
 JOB: ${jobDescription}
 
-CANDIDATE: ${employeeSkills}
+CANDIDATE SKILLS: ${employeeSkills}
 
-Requirements:
-- ${numTechnical} technical questions
-- ${numBehavioral} behavioral questions (STAR format)
-- Each with brief ideal answer (1-2 sentences only!)
-- Each with 3 short evaluation criteria
+Return ONLY valid JSON (no markdown):
+{"id": ${generatedCount + 1}, "type": "technical", "question": "...", "idealAnswer": "brief 1-2 sentence answer", "evaluationCriteria": ["criterion 1", "criterion 2", "criterion 3"]}`;
 
-Return ONLY valid JSON (no markdown, no extra text):
-{
-  "questions": [
-    {
-      "id": 1,
-      "type": "technical",
-      "question": "...",
-      "idealAnswer": "Brief 1-2 sentence answer",
-      "evaluationCriteria": ["criterion1", "criterion2", "criterion3"]
-    }
-  ]
-}
+            console.log(`🔄 Generating technical question ${i + 1}/${numTechnical}...`);
+            const startTime = Date.now();
+            
+            try {
+              const text = await generateWithOllamaRetry(questionPrompt);
+              const cleanedText = cleanJsonResponse(text);
+              
+              // Log the cleaned text for debugging
+              console.log(`📝 Cleaned response (first 200 chars): ${cleanedText.substring(0, 200)}`);
+              
+              const questionData = JSON.parse(cleanedText);
+              
+              const genTime = Date.now() - startTime;
+              console.log(`✅ Technical Q${i + 1} generated in ${genTime}ms`);
+              
+              // Ensure correct ID and type
+              questionData.id = generatedCount + 1;
+              questionData.type = "technical";
+              
+              // Send the question immediately
+              const questionMessage = JSON.stringify({
+                type: "question",
+                index: generatedCount,
+                question: questionData,
+                received: generatedCount + 1,
+                total: totalQuestions,
+              });
+              controller.enqueue(encoder.encode(questionMessage + "\n"));
+              
+              if (generatedCount === 0) {
+                console.log("🎯 FIRST question sent - interview can start!");
+              }
+              
+              generatedCount++;
+            } catch (error) {
+              console.error(`❌ Error generating technical question ${i + 1}:`, error);
+              console.error(`Raw text: ${error instanceof Error ? error.message : 'Unknown'}`);
+              // Continue with next question on error
+              continue;
+            }
+          }
 
-Keep ALL answers very concise. Focus on job-relevant questions.`;
+          // Generate behavioral questions one by one
+          for (let i = 0; i < numBehavioral; i++) {
+            const questionPrompt = `Generate 1 behavioral interview question (STAR format) based on:
 
-    console.log("Generating questions with Ollama (local & fast)...");
-    
-    // Use Ollama instead of Gemini - much faster!
-    const text = await generateWithOllamaRetry(prompt);
+JOB: ${jobDescription}
 
-    console.log("Raw Ollama response length:", text.length);
-    console.log("First 300 chars:", text.substring(0, 300));
+CANDIDATE EXPERIENCE: ${employeeSkills}
 
-    // Clean JSON response
-    const cleanedText = cleanJsonResponse(text);
+Return ONLY valid JSON (no markdown):
+{"id": ${generatedCount + 1}, "type": "behavioral", "question": "Tell me about a time when...", "idealAnswer": "brief 1-2 sentence STAR answer", "evaluationCriteria": ["criterion 1", "criterion 2", "criterion 3"]}`;
 
-    let questionsData;
-    try {
-      questionsData = JSON.parse(cleanedText);
-    } catch (parseError) {
-      console.error("JSON Parse Error:", parseError);
-      console.error("Attempted to parse:", cleanedText.substring(0, 500));
-      throw new Error(`Failed to parse Ollama response as JSON: ${parseError instanceof Error ? parseError.message : "Unknown error"}`);
-    }
+            console.log(`🔄 Generating behavioral question ${i + 1}/${numBehavioral}...`);
+            const startTime = Date.now();
+            
+            try {
+              const text = await generateWithOllamaRetry(questionPrompt);
+              const cleanedText = cleanJsonResponse(text);
+              const questionData = JSON.parse(cleanedText);
+              
+              const genTime = Date.now() - startTime;
+              console.log(`✅ Behavioral Q${i + 1} generated in ${genTime}ms`);
+              
+              // Ensure correct ID and type
+              questionData.id = generatedCount + 1;
+              questionData.type = "behavioral";
+              
+              // Send the question immediately
+              const questionMessage = JSON.stringify({
+                type: "question",
+                index: generatedCount,
+                question: questionData,
+                received: generatedCount + 1,
+                total: totalQuestions,
+              });
+              controller.enqueue(encoder.encode(questionMessage + "\n"));
+              
+              generatedCount++;
+            } catch (error) {
+              console.error(`Error generating behavioral question ${i + 1}:`, error);
+              // Continue with next question on error
+            }
+          }
 
-    // Validate the response structure
-    if (!questionsData.questions || !Array.isArray(questionsData.questions)) {
-      throw new Error("Invalid response structure from Ollama");
-    }
+          // Send completion message
+          const completeMessage = JSON.stringify({
+            type: "complete",
+            totalQuestions: generatedCount,
+          });
+          controller.enqueue(encoder.encode(completeMessage + "\n"));
+          console.log(`✅ Stream complete - ${generatedCount} questions generated`);
 
-    // Ensure we have the requested number of questions
-    if (questionsData.questions.length !== totalQuestions) {
-      console.warn(`Expected ${totalQuestions} questions, got ${questionsData.questions.length}`);
-    }
+          controller.close();
+        } catch (error) {
+          console.error("Stream error:", error);
+          controller.error(error);
+        }
+      },
+    });
 
-    console.log(`Successfully generated ${questionsData.questions.length} questions`);
-
-    return NextResponse.json({
-      success: true,
-      questions: questionsData.questions,
-      totalQuestions: questionsData.questions.length,
+    return new NextResponse(stream, {
+      headers: {
+        "Content-Type": "application/x-ndjson",
+        "Cache-Control": "no-cache",
+        "Connection": "keep-alive",
+      },
     });
 
   } catch (error) {

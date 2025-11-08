@@ -311,7 +311,7 @@ export function Sidebar({ isOpen, onToggle, onClose }: SidebarProps) {
               "w-full justify-between h-10 px-3 font-medium transition-colors",
               level > 0 && "ml-4 w-auto",
               active &&
-                "bg-indigo-50 text-indigo-700 dark:bg-indigo-950 dark:text-indigo-300",
+                "bg-primary/10 text-primary dark:bg-primary/20 dark:text-primary/90",
             )}
             onClick={() => toggleExpanded(item.id)}
           >
@@ -348,7 +348,7 @@ export function Sidebar({ isOpen, onToggle, onClose }: SidebarProps) {
                 "w-full justify-start h-10 px-3 font-medium transition-colors",
                 level > 0 && "ml-4 w-auto",
                 active &&
-                  "bg-indigo-50 text-indigo-700 dark:bg-indigo-950 dark:text-indigo-300",
+                  "bg-primary/10 text-primary dark:bg-primary/20 dark:text-primary/90",
               )}
             >
               <div className="flex items-center gap-3 w-full">
@@ -416,13 +416,13 @@ export function Sidebar({ isOpen, onToggle, onClose }: SidebarProps) {
       {/* Sidebar */}
       <aside
         className={cn(
-          "fixed left-0 top-0 z-50 h-full w-80 bg-white dark:bg-gray-900 border-r border-gray-200 dark:border-gray-800 flex flex-col transition-transform duration-300",
+          "fixed left-0 top-0 z-50 h-full w-80 bg-background dark:bg-background border-r border-border flex flex-col transition-transform duration-300",
           isOpen ? "translate-x-0" : "-translate-x-full",
           "lg:relative lg:translate-x-0 lg:z-0",
         )}
       >
         {/* Header */}
-        <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-800">
+        <div className="flex items-center justify-between p-4 border-b border-border">
           <div className="flex items-center gap-3">
             <div className="w-8 h-8 flex items-center justify-center">
               <Image 
@@ -474,13 +474,13 @@ export function Sidebar({ isOpen, onToggle, onClose }: SidebarProps) {
         </nav>
 
         {/* User Profile */}
-        <div className="p-4 border-t border-gray-200 dark:border-gray-800">
+        <div className="p-4 border-t border-border">
           {isPending ? (
             <div className="flex items-center gap-3 mb-3">
-              <div className="w-10 h-10 bg-gray-200 dark:bg-gray-700 rounded-full animate-pulse" />
+              <div className="w-10 h-10 bg-muted dark:bg-muted rounded-full animate-pulse" />
               <div className="flex-1">
-                <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-24 mb-1 animate-pulse" />
-                <div className="h-3 bg-gray-200 dark:bg-gray-700 rounded w-16 animate-pulse" />
+                <div className="h-4 bg-muted dark:bg-muted rounded w-24 mb-1 animate-pulse" />
+                <div className="h-3 bg-muted dark:bg-muted rounded w-16 animate-pulse" />
               </div>
             </div>
           ) : session?.user ? (
@@ -500,7 +500,7 @@ export function Sidebar({ isOpen, onToggle, onClose }: SidebarProps) {
                   <p className="font-medium text-sm truncate">
                     {session.user.name || "User"}
                   </p>
-                  <p className="text-xs text-gray-500 truncate">
+                  <p className="text-xs text-muted-foreground truncate">
                     {session.user.email}
                   </p>
                 </div>
