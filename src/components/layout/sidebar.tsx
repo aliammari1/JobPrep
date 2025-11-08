@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { useSession, signOut } from "@/lib/auth-client";
@@ -423,8 +424,14 @@ export function Sidebar({ isOpen, onToggle, onClose }: SidebarProps) {
         {/* Header */}
         <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-800">
           <div className="flex items-center gap-3">
-            <div className="w-8 h-8 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-lg flex items-center justify-center">
-              <Brain className="w-4 h-4 text-white" />
+            <div className="w-8 h-8 flex items-center justify-center">
+              <Image 
+                src="/icons/one_logo.png" 
+                alt="JobPrep Logo" 
+                width={32} 
+                height={32}
+                className="object-contain"
+              />
             </div>
             <div>
               <h2 className="font-semibold text-lg">JobPrep AI</h2>

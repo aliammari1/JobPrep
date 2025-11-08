@@ -26,6 +26,7 @@
     "@dnd-kit/utilities": "^3.2.2",
     "@excalidraw/excalidraw": "^0.18.0",
     "@floating-ui/react": "^0.27.16",
+    "@google/generative-ai": "^0.24.1",
     "@headlessui/react": "^2.2.9",
     "@heroicons/react": "^2.2.0",
     "@heygen/streaming-avatar": "^2.1.0",
@@ -101,7 +102,9 @@
     "next-pwa": "^5.6.0",
     "next-themes": "^0.4.6",
     "pdf-lib": "^1.17.1",
-    "pdf-parse": "^2.3.0",
+    "pdf-parse": "^1.1.1",
+    // NOTE: pdf-parse is pinned to v1.1.1 due to compatibility issues with v2.x (e.g., breaking API changes or incompatibility with other dependencies). Update only after verifying compatibility.
+    "prisma": "^6.17.1",
     "puppeteer": "^24.25.0",
     "puppeteer-extra": "^3.3.6",
     "puppeteer-extra-plugin-stealth": "^2.11.2",
@@ -137,8 +140,7 @@
     "vaul": "^1.1.2",
     "workbox-webpack-plugin": "^7.3.0",
     "zod": "^4.1.12",
-    "zustand": "^5.0.8",
-    "prisma": "^6.17.1"
+    "zustand": "^5.0.8"
   },
   "devDependencies": {
     "@biomejs/biome": "2.2.0",
