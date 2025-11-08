@@ -111,7 +111,7 @@ Keep ALL answers very concise. Focus on job-relevant questions.`;
     } catch (parseError) {
       console.error("JSON Parse Error:", parseError);
       console.error("Attempted to parse:", cleanedText.substring(0, 500));
-      throw new Error(`Failed to parse Gemini response as JSON: ${parseError instanceof Error ? parseError.message : "Unknown error"}`);
+      throw new Error(`Failed to parse Ollama response as JSON: ${parseError instanceof Error ? parseError.message : "Unknown error"}`);
     }
 
     // Validate the response structure
