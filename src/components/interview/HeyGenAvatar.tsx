@@ -53,30 +53,35 @@ export default function HeyGenAvatar({
 
   const mediaStreamRef = useRef<HTMLVideoElement>(null);
   const avatarRef = useRef<StreamingAvatar | null>(null);
-  const originalConsoleErrorRef = useRef<typeof console.error>(console.error);
+  const sdkErrorListenerRef = useRef<((error: any) => void) | null>(null);
+
+  // Filter non-critical errors
+  const isNonCriticalError = (message: string): boolean => {
+    return (
+      message.includes('DataChannel error') ||
+      message.includes('lossy') ||
+      message.includes('ICE connection') ||
+      message.includes('STUN') ||
+      message.includes('ICE failed')
+    );
+  };
 
   useEffect(() => {
-    // Suppress non-critical DataChannel errors on mount
-    const errorHandler = (...args: any[]) => {
-      const errorMessage = args.join(' ');
-      // Suppress known non-critical WebRTC errors
-      if (
-        errorMessage.includes('DataChannel error') ||
-        errorMessage.includes('lossy') ||
-        errorMessage.includes('ICE connection') ||
-        errorMessage.includes('STUN') ||
-        errorMessage.includes('ICE failed')
-      ) {
-        // These are non-critical warnings, ignore them
-        return;
+    // Setup SDK error event listener
+    const handleSDKError = (event: any) => {
+      const errorMsg = event?.message || event?.toString?.() || String(event);
+      
+      // Only log critical errors
+      if (!isNonCriticalError(errorMsg)) {
+        console.error('HeyGen SDK Error:', event);
       }
-      originalConsoleErrorRef.current.apply(console, args);
     };
-    console.error = errorHandler;
+
+    sdkErrorListenerRef.current = handleSDKError;
 
     return () => {
       // Cleanup on unmount
-      console.error = originalConsoleErrorRef.current;
+      sdkErrorListenerRef.current = null;
       if (avatarRef.current) {
         avatarRef.current.stopAvatar().catch(() => {});
       }
@@ -186,13 +191,29 @@ export default function HeyGenAvatar({
         language: "en" 
       });
       
-      const session = await avatar.createStartAvatar({
-        quality,
-        avatarName: avatarId,
-        language: "en",
-        voiceChatTransport: VoiceChatTransport.WEBSOCKET,
-        knowledgeBase: "You are an interview assistant. Your ONLY job is to read the interview questions exactly as provided to you. Do NOT add any business advice, commentary, suggestions, or extra information. Just read the questions word-for-word and wait for the candidate's response. Never talk about business topics unless specifically asked in the question itself.",
-      });
+      let session;
+      try {
+        session = await avatar.createStartAvatar({
+          quality,
+          avatarName: avatarId,
+          language: "en",
+          voiceChatTransport: VoiceChatTransport.WEBSOCKET,
+          knowledgeBase: "You are an interview assistant. Your ONLY job is to read the interview questions exactly as provided to you. Do NOT add any business advice, commentary, suggestions, or extra information. Just read the questions word-for-word and wait for the candidate's response. Never talk about business topics unless specifically asked in the question itself.",
+        });
+      } catch (sdkError: any) {
+        // Filter and ignore non-critical SDK errors
+        const errorMsg = sdkError?.message || String(sdkError);
+        if (!isNonCriticalError(errorMsg)) {
+          throw sdkError; // Re-throw critical errors
+        }
+        // Non-critical error - continue with null session handling
+        console.log("⚠️ Non-critical SDK error (ignored):", errorMsg);
+        session = null;
+      }
+
+      if (!session) {
+        throw new Error("Failed to create avatar session");
+      }
 
       console.log("Avatar session created successfully:", session);
 
@@ -201,12 +222,16 @@ export default function HeyGenAvatar({
         avatarName: avatarId,
       });
     } catch (error) {
-      console.error("Error initializing avatar:", error);
-      console.error("Error details:", {
-        name: error instanceof Error ? error.name : 'Unknown',
-        message: error instanceof Error ? error.message : String(error),
-        stack: error instanceof Error ? error.stack : undefined
-      });
+      // Log only critical errors
+      const errorMsg = error instanceof Error ? error.message : String(error);
+      if (!isNonCriticalError(errorMsg)) {
+        console.error("Error initializing avatar:", error);
+        console.error("Error details:", {
+          name: error instanceof Error ? error.name : 'Unknown',
+          message: errorMsg,
+          stack: error instanceof Error ? error.stack : undefined
+        });
+      }
       
       let errorMessage = "Failed to initialize avatar";
 
@@ -246,9 +271,13 @@ export default function HeyGenAvatar({
       });
       setIsVoiceChatActive(true);
       console.log("Voice chat started");
-    } catch (error) {
-      console.error("Error starting voice chat:", error);
-      onError?.("Failed to start voice chat");
+    } catch (error: any) {
+      const errorMsg = error?.message || String(error);
+      // Only report critical errors to user
+      if (!isNonCriticalError(errorMsg)) {
+        console.error("Error starting voice chat:", error);
+        onError?.("Failed to start voice chat");
+      }
     } finally {
       setIsLoadingVoiceChat(false);
     }
@@ -262,8 +291,12 @@ export default function HeyGenAvatar({
       setIsVoiceChatActive(false);
       setIsListening(false);
       console.log("Voice chat stopped");
-    } catch (error) {
-      console.error("Error stopping voice chat:", error);
+    } catch (error: any) {
+      const errorMsg = error?.message || String(error);
+      // Only log critical errors
+      if (!isNonCriticalError(errorMsg)) {
+        console.error("Error stopping voice chat:", error);
+      }
     }
   };
 
@@ -277,8 +310,12 @@ export default function HeyGenAvatar({
       setIsVoiceChatActive(false);
       avatarRef.current = null;
       console.log("Avatar stopped");
-    } catch (error) {
-      console.error("Error stopping avatar:", error);
+    } catch (error: any) {
+      const errorMsg = error?.message || String(error);
+      // Only log critical errors
+      if (!isNonCriticalError(errorMsg)) {
+        console.error("Error stopping avatar:", error);
+      }
     }
   };
 
@@ -291,9 +328,13 @@ export default function HeyGenAvatar({
         task_type: TaskType.TALK,
       });
       setTextInput("");
-    } catch (error) {
-      console.error("Error sending text:", error);
-      onError?.("Failed to send message");
+    } catch (error: any) {
+      const errorMsg = error?.message || String(error);
+      // Only report critical errors
+      if (!isNonCriticalError(errorMsg)) {
+        console.error("Error sending text:", error);
+        onError?.("Failed to send message");
+      }
     }
   };
 
@@ -304,8 +345,12 @@ export default function HeyGenAvatar({
       const newMutedState = !isMuted;
       // You can implement mute logic here if needed
       setIsMuted(newMutedState);
-    } catch (error) {
-      console.error("Error toggling mute:", error);
+    } catch (error: any) {
+      const errorMsg = error?.message || String(error);
+      // Only log critical errors
+      if (!isNonCriticalError(errorMsg)) {
+        console.error("Error toggling mute:", error);
+      }
     }
   };
 
@@ -315,8 +360,12 @@ export default function HeyGenAvatar({
     try {
       await avatarRef.current.interrupt();
       console.log("Avatar interrupted");
-    } catch (error) {
-      console.error("Error interrupting avatar:", error);
+    } catch (error: any) {
+      const errorMsg = error?.message || String(error);
+      // Only log critical errors
+      if (!isNonCriticalError(errorMsg)) {
+        console.error("Error interrupting avatar:", error);
+      }
     }
   };
 

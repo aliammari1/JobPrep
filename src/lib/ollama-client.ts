@@ -99,9 +99,9 @@ export function cleanJsonResponse(text: string): string {
     }
   }
 
-  // Fix improperly escaped quotes (common LLM issue)
-  // Replace standalone backslash-quote with proper escaped quote
-  cleaned = cleaned.replace(/\\"/g, '"');  // Remove escape chars - they're causing issues
+  // Fix double-escaped quotes (\\") while preserving valid single escapes (\")
+  // Only collapse sequences where quote is preceded by two backslashes
+  cleaned = cleaned.replace(/\\\\"/g, '\\"');  // Convert \\" to \"
   
   // Remove any trailing commas before closing braces/brackets
   cleaned = cleaned.replace(/,(\s*[}\]])/g, "$1");
