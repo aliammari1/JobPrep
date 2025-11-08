@@ -24,9 +24,9 @@ export async function POST(request: NextRequest) {
     console.log("Buffer created, attempting to parse...");
 
     try {
-  // Import pdf-parse core function directly to avoid debug-side effects
-  // eslint-disable-next-line @typescript-eslint/no-var-requires
-  const pdfParse = require("pdf-parse/lib/pdf-parse.js");
+  // Import pdf-parse core function directly to avoid debug-side effects.
+  // Use dynamic import for compatibility with TypeScript and ES modules.
+  const { default: pdfParse } = await import("pdf-parse/lib/pdf-parse.js");
 
       console.log("pdf-parse loaded, parsing PDF...");
 
