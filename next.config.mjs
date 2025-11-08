@@ -112,7 +112,7 @@ const pwa = withPWA({
 
 const nextConfig = {
   // Silence workspace root warning by explicitly setting the project root
-  outputFileTracingRoot: '/Users/aladinhabibi/Desktop/5 SIM/PWA/JobPrep',
+  outputFileTracingRoot: process.cwd(),
   images: {
     remotePatterns: [
       {
