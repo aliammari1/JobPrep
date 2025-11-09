@@ -8,7 +8,7 @@ export const runtime = 'nodejs';
 // GET: Retrieve a specific interview
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await auth.api.getSession({
@@ -22,9 +22,11 @@ export async function GET(
       );
     }
 
+    const { id } = await params;
+
     const interview = await prisma.aIMockSession.findUnique({
       where: {
-        id: params.id,
+        id: id,
         userId: session.user.id, // Ensure user can only access their own interviews
       },
       select: {
@@ -69,7 +71,7 @@ export async function GET(
 // DELETE: Delete a specific interview
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await auth.api.getSession({
@@ -83,10 +85,12 @@ export async function DELETE(
       );
     }
 
+    const { id } = await params;
+
     // First check if the interview exists and belongs to the user
     const interview = await prisma.aIMockSession.findUnique({
       where: {
-        id: params.id,
+        id: id,
         userId: session.user.id,
       },
     });
@@ -101,7 +105,7 @@ export async function DELETE(
     // Delete the interview
     await prisma.aIMockSession.delete({
       where: {
-        id: params.id,
+        id: id,
       },
     });
 

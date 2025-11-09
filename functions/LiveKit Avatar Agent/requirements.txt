@@ -1,0 +1,5 @@
+# LiveKit API for token generation
+livekit-api>=0.6.0
+
+# HTTP client for Simli REST API calls
+aiohttp>=3.9.0

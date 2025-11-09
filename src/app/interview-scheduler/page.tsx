@@ -422,7 +422,7 @@ function InterviewScheduler() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-white to-teal-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
+    <div className="min-h-screen bg-background">
       <div className="container mx-auto p-6 space-y-8">
         {/* Success/Error Messages */}
         <AnimatePresence>
@@ -454,7 +454,7 @@ function InterviewScheduler() {
         <AnimatedContainer>
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-4xl font-bold bg-gradient-to-r from-emerald-600 to-teal-600 bg-clip-text text-transparent">
+              <h1 className="text-4xl font-bold text-foreground">
                 Interview Scheduler
               </h1>
               <p className="text-muted-foreground mt-2">
@@ -550,19 +550,19 @@ function InterviewScheduler() {
                       <p className="text-sm font-medium text-muted-foreground">
                         Today's Interviews
                       </p>
-                      <p className="text-3xl font-bold text-emerald-600">
+                      <p className="text-3xl font-bold text-primary">
                         {dayStats.total}
                       </p>
                     </div>
-                    <div className="w-12 h-12 bg-emerald-100 dark:bg-emerald-900/20 rounded-lg flex items-center justify-center">
-                      <CalendarDays className="w-6 h-6 text-emerald-600" />
+                    <div className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center">
+                      <CalendarDays className="w-6 h-6 text-primary" />
                     </div>
                   </div>
                   <div className="mt-4 flex items-center gap-4 text-xs">
-                    <span className="text-green-600">
+                    <span className="text-primary">
                       ✓ {dayStats.confirmed} Confirmed
                     </span>
-                    <span className="text-blue-600">
+                    <span className="text-secondary">
                       ⧖ {dayStats.pending} Pending
                     </span>
                   </div>
@@ -578,12 +578,12 @@ function InterviewScheduler() {
                       <p className="text-sm font-medium text-muted-foreground">
                         This Week
                       </p>
-                      <p className="text-3xl font-bold text-teal-600">
+                      <p className="text-3xl font-bold text-secondary">
                         {getWeekStats()}
                       </p>
                     </div>
-                    <div className="w-12 h-12 bg-teal-100 dark:bg-teal-900/20 rounded-lg flex items-center justify-center">
-                      <BarChart3 className="w-6 h-6 text-teal-600" />
+                    <div className="w-12 h-12 bg-secondary/10 rounded-lg flex items-center justify-center">
+                      <BarChart3 className="w-6 h-6 text-secondary" />
                     </div>
                   </div>
                   <div className="mt-4">
@@ -604,10 +604,10 @@ function InterviewScheduler() {
                       <p className="text-sm font-medium text-muted-foreground">
                         Success Rate
                       </p>
-                      <p className="text-3xl font-bold text-blue-600">87%</p>
+                      <p className="text-3xl font-bold text-accent">87%</p>
                     </div>
-                    <div className="w-12 h-12 bg-blue-100 dark:bg-blue-900/20 rounded-lg flex items-center justify-center">
-                      <CheckCircle2 className="w-6 h-6 text-blue-600" />
+                    <div className="w-12 h-12 bg-accent/10 rounded-lg flex items-center justify-center">
+                      <CheckCircle2 className="w-6 h-6 text-accent" />
                     </div>
                   </div>
                   <div className="mt-4">
@@ -625,12 +625,12 @@ function InterviewScheduler() {
                       <p className="text-sm font-medium text-muted-foreground">
                         Avg Duration
                       </p>
-                      <p className="text-3xl font-bold text-purple-600">
+                      <p className="text-3xl font-bold text-primary">
                         52min
                       </p>
                     </div>
-                    <div className="w-12 h-12 bg-purple-100 dark:bg-purple-900/20 rounded-lg flex items-center justify-center">
-                      <Timer className="w-6 h-6 text-purple-600" />
+                    <div className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center">
+                      <Timer className="w-6 h-6 text-primary" />
                     </div>
                   </div>
                   <div className="mt-4 text-xs text-muted-foreground">
@@ -642,9 +642,9 @@ function InterviewScheduler() {
           </div>
         </StaggeredContainer>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Calendar View */}
-          <div className="lg:col-span-2 space-y-6">
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
+          {/* Main Content - Calendar and Interview List */}
+          <div className="lg:col-span-3 space-y-6">
             {/* Calendar Controls */}
             <AnimatedContainer delay={0.1}>
               <Card>
@@ -672,7 +672,7 @@ function InterviewScheduler() {
                 </CardHeader>
                 <CardContent>
                   {selectedView === "day" && (
-                    <div className="space-y-2">
+                    <div className="space-y-3">
                       {timeSlots.map((slot, index) => (
                         <motion.div
                           key={slot.time}
@@ -680,10 +680,10 @@ function InterviewScheduler() {
                           animate={{ opacity: 1, x: 0 }}
                           transition={{ delay: index * 0.02 }}
                           className={cn(
-                            "flex items-center p-3 rounded-lg border transition-colors cursor-pointer",
+                            "flex items-stretch rounded-lg border-2 transition-all cursor-pointer",
                             slot.available
-                              ? "border-dashed border-gray-300 hover:border-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-900/10"
-                              : "border-solid bg-muted",
+                              ? "border-border bg-background hover:border-primary hover:bg-primary/5"
+                              : "border-primary bg-card",
                           )}
                           onClick={() => {
                             if (!slot.available) return;
@@ -695,25 +695,26 @@ function InterviewScheduler() {
                             setShowNewInterviewModal(true);
                           }}
                         >
-                          <div className="w-16 text-sm font-medium text-muted-foreground">
+                          <div className="w-20 bg-card px-4 py-4 flex items-center justify-center border-r border-border font-semibold text-foreground">
                             {slot.time}
                           </div>
 
                           {slot.interview ? (
-                            <div className="flex items-center justify-between flex-1 ml-4">
-                              <div className="flex items-center gap-3">
-                                {getTypeIcon(slot.interview.type)}
-                                <div>
-                                  <div className="font-medium">
+                            <div className="flex items-center justify-between flex-1 px-4 py-4">
+                              <div className="flex items-center gap-4">
+                                <div className="flex items-center justify-center w-10 h-10 bg-primary/10 rounded-lg">
+                                  {getTypeIcon(slot.interview.type)}
+                                </div>
+                                <div className="min-w-0">
+                                  <div className="font-semibold text-foreground">
                                     {slot.interview.candidateName}
                                   </div>
-                                  <div className="text-xs text-muted-foreground">
-                                    {slot.interview.position} •{" "}
-                                    {slot.interview.duration}min
+                                  <div className="text-sm text-muted-foreground">
+                                    {slot.interview.position} • {slot.interview.duration}min
                                   </div>
                                 </div>
                               </div>
-                              <div className="flex items-center gap-2">
+                              <div className="flex items-center gap-3 flex-shrink-0 ml-4">
                                 <Badge
                                   className={getStatusColor(
                                     slot.interview.status,
@@ -721,15 +722,15 @@ function InterviewScheduler() {
                                 >
                                   {slot.interview.status}
                                 </Badge>
-                                <Button variant="ghost" size="sm">
+                                <Button variant="ghost" size="sm" className="hover:bg-primary/10">
                                   <Edit3 className="w-4 h-4" />
                                 </Button>
                               </div>
                             </div>
                           ) : (
-                            <div className="flex items-center gap-2 ml-4 text-muted-foreground">
-                              <Plus className="w-4 h-4" />
-                              <span className="text-sm">Available</span>
+                            <div className="flex items-center gap-3 px-4 py-4 text-muted-foreground hover:text-foreground">
+                              <Plus className="w-5 h-5" />
+                              <span className="font-medium">Click to schedule</span>
                             </div>
                           )}
                         </motion.div>
@@ -738,18 +739,18 @@ function InterviewScheduler() {
                   )}
 
                   {selectedView === "week" && (
-                    <div className="space-y-4">
-                      <div className="grid grid-cols-7 gap-2 text-center text-sm font-medium text-muted-foreground">
+                    <div className="space-y-6">
+                      <div className="grid grid-cols-7 gap-3 text-center">
                         {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map(
                           (day) => (
-                            <div key={day} className="p-2">
+                            <div key={day} className="p-3 font-semibold text-foreground text-sm">
                               {day}
                             </div>
                           ),
                         )}
                       </div>
 
-                      <div className="grid grid-cols-7 gap-2">
+                      <div className="grid grid-cols-7 gap-3">
                         {Array.from({ length: 7 }, (_, i) => {
                           const date = new Date(selectedDate);
                           date.setDate(
@@ -760,6 +761,7 @@ function InterviewScheduler() {
                               interview.date.toDateString() ===
                               date.toDateString(),
                           );
+                          const isToday = date.toDateString() === new Date().toDateString();
 
                           return (
                             <motion.div
@@ -768,27 +770,30 @@ function InterviewScheduler() {
                               animate={{ opacity: 1, y: 0 }}
                               transition={{ delay: i * 0.1 }}
                               className={cn(
-                                "min-h-[120px] p-2 border rounded-lg",
-                                date.toDateString() ===
-                                  new Date().toDateString()
-                                  ? "border-emerald-500 bg-emerald-50 dark:bg-emerald-900/10"
-                                  : "border-gray-200 hover:border-gray-300",
+                                "min-h-[160px] p-4 border-2 rounded-lg transition-all",
+                                isToday
+                                  ? "border-primary bg-primary/5"
+                                  : "border-border bg-card hover:border-foreground/20",
                               )}
                             >
-                              <div className="text-sm font-medium mb-2">
+                              <div className={cn(
+                                "text-lg font-bold mb-3 w-8 h-8 flex items-center justify-center rounded-lg",
+                                isToday ? "bg-primary text-white" : "text-foreground"
+                              )}>
                                 {date.getDate()}
                               </div>
-                              <div className="space-y-1">
+                              <div className="space-y-2">
                                 {dayInterviews.slice(0, 3).map((interview) => (
                                   <div
                                     key={interview.id}
-                                    className="text-xs p-1 rounded bg-blue-100 text-blue-700 dark:bg-blue-900/20 dark:text-blue-300 truncate"
+                                    className="text-xs p-2 rounded bg-primary/10 text-primary font-medium truncate hover:bg-primary/20 transition-colors"
                                   >
-                                    {interview.time} {interview.candidateName}
+                                    <div className="truncate">{interview.time}</div>
+                                    <div className="truncate text-primary/80">{interview.candidateName}</div>
                                   </div>
                                 ))}
                                 {dayInterviews.length > 3 && (
-                                  <div className="text-xs text-muted-foreground">
+                                  <div className="text-xs text-muted-foreground font-medium px-2">
                                     +{dayInterviews.length - 3} more
                                   </div>
                                 )}
@@ -855,7 +860,7 @@ function InterviewScheduler() {
                           animate={{ y: 0, opacity: 1 }}
                           exit={{ y: 20, opacity: 0 }}
                           transition={{ type: "spring", stiffness: 300 }}
-                          className="relative w-full max-w-2xl bg-white dark:bg-gray-800 rounded-lg p-6 shadow-lg"
+                          className="relative w-full max-w-2xl bg-background rounded-lg p-6 shadow-lg border border-border"
                         >
                           <h3 className="text-lg font-semibold mb-3">
                             Schedule New Interview
@@ -1285,7 +1290,7 @@ function InterviewScheduler() {
                         className="flex items-center justify-between p-4 border rounded-lg hover:bg-muted/50 transition-colors"
                       >
                         <div className="flex items-center gap-4">
-                          <div className="w-12 h-12 bg-gradient-to-br from-emerald-500 to-teal-500 rounded-lg flex items-center justify-center text-white font-medium">
+                          <div className="w-12 h-12 bg-primary rounded-lg flex items-center justify-center text-white font-medium">
                             {interview.candidateName
                               .split(" ")
                               .map((n) => n[0])
@@ -1341,8 +1346,8 @@ function InterviewScheduler() {
             </AnimatedContainer>
           </div>
 
-          {/* Sidebar */}
-          <div className="space-y-6">
+          {/* Sidebar - Upcoming, Actions, Notifications */}
+          <div className="lg:col-span-1 space-y-6">
             {/* Upcoming Interviews */}
             <AnimatedContainer delay={0.3}>
               <Card>
@@ -1370,7 +1375,7 @@ function InterviewScheduler() {
                             transition={{ delay: index * 0.1 }}
                             className="flex items-center gap-3 p-3 border rounded-lg"
                           >
-                            <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-500 rounded-lg flex items-center justify-center text-white text-sm font-medium">
+                            <div className="w-10 h-10 bg-primary rounded-lg flex items-center justify-center text-white text-sm font-medium">
                               {interview.candidateName
                                 .split(" ")
                                 .map((n) => n[0])
@@ -1442,8 +1447,8 @@ function InterviewScheduler() {
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-3">
-                  <div className="flex items-start gap-3 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
-                    <AlertCircle className="w-4 h-4 text-blue-500 mt-0.5" />
+                  <div className="flex items-start gap-3 p-3 bg-primary/10 rounded-lg">
+                    <AlertCircle className="w-4 h-4 text-primary mt-0.5" />
                     <div className="text-sm">
                       <div className="font-medium">Reminder Due</div>
                       <div className="text-muted-foreground">
@@ -1452,8 +1457,8 @@ function InterviewScheduler() {
                     </div>
                   </div>
 
-                  <div className="flex items-start gap-3 p-3 bg-green-50 dark:bg-green-900/20 rounded-lg">
-                    <CheckCircle2 className="w-4 h-4 text-green-500 mt-0.5" />
+                  <div className="flex items-start gap-3 p-3 bg-secondary/10 rounded-lg">
+                    <CheckCircle2 className="w-4 h-4 text-secondary mt-0.5" />
                     <div className="text-sm">
                       <div className="font-medium">Interview Confirmed</div>
                       <div className="text-muted-foreground">
@@ -1462,8 +1467,8 @@ function InterviewScheduler() {
                     </div>
                   </div>
 
-                  <div className="flex items-start gap-3 p-3 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg">
-                    <Timer className="w-4 h-4 text-yellow-500 mt-0.5" />
+                  <div className="flex items-start gap-3 p-3 bg-accent/10 rounded-lg">
+                    <Timer className="w-4 h-4 text-accent mt-0.5" />
                     <div className="text-sm">
                       <div className="font-medium">Schedule Conflict</div>
                       <div className="text-muted-foreground">

@@ -9,6 +9,7 @@ import { useSession, signOut } from "@/lib/auth-client";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
   Home,
   Users,
@@ -69,6 +70,7 @@ import {
   Linkedin,
   CalendarDays,
   CloudUpload,
+  FileVideo,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -112,6 +114,13 @@ const sidebarItems: SidebarItem[] = [
         label: "Interview Room",
         icon: Video,
         href: "/interview-room",
+      },
+      {
+        id: "recordings",
+        label: "Recordings",
+        icon: FileVideo,
+        href: "/recordings",
+        isNew: true,
       },
       {
         id: "interview-scheduler",
@@ -308,70 +317,87 @@ export function Sidebar({ isOpen, onToggle, onClose }: SidebarProps) {
           <Button
             variant="ghost"
             className={cn(
-              "w-full justify-between h-10 px-3 font-medium transition-colors",
-              level > 0 && "ml-4 w-auto",
-              active &&
-                "bg-primary/10 text-primary dark:bg-primary/20 dark:text-primary/90",
+              "w-full justify-between h-10 px-3 font-medium transition-all duration-200",
+              level > 0 && "ml-4",
+              active
+                ? "bg-primary/15 text-primary dark:bg-primary/20"
+                : "hover:bg-accent/50 text-foreground/90",
             )}
             onClick={() => toggleExpanded(item.id)}
           >
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-3 min-w-0">
               <item.icon className="w-4 h-4 shrink-0" />
               <span className="truncate">{item.label}</span>
               {item.badge && (
-                <Badge variant="secondary" className="text-xs px-1.5 py-0.5">
+                <Badge
+                  variant="secondary"
+                  className="text-xs px-1.5 py-0.5"
+                >
                   {item.badge}
                 </Badge>
               )}
               {item.isNew && (
-                <Badge className="text-xs px-1.5 py-0.5 bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300">
+                <Badge className="text-xs px-1.5 py-0.5 bg-emerald-500/20 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-400">
                   New
                 </Badge>
               )}
               {item.isPro && (
-                <Badge className="text-xs px-1.5 py-0.5 bg-purple-100 text-purple-700 dark:bg-purple-900 dark:text-purple-300">
+                <Badge className="text-xs px-1.5 py-0.5 bg-purple-500/20 text-purple-700 dark:bg-purple-900/40 dark:text-purple-400">
                   Pro
                 </Badge>
               )}
             </div>
-            {isExpanded ? (
+            <motion.div
+              animate={{ rotate: isExpanded ? 180 : 0 }}
+              transition={{ duration: 0.2 }}
+            >
               <ChevronDown className="w-4 h-4 shrink-0" />
-            ) : (
-              <ChevronRight className="w-4 h-4 shrink-0" />
-            )}
+            </motion.div>
           </Button>
         ) : (
-          <Link href={item.href || "#"} onClick={onClose}>
+          <Link 
+            href={item.href || "#"} 
+            onClick={() => {
+              // Only close on mobile (when window is small)
+              if (typeof window !== "undefined" && window.innerWidth < 1024) {
+                onClose();
+              }
+            }} 
+            className="block"
+          >
             <Button
               variant="ghost"
               className={cn(
-                "w-full justify-start h-10 px-3 font-medium transition-colors",
-                level > 0 && "ml-4 w-auto",
-                active &&
-                  "bg-primary/10 text-primary dark:bg-primary/20 dark:text-primary/90",
+                "w-full justify-start h-10 px-3 font-medium transition-all duration-200",
+                level > 0 && "ml-4",
+                active
+                  ? "bg-primary/15 text-primary dark:bg-primary/20"
+                  : "hover:bg-accent/50 text-foreground/90",
               )}
             >
-              <div className="flex items-center gap-3 w-full">
+              <div className="flex items-center gap-3 w-full min-w-0">
                 <item.icon className="w-4 h-4 shrink-0" />
                 <span className="truncate flex-1 text-left">{item.label}</span>
-                {item.badge && (
-                  <Badge
-                    variant="secondary"
-                    className="text-xs px-1.5 py-0.5 ml-auto"
-                  >
-                    {item.badge}
-                  </Badge>
-                )}
-                {item.isNew && (
-                  <Badge className="text-xs px-1.5 py-0.5 bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300 ml-auto">
-                    New
-                  </Badge>
-                )}
-                {item.isPro && (
-                  <Badge className="text-xs px-1.5 py-0.5 bg-purple-100 text-purple-700 dark:bg-purple-900 dark:text-purple-300 ml-auto">
-                    Pro
-                  </Badge>
-                )}
+                <div className="flex items-center gap-1 flex-shrink-0">
+                  {item.badge && (
+                    <Badge
+                      variant="secondary"
+                      className="text-xs px-1.5 py-0.5"
+                    >
+                      {item.badge}
+                    </Badge>
+                  )}
+                  {item.isNew && (
+                    <Badge className="text-xs px-1.5 py-0.5 bg-emerald-500/20 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-400">
+                      New
+                    </Badge>
+                  )}
+                  {item.isPro && (
+                    <Badge className="text-xs px-1.5 py-0.5 bg-purple-500/20 text-purple-700 dark:bg-purple-900/40 dark:text-purple-400">
+                      Pro
+                    </Badge>
+                  )}
+                </div>
               </div>
             </Button>
           </Link>
@@ -383,10 +409,10 @@ export function Sidebar({ isOpen, onToggle, onClose }: SidebarProps) {
               initial={{ height: 0, opacity: 0 }}
               animate={{ height: "auto", opacity: 1 }}
               exit={{ height: 0, opacity: 0 }}
-              transition={{ duration: 0.2 }}
+              transition={{ duration: 0.2, ease: "easeInOut" }}
               className="overflow-hidden"
             >
-              <div className="space-y-1 ml-4">
+              <div className="space-y-1">
                 {item.children?.map((child) =>
                   renderSidebarItem(child, level + 1),
                 )}
@@ -407,6 +433,7 @@ export function Sidebar({ isOpen, onToggle, onClose }: SidebarProps) {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
+            transition={{ duration: 0.2 }}
             className="fixed inset-0 bg-black/50 backdrop-blur-sm z-40 lg:hidden"
             onClick={onClose}
           />
@@ -414,28 +441,31 @@ export function Sidebar({ isOpen, onToggle, onClose }: SidebarProps) {
       </AnimatePresence>
 
       {/* Sidebar */}
-      <aside
+      <motion.aside
+        initial={false}
+        animate={isOpen ? { x: 0 } : { x: "-100%" }}
+        transition={{ duration: 0.3, ease: "easeInOut" }}
         className={cn(
-          "fixed left-0 top-0 z-50 h-full w-80 bg-background dark:bg-background border-r border-border flex flex-col transition-transform duration-300",
-          isOpen ? "translate-x-0" : "-translate-x-full",
-          "lg:relative lg:translate-x-0 lg:z-0",
+          "fixed left-0 top-0 z-50 h-full w-80 bg-background border-r border-border flex flex-col",
+          "lg:relative lg:translate-x-0 lg:z-auto",
+          "lg:animate-none"
         )}
       >
         {/* Header */}
-        <div className="flex items-center justify-between p-4 border-b border-border">
+        <div className="flex items-center justify-between p-4 border-b border-border shrink-0">
           <div className="flex items-center gap-3">
             <div className="w-8 h-8 flex items-center justify-center">
-              <Image 
-                src="/icons/one_logo.png" 
-                alt="JobPrep Logo" 
-                width={32} 
+              <Image
+                src="/icons/one_logo.png"
+                alt="JobPrep Logo"
+                width={32}
                 height={32}
                 className="object-contain"
               />
             </div>
             <div>
-              <h2 className="font-semibold text-lg">JobPrep AI</h2>
-              <p className="text-xs text-gray-500">Interview Platform</p>
+              <h2 className="font-semibold text-sm">JobPrep AI</h2>
+              <p className="text-xs text-muted-foreground">Interview Platform</p>
             </div>
           </div>
           <Button
@@ -449,44 +479,69 @@ export function Sidebar({ isOpen, onToggle, onClose }: SidebarProps) {
         </div>
 
         {/* Quick Actions */}
-        <div className="p-4 space-y-2">
-          <Link href="/schedule-interview">
-            <Button className="w-full justify-start gap-2" size="sm">
+        <div className="p-4 space-y-2 shrink-0 border-b border-border">
+          <Link href="/schedule-interview" 
+            onClick={() => {
+              if (typeof window !== "undefined" && window.innerWidth < 1024) {
+                onClose();
+              }
+            }} 
+            className="block"
+          >
+            <Button className="w-full justify-center gap-2 h-9" size="sm">
               <Plus className="w-4 h-4" />
-              Mock Interview
+              <span className="text-sm font-medium">Mock Interview</span>
             </Button>
           </Link>
-          <Button
-            variant="outline"
-            className="w-full justify-start gap-2"
-            size="sm"
+          <div 
+            className="w-full h-9 rounded-md border border-input bg-background px-3 py-2 text-sm text-foreground/70 shadow-sm transition-colors hover:text-foreground cursor-pointer flex items-center justify-center gap-2 hover:bg-accent/50"
+            onClick={() => {
+              // Only close on mobile (when window is small)
+              if (typeof window !== "undefined" && window.innerWidth < 1024) {
+                onClose();
+              }
+              // Trigger command palette with keyboard shortcut
+              const isMac = navigator.platform.toUpperCase().includes('MAC');
+              const event = new KeyboardEvent('keydown', {
+                key: 'k',
+                code: 'KeyK',
+                ctrlKey: !isMac,
+                metaKey: isMac,
+                bubbles: true,
+              });
+              document.dispatchEvent(event);
+            }}
           >
             <Search className="w-4 h-4" />
-            Quick Search
-          </Button>
+            <span className="text-sm font-medium flex-1">Quick Search</span>
+            <kbd className="pointer-events-none inline-flex h-5 select-none items-center gap-1 rounded border border-border bg-muted px-1.5 font-mono text-[10px] font-medium text-muted-foreground opacity-100">
+              <span className="text-xs">⌘</span>K
+            </kbd>
+          </div>
         </div>
 
         {/* Navigation */}
-        <nav className="flex-1 overflow-y-auto px-4 pb-4">
-          <div className="space-y-2">
-            {sidebarItems.map((item) => renderSidebarItem(item))}
-          </div>
+        <nav className="flex-1 overflow-y-auto px-3 py-3 space-y-2">
+          {sidebarItems.map((item) => renderSidebarItem(item))}
         </nav>
 
-        {/* User Profile */}
-        <div className="p-4 border-t border-border">
+        {/* Footer Divider */}
+        <div className="border-t border-border shrink-0" />
+
+        {/* User Profile Section */}
+        <div className="p-4 space-y-3">
           {isPending ? (
-            <div className="flex items-center gap-3 mb-3">
-              <div className="w-10 h-10 bg-muted dark:bg-muted rounded-full animate-pulse" />
-              <div className="flex-1">
-                <div className="h-4 bg-muted dark:bg-muted rounded w-24 mb-1 animate-pulse" />
-                <div className="h-3 bg-muted dark:bg-muted rounded w-16 animate-pulse" />
+            <div className="flex items-center gap-3">
+              <Skeleton className="w-9 h-9 rounded-full shrink-0" />
+              <div className="flex-1 space-y-2">
+                <Skeleton className="h-3 w-24 rounded" />
+                <Skeleton className="h-2.5 w-20 rounded" />
               </div>
             </div>
           ) : session?.user ? (
             <>
-              <div className="flex items-center gap-3 mb-3">
-                <Avatar className="w-10 h-10">
+              <div className="flex items-center gap-3">
+                <Avatar className="w-9 h-9 shrink-0">
                   <AvatarImage src={session.user.image || ""} />
                   <AvatarFallback>
                     {session.user.name
@@ -497,15 +552,21 @@ export function Sidebar({ isOpen, onToggle, onClose }: SidebarProps) {
                   </AvatarFallback>
                 </Avatar>
                 <div className="flex-1 min-w-0">
-                  <p className="font-medium text-sm truncate">
+                  <p className="font-medium text-sm text-foreground truncate">
                     {session.user.name || "User"}
                   </p>
                   <p className="text-xs text-muted-foreground truncate">
                     {session.user.email}
                   </p>
                 </div>
-                <Link href="/settings">
-                  <Button variant="ghost" size="sm">
+                <Link href="/settings" 
+                  onClick={() => {
+                    if (typeof window !== "undefined" && window.innerWidth < 1024) {
+                      onClose();
+                    }
+                  }}
+                >
+                  <Button variant="ghost" size="sm" className="shrink-0">
                     <Settings className="w-4 h-4" />
                   </Button>
                 </Link>
@@ -517,7 +578,7 @@ export function Sidebar({ isOpen, onToggle, onClose }: SidebarProps) {
                   size="sm"
                   className="justify-start gap-2"
                 >
-                  <HelpCircle className="w-3 h-3" />
+                  <HelpCircle className="w-3.5 h-3.5" />
                   Help
                 </Button>
                 <Button
@@ -526,15 +587,22 @@ export function Sidebar({ isOpen, onToggle, onClose }: SidebarProps) {
                   className="justify-start gap-2"
                   onClick={handleSignOut}
                 >
-                  <LogOut className="w-3 h-3" />
+                  <LogOut className="w-3.5 h-3.5" />
                   Logout
                 </Button>
               </div>
             </>
           ) : (
-            <div className="text-center py-4">
-              <p className="text-sm text-gray-500 mb-3">Not signed in</p>
-              <Link href="/sign-in">
+            <div className="text-center py-2 space-y-3">
+              <p className="text-sm text-muted-foreground">Not signed in</p>
+              <Link href="/sign-in" 
+                onClick={() => {
+                  if (typeof window !== "undefined" && window.innerWidth < 1024) {
+                    onClose();
+                  }
+                }}
+                className="block"
+              >
                 <Button size="sm" className="w-full">
                   Sign In
                 </Button>
@@ -542,7 +610,7 @@ export function Sidebar({ isOpen, onToggle, onClose }: SidebarProps) {
             </div>
           )}
         </div>
-      </aside>
+      </motion.aside>
     </>
   );
 }

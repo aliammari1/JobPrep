@@ -7,6 +7,7 @@ import { Navbar } from "./navbar";
 import { Sidebar } from "./sidebar";
 import { LandingNavbar } from "@/components/landing/landing-navbar";
 import { LandingFooter } from "@/components/landing/landing-footer";
+import { CommandPalette } from "@/components/custom/command-palette";
 import { useSession } from "@/lib/auth-client";
 
 interface AppLayoutProps {
@@ -45,6 +46,7 @@ export function AppLayout({ children }: AppLayoutProps) {
     pathname.startsWith("/interview-dashboard") ||
     pathname.startsWith("/interview-coach") ||
     pathname.startsWith("/replay-center") ||
+    pathname.startsWith("/recordings") ||
     pathname.startsWith("/video-recorder") ||
     pathname.startsWith("/screen-sharing") ||
     pathname.startsWith("/adaptive-questions") ||
@@ -132,6 +134,9 @@ export function AppLayout({ children }: AppLayoutProps) {
             </motion.div>
           </main>
         </div>
+
+        {/* Command Palette */}
+        <CommandPalette />
       </div>
     );
   }
@@ -149,6 +154,9 @@ export function AppLayout({ children }: AppLayoutProps) {
         {children}
       </motion.div>
       {showLandingNavbar && <LandingFooter />}
+
+      {/* Command Palette */}
+      <CommandPalette />
     </div>
   );
 }
