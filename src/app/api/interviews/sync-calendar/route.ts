@@ -49,7 +49,7 @@ export async function POST() {
 
         // Sync to Google Calendar
         if (interview.scheduledAt) {
-          const calendarEventId = await createGoogleCalendarEvent(
+          const result = await createGoogleCalendarEvent(
             session.user.id,
             {
               summary: `Interview: ${settings.position || "Position"} - ${settings.candidateName || "Candidate"}`,
@@ -71,14 +71,14 @@ export async function POST() {
             }
           );
 
-          if (calendarEventId) {
+          if (result.success && result.eventId) {
             // Update interview with calendar event ID
             await prisma.interview.update({
               where: { id: interview.id },
               data: {
                 settings: JSON.stringify({
                   ...settings,
-                  googleCalendarEventId: calendarEventId,
+                  googleCalendarEventId: result.eventId,
                 }),
               },
             });

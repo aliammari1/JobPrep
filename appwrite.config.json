@@ -39,6 +39,26 @@
             }
         }
     },
+    "functions": [
+        {
+            "$id": "jobprep-avatar",
+            "execute": [
+                "any"
+            ],
+            "name": "LiveKit Avatar Agent",
+            "enabled": true,
+            "logging": true,
+            "runtime": "python-ml-3.11",
+            "scopes": [],
+            "events": [],
+            "schedule": "",
+            "timeout": 900,
+            "entrypoint": "src/main.py",
+            "commands": "pip install -r requirements.txt",
+            "specification": "s-1vcpu-512mb",
+            "path": "functions/LiveKit Avatar Agent"
+        }
+    ],
     "tablesDB": [
         {
             "$id": "68dffcef002559fd0827",
@@ -856,46 +876,73 @@
             "indexes": []
         }
     ],
-    "functions": [
-    {
-      "$id": "jobprep-avatar",
-      "name": "LiveKit Avatar Agent",
-      "runtime": "python-ml-3.11",
-      "execute": ["any"],
-      "events": [],
-      "schedule": "",
-      "timeout": 900,
-      "enabled": true,
-      "logging": true,
-      "entrypoint": "src/main.py",
-      "commands": "pip install -r requirements.txt",
-      "path": "functions/jobprep-avatar",
-      "vars": [
+    "buckets": [
         {
-          "key": "LIVEKIT_URL",
-          "value": "wss://jobprep-xundsxxf.livekit.cloud"
+            "$id": "recordings",
+            "$permissions": [
+                "create(\"users\")",
+                "read(\"users\")",
+                "update(\"users\")",
+                "delete(\"users\")"
+            ],
+            "name": "Interview Recordings",
+            "enabled": true,
+            "maximumFileSize": 524288000,
+            "allowedFileExtensions": [
+                "webm",
+                "mp4",
+                "mkv",
+                "avi",
+                "mov"
+            ],
+            "compression": "none",
+            "encryption": true,
+            "antivirus": true,
+            "fileSecurity": false
         },
         {
-          "key": "LIVEKIT_API_KEY",
-          "value": "APIikdPPhx8iLvQ"
+            "$id": "cvs",
+            "$permissions": [
+                "create(\"users\")",
+                "read(\"users\")",
+                "update(\"users\")",
+                "delete(\"users\")"
+            ],
+            "name": "CVs",
+            "enabled": true,
+            "maximumFileSize": 10485760,
+            "allowedFileExtensions": [
+                "pdf",
+                "doc",
+                "docx"
+            ],
+            "compression": "gzip",
+            "encryption": true,
+            "antivirus": true,
+            "fileSecurity": false
         },
         {
-          "key": "LIVEKIT_API_SECRET",
-          "value": "h5bWVXpWF3U19FI5abOBz91J9e5V1wSWyAKKy3UrQfQ"
-        },
-        {
-          "key": "SIMLI_API_KEY",
-          "value": "zhzsphniibzrrbnpi6mjq"
-        },
-        {
-          "key": "SIMLI_FACE_ID",
-          "value": "6ebf0aa7-6fed-443d-a4c6-fd1e3080b215"
-        },
-        {
-          "key": "OPENAI_API_KEY",
-          "value": ""
+            "$id": "avatars",
+            "$permissions": [
+                "create(\"users\")",
+                "read(\"any\")",
+                "update(\"users\")",
+                "delete(\"users\")"
+            ],
+            "name": "Avatars",
+            "enabled": true,
+            "maximumFileSize": 5242880,
+            "allowedFileExtensions": [
+                "jpg",
+                "jpeg",
+                "png",
+                "gif",
+                "webp"
+            ],
+            "compression": "gzip",
+            "encryption": false,
+            "antivirus": true,
+            "fileSecurity": false
         }
-      ]
-    }
     ]
 }
