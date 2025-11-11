@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -14,7 +14,19 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Textarea } from "@/components/ui/textarea";
+import { useCodeExecution } from "@/hooks/use-code-execution";
+import { useChallenges } from "@/hooks/use-challenges";
+import { useSubmissions } from "@/hooks/use-submissions";
+import { useGenerateChallenges } from "@/hooks/use-generate-challenges";
+import { toast } from "sonner";
+import CodeMirror from "@uiw/react-codemirror";
+import { javascript } from "@codemirror/lang-javascript";
+import { python } from "@codemirror/lang-python";
+import { java } from "@codemirror/lang-java";
+import { cpp } from "@codemirror/lang-cpp";
+import { oneDark } from "@codemirror/theme-one-dark";
+import { EditorView } from "@codemirror/view";
+import { useTheme } from "next-themes";
 import {
   Play,
   Pause,
@@ -39,6 +51,16 @@ import {
   Settings,
   Download,
   Upload,
+  Save,
+  Send,
+  AlertCircle,
+  Keyboard,
+  Maximize2,
+  Minimize2,
+  Sparkles,
+  Brain,
+  FileText,
+  Briefcase,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
@@ -46,6 +68,16 @@ import {
   StaggeredContainer,
   StaggeredItem,
 } from "@/components/ui/animated";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 interface TestCase {
   id: string;
@@ -66,6 +98,8 @@ interface Challenge {
   testCases: TestCase[];
   timeLimit: number;
   memoryLimit: number;
+  hints?: string[];
+  starterCode?: Record<string, string>;
 }
 
 const sampleChallenge: Challenge = {
@@ -150,6 +184,14 @@ public:
 };
 
 export default function CodeChallengeArena() {
+  const { executeCode, isExecuting } = useCodeExecution();
+  const { currentChallenge, fetchChallenge, isLoading: isChallengeLoading } =
+    useChallenges();
+  const { submitSolution, isSubmitting } = useSubmissions();
+  const { generateChallenges, isGenerating, generatedChallenges } = useGenerateChallenges();
+  const { theme } = useTheme();
+  const autoSaveTimerRef = useRef<NodeJS.Timeout | null>(null);
+
   const [selectedLanguage, setSelectedLanguage] = useState("javascript");
   const [code, setCode] = useState(defaultCode.javascript);
   const [isRunning, setIsRunning] = useState(false);
@@ -158,12 +200,166 @@ export default function CodeChallengeArena() {
   const [isTimerRunning, setIsTimerRunning] = useState(false);
   const [showHints, setShowHints] = useState(false);
   const [currentTab, setCurrentTab] = useState("description");
+  const [showResetDialog, setShowResetDialog] = useState(false);
+  const [showLanguageChangeDialog, setShowLanguageChangeDialog] = useState(false);
+  const [pendingLanguage, setPendingLanguage] = useState<string | null>(null);
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+  const [isFullscreen, setIsFullscreen] = useState(false);
+  const [showConsole, setShowConsole] = useState(false);
+  const [consoleOutput, setConsoleOutput] = useState<string[]>([]);
+  const [lastSaved, setLastSaved] = useState<Date | null>(null);
+  const [showKeyboardShortcuts, setShowKeyboardShortcuts] = useState(false);
+  const [showGenerateDialog, setShowGenerateDialog] = useState(false);
+  const [cvText, setCvText] = useState("");
+  const [jobDescriptionText, setJobDescriptionText] = useState("");
+  const [selectedDifficulty, setSelectedDifficulty] = useState<"Easy" | "Medium" | "Hard">("Medium");
+  const [currentChallengeIndex, setCurrentChallengeIndex] = useState(0);
   const [executionMetrics, setExecutionMetrics] = useState({
     totalTime: 0,
     memoryUsed: 0,
     passedTests: 0,
     totalTests: 5,
   });
+
+  // Check for onboarding data on mount
+  useEffect(() => {
+    const onboardingCompleted = sessionStorage.getItem("onboarding_completed");
+    const hasVisited = localStorage.getItem("code_challenge_visited");
+    
+    // Only redirect if never visited before and no onboarding data
+    if (!hasVisited && !onboardingCompleted) {
+      window.location.href = "/code-challenge/onboarding";
+      return;
+    }
+
+    // Mark as visited
+    localStorage.setItem("code_challenge_visited", "true");
+
+    // Load onboarding data if available
+    const onboardingCv = sessionStorage.getItem("onboarding_cv");
+    const onboardingJob = sessionStorage.getItem("onboarding_job");
+    const onboardingDifficulty = sessionStorage.getItem("onboarding_difficulty");
+
+    if (onboardingCv && onboardingJob) {
+      setCvText(onboardingCv);
+      setJobDescriptionText(onboardingJob);
+      if (onboardingDifficulty) {
+        setSelectedDifficulty(onboardingDifficulty as "Easy" | "Medium" | "Hard");
+      }
+
+      // Auto-generate challenges
+      toast.loading("🤖 Generating your personalized challenges...", {
+        id: "auto-generate",
+      });
+
+      generateChallenges({
+        cvData: onboardingCv,
+        jobDescription: onboardingJob,
+        difficulty: (onboardingDifficulty as "Easy" | "Medium" | "Hard") || "Medium",
+        count: 3,
+      }).then(() => {
+        toast.success("✨ Challenges ready!", { id: "auto-generate" });
+        // Clear onboarding data after generating
+        sessionStorage.removeItem("onboarding_cv");
+        sessionStorage.removeItem("onboarding_job");
+        sessionStorage.removeItem("onboarding_difficulty");
+      }).catch(() => {
+        toast.error("Failed to generate challenges", { id: "auto-generate" });
+        fetchChallenge("1"); // Fallback to default challenge
+      });
+    } else {
+      fetchChallenge("1"); // Load default challenge
+    }
+    
+    // Show welcome tip
+    setTimeout(() => {
+      toast.info("Pro tip: Press Ctrl+Enter to run code", {
+        description: "Click the Shortcuts button to see all keyboard shortcuts",
+        duration: 5000,
+      });
+    }, 1000);
+  }, []);
+
+  // Load code from localStorage
+  useEffect(() => {
+    const savedCode = localStorage.getItem(`code_${selectedLanguage}_1`);
+    if (savedCode) {
+      setCode(savedCode);
+      const savedTime = localStorage.getItem(`lastSaved_${selectedLanguage}_1`);
+      if (savedTime) {
+        setLastSaved(new Date(savedTime));
+      }
+      toast.success("Code restored from autosave", {
+        description: "Your previous work has been loaded",
+      });
+    }
+  }, []);
+
+  // Update challenge data when loaded
+  useEffect(() => {
+    if (currentChallenge) {
+      const savedCode = localStorage.getItem(`code_${selectedLanguage}_1`);
+      if (!savedCode) {
+        const starterCode =
+          currentChallenge.starterCode?.[selectedLanguage] ||
+          defaultCode[selectedLanguage as keyof typeof defaultCode];
+        setCode(starterCode);
+      }
+      setHasUnsavedChanges(false);
+    }
+  }, [currentChallenge]);
+
+  // Auto-save code
+  const autoSaveCode = useCallback(() => {
+    if (code && code.trim().length > 0) {
+      localStorage.setItem(`code_${selectedLanguage}_1`, code);
+      localStorage.setItem(`lastSaved_${selectedLanguage}_1`, new Date().toISOString());
+      setLastSaved(new Date());
+      setHasUnsavedChanges(false);
+    }
+  }, [code, selectedLanguage]);
+
+  // Auto-save on code change (debounced)
+  useEffect(() => {
+    if (autoSaveTimerRef.current) {
+      clearTimeout(autoSaveTimerRef.current);
+    }
+
+    autoSaveTimerRef.current = setTimeout(() => {
+      autoSaveCode();
+    }, 2000); // Auto-save after 2 seconds of inactivity
+
+    return () => {
+      if (autoSaveTimerRef.current) {
+        clearTimeout(autoSaveTimerRef.current);
+      }
+    };
+  }, [code, autoSaveCode]);
+
+  // Keyboard shortcuts
+  useEffect(() => {
+    const handleKeyPress = (e: KeyboardEvent) => {
+      // Ctrl/Cmd + Enter: Run code
+      if ((e.ctrlKey || e.metaKey) && e.key === "Enter") {
+        e.preventDefault();
+        runCode();
+      }
+      // Ctrl/Cmd + S: Manual save
+      if ((e.ctrlKey || e.metaKey) && e.key === "s") {
+        e.preventDefault();
+        autoSaveCode();
+        toast.success("Code saved manually");
+      }
+      // Ctrl/Cmd + Shift + F: Toggle fullscreen
+      if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key === "F") {
+        e.preventDefault();
+        setIsFullscreen((prev) => !prev);
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyPress);
+    return () => window.removeEventListener("keydown", handleKeyPress);
+  }, [code, autoSaveCode]);
 
   // Timer
   useEffect(() => {
@@ -178,13 +374,15 @@ export default function CodeChallengeArena() {
 
   // Start timer on first code change
   useEffect(() => {
-    if (
-      code !== defaultCode[selectedLanguage as keyof typeof defaultCode] &&
-      !isTimerRunning
-    ) {
+    const defaultCodeForLang =
+      currentChallenge?.starterCode?.[selectedLanguage] ||
+      defaultCode[selectedLanguage as keyof typeof defaultCode];
+
+    if (code !== defaultCodeForLang && !isTimerRunning) {
       setIsTimerRunning(true);
+      setHasUnsavedChanges(true);
     }
-  }, [code, selectedLanguage, isTimerRunning]);
+  }, [code, selectedLanguage, isTimerRunning, currentChallenge]);
 
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
@@ -195,67 +393,132 @@ export default function CodeChallengeArena() {
   };
 
   const handleLanguageChange = (language: string) => {
+    if (hasUnsavedChanges) {
+      setPendingLanguage(language);
+      setShowLanguageChangeDialog(true);
+    } else {
+      confirmLanguageChange(language);
+    }
+  };
+
+  const confirmLanguageChange = (language: string) => {
     setSelectedLanguage(language);
-    setCode(defaultCode[language as keyof typeof defaultCode]);
+    const newCode =
+      currentChallenge?.starterCode?.[language] ||
+      defaultCode[language as keyof typeof defaultCode];
+    setCode(newCode);
     setTestResults([]);
+    setHasUnsavedChanges(false);
+    setShowLanguageChangeDialog(false);
+    setPendingLanguage(null);
   };
 
   const runCode = async () => {
-    setIsRunning(true);
-
-    // Simulate test execution
-    const results: TestCase[] = [];
-
-    for (let i = 0; i < sampleChallenge.testCases.length; i++) {
-      const testCase = sampleChallenge.testCases[i];
-
-      // Simulate execution delay
-      await new Promise((resolve) =>
-        setTimeout(resolve, 200 + Math.random() * 300)
-      );
-
-      // Simulate test result (randomly pass/fail for demo)
-      const passed = Math.random() > 0.3; // 70% pass rate for demo
-      const executionTime = Math.random() * 100 + 10;
-
-      const result: TestCase = {
-        ...testCase,
-        actualOutput: passed ? testCase.expectedOutput : "[1,0]",
-        passed,
-        executionTime,
-      };
-
-      results.push(result);
-      setTestResults([...results]);
+    if (!currentChallenge) {
+      toast.error("No challenge loaded");
+      return;
     }
 
-    // Update metrics
-    const passedCount = results.filter((r) => r.passed).length;
-    const avgTime =
-      results.reduce((sum, r) => sum + (r.executionTime || 0), 0) /
-      results.length;
+    setIsRunning(true);
+    setTestResults([]); // Clear previous results
+    setConsoleOutput(["Executing code..."]);
+    setShowConsole(true);
 
-    setExecutionMetrics({
-      totalTime: avgTime,
-      memoryUsed: Math.random() * 50 + 20,
-      passedTests: passedCount,
-      totalTests: results.length,
-    });
+    try {
+      const { results, metrics } = await executeCode(
+        code,
+        selectedLanguage,
+        currentChallenge.testCases
+      );
 
-    setIsRunning(false);
+      setTestResults(results);
+      setExecutionMetrics({
+        totalTime: metrics.totalTime,
+        memoryUsed: metrics.memoryUsed,
+        passedTests: metrics.passedTests,
+        totalTests: metrics.totalTests,
+      });
+
+      // Update console
+      setConsoleOutput([
+        `✓ Execution completed in ${metrics.totalTime.toFixed(2)}ms`,
+        `✓ Memory used: ${metrics.memoryUsed.toFixed(2)}KB`,
+        `✓ Tests passed: ${metrics.passedTests}/${metrics.totalTests}`,
+      ]);
+
+      // Show success/failure toast
+      if (metrics.passedTests === metrics.totalTests) {
+        toast.success("All tests passed!", {
+          description: "Great job! Your solution is correct.",
+        });
+      } else {
+        toast.warning(`${metrics.passedTests}/${metrics.totalTests} tests passed`, {
+          description: "Some test cases failed. Check the results below.",
+        });
+      }
+    } catch (error) {
+      setConsoleOutput([
+        `✗ Error: ${error instanceof Error ? error.message : "Unknown error"}`,
+      ]);
+      toast.error("Execution failed", {
+        description: error instanceof Error ? error.message : "Unknown error",
+      });
+    } finally {
+      setIsRunning(false);
+    }
+  };
+
+  const handleSubmit = async () => {
+    if (!currentChallenge) {
+      toast.error("No challenge loaded");
+      return;
+    }
+
+    if (testResults.length === 0) {
+      toast.error("Please run your code first");
+      return;
+    }
+
+    try {
+      await submitSolution({
+        challengeId: currentChallenge.id,
+        language: selectedLanguage,
+        code,
+        testResults,
+        metrics: executionMetrics,
+        timeElapsed,
+      });
+      setHasUnsavedChanges(false);
+    } catch (error) {
+      // Error handling is done in the hook
+    }
   };
 
   const resetCode = () => {
-    setCode(defaultCode[selectedLanguage as keyof typeof defaultCode]);
+    if (hasUnsavedChanges) {
+      setShowResetDialog(true);
+    } else {
+      confirmReset();
+    }
+  };
+
+  const confirmReset = () => {
+    const defaultCodeForLang =
+      currentChallenge?.starterCode?.[selectedLanguage] ||
+      defaultCode[selectedLanguage as keyof typeof defaultCode];
+    setCode(defaultCodeForLang);
     setTestResults([]);
     setTimeElapsed(0);
     setIsTimerRunning(false);
+    setHasUnsavedChanges(false);
     setExecutionMetrics({
       totalTime: 0,
       memoryUsed: 0,
       passedTests: 0,
-      totalTests: 5,
+      totalTests: currentChallenge?.testCases.length || 5,
     });
+    setShowResetDialog(false);
+    toast.success("Code reset to starter template");
   };
 
   const getDifficultyColor = (difficulty: string) => {
@@ -276,40 +539,194 @@ export default function CodeChallengeArena() {
     return (executionMetrics.passedTests / executionMetrics.totalTests) * 100;
   };
 
+  // Handle AI generation of challenges
+  const handleGenerateChallenges = async () => {
+    if (!cvText.trim() || !jobDescriptionText.trim()) {
+      toast.error("Please provide both CV and job description");
+      return;
+    }
+
+    try {
+      const result = await generateChallenges({
+        cvData: {
+          text: cvText,
+          skills: [], // Will be extracted by AI
+        },
+        jobDescription: jobDescriptionText,
+        difficulty: selectedDifficulty,
+        count: 3,
+      });
+
+      if (result && result.challenges.length > 0) {
+        setCurrentChallengeIndex(0);
+        setShowGenerateDialog(false);
+        
+        // Load first generated challenge
+        const firstChallenge = result.challenges[0];
+        const starterCodeForLang = firstChallenge.starterCode?.[selectedLanguage] ||
+          defaultCode[selectedLanguage as keyof typeof defaultCode];
+        setCode(starterCodeForLang);
+        setTestResults([]);
+        setHasUnsavedChanges(false);
+        
+        toast.success(`Loaded: ${firstChallenge.title}`, {
+          description: `${result.challenges.length} personalized challenges ready!`,
+        });
+      }
+    } catch (error) {
+      // Error is handled in the hook
+      console.error("Failed to generate challenges:", error);
+    }
+  };
+
+  // Navigate between generated challenges
+  const handleNextChallenge = () => {
+    if (currentChallengeIndex < generatedChallenges.length - 1) {
+      const nextIndex = currentChallengeIndex + 1;
+      setCurrentChallengeIndex(nextIndex);
+      const nextChallenge = generatedChallenges[nextIndex];
+      const starterCodeForLang = nextChallenge.starterCode?.[selectedLanguage] ||
+        defaultCode[selectedLanguage as keyof typeof defaultCode];
+      setCode(starterCodeForLang);
+      setTestResults([]);
+      setHasUnsavedChanges(false);
+      setTimeElapsed(0);
+      toast.info(`Challenge ${nextIndex + 1}/${generatedChallenges.length}`, {
+        description: nextChallenge.title,
+      });
+    }
+  };
+
+  const handlePreviousChallenge = () => {
+    if (currentChallengeIndex > 0) {
+      const prevIndex = currentChallengeIndex - 1;
+      setCurrentChallengeIndex(prevIndex);
+      const prevChallenge = generatedChallenges[prevIndex];
+      const starterCodeForLang = prevChallenge.starterCode?.[selectedLanguage] ||
+        defaultCode[selectedLanguage as keyof typeof defaultCode];
+      setCode(starterCodeForLang);
+      setTestResults([]);
+      setHasUnsavedChanges(false);
+      setTimeElapsed(0);
+      toast.info(`Challenge ${prevIndex + 1}/${generatedChallenges.length}`, {
+        description: prevChallenge.title,
+      });
+    }
+  };
+
+  // Use current challenge or fallback to sample
+  const challenge = generatedChallenges.length > 0 
+    ? generatedChallenges[currentChallengeIndex]
+    : currentChallenge || sampleChallenge;
+
+  if (isChallengeLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <motion.div
+            animate={{ rotate: 360 }}
+            transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+            className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full mx-auto mb-4"
+          />
+          <p className="text-muted-foreground">Loading challenge...</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-primary/5 to-muted/10 relative overflow-hidden">
-      <div className="absolute inset-0 -z-10 bg-gradient-to-br from-primary/5 via-primary/10 to-transparent" />
-      <div className="container mx-auto p-6 space-y-8">
-        {/* Header */}
-        <AnimatedContainer>
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-4xl font-bold bg-gradient-to-b from-foreground to-muted-foreground/70 bg-clip-text text-transparent">
-                Code Challenge Arena
-              </h1>
-              <p className="text-muted-foreground mt-2">
-                Real-time coding challenges with instant feedback and
-                performance metrics
-              </p>
-            </div>
-            <div className="flex items-center gap-4">
-              <div className="text-right">
-                <div className="text-2xl font-mono font-bold text-primary">
-                  {formatTime(timeElapsed)}
-                </div>
-                <div className="text-xs text-muted-foreground">
-                  Time Elapsed
-                </div>
+    <>
+      <div className="min-h-screen bg-gradient-to-br from-background via-primary/5 to-muted/10 relative overflow-hidden">
+        <div className="absolute inset-0 -z-10 bg-gradient-to-br from-primary/5 via-primary/10 to-transparent" />
+        <div className="container mx-auto p-6 space-y-8">
+          {/* Header */}
+          <AnimatedContainer>
+            <div className="flex items-center justify-between">
+              <div>
+                <h1 className="text-4xl font-bold bg-gradient-to-b from-foreground to-muted-foreground/70 bg-clip-text text-transparent">
+                  Code Challenge Arena
+                </h1>
+                <p className="text-muted-foreground mt-2">
+                  {generatedChallenges.length > 0 
+                    ? `AI-Generated • Challenge ${currentChallengeIndex + 1}/${generatedChallenges.length}` 
+                    : "Real-time coding challenges with instant feedback"}
+                </p>
               </div>
-              <Badge
-                variant={isTimerRunning ? "destructive" : "secondary"}
-                className={cn(isTimerRunning && "animate-pulse")}
-              >
-                {isTimerRunning ? "● ACTIVE" : "● READY"}
-              </Badge>
+              <div className="flex items-center gap-4">
+                <Button
+                  variant="default"
+                  size="sm"
+                  onClick={() => setShowGenerateDialog(true)}
+                  className="hidden md:flex items-center gap-2 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700"
+                  disabled={isGenerating}
+                >
+                  {isGenerating ? (
+                    <>
+                      <motion.div
+                        animate={{ rotate: 360 }}
+                        transition={{
+                          duration: 1,
+                          repeat: Infinity,
+                          ease: "linear",
+                        }}
+                      >
+                        <Brain className="w-4 h-4" />
+                      </motion.div>
+                      Generating...
+                    </>
+                  ) : (
+                    <>
+                      <Sparkles className="w-4 h-4" />
+                      AI Generate
+                    </>
+                  )}
+                </Button>
+                {generatedChallenges.length > 0 && (
+                  <div className="flex items-center gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={handlePreviousChallenge}
+                      disabled={currentChallengeIndex === 0}
+                    >
+                      Previous
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={handleNextChallenge}
+                      disabled={currentChallengeIndex === generatedChallenges.length - 1}
+                    >
+                      Next
+                    </Button>
+                  </div>
+                )}
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setShowKeyboardShortcuts(true)}
+                  className="hidden md:flex items-center gap-2"
+                >
+                  <Keyboard className="w-4 h-4" />
+                  Shortcuts
+                </Button>
+                <div className="text-right">
+                  <div className="text-2xl font-mono font-bold text-primary">
+                    {formatTime(timeElapsed)}
+                  </div>
+                  <div className="text-xs text-muted-foreground">
+                    Time Elapsed
+                  </div>
+                </div>
+                <Badge
+                  variant={isTimerRunning ? "destructive" : "secondary"}
+                  className={cn(isTimerRunning && "animate-pulse")}
+                >
+                  {isTimerRunning ? "● ACTIVE" : "● READY"}
+                </Badge>
+              </div>
             </div>
-          </div>
-        </AnimatedContainer>
+          </AnimatedContainer>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           {/* Problem Description */}
@@ -321,12 +738,18 @@ export default function CodeChallengeArena() {
                   <div className="flex items-center justify-between">
                     <CardTitle className="flex items-center gap-2">
                       <Target className="w-5 h-5" />
-                      {sampleChallenge.title}
+                      {challenge.title}
+                      {generatedChallenges.length > 0 && (
+                        <Badge className="ml-2 bg-gradient-to-r from-purple-600 to-blue-600 text-white border-0">
+                          <Sparkles className="w-3 h-3 mr-1" />
+                          AI Generated
+                        </Badge>
+                      )}
                     </CardTitle>
                     <Badge
-                      className={getDifficultyColor(sampleChallenge.difficulty)}
+                      className={getDifficultyColor(challenge.difficulty)}
                     >
-                      {sampleChallenge.difficulty}
+                      {challenge.difficulty}
                     </Badge>
                   </div>
                 </CardHeader>
@@ -342,13 +765,13 @@ export default function CodeChallengeArena() {
                     <TabsContent value="description" className="mt-4">
                       <div className="prose dark:prose-invert max-w-none">
                         <pre className="whitespace-pre-wrap text-sm leading-relaxed">
-                          {sampleChallenge.description}
+                          {challenge.description}
                         </pre>
                       </div>
                     </TabsContent>
 
                     <TabsContent value="examples" className="mt-4 space-y-4">
-                      {sampleChallenge.examples.map((example, index) => (
+                      {challenge.examples.map((example, index) => (
                         <div
                           key={index}
                           className="border rounded-lg p-4 bg-muted/30"
@@ -376,7 +799,7 @@ export default function CodeChallengeArena() {
 
                     <TabsContent value="constraints" className="mt-4">
                       <ul className="space-y-2">
-                        {sampleChallenge.constraints.map(
+                        {challenge.constraints.map(
                           (constraint, index) => (
                             <li
                               key={index}
@@ -414,26 +837,34 @@ export default function CodeChallengeArena() {
                               exit={{ opacity: 0, height: 0 }}
                               className="space-y-2"
                             >
-                              <div className="p-3 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg">
-                                <div className="flex items-start gap-2">
-                                  <Lightbulb className="w-4 h-4 text-yellow-500 mt-0.5" />
-                                  <div className="text-sm">
-                                    <strong>Hint 1:</strong> Consider using a
-                                    hash map to store values and their indices
-                                    as you iterate through the array.
+                              {(challenge.hints || [
+                                "Consider using a hash map to store values and their indices as you iterate through the array.",
+                                "For each number, check if its complement (target - current number) exists in your hash map.",
+                              ]).map((hint, index) => (
+                                <div
+                                  key={index}
+                                  className={cn(
+                                    "p-3 border rounded-lg",
+                                    index % 2 === 0
+                                      ? "bg-yellow-50 dark:bg-yellow-900/20 border-yellow-200 dark:border-yellow-800"
+                                      : "bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800"
+                                  )}
+                                >
+                                  <div className="flex items-start gap-2">
+                                    <Lightbulb
+                                      className={cn(
+                                        "w-4 h-4 mt-0.5",
+                                        index % 2 === 0
+                                          ? "text-yellow-500"
+                                          : "text-blue-500"
+                                      )}
+                                    />
+                                    <div className="text-sm">
+                                      <strong>Hint {index + 1}:</strong> {hint}
+                                    </div>
                                   </div>
                                 </div>
-                              </div>
-                              <div className="p-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
-                                <div className="flex items-start gap-2">
-                                  <Lightbulb className="w-4 h-4 text-blue-500 mt-0.5" />
-                                  <div className="text-sm">
-                                    <strong>Hint 2:</strong> For each number,
-                                    check if its complement (target - current
-                                    number) exists in your hash map.
-                                  </div>
-                                </div>
-                              </div>
+                              ))}
                             </motion.div>
                           )}
                         </AnimatePresence>
@@ -557,51 +988,182 @@ export default function CodeChallengeArena() {
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-4">
-                    <Textarea
-                      value={code}
-                      onChange={(e) => setCode(e.target.value)}
-                      placeholder="Write your solution here..."
-                      className="min-h-[400px] font-mono text-sm"
-                    />
+                    {/* CodeMirror Editor */}
+                    <div className={cn(
+                      "border rounded-lg overflow-hidden",
+                      isFullscreen && "fixed inset-0 z-50 bg-background"
+                    )}>
+                      <div className="flex items-center justify-between px-4 py-2 border-b bg-muted/30">
+                        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                          <FileCode className="w-4 h-4" />
+                          <span>
+                            {languages.find((l) => l.value === selectedLanguage)?.label || "Code"}.
+                            {languages.find((l) => l.value === selectedLanguage)?.extension}
+                          </span>
+                          {lastSaved && (
+                            <span className="text-xs">
+                              • Saved {new Date(lastSaved).toLocaleTimeString()}
+                            </span>
+                          )}
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => setShowConsole(!showConsole)}
+                            className="h-7"
+                          >
+                            <Terminal className="w-3.5 h-3.5 mr-1" />
+                            Console
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => setIsFullscreen(!isFullscreen)}
+                            className="h-7"
+                          >
+                            {isFullscreen ? (
+                              <Minimize2 className="w-3.5 h-3.5" />
+                            ) : (
+                              <Maximize2 className="w-3.5 h-3.5" />
+                            )}
+                          </Button>
+                        </div>
+                      </div>
+                      <CodeMirror
+                        value={code}
+                        height={isFullscreen ? "calc(100vh - 100px)" : "400px"}
+                        theme={theme === "dark" ? oneDark : undefined}
+                        extensions={[
+                          selectedLanguage === "python" ? python() :
+                          selectedLanguage === "java" ? java() :
+                          selectedLanguage === "cpp" ? cpp() :
+                          javascript({ jsx: true, typescript: selectedLanguage === "typescript" }),
+                          EditorView.lineWrapping,
+                        ]}
+                        onChange={(value) => {
+                          setCode(value || "");
+                          setHasUnsavedChanges(true);
+                        }}
+                        basicSetup={{
+                          lineNumbers: true,
+                          highlightActiveLineGutter: true,
+                          highlightSpecialChars: true,
+                          foldGutter: true,
+                          drawSelection: true,
+                          dropCursor: true,
+                          allowMultipleSelections: true,
+                          indentOnInput: true,
+                          syntaxHighlighting: true,
+                          bracketMatching: true,
+                          closeBrackets: true,
+                          autocompletion: true,
+                          rectangularSelection: true,
+                          crosshairCursor: true,
+                          highlightActiveLine: true,
+                          highlightSelectionMatches: true,
+                          closeBracketsKeymap: true,
+                          searchKeymap: true,
+                          foldKeymap: true,
+                          completionKeymap: true,
+                          lintKeymap: true,
+                        }}
+                        className="text-sm"
+                      />
+                    </div>
+
+                    {/* Console Output */}
+                    <AnimatePresence>
+                      {showConsole && (
+                        <motion.div
+                          initial={{ opacity: 0, height: 0 }}
+                          animate={{ opacity: 1, height: "auto" }}
+                          exit={{ opacity: 0, height: 0 }}
+                          className="border rounded-lg bg-black/90 text-green-400 font-mono text-sm p-4 max-h-32 overflow-y-auto"
+                        >
+                          {consoleOutput.length === 0 ? (
+                            <div className="text-gray-500">Console output will appear here...</div>
+                          ) : (
+                            consoleOutput.map((line, i) => (
+                              <div key={i}>{line}</div>
+                            ))
+                          )}
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
 
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-4 text-sm text-muted-foreground">
                         <div className="flex items-center gap-1">
                           <Clock className="w-4 h-4" />
-                          Limit: {sampleChallenge.timeLimit}ms
+                          Limit: {challenge.timeLimit}ms
                         </div>
                         <div className="flex items-center gap-1">
                           <MemoryStick className="w-4 h-4" />
-                          Memory: {sampleChallenge.memoryLimit}MB
+                          Memory: {challenge.memoryLimit}MB
                         </div>
                       </div>
 
-                      <Button
-                        onClick={runCode}
-                        disabled={isRunning}
-                        className="flex items-center gap-2"
-                      >
-                        {isRunning ? (
-                          <>
-                            <motion.div
-                              animate={{ rotate: 360 }}
-                              transition={{
-                                duration: 1,
-                                repeat: Infinity,
-                                ease: "linear",
-                              }}
-                            >
-                              <Cpu className="w-4 h-4" />
-                            </motion.div>
-                            Running...
-                          </>
-                        ) : (
-                          <>
-                            <Play className="w-4 h-4" />
-                            Run Code
-                          </>
-                        )}
-                      </Button>
+                      <div className="flex items-center gap-2">
+                        <Button
+                          onClick={runCode}
+                          disabled={isRunning || isExecuting}
+                          className="flex items-center gap-2"
+                          variant="outline"
+                        >
+                          {isRunning || isExecuting ? (
+                            <>
+                              <motion.div
+                                animate={{ rotate: 360 }}
+                                transition={{
+                                  duration: 1,
+                                  repeat: Infinity,
+                                  ease: "linear",
+                                }}
+                              >
+                                <Cpu className="w-4 h-4" />
+                              </motion.div>
+                              Running...
+                            </>
+                          ) : (
+                            <>
+                              <Play className="w-4 h-4" />
+                              Run Code
+                            </>
+                          )}
+                        </Button>
+
+                        <Button
+                          onClick={handleSubmit}
+                          disabled={
+                            isSubmitting ||
+                            testResults.length === 0 ||
+                            getSuccessRate() !== 100
+                          }
+                          className="flex items-center gap-2"
+                        >
+                          {isSubmitting ? (
+                            <>
+                              <motion.div
+                                animate={{ rotate: 360 }}
+                                transition={{
+                                  duration: 1,
+                                  repeat: Infinity,
+                                  ease: "linear",
+                                }}
+                              >
+                                <Send className="w-4 h-4" />
+                              </motion.div>
+                              Submitting...
+                            </>
+                          ) : (
+                            <>
+                              <Send className="w-4 h-4" />
+                              Submit Solution
+                            </>
+                          )}
+                        </Button>
+                      </div>
                     </div>
                   </div>
                 </CardContent>
@@ -640,7 +1202,7 @@ export default function CodeChallengeArena() {
                         <Progress
                           value={
                             (executionMetrics.totalTime /
-                              sampleChallenge.timeLimit) *
+                              challenge.timeLimit) *
                             100
                           }
                           className="h-2"
@@ -657,7 +1219,7 @@ export default function CodeChallengeArena() {
                         <Progress
                           value={
                             (executionMetrics.memoryUsed /
-                              sampleChallenge.memoryLimit) *
+                              challenge.memoryLimit) *
                             100
                           }
                           className="h-2"
@@ -669,10 +1231,10 @@ export default function CodeChallengeArena() {
                           <span>Time Efficiency</span>
                           <span className="font-medium">
                             {executionMetrics.totalTime <
-                            sampleChallenge.timeLimit * 0.5
+                            challenge.timeLimit * 0.5
                               ? "Excellent"
                               : executionMetrics.totalTime <
-                                sampleChallenge.timeLimit * 0.8
+                                challenge.timeLimit * 0.8
                               ? "Good"
                               : "Needs Improvement"}
                           </span>
@@ -685,10 +1247,10 @@ export default function CodeChallengeArena() {
                                 "w-3 h-3 rounded-full",
                                 star <=
                                   (executionMetrics.totalTime <
-                                  sampleChallenge.timeLimit * 0.5
+                                  challenge.timeLimit * 0.5
                                     ? 5
                                     : executionMetrics.totalTime <
-                                      sampleChallenge.timeLimit * 0.8
+                                      challenge.timeLimit * 0.8
                                     ? 3
                                     : 1)
                                   ? "bg-yellow-400"
@@ -721,6 +1283,226 @@ export default function CodeChallengeArena() {
           </div>
         </div>
       </div>
-    </div>
+      </div>
+
+      {/* Confirmation Dialogs */}
+      <AlertDialog open={showResetDialog} onOpenChange={setShowResetDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Reset Code?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This will reset your code to the starter template. All your
+              changes will be lost. This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmReset}>
+              Reset Code
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <AlertDialog
+        open={showLanguageChangeDialog}
+        onOpenChange={setShowLanguageChangeDialog}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Change Language?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Changing the language will reset your code to the starter template
+              for {pendingLanguage}. Your current changes will be lost.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => setPendingLanguage(null)}>
+              Cancel
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() =>
+                pendingLanguage && confirmLanguageChange(pendingLanguage)
+              }
+            >
+              Change Language
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Keyboard Shortcuts Dialog */}
+      <AlertDialog open={showKeyboardShortcuts} onOpenChange={setShowKeyboardShortcuts}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center gap-2">
+              <Keyboard className="w-5 h-5" />
+              Keyboard Shortcuts
+            </AlertDialogTitle>
+            <AlertDialogDescription asChild>
+              <div className="space-y-3 pt-4">
+                <div className="grid grid-cols-2 gap-2">
+                  <div className="font-medium">Run Code</div>
+                  <div className="text-right">
+                    <kbd className="px-2 py-1 bg-muted rounded text-xs">Ctrl</kbd> + <kbd className="px-2 py-1 bg-muted rounded text-xs">Enter</kbd>
+                  </div>
+                  
+                  <div className="font-medium">Save Code</div>
+                  <div className="text-right">
+                    <kbd className="px-2 py-1 bg-muted rounded text-xs">Ctrl</kbd> + <kbd className="px-2 py-1 bg-muted rounded text-xs">S</kbd>
+                  </div>
+                  
+                  <div className="font-medium">Toggle Fullscreen</div>
+                  <div className="text-right">
+                    <kbd className="px-2 py-1 bg-muted rounded text-xs">Ctrl</kbd> + <kbd className="px-2 py-1 bg-muted rounded text-xs">Shift</kbd> + <kbd className="px-2 py-1 bg-muted rounded text-xs">F</kbd>
+                  </div>
+                  
+                  <div className="font-medium">Format Code</div>
+                  <div className="text-right">
+                    <kbd className="px-2 py-1 bg-muted rounded text-xs">Shift</kbd> + <kbd className="px-2 py-1 bg-muted rounded text-xs">Alt</kbd> + <kbd className="px-2 py-1 bg-muted rounded text-xs">F</kbd>
+                  </div>
+                  
+                  <div className="font-medium">Comment Line</div>
+                  <div className="text-right">
+                    <kbd className="px-2 py-1 bg-muted rounded text-xs">Ctrl</kbd> + <kbd className="px-2 py-1 bg-muted rounded text-xs">/</kbd>
+                  </div>
+                </div>
+                <div className="text-xs text-muted-foreground pt-2 border-t">
+                  Use <kbd className="px-1 py-0.5 bg-muted rounded text-xs">Cmd</kbd> instead of <kbd className="px-1 py-0.5 bg-muted rounded text-xs">Ctrl</kbd> on Mac
+                </div>
+              </div>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogAction onClick={() => setShowKeyboardShortcuts(false)}>
+              Got it
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* AI Generate Challenges Dialog */}
+      <AlertDialog open={showGenerateDialog} onOpenChange={setShowGenerateDialog}>
+        <AlertDialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center gap-2 text-2xl">
+              <Brain className="w-6 h-6 text-purple-600" />
+              Generate AI-Powered Challenges
+            </AlertDialogTitle>
+            <AlertDialogDescription className="text-base">
+              Our AI will analyze your CV and job description to create personalized coding challenges
+              that match your skills and the position requirements.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          
+          <div className="space-y-6 py-4">
+            {/* CV Input */}
+            <div className="space-y-3">
+              <label className="flex items-center gap-2 font-medium text-sm">
+                <FileText className="w-4 h-4 text-blue-600" />
+                Your CV/Resume
+              </label>
+              <textarea
+                value={cvText}
+                onChange={(e) => setCvText(e.target.value)}
+                placeholder="Paste your CV content here... Include your experience, skills, education, and projects."
+                className="w-full h-40 px-4 py-3 border rounded-lg resize-none focus:outline-none focus:ring-2 focus:ring-purple-500 text-sm"
+              />
+              <p className="text-xs text-muted-foreground">
+                💡 Tip: Include technical skills, programming languages, frameworks, and key achievements
+              </p>
+            </div>
+
+            {/* Job Description Input */}
+            <div className="space-y-3">
+              <label className="flex items-center gap-2 font-medium text-sm">
+                <Briefcase className="w-4 h-4 text-green-600" />
+                Job Description
+              </label>
+              <textarea
+                value={jobDescriptionText}
+                onChange={(e) => setJobDescriptionText(e.target.value)}
+                placeholder="Paste the job description here... Include required skills, responsibilities, and qualifications."
+                className="w-full h-40 px-4 py-3 border rounded-lg resize-none focus:outline-none focus:ring-2 focus:ring-purple-500 text-sm"
+              />
+              <p className="text-xs text-muted-foreground">
+                💡 Tip: The more detailed the job description, the more relevant the challenges
+              </p>
+            </div>
+
+            {/* Difficulty Selection */}
+            <div className="space-y-3">
+              <label className="flex items-center gap-2 font-medium text-sm">
+                <Target className="w-4 h-4 text-orange-600" />
+                Challenge Difficulty
+              </label>
+              <Select
+                value={selectedDifficulty}
+                onValueChange={(value: "Easy" | "Medium" | "Hard") => setSelectedDifficulty(value)}
+              >
+                <SelectTrigger className="w-full">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="Easy">Easy - Fundamental concepts</SelectItem>
+                  <SelectItem value="Medium">Medium - Practical problems</SelectItem>
+                  <SelectItem value="Hard">Hard - Advanced algorithms</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Info Box */}
+            <div className="bg-gradient-to-r from-purple-50 to-blue-50 dark:from-purple-950/20 dark:to-blue-950/20 border border-purple-200 dark:border-purple-800 rounded-lg p-4">
+              <div className="flex items-start gap-3">
+                <Sparkles className="w-5 h-5 text-purple-600 mt-0.5" />
+                <div className="space-y-2">
+                  <h4 className="font-semibold text-sm">What you'll get:</h4>
+                  <ul className="text-xs space-y-1 text-muted-foreground">
+                    <li>✅ 3 personalized coding challenges</li>
+                    <li>✅ Tailored to your skill level and job requirements</li>
+                    <li>✅ Real-world scenarios relevant to the position</li>
+                    <li>✅ Complete with test cases, hints, and starter code</li>
+                    <li>✅ Support for 6 programming languages</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => setShowGenerateDialog(false)} disabled={isGenerating}>
+              Cancel
+            </AlertDialogCancel>
+            <Button
+              onClick={handleGenerateChallenges}
+              disabled={isGenerating || !cvText.trim() || !jobDescriptionText.trim()}
+              className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700"
+            >
+              {isGenerating ? (
+                <>
+                  <motion.div
+                    animate={{ rotate: 360 }}
+                    transition={{
+                      duration: 1,
+                      repeat: Infinity,
+                      ease: "linear",
+                    }}
+                    className="mr-2"
+                  >
+                    <Brain className="w-4 h-4" />
+                  </motion.div>
+                  Generating...
+                </>
+              ) : (
+                <>
+                  <Sparkles className="w-4 h-4 mr-2" />
+                  Generate Challenges
+                </>
+              )}
+            </Button>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </>
   );
 }

@@ -59,17 +59,27 @@ interface SavedInterview {
   createdAt: string;
 }
 
-export default function InterviewDetailPage({ params }: { params: { id: string } }) {
+export default function InterviewDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const router = useRouter();
   const { data: session } = useSession();
   const [interview, setInterview] = useState<SavedInterview | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [interviewId, setInterviewId] = useState<string | null>(null);
+
+  // Unwrap params Promise
+  useEffect(() => {
+    params.then((resolvedParams) => {
+      setInterviewId(resolvedParams.id);
+    });
+  }, [params]);
 
   useEffect(() => {
+    if (!interviewId) return;
+    
     const fetchInterview = async () => {
       try {
-        const response = await fetch(`/api/save-interview/${params.id}`);
+        const response = await fetch(`/api/save-interview/${interviewId}`);
         if (response.ok) {
           const data = await response.json();
           // Parse JSON strings
@@ -100,7 +110,7 @@ export default function InterviewDetailPage({ params }: { params: { id: string }
     };
 
     fetchInterview();
-  }, [params.id, router]);
+  }, [interviewId, router]);
 
   const handleDownload = async () => {
     if (!interview) return;
