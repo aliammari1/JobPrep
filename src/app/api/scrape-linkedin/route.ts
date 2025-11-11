@@ -1,10 +1,42 @@
 import { NextRequest, NextResponse } from "next/server";
+import { betterFetch } from "@better-fetch/fetch";
+
+interface SessionUser {
+  id: string;
+  email: string;
+  name: string;
+  role?: string;
+}
+
+interface BetterAuthSession {
+  session: {
+    id: string;
+    userId: string;
+    expiresAt: Date;
+  };
+  user: SessionUser;
+}
 
 // Pin to Node.js runtime for serverless compatibility
 export const runtime = 'nodejs';
 
 export async function POST(request: NextRequest) {
   try {
+    // Check authentication
+    const { data: session } = await betterFetch<BetterAuthSession>(
+      "/api/auth/get-session",
+      {
+        baseURL: request.nextUrl.origin,
+        headers: {
+          cookie: request.headers.get("cookie") || "",
+        },
+      }
+    );
+
+    if (!session?.user) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
     const { url } = await request.json();
 
     if (!url) {
