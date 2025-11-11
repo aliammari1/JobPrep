@@ -3,14 +3,16 @@ import prisma from "@/lib/prisma";
 interface GoogleCalendarEvent {
   summary: string;
   description?: string;
-  start: {
+  start?: {
     dateTime: string;
     timeZone: string;
   };
-  end: {
+  end?: {
     dateTime: string;
     timeZone: string;
   };
+  startTime?: Date;
+  endTime?: Date;
   attendees?: Array<{
     email: string;
     displayName?: string;
@@ -103,6 +105,23 @@ export async function createGoogleCalendarEvent(
       return { success: false, error: "Not connected to Google Calendar" };
     }
 
+    // Convert startTime/endTime to Google Calendar format if provided
+    const calendarEvent = {
+      ...event,
+      start: event.start || (event.startTime ? {
+        dateTime: event.startTime.toISOString(),
+        timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+      } : undefined),
+      end: event.end || (event.endTime ? {
+        dateTime: event.endTime.toISOString(),
+        timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+      } : undefined),
+    };
+
+    // Remove the temporary properties
+    delete (calendarEvent as any).startTime;
+    delete (calendarEvent as any).endTime;
+
     const response = await fetch(
       "https://www.googleapis.com/calendar/v3/calendars/primary/events?conferenceDataVersion=1",
       {
@@ -111,7 +130,7 @@ export async function createGoogleCalendarEvent(
           Authorization: `Bearer ${accessToken}`,
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(event),
+        body: JSON.stringify(calendarEvent),
       }
     );
 

@@ -196,10 +196,10 @@ export function Navbar({ onSidebarToggle }: NavbarProps) {
           <div className="relative">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
             <Input
-              placeholder="Search interviews, candidates, reports..."
+              placeholder="Search interviews, candidates, reports... (⌘K for commands)"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-10 bg-muted border-border focus:bg-background dark:focus:bg-background"
+              className="pl-10 bg-muted border-border focus:bg-background dark:focus:bg-background text-sm"
             />
             {searchQuery && (
               <div className="absolute top-full left-0 right-0 mt-2 bg-background dark:bg-background rounded-lg shadow-lg border border-border py-2 z-50">

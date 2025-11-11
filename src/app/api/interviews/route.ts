@@ -201,7 +201,7 @@ export async function POST(req: NextRequest) {
     try {
       if (scheduledAt) {
         const settingsData = settings ? JSON.parse(settings) : {};
-        const calendarEventId = await createGoogleCalendarEvent(
+        const result = await createGoogleCalendarEvent(
           session.user.id,
           {
             summary: `Interview: ${settingsData.position || "Position"} - ${settingsData.candidateName || "Candidate"}`,
@@ -212,14 +212,14 @@ export async function POST(req: NextRequest) {
           }
         );
 
-        if (calendarEventId) {
+        if (result.success && result.eventId) {
           // Update interview with calendar event ID
           await prisma.interview.update({
             where: { id: interview.id },
             data: {
               settings: JSON.stringify({
                 ...settingsData,
-                googleCalendarEventId: calendarEventId,
+                googleCalendarEventId: result.eventId,
               }),
             },
           });
@@ -235,6 +235,113 @@ export async function POST(req: NextRequest) {
     console.error("Error creating interview:", error);
     return NextResponse.json(
       { error: "Failed to create interview" },
+      { status: 500 }
+    );
+  }
+}
+
+// PATCH /api/interviews - Update an interview
+export async function PATCH(req: NextRequest) {
+  try {
+    const session = await auth.api.getSession({
+      headers: await headers(),
+    });
+
+    if (!session) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const body = await req.json();
+    const {
+      interviewId,
+      status,
+      startedAt,
+      completedAt,
+      duration,
+      videoRecordingUrl,
+      audioRecordingUrl,
+      aiAnalysisReport,
+      overallScore,
+      technicalScore,
+      behavioralScore,
+      communicationScore,
+      settings,
+    } = body;
+
+    if (!interviewId) {
+      return NextResponse.json(
+        { error: "Interview ID required" },
+        { status: 400 }
+      );
+    }
+
+    // Check if user has permission to update
+    const existingInterview = await prisma.interview.findUnique({
+      where: { id: interviewId },
+    });
+
+    if (!existingInterview) {
+      return NextResponse.json(
+        { error: "Interview not found" },
+        { status: 404 }
+      );
+    }
+
+    if (
+      existingInterview.candidateId !== session.user.id &&
+      existingInterview.interviewerId !== session.user.id
+    ) {
+      return NextResponse.json(
+        { error: "Forbidden" },
+        { status: 403 }
+      );
+    }
+
+    const interview = await prisma.interview.update({
+      where: { id: interviewId },
+      data: {
+        ...(status && { status }),
+        ...(startedAt && { startedAt: new Date(startedAt) }),
+        ...(completedAt && { completedAt: new Date(completedAt) }),
+        ...(duration !== undefined && { duration }),
+        ...(videoRecordingUrl && { videoRecordingUrl }),
+        ...(audioRecordingUrl && { audioRecordingUrl }),
+        ...(aiAnalysisReport && { aiAnalysisReport }),
+        ...(overallScore !== undefined && { overallScore }),
+        ...(technicalScore !== undefined && { technicalScore }),
+        ...(behavioralScore !== undefined && { behavioralScore }),
+        ...(communicationScore !== undefined && { communicationScore }),
+        ...(settings && { settings: JSON.stringify(settings) }),
+      },
+      include: {
+        candidate: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+            image: true,
+          },
+        },
+        interviewer: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+            image: true,
+            role: true,
+          },
+        },
+        template: true,
+        responses: true,
+        evaluations: true,
+      },
+    });
+
+    return NextResponse.json({ interview }, { status: 200 });
+  } catch (error) {
+    console.error("Error updating interview:", error);
+    return NextResponse.json(
+      { error: "Failed to update interview" },
       { status: 500 }
     );
   }
