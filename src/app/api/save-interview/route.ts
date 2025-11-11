@@ -7,12 +7,21 @@ export const runtime = 'nodejs';
 
 export async function POST(request: NextRequest) {
   try {
+    console.log("=== SAVE-INTERVIEW API CALLED ===");
+    
     // Get authenticated user
     const session = await auth.api.getSession({
       headers: await headers(),
     });
 
+    console.log("Session check:", {
+      hasSession: !!session,
+      hasUser: !!session?.user,
+      userId: session?.user?.id
+    });
+
     if (!session?.user) {
+      console.error("No authenticated user found");
       return NextResponse.json(
         { error: "Unauthorized" },
         { status: 401 }
@@ -27,25 +36,58 @@ export async function POST(request: NextRequest) {
       feedback,
       improvementAreas,
       overallScore,
-      specificScores 
+      specificScores,
+      questions, // NEW: Complete question data with answers and evaluations
+      candidateName,
+      jobTitle,
+      companyName
     } = await request.json();
 
-    console.log("Saving interview with data:", {
-      userId: session.user.id,
+    console.log("Request body received:", {
       sessionType,
-      topicsType: typeof topics,
-      topicsIsArray: Array.isArray(topics),
-      topics,
+      topicsArray: Array.isArray(topics),
       duration,
-      conversationLogLength: conversationLog?.length,
+      hasConversationLog: !!conversationLog,
       hasFeedback: !!feedback,
-      hasSpecificScores: !!specificScores
+      hasSpecificScores: !!specificScores,
+      questionsCount: Array.isArray(questions) ? questions.length : 0,
+      candidateName,
+      jobTitle,
+      companyName
     });
 
     // Ensure topics is an array
     const topicsArray = Array.isArray(topics) ? topics : (topics ? [topics] : []);
 
-    // Save to database
+    // Build detailed questions array with all information
+    const detailedQuestions = Array.isArray(questions) ? questions.map((q: any, index: number) => ({
+      order: index + 1,
+      questionText: q.question?.question || "",
+      questionType: q.question?.type || "",
+      idealAnswer: q.question?.idealAnswer || "",
+      userAnswer: q.userAnswer || "",
+      timeSpent: q.timeSpent || 0,
+      evaluation: {
+        score: q.evaluation?.score || 0,
+        feedback: q.evaluation?.feedback || "",
+        strengths: q.evaluation?.strengths || [],
+        weaknesses: q.evaluation?.weaknesses || [],
+        suggestions: q.evaluation?.suggestions || []
+      }
+    })) : [];
+
+    console.log("Detailed questions prepared:", {
+      count: detailedQuestions.length,
+      sampleQuestion: detailedQuestions[0] ? {
+        text: detailedQuestions[0].questionText?.substring(0, 50),
+        hasUserAnswer: !!detailedQuestions[0].userAnswer,
+        hasIdealAnswer: !!detailedQuestions[0].idealAnswer,
+        userAnswerLength: detailedQuestions[0].userAnswer?.length || 0,
+        idealAnswerLength: detailedQuestions[0].idealAnswer?.length || 0
+      } : null
+    });
+
+    // Save session first
     const mockSession = await prisma.aIMockSession.create({
       data: {
         userId: session.user.id,
@@ -54,7 +96,12 @@ export async function POST(request: NextRequest) {
         difficultyLevel: "intermediate",
         topics: topicsArray,
         duration: duration || 0,
-        conversationLog: JSON.stringify(conversationLog),
+        conversationLog: JSON.stringify({
+          candidateName,
+          jobTitle,
+          companyName,
+          questions: detailedQuestions // Store detailed question data with answers and evaluations
+        }),
         feedback: JSON.stringify(feedback),
         improvementAreas: improvementAreas || [],
         overallScore: overallScore,
@@ -62,6 +109,55 @@ export async function POST(request: NextRequest) {
         startedAt: new Date(Date.now() - (duration || 0) * 60000), // Calculate start time
         completedAt: new Date(),
       },
+    });
+
+    console.log("Session created:", { sessionId: mockSession.id });
+
+    // Save individual questions
+    try {
+      console.log("Starting to save questions...", {
+        count: detailedQuestions.length,
+        sessionId: mockSession.id
+      });
+
+      for (const q of detailedQuestions) {
+        console.log("Saving question:", {
+          order: q.order,
+          questionText: q.questionText?.substring(0, 50),
+          hasUserAnswer: !!q.userAnswer,
+          hasIdealAnswer: !!q.idealAnswer
+        });
+
+        await prisma.mockQuestion.create({
+          data: {
+            sessionId: mockSession.id,
+            questionText: q.questionText,
+            questionType: q.questionType,
+            idealAnswer: q.idealAnswer,
+            userAnswer: q.userAnswer,
+            timeSpent: q.timeSpent,
+            score: q.evaluation?.score,
+            feedback: q.evaluation?.feedback,
+            strengths: q.evaluation?.strengths || [],
+            weaknesses: q.evaluation?.weaknesses || [],
+            suggestions: q.evaluation?.suggestions || [],
+            order: q.order,
+          },
+        });
+      }
+      console.log("Questions saved successfully:", { count: detailedQuestions.length });
+    } catch (qError) {
+      console.error("ERROR saving questions:", qError);
+      console.error("Question error details:", {
+        name: qError instanceof Error ? qError.name : 'Unknown',
+        message: qError instanceof Error ? qError.message : 'Unknown error',
+        stack: qError instanceof Error ? qError.stack : 'No stack trace'
+      });
+    }
+
+    console.log("Interview saved successfully:", {
+      sessionId: mockSession.id,
+      userId: mockSession.userId
     });
 
     return NextResponse.json({
@@ -108,18 +204,12 @@ export async function GET(request: NextRequest) {
       orderBy: {
         createdAt: 'desc',
       },
-      select: {
-        id: true,
-        sessionType: true,
-        topics: true,
-        duration: true,
-        overallScore: true,
-        conversationLog: true,
-        feedback: true,
-        specificScores: true,
-        startedAt: true,
-        completedAt: true,
-        createdAt: true,
+      include: {
+        questions: {
+          orderBy: {
+            order: 'asc',
+          }
+        }
       },
     });
 

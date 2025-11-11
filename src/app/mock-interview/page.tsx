@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
+import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import Image from "next/image";
 import { useSession } from "@/lib/auth-client";
@@ -68,6 +69,7 @@ import {
   ChevronRight,
   MessageCircle,
   Square,
+  History,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
