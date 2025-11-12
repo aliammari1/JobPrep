@@ -14,7 +14,6 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Slider } from "@/components/ui/slider";
 import { Switch } from "@/components/ui/switch";
 import { Palette, Type, Layers, Eye, EyeOff } from "lucide-react";
 import { Card } from "@/components/ui/card";
@@ -38,8 +37,6 @@ export function CustomizePanel() {
 		{ id: "modern", name: "Modern", description: "Clean and contemporary design" },
 		{ id: "classic", name: "Classic", description: "Traditional professional look" },
 		{ id: "minimal", name: "Minimal", description: "Simple and elegant" },
-		{ id: "creative", name: "Creative", description: "Bold and unique" },
-		{ id: "professional", name: "Professional", description: "Corporate and formal" },
 	];
 
 	const fonts = [

@@ -139,12 +139,14 @@ export function ModernTemplate({ cvData, settings }: TemplateProps) {
                     <p>{exp.location}</p>
                   </div>
                 </div>
-                {exp.description && (
-                  <p className="mt-2 text-sm text-gray-700">
-                    {exp.description}
-                  </p>
+                {exp.description && exp.description.length > 0 && (
+                  <ul className="mt-2 list-inside list-disc space-y-1 text-sm text-gray-700">
+                    {exp.description.map((bullet: string, idx: number) => (
+                      <li key={idx}>{bullet}</li>
+                    ))}
+                  </ul>
                 )}
-                {exp.highlights.length > 0 && (
+                {exp.highlights && exp.highlights.length > 0 && (
                   <ul className="mt-2 list-inside list-disc space-y-1 text-sm text-gray-700">
                     {exp.highlights.map((highlight, idx) => (
                       <li key={idx}>{highlight}</li>
@@ -223,7 +225,13 @@ export function ModernTemplate({ cvData, settings }: TemplateProps) {
             {projects.map((project) => (
               <div key={project.id}>
                 <h3 className="font-bold">{project.name}</h3>
-                <p className="text-sm text-gray-700">{project.description}</p>
+                {project.description && project.description.length > 0 && (
+                  <ul className="mt-1 list-inside list-disc space-y-1 text-sm text-gray-700">
+                    {project.description.map((bullet: string, idx: number) => (
+                      <li key={idx}>{bullet}</li>
+                    ))}
+                  </ul>
+                )}
                 <p className="mt-1 text-sm text-gray-600">
                   <span className="font-semibold">Technologies:</span>{" "}
                   {project.technologies.join(", ")}
