@@ -6,7 +6,6 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Select,
   SelectContent,
@@ -19,48 +18,16 @@ import { useChallenges } from "@/hooks/use-challenges";
 import { useSubmissions } from "@/hooks/use-submissions";
 import { useGenerateChallenges } from "@/hooks/use-generate-challenges";
 import { toast } from "sonner";
-import CodeMirror from "@uiw/react-codemirror";
-import { javascript } from "@codemirror/lang-javascript";
-import { python } from "@codemirror/lang-python";
-import { java } from "@codemirror/lang-java";
-import { cpp } from "@codemirror/lang-cpp";
-import { oneDark } from "@codemirror/theme-one-dark";
-import { EditorView } from "@codemirror/view";
 import { useTheme } from "next-themes";
 import {
-  Play,
-  Pause,
-  RotateCcw,
-  Code2,
-  Terminal,
-  CheckCircle2,
-  XCircle,
-  Clock,
   Trophy,
-  Zap,
-  FileCode,
-  Bug,
-  TestTube,
-  Cpu,
-  MemoryStick,
-  Timer,
   Target,
-  Lightbulb,
-  Eye,
-  EyeOff,
-  Settings,
-  Download,
-  Upload,
-  Save,
-  Send,
-  AlertCircle,
   Keyboard,
-  Maximize2,
-  Minimize2,
   Sparkles,
   Brain,
   FileText,
   Briefcase,
+  AlertCircle,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
@@ -78,6 +45,9 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { CodeEditorEnhanced } from "@/components/code-challenge/CodeEditorEnhanced";
+import { ProblemPanel } from "@/components/code-challenge/ProblemPanel";
+import { TestResultsPanel } from "@/components/code-challenge/TestResultsPanel";
 
 interface TestCase {
   id: string;
@@ -617,18 +587,59 @@ export default function CodeChallengeArena() {
   // Use current challenge or fallback to sample
   const challenge = generatedChallenges.length > 0 
     ? generatedChallenges[currentChallengeIndex]
-    : currentChallenge || sampleChallenge;
+    : currentChallenge;
 
-  if (isChallengeLoading) {
+  // Show loading state if:
+  // 1. First time visiting (checking onboarding)
+  // 2. Generating challenges
+  // 3. No challenges available
+  const isWaitingForChallenges = isGenerating || (!generatedChallenges.length && !currentChallenge && !isChallengeLoading);
+
+  if (isChallengeLoading || isWaitingForChallenges) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background via-primary/5 to-muted/10">
+        <div className="text-center space-y-4">
           <motion.div
             animate={{ rotate: 360 }}
             transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-            className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full mx-auto mb-4"
+            className="w-16 h-16 border-4 border-primary border-t-transparent rounded-full mx-auto"
           />
-          <p className="text-muted-foreground">Loading challenge...</p>
+          <div>
+            <h2 className="text-2xl font-bold mb-2">
+              {isGenerating ? "🤖 Generating Your Challenges" : "Preparing Your Session"}
+            </h2>
+            <p className="text-muted-foreground max-w-md">
+              {isGenerating 
+                ? "Our AI is creating personalized coding challenges based on your CV and job description..."
+                : "Please complete the onboarding to get started"}
+            </p>
+          </div>
+          {isGenerating && (
+            <div className="mt-6">
+              <Badge variant="secondary" className="animate-pulse">
+                This may take a moment...
+              </Badge>
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  }
+
+  if (!challenge) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background via-primary/5 to-muted/10">
+        <div className="text-center space-y-4">
+          <AlertCircle className="w-16 h-16 text-muted-foreground/50 mx-auto" />
+          <div>
+            <h2 className="text-2xl font-bold mb-2">No Challenge Available</h2>
+            <p className="text-muted-foreground max-w-md">
+              Please generate challenges first or refresh the page
+            </p>
+          </div>
+          <Button onClick={() => setShowGenerateDialog(true)}>
+            Generate Challenges
+          </Button>
         </div>
       </div>
     );
@@ -728,446 +739,53 @@ export default function CodeChallengeArena() {
             </div>
           </AnimatedContainer>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          {/* Problem Description */}
-          <div className="space-y-6">
+        <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
+          {/* Problem Description - Left Column (30%) */}
+          <div className="space-y-6 xl:col-span-1">
             {/* Challenge Info */}
             <AnimatedContainer delay={0.1}>
-              <Card>
-                <CardHeader>
-                  <div className="flex items-center justify-between">
-                    <CardTitle className="flex items-center gap-2">
-                      <Target className="w-5 h-5" />
-                      {challenge.title}
-                      {generatedChallenges.length > 0 && (
-                        <Badge className="ml-2 bg-gradient-to-r from-purple-600 to-blue-600 text-white border-0">
-                          <Sparkles className="w-3 h-3 mr-1" />
-                          AI Generated
-                        </Badge>
-                      )}
-                    </CardTitle>
-                    <Badge
-                      className={getDifficultyColor(challenge.difficulty)}
-                    >
-                      {challenge.difficulty}
-                    </Badge>
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  <Tabs value={currentTab} onValueChange={setCurrentTab}>
-                    <TabsList className="grid w-full grid-cols-4">
-                      <TabsTrigger value="description">Description</TabsTrigger>
-                      <TabsTrigger value="examples">Examples</TabsTrigger>
-                      <TabsTrigger value="constraints">Constraints</TabsTrigger>
-                      <TabsTrigger value="hints">Hints</TabsTrigger>
-                    </TabsList>
-
-                    <TabsContent value="description" className="mt-4">
-                      <div className="prose dark:prose-invert max-w-none">
-                        <pre className="whitespace-pre-wrap text-sm leading-relaxed">
-                          {challenge.description}
-                        </pre>
-                      </div>
-                    </TabsContent>
-
-                    <TabsContent value="examples" className="mt-4 space-y-4">
-                      {challenge.examples.map((example, index) => (
-                        <div
-                          key={index}
-                          className="border rounded-lg p-4 bg-muted/30"
-                        >
-                          <h4 className="font-medium mb-2">
-                            Example {index + 1}:
-                          </h4>
-                          <div className="space-y-2 text-sm">
-                            <div>
-                              <strong>Input:</strong>{" "}
-                              <code>{example.input}</code>
-                            </div>
-                            <div>
-                              <strong>Output:</strong>{" "}
-                              <code>{example.output}</code>
-                            </div>
-                            <div>
-                              <strong>Explanation:</strong>{" "}
-                              {example.explanation}
-                            </div>
-                          </div>
-                        </div>
-                      ))}
-                    </TabsContent>
-
-                    <TabsContent value="constraints" className="mt-4">
-                      <ul className="space-y-2">
-                        {challenge.constraints.map(
-                          (constraint, index) => (
-                            <li
-                              key={index}
-                              className="flex items-center gap-2 text-sm"
-                            >
-                              <div className="w-1.5 h-1.5 bg-blue-500 rounded-full" />
-                              <code>{constraint}</code>
-                            </li>
-                          )
-                        )}
-                      </ul>
-                    </TabsContent>
-
-                    <TabsContent value="hints" className="mt-4">
-                      <div className="space-y-3">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => setShowHints(!showHints)}
-                          className="flex items-center gap-2"
-                        >
-                          {showHints ? (
-                            <EyeOff className="w-4 h-4" />
-                          ) : (
-                            <Eye className="w-4 h-4" />
-                          )}
-                          {showHints ? "Hide Hints" : "Show Hints"}
-                        </Button>
-
-                        <AnimatePresence>
-                          {showHints && (
-                            <motion.div
-                              initial={{ opacity: 0, height: 0 }}
-                              animate={{ opacity: 1, height: "auto" }}
-                              exit={{ opacity: 0, height: 0 }}
-                              className="space-y-2"
-                            >
-                              {(challenge.hints || [
-                                "Consider using a hash map to store values and their indices as you iterate through the array.",
-                                "For each number, check if its complement (target - current number) exists in your hash map.",
-                              ]).map((hint, index) => (
-                                <div
-                                  key={index}
-                                  className={cn(
-                                    "p-3 border rounded-lg",
-                                    index % 2 === 0
-                                      ? "bg-yellow-50 dark:bg-yellow-900/20 border-yellow-200 dark:border-yellow-800"
-                                      : "bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800"
-                                  )}
-                                >
-                                  <div className="flex items-start gap-2">
-                                    <Lightbulb
-                                      className={cn(
-                                        "w-4 h-4 mt-0.5",
-                                        index % 2 === 0
-                                          ? "text-yellow-500"
-                                          : "text-blue-500"
-                                      )}
-                                    />
-                                    <div className="text-sm">
-                                      <strong>Hint {index + 1}:</strong> {hint}
-                                    </div>
-                                  </div>
-                                </div>
-                              ))}
-                            </motion.div>
-                          )}
-                        </AnimatePresence>
-                      </div>
-                    </TabsContent>
-                  </Tabs>
-                </CardContent>
-              </Card>
+              <ProblemPanel
+                challenge={challenge}
+                isLoading={false}
+                currentIndex={currentChallengeIndex}
+                totalChallenges={generatedChallenges.length > 0 ? generatedChallenges.length : 1}
+              />
             </AnimatedContainer>
 
             {/* Test Results */}
             <AnimatedContainer delay={0.2}>
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <TestTube className="w-5 h-5" />
-                    Test Results
-                    {testResults.length > 0 && (
-                      <Badge
-                        variant={
-                          getSuccessRate() === 100 ? "default" : "secondary"
-                        }
-                      >
-                        {executionMetrics.passedTests}/
-                        {executionMetrics.totalTests} Passed
-                      </Badge>
-                    )}
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  {testResults.length === 0 ? (
-                    <div className="text-center py-8 text-muted-foreground">
-                      <TestTube className="w-12 h-12 mx-auto mb-3 opacity-50" />
-                      <p>Run your code to see test results</p>
-                    </div>
-                  ) : (
-                    <div className="space-y-3">
-                      {testResults.map((result, index) => (
-                        <motion.div
-                          key={result.id}
-                          initial={{ opacity: 0, y: 20 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          transition={{ delay: index * 0.1 }}
-                          className={cn(
-                            "flex items-center justify-between p-3 rounded-lg border",
-                            result.passed
-                              ? "bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800"
-                              : "bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800"
-                          )}
-                        >
-                          <div className="flex items-center gap-3">
-                            {result.passed ? (
-                              <CheckCircle2 className="w-5 h-5 text-green-500" />
-                            ) : (
-                              <XCircle className="w-5 h-5 text-red-500" />
-                            )}
-                            <div>
-                              <div className="font-medium">
-                                Test Case {index + 1}
-                              </div>
-                              <div className="text-xs text-muted-foreground">
-                                Input: {result.input}
-                              </div>
-                              {!result.passed && (
-                                <div className="text-xs">
-                                  <span className="text-red-600">
-                                    Expected: {result.expectedOutput}
-                                  </span>
-                                  <br />
-                                  <span className="text-red-600">
-                                    Got: {result.actualOutput}
-                                  </span>
-                                </div>
-                              )}
-                            </div>
-                          </div>
-                          <div className="text-right text-xs text-muted-foreground">
-                            {result.executionTime?.toFixed(1)}ms
-                          </div>
-                        </motion.div>
-                      ))}
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
+              <TestResultsPanel
+                testResults={testResults}
+                metrics={executionMetrics}
+                isRunning={isRunning}
+              />
             </AnimatedContainer>
           </div>
 
-          {/* Code Editor */}
-          <div className="space-y-6">
+          {/* Code Editor - Center/Right Column (70%) */}
+          <div className="space-y-6 xl:col-span-2">
             {/* Editor Controls */}
             <AnimatedContainer delay={0.3}>
-              <Card>
-                <CardHeader>
-                  <div className="flex items-center justify-between">
-                    <CardTitle className="flex items-center gap-2">
-                      <Code2 className="w-5 h-5" />
-                      Code Editor
-                    </CardTitle>
-                    <div className="flex items-center gap-2">
-                      <Select
-                        value={selectedLanguage}
-                        onValueChange={handleLanguageChange}
-                      >
-                        <SelectTrigger className="w-[150px]">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {languages.map((lang) => (
-                            <SelectItem key={lang.value} value={lang.value}>
-                              {lang.label}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                      <Button variant="outline" size="sm" onClick={resetCode}>
-                        <RotateCcw className="w-4 h-4" />
-                      </Button>
-                    </div>
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-4">
-                    {/* CodeMirror Editor */}
-                    <div className={cn(
-                      "border rounded-lg overflow-hidden",
-                      isFullscreen && "fixed inset-0 z-50 bg-background"
-                    )}>
-                      <div className="flex items-center justify-between px-4 py-2 border-b bg-muted/30">
-                        <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                          <FileCode className="w-4 h-4" />
-                          <span>
-                            {languages.find((l) => l.value === selectedLanguage)?.label || "Code"}.
-                            {languages.find((l) => l.value === selectedLanguage)?.extension}
-                          </span>
-                          {lastSaved && (
-                            <span className="text-xs">
-                              • Saved {new Date(lastSaved).toLocaleTimeString()}
-                            </span>
-                          )}
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => setShowConsole(!showConsole)}
-                            className="h-7"
-                          >
-                            <Terminal className="w-3.5 h-3.5 mr-1" />
-                            Console
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => setIsFullscreen(!isFullscreen)}
-                            className="h-7"
-                          >
-                            {isFullscreen ? (
-                              <Minimize2 className="w-3.5 h-3.5" />
-                            ) : (
-                              <Maximize2 className="w-3.5 h-3.5" />
-                            )}
-                          </Button>
-                        </div>
-                      </div>
-                      <CodeMirror
-                        value={code}
-                        height={isFullscreen ? "calc(100vh - 100px)" : "400px"}
-                        theme={theme === "dark" ? oneDark : undefined}
-                        extensions={[
-                          selectedLanguage === "python" ? python() :
-                          selectedLanguage === "java" ? java() :
-                          selectedLanguage === "cpp" ? cpp() :
-                          javascript({ jsx: true, typescript: selectedLanguage === "typescript" }),
-                          EditorView.lineWrapping,
-                        ]}
-                        onChange={(value) => {
-                          setCode(value || "");
-                          setHasUnsavedChanges(true);
-                        }}
-                        basicSetup={{
-                          lineNumbers: true,
-                          highlightActiveLineGutter: true,
-                          highlightSpecialChars: true,
-                          foldGutter: true,
-                          drawSelection: true,
-                          dropCursor: true,
-                          allowMultipleSelections: true,
-                          indentOnInput: true,
-                          syntaxHighlighting: true,
-                          bracketMatching: true,
-                          closeBrackets: true,
-                          autocompletion: true,
-                          rectangularSelection: true,
-                          crosshairCursor: true,
-                          highlightActiveLine: true,
-                          highlightSelectionMatches: true,
-                          closeBracketsKeymap: true,
-                          searchKeymap: true,
-                          foldKeymap: true,
-                          completionKeymap: true,
-                          lintKeymap: true,
-                        }}
-                        className="text-sm"
-                      />
-                    </div>
-
-                    {/* Console Output */}
-                    <AnimatePresence>
-                      {showConsole && (
-                        <motion.div
-                          initial={{ opacity: 0, height: 0 }}
-                          animate={{ opacity: 1, height: "auto" }}
-                          exit={{ opacity: 0, height: 0 }}
-                          className="border rounded-lg bg-black/90 text-green-400 font-mono text-sm p-4 max-h-32 overflow-y-auto"
-                        >
-                          {consoleOutput.length === 0 ? (
-                            <div className="text-gray-500">Console output will appear here...</div>
-                          ) : (
-                            consoleOutput.map((line, i) => (
-                              <div key={i}>{line}</div>
-                            ))
-                          )}
-                        </motion.div>
-                      )}
-                    </AnimatePresence>
-
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                        <div className="flex items-center gap-1">
-                          <Clock className="w-4 h-4" />
-                          Limit: {challenge.timeLimit}ms
-                        </div>
-                        <div className="flex items-center gap-1">
-                          <MemoryStick className="w-4 h-4" />
-                          Memory: {challenge.memoryLimit}MB
-                        </div>
-                      </div>
-
-                      <div className="flex items-center gap-2">
-                        <Button
-                          onClick={runCode}
-                          disabled={isRunning || isExecuting}
-                          className="flex items-center gap-2"
-                          variant="outline"
-                        >
-                          {isRunning || isExecuting ? (
-                            <>
-                              <motion.div
-                                animate={{ rotate: 360 }}
-                                transition={{
-                                  duration: 1,
-                                  repeat: Infinity,
-                                  ease: "linear",
-                                }}
-                              >
-                                <Cpu className="w-4 h-4" />
-                              </motion.div>
-                              Running...
-                            </>
-                          ) : (
-                            <>
-                              <Play className="w-4 h-4" />
-                              Run Code
-                            </>
-                          )}
-                        </Button>
-
-                        <Button
-                          onClick={handleSubmit}
-                          disabled={
-                            isSubmitting ||
-                            testResults.length === 0 ||
-                            getSuccessRate() !== 100
-                          }
-                          className="flex items-center gap-2"
-                        >
-                          {isSubmitting ? (
-                            <>
-                              <motion.div
-                                animate={{ rotate: 360 }}
-                                transition={{
-                                  duration: 1,
-                                  repeat: Infinity,
-                                  ease: "linear",
-                                }}
-                              >
-                                <Send className="w-4 h-4" />
-                              </motion.div>
-                              Submitting...
-                            </>
-                          ) : (
-                            <>
-                              <Send className="w-4 h-4" />
-                              Submit Solution
-                            </>
-                          )}
-                        </Button>
-                      </div>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
+              <CodeEditorEnhanced
+                code={code}
+                onCodeChange={(newCode) => {
+                  setCode(newCode);
+                  setHasUnsavedChanges(true);
+                }}
+                selectedLanguage={selectedLanguage}
+                onLanguageChange={handleLanguageChange}
+                onRun={runCode}
+                onReset={resetCode}
+                isRunning={isRunning || isExecuting}
+                lastSaved={lastSaved}
+                hasUnsavedChanges={hasUnsavedChanges}
+                showConsole={showConsole}
+                onToggleConsole={setShowConsole}
+                consoleOutput={consoleOutput}
+                executionMetrics={executionMetrics}
+                timeElapsed={timeElapsed}
+                successRate={getSuccessRate()}
+              />
             </AnimatedContainer>
 
             {/* Performance Metrics */}

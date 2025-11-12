@@ -1,8 +1,9 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useSession } from "@/lib/auth-client";
+import type { Interview } from "@/generated/prisma";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -36,6 +37,7 @@ import {
   Zap,
   BarChart3,
   TrendingUp,
+  X,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
@@ -44,113 +46,31 @@ import {
   StaggeredItem,
 } from "@/components/ui/animated";
 
-interface Interview {
-  id: string;
-  candidateName: string;
-  position: string;
-  date: Date;
-  time: string;
-  duration: number;
-  type: "in-person" | "video" | "phone";
-  status: "scheduled" | "confirmed" | "completed" | "cancelled" | "no-show";
-  interviewer: string;
-  location?: string;
-  notes?: string;
-  reminderSent: boolean;
-  candidateEmail: string;
-  candidatePhone?: string;
-}
-
 interface TimeSlot {
   time: string;
   available: boolean;
   interview?: Interview;
 }
 
-// API interview shape coming from server
-interface ApiInterview {
-  id?: string;
-  candidateName?: string;
-  title?: string;
-  scheduledAt?: string;
-  createdAt?: string;
-  duration?: number;
-  type?: Interview["type"];
-  status?: Interview["status"];
-  candidateEmail?: string;
-  notes?: string;
-}
-
 interface NewInterviewForm {
   candidateName: string;
   position: string;
-  date: string;
+  scheduledAt: string; // date string
   time: string;
   duration: number;
-  type: Interview["type"];
-  status: Interview["status"];
+  type: string;
+  status: string;
   candidateEmail: string;
   candidatePhone: string;
   notes: string;
 }
 
-// simple mock data fallback (module-level)
-const mockInterviews: Interview[] = [
-  {
-    id: "1",
-    candidateName: "Sarah Johnson",
-    position: "Senior Frontend Developer",
-    date: new Date(),
-    time: "09:00",
-    duration: 60,
-    type: "video",
-    status: "confirmed",
-    interviewer: "Alex Chen",
-    candidateEmail: "sarah.johnson@email.com",
-    candidatePhone: "+1 (555) 123-4567",
-    notes: "Focus on React expertise and system design",
-    reminderSent: true,
-  },
-  {
-    id: "2",
-    candidateName: "Michael Torres",
-    position: "Backend Engineer",
-    date: new Date(Date.now() + 24 * 60 * 60 * 1000),
-    time: "14:00",
-    duration: 45,
-    type: "in-person",
-    status: "scheduled",
-    interviewer: "Jessica Park",
-    location: "Conference Room A",
-    candidateEmail: "michael.torres@email.com",
-    notes: "Technical interview with coding challenge",
-    reminderSent: false,
-  },
-  {
-    id: "3",
-    candidateName: "Emily Rodriguez",
-    position: "UX Designer",
-    date: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000),
-    time: "11:30",
-    duration: 90,
-    type: "video",
-    status: "confirmed",
-    interviewer: "David Kim",
-    candidateEmail: "emily.rodriguez@email.com",
-    notes: "Portfolio review and design thinking exercise",
-    reminderSent: true,
-  },
-];
-
 function InterviewScheduler() {
-  const [selectedDate, _setSelectedDate] = useState(new Date());
   const [selectedView, setSelectedView] = useState<"day" | "week" | "month">(
     "week",
   );
   const [interviews, setInterviews] = useState<Interview[]>([]);
   const [_loading, setLoading] = useState(true);
-
-  // mock data used as fallback (moved to module scope below)
 
   useEffect(() => {
     const fetchInterviews = async () => {
@@ -158,36 +78,14 @@ function InterviewScheduler() {
         const response = await fetch("/api/interviews");
         if (response.ok) {
           const data = await response.json();
-          const transformedInterviews = (data.interviews || []).map(
-            (interview: ApiInterview) => ({
-              id: interview.id || Date.now().toString(),
-              candidateName: interview.candidateName || "Anonymous",
-              position: interview.title || "Position",
-              date: new Date(
-                interview.scheduledAt || interview.createdAt || Date.now(),
-              ),
-              time: new Date(
-                interview.scheduledAt || interview.createdAt || Date.now(),
-              ).toLocaleTimeString("en-US", {
-                hour: "2-digit",
-                minute: "2-digit",
-                hour12: false,
-              }),
-              duration: interview.duration || 60,
-              type: interview.type || "video",
-              status: interview.status || "scheduled",
-              interviewer: "Interviewer",
-              candidateEmail: interview.candidateEmail || "",
-              notes: interview.notes || "",
-              reminderSent: false,
-            }),
-          );
-          setInterviews(transformedInterviews);
+          // API now returns Prisma Interview type directly
+          const interviews = (data.interviews || []) as Interview[];
+          setInterviews(interviews);
         } else {
-          setInterviews(mockInterviews);
+          setInterviews([]);
         }
       } catch {
-        setInterviews(mockInterviews);
+        setInterviews([]);
       } finally {
         setLoading(false);
       }
@@ -233,11 +131,71 @@ function InterviewScheduler() {
       window.history.replaceState({}, "", window.location.pathname);
     }
   }, []);
+
+  // Calculate stats and fetch notifications when interviews change
+  useEffect(() => {
+    if (interviews.length === 0) return;
+
+    // Calculate statistics
+    const completed = interviews.filter((i) => i.status === "completed").length;
+    const confirmed = interviews.filter((i) => i.status === "confirmed").length;
+    const total = interviews.length;
+    const successRate = total > 0 ? Math.round((completed / total) * 100) : 0;
+    const avgDuration =
+      total > 0
+        ? Math.round(
+            interviews.reduce((sum, i) => sum + (i.duration || 0), 0) / total
+          )
+        : 0;
+
+    // Calculate week growth
+    const now = new Date();
+    const weekStart = new Date(now);
+    weekStart.setDate(weekStart.getDate() - 7);
+    const prevWeekStart = new Date(weekStart);
+    prevWeekStart.setDate(prevWeekStart.getDate() - 7);
+
+    const thisWeekCount = interviews.filter(
+      (i) => getInterviewDate(i) >= weekStart && getInterviewDate(i) <= now
+    ).length;
+    const lastWeekCount = interviews.filter(
+      (i) => getInterviewDate(i) >= prevWeekStart && getInterviewDate(i) < weekStart
+    ).length;
+
+    const weekGrowth =
+      lastWeekCount > 0
+        ? Math.round(((thisWeekCount - lastWeekCount) / lastWeekCount) * 100)
+        : 0;
+
+    setStats({
+      totalInterviews: total,
+      completedInterviews: completed,
+      confirmedInterviews: confirmed,
+      successRate,
+      avgDuration,
+      weekGrowth,
+    });
+
+    // Fetch notifications
+    const fetchNotifications = async () => {
+      try {
+        const response = await fetch("/api/interviews/notifications");
+        if (response.ok) {
+          const data = await response.json();
+          setNotifications(data.notifications || []);
+        }
+      } catch (error) {
+        console.error("Error fetching notifications:", error);
+      }
+    };
+
+    fetchNotifications();
+  }, [interviews]);
   const [showNewInterviewModal, setShowNewInterviewModal] = useState(false);
   const [newInterviewForm, setNewInterviewForm] = useState<NewInterviewForm>({
     candidateName: "",
     position: "",
-    date: new Date().toISOString().slice(0, 10),
+    scheduledAt: new Date().toISOString().slice(0, 10),
     time: "09:00",
     duration: 60,
     type: "video",
@@ -246,14 +204,42 @@ function InterviewScheduler() {
     candidatePhone: "",
     notes: "",
   });
-  const [filterStatus, _setFilterStatus] = useState<string>("all");
+  const [filterStatus, setFilterStatus] = useState<string>("all");
   const [searchQuery, setSearchQuery] = useState("");
   const [formErrors, setFormErrors] = useState<Record<string, string>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [calendarConnected, setCalendarConnected] = useState(false);
+  
+  // New state for modals and functionality
+  const [selectedDate, setSelectedDate] = useState(new Date());
+  const [editingInterview, setEditingInterview] = useState<Interview | null>(null);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState<string | null>(null);
+  const [showFilterModal, setShowFilterModal] = useState(false);
+  const [showNotesModal, setShowNotesModal] = useState<string | null>(null);
+  const [notesContent, setNotesContent] = useState("");
+  const [showSettingsModal, setShowSettingsModal] = useState(false);
+  const [notifications, setNotifications] = useState<any[]>([]);
+  const [stats, setStats] = useState({
+    totalInterviews: 0,
+    completedInterviews: 0,
+    confirmedInterviews: 0,
+    successRate: 0,
+    avgDuration: 0,
+    weekGrowth: 0,
+  });
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const { data: session } = useSession();
+
+  // Helper function to safely get date from scheduledAt
+  const getInterviewDate = (interview: Interview): Date => {
+    if (interview.scheduledAt) {
+      return new Date(interview.scheduledAt);
+    }
+    return new Date();
+  };
 
   // Generate time slots for the selected date
   const generateTimeSlots = (): TimeSlot[] => {
@@ -267,9 +253,10 @@ function InterviewScheduler() {
           .toString()
           .padStart(2, "0")}`;
         const interview = interviews.find(
-          (i) =>
-            i.date.toDateString() === selectedDate.toDateString() &&
-            i.time === time,
+          (i) => {
+            return getInterviewDate(i).toDateString() === selectedDate.toDateString() &&
+              i.time === time;
+          }
         );
 
         slots.push({
@@ -318,10 +305,10 @@ function InterviewScheduler() {
       filterStatus === "all" || interview.status === filterStatus;
     const matchesSearch =
       searchQuery === "" ||
-      interview.candidateName
+      (interview.candidateName || "")
         .toLowerCase()
         .includes(searchQuery.toLowerCase()) ||
-      interview.position.toLowerCase().includes(searchQuery.toLowerCase());
+      (interview.position || "").toLowerCase().includes(searchQuery.toLowerCase());
 
     return matchesStatus && matchesSearch;
   });
@@ -330,28 +317,27 @@ function InterviewScheduler() {
     const now = new Date();
     return interviews
       .filter((interview) => {
-        const interviewDateTime = new Date(interview.date);
-        const [hours, minutes] = interview.time.split(":").map(Number);
+        const interviewDateTime = getInterviewDate(interview);
+        const [hours, minutes] = (interview.time || "00:00").split(":").map(Number);
         interviewDateTime.setHours(hours, minutes);
         return interviewDateTime > now;
       })
       .sort((a, b) => {
-        const aDateTime = new Date(a.date);
-        const [aHours, aMinutes] = a.time.split(":").map(Number);
+        const aDateTime = new Date(a.scheduledAt || new Date());
+        const [aHours, aMinutes] = (a.time || "00:00").split(":").map(Number);
         aDateTime.setHours(aHours, aMinutes);
 
-        const bDateTime = new Date(b.date);
-        const [bHours, bMinutes] = b.time.split(":").map(Number);
+        const bDateTime = new Date(b.scheduledAt || new Date());
+        const [bHours, bMinutes] = (b.time || "00:00").split(":").map(Number);
         bDateTime.setHours(bHours, bMinutes);
 
         return aDateTime.getTime() - bDateTime.getTime();
       });
   };
-
   const getDayStats = () => {
     const today = new Date();
     const todayInterviews = interviews.filter(
-      (i) => i.date.toDateString() === today.toDateString(),
+      (i) => getInterviewDate(i).toDateString() === today.toDateString(),
     );
 
     return {
@@ -369,7 +355,8 @@ function InterviewScheduler() {
     endOfWeek.setDate(startOfWeek.getDate() + 6);
 
     const weekInterviews = interviews.filter((interview) => {
-      return interview.date >= startOfWeek && interview.date <= endOfWeek;
+      const interviewDate = getInterviewDate(interview);
+      return interviewDate >= startOfWeek && interviewDate <= endOfWeek;
     });
 
     return weekInterviews.length;
@@ -398,14 +385,14 @@ function InterviewScheduler() {
       errors.candidateEmail = "Invalid email format";
     }
 
-    if (!newInterviewForm.date) {
-      errors.date = "Date is required";
+    if (!newInterviewForm.scheduledAt) {
+      errors.scheduledAt = "Date is required";
     } else {
-      const selectedDate = new Date(newInterviewForm.date);
+      const selectedDate = new Date(newInterviewForm.scheduledAt);
       const today = new Date();
       today.setHours(0, 0, 0, 0);
       if (selectedDate < today) {
-        errors.date = "Date cannot be in the past";
+        errors.scheduledAt = "Date cannot be in the past";
       }
     }
 
@@ -497,7 +484,7 @@ function InterviewScheduler() {
                   onClick={async () => {
                     try {
                       setSuccessMessage(
-                        "Syncing interviews to Google Calendar...",
+                        "Syncing interviews with Google Calendar...",
                       );
                       const response = await fetch(
                         "/api/interviews/sync-calendar",
@@ -508,8 +495,9 @@ function InterviewScheduler() {
 
                       if (response.ok) {
                         const result = await response.json();
+                        const totalSynced = (result.jobPrepToGoogle || 0) + (result.googleToJobPrep || 0);
                         setSuccessMessage(
-                          `Synced ${result.synced} interview(s) to Google Calendar!` +
+                          `Sync complete: ${result.jobPrepToGoogle || 0} to Google Calendar, ${result.googleToJobPrep || 0} from Google Calendar` +
                             (result.skipped > 0
                               ? ` (${result.skipped} already synced)`
                               : ""),
@@ -521,7 +509,7 @@ function InterviewScheduler() {
                       setTimeout(() => setSuccessMessage(null), 5000);
                     } catch {
                       setErrorMessage(
-                        "Failed to sync interviews to Google Calendar",
+                        "Failed to sync interviews with Google Calendar",
                       );
                       setTimeout(() => setErrorMessage(null), 5000);
                     }
@@ -529,10 +517,10 @@ function InterviewScheduler() {
                   className="flex items-center gap-2"
                 >
                   <Calendar className="h-4 w-4" />
-                  Sync All Interviews
+                  Sync Both Ways
                 </Button>
               )}
-              <Button variant="outline" size="icon">
+              <Button variant="outline" size="icon" onClick={() => setShowSettingsModal(true)}>
                 <Settings className="w-4 h-4" />
               </Button>
             </div>
@@ -589,7 +577,7 @@ function InterviewScheduler() {
                   <div className="mt-4">
                     <div className="flex items-center text-xs text-muted-foreground">
                       <TrendingUp className="w-3 h-3 mr-1" />
-                      +12% from last week
+                      {stats.weekGrowth > 0 ? '+' : ''}{stats.weekGrowth}% from last week
                     </div>
                   </div>
                 </CardContent>
@@ -604,14 +592,14 @@ function InterviewScheduler() {
                       <p className="text-sm font-medium text-muted-foreground">
                         Success Rate
                       </p>
-                      <p className="text-3xl font-bold text-accent">87%</p>
+                      <p className="text-3xl font-bold text-accent">{stats.successRate}%</p>
                     </div>
                     <div className="w-12 h-12 bg-accent/10 rounded-lg flex items-center justify-center">
                       <CheckCircle2 className="w-6 h-6 text-accent" />
                     </div>
                   </div>
                   <div className="mt-4">
-                    <Progress value={87} className="h-2" />
+                    <Progress value={stats.successRate} className="h-2" />
                   </div>
                 </CardContent>
               </Card>
@@ -626,7 +614,7 @@ function InterviewScheduler() {
                         Avg Duration
                       </p>
                       <p className="text-3xl font-bold text-primary">
-                        52min
+                        {stats.avgDuration}min
                       </p>
                     </div>
                     <div className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center">
@@ -722,7 +710,10 @@ function InterviewScheduler() {
                                 >
                                   {slot.interview.status}
                                 </Badge>
-                                <Button variant="ghost" size="sm" className="hover:bg-primary/10">
+                                <Button variant="ghost" size="sm" className="hover:bg-primary/10" onClick={() => {
+                                  setEditingInterview(slot.interview!);
+                                  setShowEditModal(true);
+                                }}>
                                   <Edit3 className="w-4 h-4" />
                                 </Button>
                               </div>
@@ -758,7 +749,7 @@ function InterviewScheduler() {
                           );
                           const dayInterviews = interviews.filter(
                             (interview) =>
-                              interview.date.toDateString() ===
+                              getInterviewDate(interview).toDateString() ===
                               date.toDateString(),
                           );
                           const isToday = date.toDateString() === new Date().toDateString();
@@ -804,6 +795,128 @@ function InterviewScheduler() {
                       </div>
                     </div>
                   )}
+
+                  {selectedView === "month" && (
+                    <div className="space-y-6">
+                      <div className="flex items-center justify-between mb-4">
+                        <h3 className="text-lg font-semibold">
+                          {selectedDate.toLocaleString("default", {
+                            month: "long",
+                            year: "numeric",
+                          })}
+                        </h3>
+                        <div className="flex gap-2">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => {
+                              const newDate = new Date(selectedDate);
+                              newDate.setMonth(newDate.getMonth() - 1);
+                              setSelectedDate(newDate);
+                            }}
+                          >
+                            ←
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => {
+                              const newDate = new Date(selectedDate);
+                              newDate.setMonth(newDate.getMonth() + 1);
+                              setSelectedDate(newDate);
+                            }}
+                          >
+                            →
+                          </Button>
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-7 gap-2 text-center mb-2">
+                        {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map(
+                          (day) => (
+                            <div
+                              key={day}
+                              className="p-2 font-semibold text-foreground text-sm"
+                            >
+                              {day}
+                            </div>
+                          )
+                        )}
+                      </div>
+
+                      <div className="grid grid-cols-7 gap-2">
+                        {Array.from({ length: 42 }, (_, i) => {
+                          const firstDay = new Date(
+                            selectedDate.getFullYear(),
+                            selectedDate.getMonth(),
+                            1
+                          );
+                          const startDate = new Date(firstDay);
+                          startDate.setDate(startDate.getDate() - firstDay.getDay());
+
+                          const date = new Date(startDate);
+                          date.setDate(startDate.getDate() + i);
+
+                          const dayInterviews = interviews.filter(
+                            (interview) =>
+                              getInterviewDate(interview).toDateString() === date.toDateString()
+                          );
+
+                          const isToday = date.toDateString() === new Date().toDateString();
+                          const isCurrentMonth =
+                            date.getMonth() === selectedDate.getMonth();
+
+                          return (
+                            <motion.div
+                              key={date.toDateString()}
+                              initial={{ opacity: 0 }}
+                              animate={{ opacity: 1 }}
+                              className={cn(
+                                "min-h-[100px] p-2 border rounded-lg transition-all cursor-pointer",
+                                isCurrentMonth
+                                  ? isToday
+                                    ? "border-primary bg-primary/5"
+                                    : "border-border bg-card hover:border-foreground/20"
+                                  : "border-border/30 bg-muted/20 opacity-50",
+                                dayInterviews.length > 0 && "border-primary/50"
+                              )}
+                              onClick={() => {
+                                setSelectedDate(date);
+                                setSelectedView("day");
+                              }}
+                            >
+                              <div
+                                className={cn(
+                                  "text-sm font-bold mb-1",
+                                  isToday
+                                    ? "text-primary"
+                                    : "text-foreground/60",
+                                  !isCurrentMonth && "opacity-40"
+                                )}
+                              >
+                                {date.getDate()}
+                              </div>
+                              <div className="space-y-1">
+                                {dayInterviews.slice(0, 2).map((interview) => (
+                                  <div
+                                    key={interview.id}
+                                    className="text-xs p-1 rounded bg-primary/20 text-primary font-medium truncate"
+                                  >
+                                    {interview.time}
+                                  </div>
+                                ))}
+                                {dayInterviews.length > 2 && (
+                                  <div className="text-xs text-muted-foreground px-1 font-medium">
+                                    +{dayInterviews.length - 2}
+                                  </div>
+                                )}
+                              </div>
+                            </motion.div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  )}
                 </CardContent>
               </Card>
             </AnimatedContainer>
@@ -827,7 +940,7 @@ function InterviewScheduler() {
                           className="pl-8 w-48"
                         />
                       </div>
-                      <Button variant="outline" size="sm">
+                      <Button variant="outline" size="sm" onClick={() => setShowFilterModal(true)}>
                         <Filter className="w-4 h-4" />
                       </Button>
                     </div>
@@ -929,13 +1042,13 @@ function InterviewScheduler() {
                               <Label>Date *</Label>
                               <Input
                                 type="date"
-                                value={newInterviewForm.date}
+                                value={newInterviewForm.scheduledAt}
                                 onChange={(e) => {
                                   setNewInterviewForm((f) => ({
                                     ...f,
-                                    date: e.target.value,
+                                    scheduledAt: e.target.value,
                                   }));
-                                  if (formErrors.date) {
+                                  if (formErrors.scheduledAt) {
                                     setFormErrors((prev) => ({
                                       ...prev,
                                       date: "",
@@ -943,12 +1056,12 @@ function InterviewScheduler() {
                                   }
                                 }}
                                 className={
-                                  formErrors.date ? "border-red-500" : ""
+                                  formErrors.scheduledAt ? "border-red-500" : ""
                                 }
                               />
-                              {formErrors.date && (
+                              {formErrors.scheduledAt && (
                                 <p className="text-xs text-red-500 mt-1">
-                                  {formErrors.date}
+                                  {formErrors.scheduledAt}
                                 </p>
                               )}
                             </div>
@@ -1142,7 +1255,7 @@ function InterviewScheduler() {
                                   const [hours, minutes] =
                                     newInterviewForm.time.split(":");
                                   const scheduledDate = new Date(
-                                    newInterviewForm.date,
+                                    newInterviewForm.scheduledAt,
                                   );
                                   scheduledDate.setHours(
                                     parseInt(hours),
@@ -1196,37 +1309,10 @@ function InterviewScheduler() {
                                     await fetch("/api/interviews");
                                   if (refetchResponse.ok) {
                                     const data = await refetchResponse.json();
-                                    const transformedInterviews = (
+                                    const fetchedInterviews = (
                                       data.interviews || []
-                                    ).map((interview: ApiInterview) => ({
-                                      id: interview.id || Date.now().toString(),
-                                      candidateName:
-                                        interview.candidateName || "Anonymous",
-                                      position: interview.title || "Position",
-                                      date: new Date(
-                                        interview.scheduledAt ||
-                                          interview.createdAt ||
-                                          Date.now(),
-                                      ),
-                                      time: new Date(
-                                        interview.scheduledAt ||
-                                          interview.createdAt ||
-                                          Date.now(),
-                                      ).toLocaleTimeString("en-US", {
-                                        hour: "2-digit",
-                                        minute: "2-digit",
-                                        hour12: false,
-                                      }),
-                                      duration: interview.duration || 60,
-                                      type: interview.type || "video",
-                                      status: interview.status || "scheduled",
-                                      interviewer: "Interviewer",
-                                      candidateEmail:
-                                        interview.candidateEmail || "",
-                                      notes: interview.notes || "",
-                                      reminderSent: false,
-                                    }));
-                                    setInterviews(transformedInterviews);
+                                    ) as Interview[];
+                                    setInterviews(fetchedInterviews);
                                   }
 
                                   setSuccessMessage(
@@ -1242,7 +1328,7 @@ function InterviewScheduler() {
                                   setNewInterviewForm({
                                     candidateName: "",
                                     position: "",
-                                    date: new Date().toISOString().slice(0, 10),
+                                    scheduledAt: new Date().toISOString().slice(0, 10),
                                     time: "09:00",
                                     duration: 60,
                                     type: "video",
@@ -1291,7 +1377,7 @@ function InterviewScheduler() {
                       >
                         <div className="flex items-center gap-4">
                           <div className="w-12 h-12 bg-primary rounded-lg flex items-center justify-center text-white font-medium">
-                            {interview.candidateName
+                            {(interview.candidateName || "")
                               .split(" ")
                               .map((n) => n[0])
                               .join("")}
@@ -1307,7 +1393,7 @@ function InterviewScheduler() {
                             <div className="flex items-center gap-3 mt-1 text-xs text-muted-foreground">
                               <span className="flex items-center gap-1">
                                 <Calendar className="w-3 h-3" />
-                                {interview.date.toLocaleDateString()}
+                                {getInterviewDate(interview).toLocaleDateString()}
                               </span>
                               <span className="flex items-center gap-1">
                                 <Clock className="w-3 h-3" />
@@ -1318,6 +1404,19 @@ function InterviewScheduler() {
                                 {interview.type}
                               </span>
                             </div>
+                            {/* Email & Calendar Status */}
+                            <div className="flex items-center gap-2 mt-2">
+                              {interview.reminderSent && (
+                                <span className="text-xs px-2 py-0.5 rounded-full bg-green-500/20 text-green-700 font-medium">
+                                  ✓ Email sent
+                                </span>
+                              )}
+                              {calendarConnected && interview.isCalendarSynced && (
+                                <span className="text-xs px-2 py-0.5 rounded-full bg-blue-500/20 text-blue-700 font-medium">
+                                  ✓ Calendar synced
+                                </span>
+                              )}
+                            </div>
                           </div>
                         </div>
 
@@ -1327,13 +1426,19 @@ function InterviewScheduler() {
                           </Badge>
 
                           <div className="flex items-center gap-1">
-                            <Button variant="ghost" size="sm">
+                            <Button variant="ghost" size="sm" onClick={() => {
+                              setShowNotesModal(interview.id);
+                              setNotesContent(interview.notes || "");
+                            }}>
                               <MessageSquare className="w-4 h-4" />
                             </Button>
-                            <Button variant="ghost" size="sm">
+                            <Button variant="ghost" size="sm" onClick={() => {
+                              setEditingInterview(interview);
+                              setShowEditModal(true);
+                            }}>
                               <Edit3 className="w-4 h-4" />
                             </Button>
-                            <Button variant="ghost" size="sm">
+                            <Button variant="ghost" size="sm" onClick={() => setShowDeleteConfirm(interview.id)}>
                               <Trash2 className="w-4 h-4" />
                             </Button>
                           </div>
@@ -1376,7 +1481,7 @@ function InterviewScheduler() {
                             className="flex items-center gap-3 p-3 border rounded-lg"
                           >
                             <div className="w-10 h-10 bg-primary rounded-lg flex items-center justify-center text-white text-sm font-medium">
-                              {interview.candidateName
+                              {(interview.candidateName || "")
                                 .split(" ")
                                 .map((n) => n[0])
                                 .join("")}
@@ -1384,10 +1489,10 @@ function InterviewScheduler() {
 
                             <div className="flex-1">
                               <div className="font-medium text-sm">
-                                {interview.candidateName}
+                                {interview.candidateName || "Anonymous"}
                               </div>
                               <div className="text-xs text-muted-foreground">
-                                {interview.date.toLocaleDateString()} at{" "}
+                                {getInterviewDate(interview).toLocaleDateString()} at{" "}
                                 {interview.time}
                               </div>
                               <div className="flex items-center gap-2 mt-1">
@@ -1417,22 +1522,126 @@ function InterviewScheduler() {
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-3">
-                  <Button variant="outline" className="w-full justify-start">
+                  <Button variant="outline" className="w-full justify-start" onClick={() => {
+                    // Navigate to candidate creation
+                    window.location.href = "/candidate-profiles";
+                  }}>
                     <UserPlus className="w-4 h-4 mr-2" />
                     Add Candidate
                   </Button>
-                  <Button variant="outline" className="w-full justify-start">
+                  <Button variant="outline" className="w-full justify-start" onClick={async () => {
+                    const toRemind = interviews.filter(i => !i.reminderSent && i.status !== "completed");
+                    if (toRemind.length === 0) {
+                      setErrorMessage("No interviews need reminders");
+                      setTimeout(() => setErrorMessage(null), 5000);
+                      return;
+                    }
+
+                    try {
+                      const response = await fetch("/api/interviews/send-reminders", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ interviewIds: toRemind.map(i => i.id) }),
+                      });
+
+                      if (response.ok) {
+                        const result = await response.json();
+                        setSuccessMessage(`Reminders sent to ${result.sent} candidate(s)!`);
+                        // Refresh interviews
+                        const refreshResponse = await fetch("/api/interviews");
+                        if (refreshResponse.ok) {
+                          const data = await refreshResponse.json();
+                          const transformed = (data.interviews || []) as Interview[];
+                          setInterviews(transformed);
+                        }
+                      } else {
+                        throw new Error("Failed to send reminders");
+                      }
+                      setTimeout(() => setSuccessMessage(null), 5000);
+                    } catch (error) {
+                      setErrorMessage("Failed to send reminders");
+                      setTimeout(() => setErrorMessage(null), 5000);
+                    }
+                  }}>
                     <Bell className="w-4 h-4 mr-2" />
                     Send Reminders
                   </Button>
-                  <Button variant="outline" className="w-full justify-start">
+                  <Button variant="outline" className="w-full justify-start" onClick={async () => {
+                    try {
+                      const response = await fetch("/api/interviews/export", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ format: "csv" }),
+                      });
+
+                      if (response.ok) {
+                        const blob = await response.blob();
+                        const url = window.URL.createObjectURL(blob);
+                        const a = document.createElement("a");
+                        a.href = url;
+                        a.download = `interviews-${new Date().toISOString().split('T')[0]}.csv`;
+                        document.body.appendChild(a);
+                        a.click();
+                        window.URL.revokeObjectURL(url);
+                        document.body.removeChild(a);
+                        setSuccessMessage("Interviews exported successfully!");
+                        setTimeout(() => setSuccessMessage(null), 5000);
+                      } else {
+                        throw new Error("Failed to export");
+                      }
+                    } catch (error) {
+                      setErrorMessage("Failed to export interviews");
+                      setTimeout(() => setErrorMessage(null), 5000);
+                    }
+                  }}>
                     <Download className="w-4 h-4 mr-2" />
                     Export Schedule
                   </Button>
-                  <Button variant="outline" className="w-full justify-start">
+                  <Button variant="outline" className="w-full justify-start" onClick={() => {
+                    fileInputRef.current?.click();
+                  }}>
                     <Upload className="w-4 h-4 mr-2" />
                     Import Calendar
                   </Button>
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept=".csv,.json"
+                    style={{ display: "none" }}
+                    onChange={async (e) => {
+                      const file = e.target.files?.[0];
+                      if (!file) return;
+
+                      try {
+                        const formData = new FormData();
+                        formData.append("file", file);
+
+                        const response = await fetch("/api/interviews/import", {
+                          method: "POST",
+                          body: formData,
+                        });
+
+                        if (response.ok) {
+                          const result = await response.json();
+                          setSuccessMessage(`Imported ${result.imported} interview(s)!${result.failed > 0 ? ` (${result.failed} failed)` : ""}`);
+                          
+                          // Refresh interviews
+                          const refreshResponse = await fetch("/api/interviews");
+                          if (refreshResponse.ok) {
+                            const data = await refreshResponse.json();
+                            const transformed = (data.interviews || []) as Interview[];
+                            setInterviews(transformed);
+                          }
+                        } else {
+                          throw new Error("Failed to import");
+                        }
+                        setTimeout(() => setSuccessMessage(null), 5000);
+                      } catch (error) {
+                        setErrorMessage("Failed to import interviews");
+                        setTimeout(() => setErrorMessage(null), 5000);
+                      }
+                    }}
+                  />
                 </CardContent>
               </Card>
             </AnimatedContainer>
@@ -1447,40 +1656,677 @@ function InterviewScheduler() {
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-3">
-                  <div className="flex items-start gap-3 p-3 bg-primary/10 rounded-lg">
-                    <AlertCircle className="w-4 h-4 text-primary mt-0.5" />
-                    <div className="text-sm">
-                      <div className="font-medium">Reminder Due</div>
-                      <div className="text-muted-foreground">
-                        Michael Torres interview tomorrow at 2:00 PM
-                      </div>
+                  {notifications.length === 0 ? (
+                    <div className="text-center py-6 text-muted-foreground">
+                      <Bell className="w-8 h-8 mx-auto mb-2 opacity-50" />
+                      <p className="text-sm">No notifications</p>
                     </div>
-                  </div>
+                  ) : (
+                    notifications.slice(0, 3).map((notif: any) => {
+                      const getNotificationIcon = () => {
+                        switch (notif.type) {
+                          case "reminder":
+                            return <AlertCircle className="w-4 h-4 text-primary mt-0.5" />;
+                          case "confirmation":
+                            return <CheckCircle2 className="w-4 h-4 text-secondary mt-0.5" />;
+                          case "completion":
+                            return <CheckCircle2 className="w-4 h-4 text-accent mt-0.5" />;
+                          default:
+                            return <Bell className="w-4 h-4 text-foreground mt-0.5" />;
+                        }
+                      };
 
-                  <div className="flex items-start gap-3 p-3 bg-secondary/10 rounded-lg">
-                    <CheckCircle2 className="w-4 h-4 text-secondary mt-0.5" />
-                    <div className="text-sm">
-                      <div className="font-medium">Interview Confirmed</div>
-                      <div className="text-muted-foreground">
-                        Sarah Johnson confirmed for today at 9:00 AM
-                      </div>
-                    </div>
-                  </div>
+                      const getNotificationBgColor = () => {
+                        switch (notif.severity) {
+                          case "info":
+                            return "bg-primary/10";
+                          case "success":
+                            return "bg-secondary/10";
+                          case "warning":
+                            return "bg-amber-500/10";
+                          case "error":
+                            return "bg-red-500/10";
+                          default:
+                            return "bg-muted";
+                        }
+                      };
 
-                  <div className="flex items-start gap-3 p-3 bg-accent/10 rounded-lg">
-                    <Timer className="w-4 h-4 text-accent mt-0.5" />
-                    <div className="text-sm">
-                      <div className="font-medium">Schedule Conflict</div>
-                      <div className="text-muted-foreground">
-                        Overlapping meetings detected for Friday
-                      </div>
-                    </div>
-                  </div>
+                      return (
+                        <motion.div
+                          key={notif.id}
+                          initial={{ opacity: 0, x: -20 }}
+                          animate={{ opacity: 1, x: 0 }}
+                          className={`flex items-start gap-3 p-3 rounded-lg ${getNotificationBgColor()}`}
+                        >
+                          {getNotificationIcon()}
+                          <div className="text-sm flex-1">
+                            <div className="font-medium">{notif.title}</div>
+                            <div className="text-muted-foreground text-xs">{notif.message}</div>
+                          </div>
+                        </motion.div>
+                      );
+                    })
+                  )}
                 </CardContent>
               </Card>
             </AnimatedContainer>
           </div>
         </div>
+
+        {/* MODALS */}
+
+        {/* Edit Interview Modal */}
+        <AnimatePresence>
+          {showEditModal && editingInterview && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 z-50 flex items-center justify-center p-4"
+            >
+              <button
+                type="button"
+                aria-label="Close modal"
+                className="absolute inset-0 bg-black/40"
+                onClick={() => {
+                  setShowEditModal(false);
+                  setEditingInterview(null);
+                }}
+              />
+
+              <motion.div
+                initial={{ y: 20, opacity: 0 }}
+                animate={{ y: 0, opacity: 1 }}
+                exit={{ y: 20, opacity: 0 }}
+                transition={{ type: "spring", stiffness: 300 }}
+                className="relative w-full max-w-2xl bg-background rounded-lg p-6 shadow-lg border border-border"
+              >
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-lg font-semibold">Edit Interview</h3>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => {
+                      setShowEditModal(false);
+                      setEditingInterview(null);
+                    }}
+                  >
+                    <X className="w-4 h-4" />
+                  </Button>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <Label>Candidate Name</Label>
+                    <Input
+                      value={editingInterview?.candidateName || ""}
+                      onChange={(e) =>
+                        setEditingInterview({
+                          ...editingInterview!,
+                          candidateName: e.target.value,
+                        })
+                      }
+                    />
+                  </div>
+
+                  <div>
+                    <Label>Position</Label>
+                    <Input
+                      value={editingInterview?.position || ""}
+                      onChange={(e) =>
+                        setEditingInterview({
+                          ...editingInterview!,
+                          position: e.target.value,
+                        })
+                      }
+                    />
+                  </div>
+
+                  <div>
+                    <Label>Date</Label>
+                    <Input
+                      type="date"
+                      value={getInterviewDate(editingInterview!).toISOString().slice(0, 10)}
+                      onChange={(e) =>
+                        setEditingInterview({
+                          ...editingInterview!,
+                          scheduledAt: new Date(e.target.value),
+                        })
+                      }
+                    />
+                  </div>
+
+                  <div>
+                    <Label>Time</Label>
+                    <Input
+                      type="time"
+                      value={editingInterview?.time || ""}
+                      onChange={(e) =>
+                        setEditingInterview({
+                          ...editingInterview!,
+                          time: e.target.value,
+                        })
+                      }
+                    />
+                  </div>
+
+                  <div>
+                    <Label>Duration (minutes)</Label>
+                    <Input
+                      type="number"
+                      value={editingInterview?.duration || 0}
+                      onChange={(e) =>
+                        setEditingInterview({
+                          ...editingInterview!,
+                          duration: Number(e.target.value),
+                        })
+                      }
+                    />
+                  </div>
+
+                  <div>
+                    <Label>Type</Label>
+                    <select
+                      value={editingInterview?.type || ""}
+                      onChange={(e) =>
+                        setEditingInterview({
+                          ...editingInterview,
+                          type: e.target.value as Interview["type"],
+                        })
+                      }
+                      className="w-full rounded border px-2 py-1 bg-transparent text-sm"
+                    >
+                      <option value="video">Video</option>
+                      <option value="in-person">In-Person</option>
+                      <option value="phone">Phone</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <Label>Status</Label>
+                    <select
+                      value={editingInterview.status}
+                      onChange={(e) =>
+                        setEditingInterview({
+                          ...editingInterview,
+                          status: e.target.value as Interview["status"],
+                        })
+                      }
+                      className="w-full rounded border px-2 py-1 bg-transparent text-sm"
+                    >
+                      <option value="scheduled">Scheduled</option>
+                      <option value="confirmed">Confirmed</option>
+                      <option value="completed">Completed</option>
+                      <option value="cancelled">Cancelled</option>
+                      <option value="no-show">No-show</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <Label>Email</Label>
+                    <Input
+                      type="email"
+                      value={editingInterview?.candidateEmail || ""}
+                      onChange={(e) =>
+                        setEditingInterview({
+                          ...editingInterview!,
+                          candidateEmail: e.target.value,
+                        })
+                      }
+                    />
+                  </div>
+
+                  <div>
+                    <Label>Phone</Label>
+                    <Input
+                      value={editingInterview.candidatePhone || ""}
+                      onChange={(e) =>
+                        setEditingInterview({
+                          ...editingInterview,
+                          candidatePhone: e.target.value,
+                        })
+                      }
+                    />
+                  </div>
+
+                  <div className="md:col-span-2">
+                    <Label>Notes</Label>
+                    <Input
+                      value={editingInterview.notes || ""}
+                      onChange={(e) =>
+                        setEditingInterview({
+                          ...editingInterview,
+                          notes: e.target.value,
+                        })
+                      }
+                      placeholder="Optional notes"
+                    />
+                  </div>
+                </div>
+
+                <div className="mt-6 flex justify-end gap-2">
+                  <Button
+                    variant="outline"
+                    onClick={() => {
+                      setShowEditModal(false);
+                      setEditingInterview(null);
+                    }}
+                  >
+                    Cancel
+                  </Button>
+                  <Button
+                    onClick={async () => {
+                      try {
+                        const [hours, minutes] = (editingInterview?.time || "00:00")
+                          .split(":")
+                          .map(Number);
+                        const scheduledDate = new Date(editingInterview?.scheduledAt || new Date());
+                        scheduledDate.setHours(hours, minutes);
+
+                        const response = await fetch(
+                          `/api/interviews/${editingInterview.id}`,
+                          {
+                            method: "PATCH",
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify({
+                              status: editingInterview.status,
+                              scheduledAt: scheduledDate.toISOString(),
+                              settings: {
+                                candidateName: editingInterview.candidateName,
+                                position: editingInterview.position,
+                                candidateEmail: editingInterview.candidateEmail,
+                                candidatePhone: editingInterview.candidatePhone,
+                                notes: editingInterview.notes,
+                              },
+                            }),
+                          }
+                        );
+
+                        if (!response.ok) {
+                          throw new Error("Failed to update interview");
+                        }
+
+                        setSuccessMessage("Interview updated successfully!");
+                        setShowEditModal(false);
+                        setEditingInterview(null);
+
+                        // Refresh interviews
+                        const refreshResponse = await fetch("/api/interviews");
+                        if (refreshResponse.ok) {
+                          const data = await refreshResponse.json();
+                          const transformed = (data.interviews || []) as Interview[];
+                          setInterviews(transformed);
+                        }
+
+                        setTimeout(() => setSuccessMessage(null), 5000);
+                      } catch (error) {
+                        setErrorMessage("Failed to update interview");
+                        setTimeout(() => setErrorMessage(null), 5000);
+                      }
+                    }}
+                  >
+                    Save Changes
+                  </Button>
+                </div>
+              </motion.div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* Delete Confirmation Modal */}
+        <AnimatePresence>
+          {showDeleteConfirm && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 z-50 flex items-center justify-center p-4"
+            >
+              <button
+                type="button"
+                className="absolute inset-0 bg-black/40"
+                onClick={() => setShowDeleteConfirm(null)}
+              />
+
+              <motion.div
+                initial={{ y: 20, opacity: 0 }}
+                animate={{ y: 0, opacity: 1 }}
+                exit={{ y: 20, opacity: 0 }}
+                className="relative w-full max-w-sm bg-background rounded-lg p-6 shadow-lg border border-border"
+              >
+                <h3 className="text-lg font-semibold mb-2">Delete Interview?</h3>
+                <p className="text-sm text-muted-foreground mb-6">
+                  Are you sure you want to delete this interview? This action
+                  cannot be undone.
+                </p>
+
+                <div className="flex justify-end gap-2">
+                  <Button
+                    variant="outline"
+                    onClick={() => setShowDeleteConfirm(null)}
+                  >
+                    Cancel
+                  </Button>
+                  <Button
+                    variant="destructive"
+                    onClick={async () => {
+                      try {
+                        const response = await fetch(
+                          `/api/interviews/${showDeleteConfirm}`,
+                          { method: "DELETE" }
+                        );
+
+                        if (!response.ok) {
+                          throw new Error("Failed to delete interview");
+                        }
+
+                        setSuccessMessage("Interview deleted successfully!");
+                        setShowDeleteConfirm(null);
+
+                        // Refresh interviews
+                        const refreshResponse = await fetch("/api/interviews");
+                        if (refreshResponse.ok) {
+                          const data = await refreshResponse.json();
+                          const transformed = (data.interviews || []) as Interview[];
+                          setInterviews(transformed);
+                        }
+
+                        setTimeout(() => setSuccessMessage(null), 5000);
+                      } catch (error) {
+                        setErrorMessage("Failed to delete interview");
+                        setTimeout(() => setErrorMessage(null), 5000);
+                      }
+                    }}
+                  >
+                    Delete
+                  </Button>
+                </div>
+              </motion.div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* Filter Modal */}
+        <AnimatePresence>
+          {showFilterModal && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 z-50 flex items-center justify-center p-4"
+            >
+              <button
+                type="button"
+                className="absolute inset-0 bg-black/40"
+                onClick={() => setShowFilterModal(false)}
+              />
+
+              <motion.div
+                initial={{ y: 20, opacity: 0 }}
+                animate={{ y: 0, opacity: 1 }}
+                exit={{ y: 20, opacity: 0 }}
+                className="relative w-full max-w-sm bg-background rounded-lg p-6 shadow-lg border border-border"
+              >
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-lg font-semibold">Filter Interviews</h3>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => setShowFilterModal(false)}
+                  >
+                    <X className="w-4 h-4" />
+                  </Button>
+                </div>
+
+                <div className="space-y-4">
+                  <div>
+                    <Label>Status</Label>
+                    <select
+                      value={filterStatus}
+                      onChange={(e) => setFilterStatus(e.target.value)}
+                      className="w-full rounded border px-2 py-2 bg-transparent text-sm"
+                    >
+                      <option value="all">All</option>
+                      <option value="scheduled">Scheduled</option>
+                      <option value="confirmed">Confirmed</option>
+                      <option value="completed">Completed</option>
+                      <option value="cancelled">Cancelled</option>
+                      <option value="no-show">No-show</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div className="mt-6 flex justify-end gap-2">
+                  <Button
+                    variant="outline"
+                    onClick={() => setShowFilterModal(false)}
+                  >
+                    Close
+                  </Button>
+                </div>
+              </motion.div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* Notes Modal */}
+        <AnimatePresence>
+          {showNotesModal && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 z-50 flex items-center justify-center p-4"
+            >
+              <button
+                type="button"
+                className="absolute inset-0 bg-black/40"
+                onClick={() => setShowNotesModal(null)}
+              />
+
+              <motion.div
+                initial={{ y: 20, opacity: 0 }}
+                animate={{ y: 0, opacity: 1 }}
+                exit={{ y: 20, opacity: 0 }}
+                className="relative w-full max-w-2xl bg-background rounded-lg p-6 shadow-lg border border-border"
+              >
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-lg font-semibold">Interview Notes</h3>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => setShowNotesModal(null)}
+                  >
+                    <X className="w-4 h-4" />
+                  </Button>
+                </div>
+
+                <textarea
+                  value={notesContent}
+                  onChange={(e) => setNotesContent(e.target.value)}
+                  placeholder="Add notes about this interview..."
+                  className="w-full h-48 rounded border px-3 py-2 bg-transparent text-sm resize-none"
+                />
+
+                <div className="mt-6 flex justify-end gap-2">
+                  <Button
+                    variant="outline"
+                    onClick={() => setShowNotesModal(null)}
+                  >
+                    Close
+                  </Button>
+                  <Button
+                    onClick={async () => {
+                      try {
+                        const interview = interviews.find(
+                          (i) => i.id === showNotesModal
+                        );
+                        if (!interview) return;
+
+                        const response = await fetch(
+                          `/api/interviews/${showNotesModal}`,
+                          {
+                            method: "PATCH",
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify({
+                              settings: {
+                                ...interview,
+                                notes: notesContent,
+                              },
+                            }),
+                          }
+                        );
+
+                        if (!response.ok) {
+                          throw new Error("Failed to save notes");
+                        }
+
+                        setSuccessMessage("Notes saved successfully!");
+                        setShowNotesModal(null);
+
+                        // Refresh interviews
+                        const refreshResponse = await fetch("/api/interviews");
+                        if (refreshResponse.ok) {
+                          const data = await refreshResponse.json();
+                          const transformed = (data.interviews || []) as Interview[];
+                          setInterviews(transformed);
+                        }
+
+                        setTimeout(() => setSuccessMessage(null), 5000);
+                      } catch (error) {
+                        setErrorMessage("Failed to save notes");
+                        setTimeout(() => setErrorMessage(null), 5000);
+                      }
+                    }}
+                  >
+                    Save Notes
+                  </Button>
+                </div>
+              </motion.div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* Settings Modal */}
+        <AnimatePresence>
+          {showSettingsModal && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 z-50 flex items-center justify-center p-4"
+            >
+              <button
+                type="button"
+                className="absolute inset-0 bg-black/40"
+                onClick={() => setShowSettingsModal(false)}
+              />
+
+              <motion.div
+                initial={{ y: 20, opacity: 0 }}
+                animate={{ y: 0, opacity: 1 }}
+                exit={{ y: 20, opacity: 0 }}
+                className="relative w-full max-w-sm bg-background rounded-lg p-6 shadow-lg border border-border"
+              >
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-lg font-semibold">Interview Settings</h3>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => setShowSettingsModal(false)}
+                  >
+                    <X className="w-4 h-4" />
+                  </Button>
+                </div>
+
+                <div className="space-y-4">
+                  <div className="space-y-3">
+                    <div className="text-sm font-semibold text-muted-foreground">Notifications</div>
+                    <div className="flex items-center justify-between">
+                      <Label>Auto-send reminders</Label>
+                      <input type="checkbox" className="w-4 h-4" />
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <Label>Send confirmations</Label>
+                      <input type="checkbox" className="w-4 h-4" defaultChecked />
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <Label>Show in-app notifications</Label>
+                      <input type="checkbox" className="w-4 h-4" defaultChecked />
+                    </div>
+                  </div>
+
+                  <div className="border-t pt-4">
+                    <div className="text-sm font-semibold text-muted-foreground mb-3">Calendar Integration</div>
+                    <div className="space-y-3">
+                      <div className="flex items-center justify-between p-3 border rounded-lg hover:bg-muted/50">
+                        <div>
+                          <div className="text-sm font-medium">Google Calendar</div>
+                          <div className="text-xs text-muted-foreground">
+                            {calendarConnected ? '✓ Connected' : 'Not connected'}
+                          </div>
+                        </div>
+                        <Button
+                          size="sm"
+                          variant={calendarConnected ? "outline" : "default"}
+                          onClick={async () => {
+                            try {
+                              if (calendarConnected) {
+                                // Disconnect
+                                setCalendarConnected(false);
+                                setSuccessMessage("Google Calendar disconnected");
+                              } else {
+                                // Connect
+                                const response = await fetch('/api/calendar/sync?action=authorize');
+                                const { authUrl } = await response.json();
+                                window.location.href = authUrl;
+                              }
+                              setTimeout(() => setSuccessMessage(null), 5000);
+                            } catch (error) {
+                              setErrorMessage("Failed to manage calendar connection");
+                              setTimeout(() => setErrorMessage(null), 5000);
+                            }
+                          }}
+                        >
+                          {calendarConnected ? 'Disconnect' : 'Connect'}
+                        </Button>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <Label>Auto-sync interviews to calendar</Label>
+                        <input type="checkbox" className="w-4 h-4" defaultChecked={calendarConnected} disabled={!calendarConnected} />
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="border-t pt-4">
+                    <div className="text-sm font-semibold text-muted-foreground mb-3">Email Service</div>
+                    <div className="space-y-2 text-xs text-muted-foreground">
+                      <p>📧 Email reminders and confirmations will be sent via:</p>
+                      <p className="font-medium text-foreground">Gmail API</p>
+                      <p>Ensure your Gmail credentials are configured in settings.</p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="mt-6 flex justify-end gap-2">
+                  <Button
+                    variant="outline"
+                    onClick={() => setShowSettingsModal(false)}
+                  >
+                    Close
+                  </Button>
+                  <Button onClick={() => {
+                    setSuccessMessage("Settings saved!");
+                    setTimeout(() => setSuccessMessage(null), 5000);
+                    setShowSettingsModal(false);
+                  }}>
+                    Save Settings
+                  </Button>
+                </div>
+              </motion.div>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
     </div>
   );

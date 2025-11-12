@@ -119,4 +119,75 @@
   body {
     @apply bg-background text-foreground;
   }
+
+  /* Themed Scrollbar Styling */
+  html {
+    scroll-behavior: smooth;
+  }
+
+  /* Light Mode - Webkit Scrollbar (Chrome, Edge, Safari) */
+  ::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: var(--background);
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: var(--muted-foreground);
+    border-radius: 5px;
+    border: 2px solid var(--background);
+    transition: background-color 0.3s ease;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: var(--ring);
+  }
+
+  ::-webkit-scrollbar-thumb:active {
+    background: var(--primary);
+  }
+
+  ::-webkit-scrollbar-corner {
+    background: var(--background);
+  }
+
+  /* Dark Mode - Webkit Scrollbar */
+  .dark::-webkit-scrollbar-track {
+    background: var(--background);
+  }
+
+  .dark::-webkit-scrollbar-thumb {
+    background: var(--muted-foreground);
+    border: 2px solid var(--background);
+  }
+
+  .dark::-webkit-scrollbar-thumb:hover {
+    background: var(--primary);
+  }
+
+  .dark::-webkit-scrollbar-thumb:active {
+    background: var(--accent);
+  }
+
+  .dark::-webkit-scrollbar-corner {
+    background: var(--background);
+  }
+
+  /* Firefox Scrollbar */
+  * {
+    scrollbar-width: auto;
+    scrollbar-color: var(--muted-foreground) var(--background);
+  }
+
+  .dark {
+    scrollbar-color: var(--muted-foreground) var(--background);
+  }
+
+  /* Custom scrollbar for specific containers */
+  ::-webkit-scrollbar-button {
+    display: none;
+  }
 }
