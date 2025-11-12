@@ -1,5 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 
+// Add CORS headers for Chrome extension
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
+  'Access-Control-Allow-Headers': 'Content-Type',
+};
+
 // Global cache type definition
 declare global {
   var linkedInImportCache: {
@@ -123,7 +130,7 @@ export async function POST(request: NextRequest) {
       });
     }
 
-    return NextResponse.json({
+    const response = NextResponse.json({
       success: true,
       message: "LinkedIn data received successfully",
       dataId: dataId,
@@ -141,16 +148,31 @@ export async function POST(request: NextRequest) {
         },
       },
     });
+    Object.entries(corsHeaders).forEach(([key, value]) => {
+      response.headers.set(key, value);
+    });
+    return response;
   } catch (error) {
     console.error("Error processing LinkedIn import:", error);
-    return NextResponse.json(
+    const response = NextResponse.json(
       {
         error: "Failed to process LinkedIn data",
         details: error instanceof Error ? error.message : String(error),
       },
       { status: 500 }
     );
+    Object.entries(corsHeaders).forEach(([key, value]) => {
+      response.headers.set(key, value);
+    });
+    return response;
   }
+}
+
+export async function OPTIONS(request: NextRequest) {
+  return new NextResponse(null, {
+    status: 200,
+    headers: corsHeaders,
+  });
 }
 
 export async function GET(request: NextRequest) {
@@ -183,8 +205,12 @@ export async function GET(request: NextRequest) {
   // Delete after retrieval for security
   delete cache[dataId];
 
-  return NextResponse.json({
+  const response = NextResponse.json({
     success: true,
     data: cached.data,
   });
+  Object.entries(corsHeaders).forEach(([key, value]) => {
+    response.headers.set(key, value);
+  });
+  return response;
 }

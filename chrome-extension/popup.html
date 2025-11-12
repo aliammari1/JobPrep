@@ -5,145 +5,252 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>JobPrep LinkedIn Importer</title>
   <style>
+    * {
+      box-sizing: border-box;
+    }
+
     body {
-      width: 350px;
-      min-height: 400px;
-      padding: 16px;
+      width: 400px;
+      min-height: 500px;
+      padding: 0;
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
       margin: 0;
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      color: #fff;
+      background: #ffffff;
+      color: #1a1a1a;
+    }
+
+    .header {
+      background: #ffffff;
+      padding: 20px 20px 16px 20px;
+      border-bottom: 1px solid #e5e5e5;
+    }
+
+    .header h1 {
+      margin: 0 0 4px 0;
+      font-size: 22px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: linear-gradient(to right, #3b82f6, #3b82f6);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .header p {
+      margin: 0;
+      font-size: 13px;
+      color: #666666;
     }
 
     .container {
-      background: rgba(255, 255, 255, 0.1);
-      backdrop-filter: blur(10px);
-      border-radius: 12px;
       padding: 20px;
-      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+      overflow-y: auto;
+      max-height: calc(100vh - 120px);
     }
 
-    h1 {
-      margin: 0 0 8px 0;
-      font-size: 20px;
-      font-weight: 600;
-    }
-
-    .subtitle {
-      font-size: 14px;
-      opacity: 0.9;
-      margin-bottom: 20px;
-    }
-
-    .status {
-      background: rgba(255, 255, 255, 0.2);
-      padding: 12px;
-      border-radius: 8px;
+    .status-card {
+      background: #f9fafb;
+      padding: 14px;
+      border-radius: 10px;
       margin-bottom: 16px;
-      font-size: 13px;
-      word-break: break-all;
+      font-size: 12px;
+      word-break: break-word;
+      border: 1px solid #e5e5e5;
     }
 
     .status-label {
       font-weight: 600;
-      margin-bottom: 4px;
+      margin-bottom: 6px;
+      color: #333333;
+      text-transform: uppercase;
+      font-size: 11px;
+      letter-spacing: 0.5px;
+    }
+
+    .status-value {
+      background: #ffffff;
+      padding: 8px 10px;
+      border-radius: 6px;
+      font-family: 'Monaco', 'Menlo', monospace;
+      font-size: 11px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      border: 1px solid #e5e5e5;
+      color: #666666;
     }
 
     button {
       width: 100%;
       padding: 12px 16px;
       border: none;
-      border-radius: 8px;
+      border-radius: 10px;
       font-size: 14px;
       font-weight: 600;
       cursor: pointer;
-      transition: all 0.2s;
+      transition: all 0.3s ease;
       margin-bottom: 10px;
+      text-align: center;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
     }
 
     button:disabled {
-      opacity: 0.5;
+      opacity: 0.6;
       cursor: not-allowed;
     }
 
     .btn-primary {
-      background: #fff;
-      color: #667eea;
+      background: #3b82f6;
+      color: #ffffff;
+      font-weight: 700;
+      box-shadow: 0 2px 8px rgba(59, 130, 246, 0.2);
+      border: 1px solid #3b82f6;
     }
 
     .btn-primary:hover:not(:disabled) {
-      transform: translateY(-2px);
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+      background: #2563eb;
+      border-color: #2563eb;
+      box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+    }
+
+    .btn-primary:active:not(:disabled) {
+      transform: translateY(0);
     }
 
     .btn-secondary {
-      background: rgba(255, 255, 255, 0.2);
-      color: #fff;
+      background: #f3f4f6;
+      color: #374151;
+      border: 1px solid #e5e7eb;
     }
 
     .btn-secondary:hover:not(:disabled) {
-      background: rgba(255, 255, 255, 0.3);
+      background: #e5e7eb;
+      border-color: #d1d5db;
+    }
+
+    .btn-danger {
+      background: #ef4444;
+      color: #ffffff;
+      border: 1px solid #ef4444;
+    }
+
+    .btn-danger:hover:not(:disabled) {
+      background: #dc2626;
+      border-color: #dc2626;
+    }
+
+    .form-group {
+      margin-bottom: 14px;
+    }
+
+    .form-label {
+      display: block;
+      font-size: 12px;
+      font-weight: 600;
+      margin-bottom: 6px;
+      opacity: 0.9;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
     }
 
     input {
       width: 100%;
-      padding: 10px 12px;
-      border: 2px solid rgba(255, 255, 255, 0.3);
+      padding: 11px 13px;
+      border: 2px solid #e5e7eb;
       border-radius: 8px;
       font-size: 13px;
-      margin-bottom: 12px;
-      background: rgba(255, 255, 255, 0.1);
-      color: #fff;
-      box-sizing: border-box;
+      background: #ffffff;
+      color: #1f2937;
     }
 
     input::placeholder {
-      color: rgba(255, 255, 255, 0.6);
+      color: #9ca3af;
     }
 
     input:focus {
       outline: none;
-      border-color: rgba(255, 255, 255, 0.6);
-      background: rgba(255, 255, 255, 0.15);
+      border-color: #3b82f6;
+      background: #ffffff;
+      box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
     }
 
     .message {
-      padding: 10px 12px;
+      padding: 12px 14px;
       border-radius: 8px;
       margin-bottom: 12px;
       font-size: 13px;
       font-weight: 500;
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      animation: slideIn 0.3s ease;
+    }
+
+    @keyframes slideIn {
+      from {
+        opacity: 0;
+        transform: translateY(-10px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
     }
 
     .message.success {
-      background: rgba(16, 185, 129, 0.3);
-      border: 1px solid rgba(16, 185, 129, 0.5);
+      background: #d1fae5;
+      border: 1px solid #6ee7b7;
+      color: #065f46;
     }
 
     .message.error {
-      background: rgba(239, 68, 68, 0.3);
-      border: 1px solid rgba(239, 68, 68, 0.5);
+      background: #fee2e2;
+      border: 1px solid #fca5a5;
+      color: #991b1b;
     }
 
     .message.info {
-      background: rgba(59, 130, 246, 0.3);
-      border: 1px solid rgba(59, 130, 246, 0.5);
+      background: #dbeafe;
+      border: 1px solid #93c5fd;
+      color: #1e40af;
+    }
+
+    .message.warning {
+      background: #fef3c7;
+      border: 1px solid #fce68a;
+      color: #92400e;
     }
 
     .preview {
-      background: rgba(255, 255, 255, 0.1);
-      padding: 12px;
+      background: #f9fafb;
+      padding: 14px;
       border-radius: 8px;
+      border: 1px solid #e5e7eb;
       margin-top: 12px;
-      max-height: 200px;
+      max-height: 220px;
       overflow-y: auto;
       font-size: 12px;
+    }
+
+    .preview-title {
+      font-weight: 700;
+      margin-bottom: 10px;
+      font-size: 13px;
+      color: #1f2937;
     }
 
     .preview-item {
       margin-bottom: 8px;
       padding-bottom: 8px;
-      border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+      border-bottom: 1px solid #e5e7eb;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
     }
 
     .preview-item:last-child {
@@ -154,17 +261,22 @@
 
     .preview-label {
       font-weight: 600;
-      margin-right: 6px;
+      color: #4b5563;
+    }
+
+    .preview-value {
+      color: #1f2937;
+      font-weight: 500;
     }
 
     .loader {
-      border: 3px solid rgba(255, 255, 255, 0.3);
-      border-top: 3px solid #fff;
+      border: 2px solid #e5e7eb;
+      border-top: 2px solid #3b82f6;
       border-radius: 50%;
-      width: 30px;
-      height: 30px;
-      animation: spin 1s linear infinite;
-      margin: 20px auto;
+      width: 24px;
+      height: 24px;
+      animation: spin 0.8s linear infinite;
+      display: inline-block;
     }
 
     @keyframes spin {
@@ -175,39 +287,60 @@
     .hidden {
       display: none;
     }
+
+    .footer-hint {
+      margin-top: 12px;
+      font-size: 11px;
+      color: #6b7280;
+      text-align: center;
+      border-top: 1px solid #e5e7eb;
+      padding-top: 12px;
+    }
   </style>
 </head>
 <body>
-  <div class="container">
+  <div class="header">
     <h1>🚀 JobPrep</h1>
-    <p class="subtitle">LinkedIn CV Importer</p>
+    <p>LinkedIn CV Importer</p>
+  </div>
 
-    <div class="status">
-      <div class="status-label">Current Page:</div>
-      <div id="currentUrl">Loading...</div>
+  <div class="container">
+    <div class="status-card">
+      <div class="status-label">Current Page</div>
+      <div class="status-value" id="currentUrl" title="Hover for full URL">Loading...</div>
     </div>
 
     <div id="messageContainer"></div>
 
     <button id="extractBtn" class="btn-primary">
-      📥 Extract Profile Data
+      <span>📥</span>
+      <span>Extract Profile</span>
     </button>
 
     <div id="preview" class="preview hidden"></div>
 
-    <input 
-      type="text" 
-      id="targetUrl" 
-      placeholder="JobPrep URL (e.g., http://localhost:3000)"
-      value="http://localhost:3000"
-    />
+    <div class="form-group">
+      <label class="form-label">JobPrep Server URL</label>
+      <input 
+        type="text" 
+        id="targetUrl" 
+        placeholder="e.g., http://localhost:3000"
+        value="https://job-prep-fawn.vercel.app"
+      />
+    </div>
 
     <button id="sendBtn" class="btn-secondary" disabled>
-      ⬆️ Send to JobPrep
+      <span>⬆️</span>
+      <span>Send to JobPrep</span>
     </button>
 
-    <div style="margin-top: 16px; font-size: 11px; opacity: 0.7; text-align: center;">
-      Make sure you're on a LinkedIn profile page
+    <button id="clearBtn" class="btn-danger hidden">
+      <span>🗑️</span>
+      <span>Clear Data</span>
+    </button>
+
+    <div class="footer-hint">
+      ℹ️ Make sure you're viewing a LinkedIn profile page to extract data
     </div>
   </div>
 
