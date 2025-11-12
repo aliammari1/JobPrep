@@ -4,7 +4,14 @@ import prisma from "@/lib/prisma";
 import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
 
-// GET /api/interviews/notifications - Get interview notifications
+/**
+ * Retrieve interview-related notifications for the authenticated interviewer.
+ *
+ * Fetches upcoming interviews within the next day and completed interviews from the last 7 days,
+ * constructs reminder, confirmation, and completion notifications, sorts them newest-first, and returns them with a count.
+ *
+ * @returns An object containing `notifications` (array of notification objects) and `count` (total notifications). Responds with a 401 error JSON if the user is not authenticated, or a 500 error JSON on server failure.
+ */
 export async function GET(req: NextRequest) {
   try {
     const session = await auth.api.getSession({

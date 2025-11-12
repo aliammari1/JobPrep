@@ -5,6 +5,12 @@
 
 import { NextRequest, NextResponse } from "next/server";
 
+/**
+ * Handle POST requests to synchronize pending notifications for background sync.
+ *
+ * @param request - The incoming NextRequest (request body is not used by this handler).
+ * @returns A NextResponse whose JSON body is `{ success: true, notifications: Notification[] }` on success, or `{ error: string }` on failure.
+ */
 export async function POST(request: NextRequest) {
   try {
     // This endpoint is called during background sync

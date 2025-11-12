@@ -86,7 +86,12 @@ self.addEventListener("fetch", (event) => {
 });
 
 /**
- * Handle API requests with network-first strategy
+ * Attempt to fulfill an API fetch by using the network first, falling back to a cached response or an offline error.
+ *
+ * On a successful network response, the function caches the response in the API cache for future use.
+ * If the network request fails, it serves a cached response when available and otherwise responds with a 503 offline response.
+ *
+ * @param {FetchEvent} event - The fetch event for an API request; its response is set via event.respondWith.
  */
 async function handleApiRequest(event) {
   event.respondWith(
@@ -116,7 +121,15 @@ async function handleApiRequest(event) {
 }
 
 /**
- * Handle regular requests with network-first strategy
+ * Serve a request using a network-first strategy with runtime caching and offline fallbacks.
+ *
+ * Attempts to fetch the request from the network, caches successful responses in the runtime
+ * cache, and on network failure serves a cached response if available. For navigation requests,
+ * returns the offline page from the persistent cache or a plain "Offline" response when no cache exists.
+ *
+ * @param {FetchEvent} event - The fetch event containing the request to handle.
+ * @returns {Promise<Response>} The network response, a cached response, or an offline fallback response.
+ * @throws {Error} Rethrows the original fetch error if the network fails and no cached or offline fallback is available.
  */
 async function handleNetworkRequest(event) {
   try {
@@ -283,7 +296,11 @@ self.addEventListener("sync", (event) => {
 });
 
 /**
- * Sync notifications with server
+ * Synchronizes pending notifications with the server.
+ *
+ * Performs a POST to the notifications sync endpoint and throws on network
+ * failure or non-OK responses so callers (or the service worker) can retry.
+ * @throws {Error} If the network request fails or the server responds with a non-OK status.
  */
 async function syncNotifications() {
   try {
