@@ -1,487 +1,202 @@
 import { NextRequest, NextResponse } from "next/server";
-import puppeteer from "puppeteer";
-
-// HTML template generators (instead of React components)
-function generateModernTemplate(cvData: any, settings: any) {
-  const { personalInfo, experience, education, skills, projects, certifications, languages, awards } = cvData;
-  
-  return `
-    <div class="min-h-screen bg-white p-12 text-gray-900" style="font-family: Arial, sans-serif;">
-      <!-- Header -->
-      <div class="mb-8 border-b-4 pb-6 flex gap-6" style="border-color: ${settings.colorScheme};">
-        ${personalInfo.photo ? `
-          <div class="flex-shrink-0">
-            <div class="relative w-24 h-24 rounded-full overflow-hidden border-4" style="border-color: ${settings.colorScheme};">
-              <img src="${personalInfo.photo}" alt="Profile" class="object-cover w-full h-full" />
-            </div>
-          </div>
-        ` : ''}
-        
-        <div class="flex-1">
-          <h1 class="mb-2 text-4xl font-bold" style="color: ${settings.colorScheme};">
-            ${personalInfo.fullName || 'Your Name'}
-          </h1>
-          <p class="mb-4 text-xl text-gray-600">${personalInfo.title || 'Professional Title'}</p>
-          
-          <div class="flex flex-wrap gap-4 text-sm text-gray-600">
-            ${personalInfo.email ? `<div class="flex items-center gap-1">${personalInfo.email}</div>` : ''}
-            ${personalInfo.phone ? `<div class="flex items-center gap-1">${personalInfo.phone}</div>` : ''}
-            ${personalInfo.location ? `<div class="flex items-center gap-1">${personalInfo.location}</div>` : ''}
-            ${personalInfo.linkedin ? `<div class="flex items-center gap-1">LinkedIn</div>` : ''}
-          </div>
-        </div>
-      </div>
-
-      <!-- Summary -->
-      ${personalInfo.summary ? `
-        <div class="mb-6">
-          <h2 class="mb-3 text-xl font-bold" style="color: ${settings.colorScheme};">Professional Summary</h2>
-          <p class="text-sm leading-relaxed text-gray-700">${personalInfo.summary}</p>
-        </div>
-      ` : ''}
-
-      <!-- Experience -->
-      ${experience && experience.length > 0 ? `
-        <div class="mb-6">
-          <h2 class="mb-3 text-xl font-bold" style="color: ${settings.colorScheme};">Experience</h2>
-          <div class="space-y-4">
-            ${experience.map((exp: any) => `
-              <div>
-                <div class="flex justify-between">
-                  <div>
-                    <h3 class="font-bold">${exp.title}</h3>
-                    <p class="text-sm text-gray-600">${exp.company}</p>
-                  </div>
-                  <div class="text-right text-sm text-gray-600">
-                    <p>${exp.startDate} - ${exp.current ? 'Present' : exp.endDate}</p>
-                    <p>${exp.location || ''}</p>
-                  </div>
-                </div>
-                ${exp.description && exp.description.length > 0 ? `
-                  <ul class="mt-2 list-disc pl-5 text-sm text-gray-700">
-                    ${exp.description.map((bullet: string) => `<li>${bullet}</li>`).join('')}
-                  </ul>
-                ` : ''}
-                ${exp.highlights && exp.highlights.length > 0 ? `
-                  <ul class="mt-2 list-disc pl-5 text-sm text-gray-700">
-                    ${exp.highlights.map((h: string) => `<li>${h}</li>`).join('')}
-                  </ul>
-                ` : ''}
-              </div>
-            `).join('')}
-          </div>
-        </div>
-      ` : ''}
-
-      <!-- Education -->
-      ${education && education.length > 0 ? `
-        <div class="mb-6">
-          <h2 class="mb-3 text-xl font-bold" style="color: ${settings.colorScheme};">Education</h2>
-          <div class="space-y-3">
-            ${education.map((edu: any) => `
-              <div class="flex justify-between">
-                <div>
-                  <h3 class="font-bold">${edu.degree}</h3>
-                  <p class="text-sm text-gray-600">${edu.institution}</p>
-                  ${edu.gpa ? `<p class="text-sm text-gray-600">GPA: ${edu.gpa}</p>` : ''}
-                </div>
-                <div class="text-right text-sm text-gray-600">
-                  <p>${edu.startDate} - ${edu.endDate}</p>
-                  <p>${edu.location || ''}</p>
-                </div>
-              </div>
-            `).join('')}
-          </div>
-        </div>
-      ` : ''}
-
-      <!-- Skills -->
-      ${skills && skills.length > 0 ? `
-        <div class="mb-6">
-          <h2 class="mb-3 text-xl font-bold" style="color: ${settings.colorScheme};">Skills</h2>
-          <div class="space-y-2">
-            ${skills.map((skill: any) => `
-              <p class="text-sm">
-                <span class="font-semibold">${skill.category}:</span> ${skill.items.join(' • ')}
-              </p>
-            `).join('')}
-          </div>
-        </div>
-      ` : ''}
-
-      <!-- Projects -->
-      ${projects && projects.length > 0 ? `
-        <div class="mb-6">
-          <h2 class="mb-3 text-xl font-bold" style="color: ${settings.colorScheme};">Projects</h2>
-          <div class="space-y-3">
-            ${projects.map((proj: any) => `
-              <div>
-                <h3 class="font-bold">${proj.name}</h3>
-                ${proj.description && proj.description.length > 0 ? `
-                  <ul class="mt-1 list-disc pl-5 text-sm text-gray-700">
-                    ${proj.description.map((bullet: string) => `<li>${bullet}</li>`).join('')}
-                  </ul>
-                ` : ''}
-                <p class="mt-1 text-sm text-gray-600">
-                  <span class="font-semibold">Technologies:</span> ${proj.technologies.join(', ')}
-                </p>
-              </div>
-            `).join('')}
-          </div>
-        </div>
-      ` : ''}
-
-      <!-- Languages -->
-      ${languages && languages.length > 0 ? `
-        <div class="mb-6">
-          <h2 class="mb-3 text-xl font-bold" style="color: ${settings.colorScheme};">Languages</h2>
-          <div class="flex flex-wrap gap-4">
-            ${languages.map((lang: any) => `
-              <div class="text-sm">
-                <span class="font-semibold">${typeof lang === 'string' ? lang : lang.language}</span>
-                ${typeof lang === 'object' && lang.proficiency ? ` - <span class="text-gray-600">${lang.proficiency}</span>` : ''}
-              </div>
-            `).join('')}
-          </div>
-        </div>
-      ` : ''}
-    </div>
-  `;
-}
-
-function generateClassicTemplate(cvData: any, settings: any) {
-  const { personalInfo, experience, education, skills, projects, certifications, languages, awards } = cvData;
-  
-  return `
-    <div class="min-h-screen bg-white p-12 text-gray-900" style="font-family: 'Times New Roman', serif;">
-      <!-- Header -->
-      <div class="text-center mb-8 pb-6 border-b-2 border-gray-800">
-        
-        <h1 class="mb-2 text-5xl font-bold uppercase tracking-wide text-gray-900">
-          ${personalInfo.fullName || 'Your Name'}
-        </h1>
-        <p class="mb-4 text-lg italic text-gray-700">${personalInfo.title || 'Professional Title'}</p>
-        
-        <div class="flex justify-center flex-wrap gap-4 text-sm text-gray-600">
-          ${personalInfo.email ? `<span> ${personalInfo.email}</span>` : ''}
-          ${personalInfo.phone ? `<span> ${personalInfo.phone}</span>` : ''}
-          ${personalInfo.location ? `<span>${personalInfo.location}</span>` : ''}
-          ${personalInfo.linkedin ? `<span> LinkedIn</span>` : ''}
-        </div>
-      </div>
-
-      <!-- Summary -->
-      ${personalInfo.summary ? `
-        <div class="mb-8">
-          <h2 class="mb-3 text-2xl font-bold uppercase border-b-2 border-gray-800 pb-2">Professional Summary</h2>
-          <p class="text-sm leading-relaxed text-gray-700 text-justify">${personalInfo.summary}</p>
-        </div>
-      ` : ''}
-
-      <!-- Experience -->
-      ${experience && experience.length > 0 ? `
-        <div class="mb-8">
-          <h2 class="mb-4 text-2xl font-bold uppercase border-b-2 border-gray-800 pb-2">Work Experience</h2>
-          <div class="space-y-6">
-            ${experience.map((exp: any) => `
-              <div>
-                <div class="mb-2">
-                  <h3 class="text-lg font-bold">${exp.title}</h3>
-                  <p class="text-base italic text-gray-700">${exp.company} ${exp.location ? `• ${exp.location}` : ''}</p>
-                  <p class="text-sm text-gray-600">${exp.startDate} - ${exp.current ? 'Present' : exp.endDate}</p>
-                </div>
-                ${exp.description && exp.description.length > 0 ? `
-                  <ul class="mt-2 list-disc pl-5 text-sm text-gray-700">
-                    ${exp.description.map((bullet: string) => `<li>${bullet}</li>`).join('')}
-                  </ul>
-                ` : ''}
-                ${exp.highlights && exp.highlights.length > 0 ? `
-                  <ul class="list-disc pl-6 text-sm text-gray-700">
-                    ${exp.highlights.map((h: string) => `<li class="mb-1">${h}</li>`).join('')}
-                  </ul>
-                ` : ''}
-              </div>
-            `).join('')}
-          </div>
-        </div>
-      ` : ''}
-
-      <!-- Education -->
-      ${education && education.length > 0 ? `
-        <div class="mb-8">
-          <h2 class="mb-4 text-2xl font-bold uppercase border-b-2 border-gray-800 pb-2">Education</h2>
-          <div class="space-y-4">
-            ${education.map((edu: any) => `
-              <div>
-                <h3 class="text-lg font-bold">${edu.degree}</h3>
-                <p class="text-base italic text-gray-700">${edu.institution} ${edu.location ? `• ${edu.location}` : ''}</p>
-                <p class="text-sm text-gray-600">${edu.startDate} - ${edu.endDate} ${edu.gpa ? `• GPA: ${edu.gpa}` : ''}</p>
-              </div>
-            `).join('')}
-          </div>
-        </div>
-      ` : ''}
-
-      <!-- Skills -->
-      ${skills && skills.length > 0 ? `
-        <div class="mb-8">
-          <h2 class="mb-4 text-2xl font-bold uppercase border-b-2 border-gray-800 pb-2">Skills</h2>
-          <div class="space-y-2">
-            ${skills.map((skill: any) => `
-              <p class="text-sm">
-                <span class="font-bold">${skill.category}:</span> ${skill.items.join(', ')}
-              </p>
-            `).join('')}
-          </div>
-        </div>
-      ` : ''}
-
-      <!-- Projects -->
-      ${projects && projects.length > 0 ? `
-        <div class="mb-6">
-          <h2 class="mb-3 text-xl font-bold" style="color: ${settings.colorScheme};">Projects</h2>
-          <div class="space-y-3">
-            ${projects.map((proj: any) => `
-              <div>
-                <h3 class="font-bold">${proj.name}</h3>
-                ${proj.description && proj.description.length > 0 ? `
-                  <ul class="mt-1 list-disc pl-5 text-sm text-gray-700">
-                    ${proj.description.map((bullet: string) => `<li>${bullet}</li>`).join('')}
-                  </ul>
-                ` : ''}
-                <p class="mt-1 text-sm text-gray-600">
-                  <span class="font-semibold">Technologies:</span> ${proj.technologies.join(', ')}
-                </p>
-              </div>
-            `).join('')}
-          </div>
-        </div>
-      ` : ''}
-
-      <!-- Languages -->
-      ${languages && languages.length > 0 ? `
-        <div class="mb-8">
-          <h2 class="mb-4 text-2xl font-bold uppercase border-b-2 border-gray-800 pb-2">Languages</h2>
-          <div class="flex flex-wrap gap-6">
-            ${languages.map((lang: any) => `
-              <span class="text-sm">
-                <span class="font-bold">${typeof lang === 'string' ? lang : lang.language}</span>
-                ${typeof lang === 'object' && lang.proficiency ? ` - ${lang.proficiency}` : ''}
-              </span>
-            `).join('')}
-          </div>
-        </div>
-      ` : ''}
-    </div>
-  `;
-}
-
-function generateMinimalTemplate(cvData: any, settings: any) {
-  const { personalInfo, experience, education, skills, projects, certifications, languages, awards } = cvData;
-  
-  return `
-    <div class="min-h-screen bg-white p-16 text-gray-900" style="font-family: 'Helvetica Neue', Arial, sans-serif; max-width: 800px; margin: 0 auto;">
-      <!-- Header -->
-      <div class="mb-12">
-        <h1 class="mb-1 text-5xl font-light tracking-tight text-gray-900">
-          ${personalInfo.fullName || 'Your Name'}
-        </h1>
-        <p class="mb-6 text-base text-gray-500">${personalInfo.title || 'Professional Title'}</p>
-        
-        <div class="flex gap-6 text-xs text-gray-500">
-          ${personalInfo.email ? `<span>${personalInfo.email}</span>` : ''}
-          ${personalInfo.phone ? `<span>${personalInfo.phone}</span>` : ''}
-          ${personalInfo.location ? `<span>${personalInfo.location}</span>` : ''}
-        </div>
-      </div>
-
-      <!-- Summary -->
-      ${personalInfo.summary ? `
-        <div class="mb-10">
-          <p class="text-sm leading-relaxed text-gray-700">${personalInfo.summary}</p>
-        </div>
-      ` : ''}
-
-      <!-- Experience -->
-      ${experience && experience.length > 0 ? `
-        <div class="mb-10">
-          <h2 class="mb-6 text-xs font-semibold uppercase tracking-widest text-gray-500">Experience</h2>
-          <div class="space-y-8">
-            ${experience.map((exp: any) => `
-              <div>
-                <div class="mb-3">
-                  <h3 class="text-base font-medium text-gray-900">${exp.title}</h3>
-                  <p class="text-sm text-gray-600">${exp.company} ${exp.location ? `• ${exp.location}` : ''} • ${exp.startDate} - ${exp.current ? 'Present' : exp.endDate}</p>
-                </div>
-                ${exp.description && exp.description.length > 0 ? `
-                  <ul class="mt-2 list-disc pl-5 text-sm text-gray-700">
-                    ${exp.description.map((bullet: string) => `<li>${bullet}</li>`).join('')}
-                  </ul>
-                ` : ''}
-                ${exp.highlights && exp.highlights.length > 0 ? `
-                  <ul class="space-y-1 text-sm text-gray-700">
-                    ${exp.highlights.map((h: string) => `<li class="pl-4 border-l-2 border-gray-300">${h}</li>`).join('')}
-                  </ul>
-                ` : ''}
-              </div>
-            `).join('')}
-          </div>
-        </div>
-      ` : ''}
-
-      <!-- Education -->
-      ${education && education.length > 0 ? `
-        <div class="mb-10">
-          <h2 class="mb-6 text-xs font-semibold uppercase tracking-widest text-gray-500">Education</h2>
-          <div class="space-y-4">
-            ${education.map((edu: any) => `
-              <div>
-                <h3 class="text-base font-medium text-gray-900">${edu.degree}</h3>
-                <p class="text-sm text-gray-600">${edu.institution} ${edu.location ? `• ${edu.location}` : ''} • ${edu.startDate} - ${edu.endDate}</p>
-                ${edu.gpa ? `<p class="text-sm text-gray-600">GPA: ${edu.gpa}</p>` : ''}
-              </div>
-            `).join('')}
-          </div>
-        </div>
-      ` : ''}
-
-      <!-- Skills -->
-      ${skills && skills.length > 0 ? `
-        <div class="mb-10">
-          <h2 class="mb-6 text-xs font-semibold uppercase tracking-widest text-gray-500">Skills</h2>
-          <div class="space-y-2">
-            ${skills.map((skill: any) => `
-              <div class="text-sm">
-                <span class="font-medium text-gray-900">${skill.category}</span>
-                <span class="text-gray-600"> — ${skill.items.join(', ')}</span>
-              </div>
-            `).join('')}
-          </div>
-        </div>
-      ` : ''}
-
-      <!-- Projects -->
-      ${projects && projects.length > 0 ? `
-        <div class="mb-6">
-          <h2 class="mb-3 text-xl font-bold" style="color: ${settings.colorScheme};">Projects</h2>
-          <div class="space-y-3">
-            ${projects.map((proj: any) => `
-              <div>
-                <h3 class="font-bold">${proj.name}</h3>
-                ${proj.description && proj.description.length > 0 ? `
-                  <ul class="mt-1 list-disc pl-5 text-sm text-gray-700">
-                    ${proj.description.map((bullet: string) => `<li>${bullet}</li>`).join('')}
-                  </ul>
-                ` : ''}
-                <p class="mt-1 text-sm text-gray-600">
-                  <span class="font-semibold">Technologies:</span> ${proj.technologies.join(', ')}
-                </p>
-              </div>
-            `).join('')}
-          </div>
-        </div>
-      ` : ''}
-
-      <!-- Languages -->
-      ${languages && languages.length > 0 ? `
-        <div class="mb-10">
-          <h2 class="mb-6 text-xs font-semibold uppercase tracking-widest text-gray-500">Languages</h2>
-          <div class="flex gap-8 text-sm">
-            ${languages.map((lang: any) => `
-              <span class="text-gray-700">
-                ${typeof lang === 'string' ? lang : `${lang.language} <span class="text-gray-500">(${lang.proficiency})</span>`}
-              </span>
-            `).join('')}
-          </div>
-        </div>
-      ` : ''}
-    </div>
-  `;
-}
-
-
+import { jsPDF } from "jspdf";
 
 export async function POST(request: NextRequest) {
   try {
-    const { cvData, template, colorScheme } = await request.json();
+    const { cvData, colorScheme } = await request.json();
 
-    // Select the appropriate template
-    let htmlContent;
-    const defaultSettings = {
-      template: template || "modern",
-      colorScheme: colorScheme || "#3b82f6",
-      fontSize: "medium",
-      spacing: "normal",
-      showPhoto: true,
-    };
-    const settings = {
-      ...defaultSettings,
-      ...(cvData?.settings || {}),
-    };
-
-
-    switch (template) {
-      case "modern":
-        htmlContent = generateModernTemplate(cvData, settings);
-        break;
-      case "classic":
-        htmlContent = generateClassicTemplate(cvData, settings);
-        break;
-      case "minimal":
-        htmlContent = generateMinimalTemplate(cvData, settings);
-        break;
-      default:
-        htmlContent = generateModernTemplate(cvData, settings);
+    if (!cvData?.personalInfo?.fullName) {
+      return NextResponse.json(
+        { error: "Missing required field: personalInfo.fullName" },
+        { status: 400 }
+      );
     }
 
-    // Wrap in a complete HTML document with Tailwind CSS
-    const fullHtml = `
-      <!DOCTYPE html>
-      <html>
-        <head>
-          <meta charset="UTF-8">
-          <script src="https://cdn.tailwindcss.com"></script>
-          <style>
-            @media print {
-              body { margin: 0; padding: 0; }
-              @page { margin: 0; size: A4; }
-            }
-            * { print-color-adjust: exact; -webkit-print-color-adjust: exact; }
-          </style>
-        </head>
-        <body>
-          ${htmlContent}
-        </body>
-      </html>
-    `;
+    const accentColor = colorScheme || "#3b82f6";
+    const { personalInfo, experience, education, skills, projects, certifications, languages } = cvData;
 
-    // Launch puppeteer and generate PDF
-    const browser = await puppeteer.launch({
-      headless: true,
-      args: ["--no-sandbox", "--disable-setuid-sandbox"],
+    // Create PDF using jsPDF
+    const doc = new jsPDF({
+      orientation: 'portrait',
+      unit: 'mm',
+      format: 'a4',
     });
 
-    const page = await browser.newPage();
-    await page.setContent(fullHtml, { waitUntil: "networkidle0" });
+    const pageWidth = doc.internal.pageSize.getWidth();
+    const pageHeight = doc.internal.pageSize.getHeight();
+    const margin = 10;
+    let yPosition = margin;
+    const maxWidth = pageWidth - 2 * margin;
 
-    const pdf = await page.pdf({
-      format: "A4",
-      printBackground: true,
-      margin: { top: 0, right: 0, bottom: 0, left: 0 },
-    });
+    // Parse hex color to RGB
+    const hexToRgb = (hex: string) => {
+      const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+      return result ? [
+        parseInt(result[1], 16),
+        parseInt(result[2], 16),
+        parseInt(result[3], 16),
+      ] : [59, 130, 246]; // Default blue
+    };
 
-    await browser.close();
+    const [r, g, b] = hexToRgb(accentColor);
 
-    return new Response(Buffer.from(pdf), {
+    // Add title
+    doc.setFontSize(24);
+    doc.setTextColor(r, g, b);
+    doc.setFont('Helvetica', 'bold');
+    doc.text(personalInfo?.fullName || 'Your Name', pageWidth / 2, yPosition, { align: 'center' });
+    yPosition += 12;
+
+    // Add job title
+    if (personalInfo?.title) {
+      doc.setFontSize(12);
+      doc.setTextColor(102, 102, 102);
+      doc.setFont('Helvetica', 'normal');
+      doc.text(personalInfo.title, pageWidth / 2, yPosition, { align: 'center' });
+      yPosition += 8;
+    }
+
+    // Add contact info
+    if (personalInfo?.email || personalInfo?.phone || personalInfo?.location) {
+      doc.setFontSize(8);
+      doc.setTextColor(102, 102, 102);
+      const contactInfo = [
+        personalInfo?.email,
+        personalInfo?.phone,
+        personalInfo?.location,
+      ]
+        .filter(Boolean)
+        .join(' • ');
+      doc.text(contactInfo, pageWidth / 2, yPosition, { align: 'center' });
+      yPosition += 8;
+    }
+
+    yPosition += 3;
+
+    // Add horizontal line
+    doc.setDrawColor(r, g, b);
+    doc.line(margin, yPosition, pageWidth - margin, yPosition);
+    yPosition += 8;
+
+    // Helper function to add section
+    const addSection = (title: string, content: string) => {
+      // Check if we need a new page
+      if (yPosition > pageHeight - 30) {
+        doc.addPage();
+        yPosition = margin;
+      }
+
+      doc.setFontSize(11);
+      doc.setTextColor(r, g, b);
+      doc.setFont('Helvetica', 'bold');
+      doc.text(title, margin, yPosition);
+      yPosition += 6;
+
+      doc.setTextColor(0, 0, 0);
+      doc.setFont('Helvetica', 'normal');
+      doc.setFontSize(9);
+      const lines = doc.splitTextToSize(content, maxWidth);
+      doc.text(lines, margin, yPosition);
+      yPosition += lines.length * 4 + 6;
+    };
+
+    // Add summary
+    if (personalInfo?.summary) {
+      addSection('Professional Summary', personalInfo.summary);
+    }
+
+    // Add experience
+    if (experience && experience.length > 0) {
+      let expContent = '';
+      experience.forEach((exp: any) => {
+        expContent += `${exp.title} at ${exp.company}\n`;
+        expContent += `${exp.startDate} - ${exp.current ? 'Present' : exp.endDate}`;
+        if (exp.location) expContent += ` • ${exp.location}`;
+        expContent += '\n';
+        if (exp.highlights?.length) {
+          exp.highlights.forEach((h: string) => {
+            expContent += `  • ${h}\n`;
+          });
+        } else if (exp.description?.length) {
+          exp.description.forEach((d: string) => {
+            expContent += `  • ${d}\n`;
+          });
+        }
+        expContent += '\n';
+      });
+      addSection('Experience', expContent.trim());
+    }
+
+    // Add education
+    if (education && education.length > 0) {
+      let eduContent = '';
+      education.forEach((edu: any) => {
+        eduContent += `${edu.degree}\n`;
+        eduContent += `${edu.institution}`;
+        if (edu.location) eduContent += ` • ${edu.location}`;
+        eduContent += '\n';
+        eduContent += `${edu.startDate} - ${edu.endDate}`;
+        if (edu.gpa) eduContent += ` • GPA: ${edu.gpa}`;
+        eduContent += '\n\n';
+      });
+      addSection('Education', eduContent.trim());
+    }
+
+    // Add skills
+    if (skills && skills.length > 0) {
+      let skillsContent = '';
+      skills.forEach((skillGroup: any) => {
+        skillsContent += `${skillGroup.category}: ${skillGroup.items?.join(', ')}\n`;
+      });
+      addSection('Skills', skillsContent.trim());
+    }
+
+    // Add projects
+    if (projects && projects.length > 0) {
+      let projectsContent = '';
+      projects.forEach((proj: any) => {
+        projectsContent += `${proj.name}\n`;
+        if (proj.description) projectsContent += `${proj.description}\n`;
+        if (proj.technologies?.length) projectsContent += `Technologies: ${proj.technologies.join(', ')}\n`;
+        projectsContent += '\n';
+      });
+      addSection('Projects', projectsContent.trim());
+    }
+
+    // Add certifications
+    if (certifications && certifications.length > 0) {
+      let certsContent = '';
+      certifications.forEach((cert: any) => {
+        certsContent += `${cert.name} - ${cert.issuer} (${cert.date})\n`;
+      });
+      addSection('Certifications', certsContent.trim());
+    }
+
+    // Add languages
+    if (languages && languages.length > 0) {
+      let langsContent = '';
+      languages.forEach((lang: any) => {
+        langsContent += `${lang.language} - ${lang.proficiency}\n`;
+      });
+      addSection('Languages', langsContent.trim());
+    }
+
+    const pdfBuffer = Buffer.from(doc.output('arraybuffer'));
+
+    return new Response(pdfBuffer, {
       headers: {
         'Content-Type': 'application/pdf',
         'Content-Disposition': 'attachment; filename="resume.pdf"',
+        'Cache-Control': 'no-cache, no-store, must-revalidate',
       },
     });
   } catch (error) {
-    console.error("PDF generation error:", error);
+    console.error('PDF generation error:', error);
     return NextResponse.json(
-      { error: "Failed to generate PDF", details: String(error) },
+      {
+        error: 'Failed to generate PDF',
+        details: error instanceof Error ? error.message : String(error),
+      },
       { status: 500 }
     );
   }
