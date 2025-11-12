@@ -4,7 +4,13 @@ import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
 import { createGoogleCalendarEvent, updateGoogleCalendarEvent, fetchGoogleCalendarEvents } from "@/lib/google-calendar";
 
-// POST /api/interviews/sync-calendar - Bidirectional sync between JobPrep and Google Calendar
+/**
+ * Synchronizes interviews bidirectionally between JobPrep and Google Calendar for the current user.
+ *
+ * Performs two flows: (1) exports scheduled/confirmed JobPrep interviews to Google Calendar by creating or updating events and recording sync metadata, and (2) imports Google Calendar interview events into JobPrep as new interviews when not already synced.
+ *
+ * @returns An object with sync results: `success` (whether the handler completed), `jobPrepToGoogle` (count of interviews created/updated in Google Calendar), `googleToJobPrep` (count of interviews created in JobPrep from Google Calendar), `skipped` (count of JobPrep interviews skipped because no update was needed), and `errors` (an array of error messages if any occurred, otherwise `undefined`).
+ */
 export async function POST() {
   try {
     const session = await auth.api.getSession({

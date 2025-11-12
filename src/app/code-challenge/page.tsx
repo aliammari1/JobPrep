@@ -153,6 +153,15 @@ public:
 }`,
 };
 
+/**
+ * Interactive coding arena for solving, running, and generating programming challenges.
+ *
+ * Renders the full Code Challenge Arena UI and manages state for selected language, editor
+ * content, autosave, code execution, test results, execution metrics, timers, keyboard
+ * shortcuts, AI-powered challenge generation, and submission flow.
+ *
+ * @returns The React element that renders the code challenge arena interface.
+ */
 export default function CodeChallengeArena() {
   const { executeCode, isExecuting } = useCodeExecution();
   const { currentChallenge, fetchChallenge, isLoading: isChallengeLoading } =

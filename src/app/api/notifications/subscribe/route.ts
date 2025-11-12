@@ -9,6 +9,12 @@ import { NextRequest, NextResponse } from "next/server";
 // This is a simple in-memory store for demonstration
 const subscriptions = new Map<string, any>();
 
+/**
+ * Registers a push notification subscription from the request body and stores it in the in-memory subscriptions map.
+ *
+ * @param request - Incoming request whose JSON body must include a `subscription` object with an `endpoint` string; may include `userAgent`.
+ * @returns A NextResponse containing `{ success: true, message, subscriptionId }` with status 201 on success, or `{ error }` with status 400 for invalid data or 500 for internal failure.
+ */
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();

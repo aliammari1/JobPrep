@@ -4,7 +4,11 @@ import prisma from "@/lib/prisma";
 import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
 
-// POST /api/interviews/send-reminders - Send email reminders to candidates
+/**
+ * Handles POST requests to mark the given interviews as having reminders sent.
+ *
+ * @returns A JSON response. On success: `{ success: true, sent: number, message: string }` where `sent` is the number of interviews updated. On error: `{ error: string }` with an appropriate HTTP status (`401` for unauthorized, `400` for invalid input, `404` if no interviews found, `500` for internal failures).
+ */
 export async function POST(req: NextRequest) {
   try {
     const session = await auth.api.getSession({

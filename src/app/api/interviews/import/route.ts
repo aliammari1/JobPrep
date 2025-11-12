@@ -4,7 +4,14 @@ import prisma from "@/lib/prisma";
 import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
 
-// POST /api/interviews/import - Import interviews from file
+/**
+ * Import interviews from a CSV file uploaded as form-data and create or find candidate and interview records.
+ *
+ * The uploaded file must include a header row containing at least: "candidate name", "email", "date", "time", and "status".
+ *
+ * @param req - Incoming request with form-data containing a `file` field (CSV). Each data row should provide candidate name, email, date (YYYY-MM-DD), and time (HH:mm); optional columns such as phone, position, duration, and type are supported.
+ * @returns On success, a JSON object with `success: true`, `imported` (number created), `failed` (number failed), `data` (array of created interview summaries), and `errors` (array of per-row errors when present). On failure returns a JSON error message with an appropriate HTTP status (e.g., 400 for invalid input, 401 for unauthorized, 500 for server errors).
+ */
 export async function POST(req: NextRequest) {
   try {
     const session = await auth.api.getSession({

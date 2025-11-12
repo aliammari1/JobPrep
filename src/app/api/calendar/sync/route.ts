@@ -17,7 +17,12 @@ import { headers } from 'next/headers';
 import { googleCalendarService } from '@/lib/google-calendar-service';
 
 // GET /api/calendar/sync/authorize
-// Returns Google OAuth URL for user to authorize calendar access
+/**
+ * Provides a Google OAuth authorization URL when the request query `action=authorize` and the user is authenticated.
+ *
+ * @param req - The incoming request; expects a query parameter `action`. When `action` is `'authorize'`, returns an OAuth URL for the authenticated user.
+ * @returns A JSON response containing `authUrl` on success; otherwise a JSON error object with an appropriate HTTP status (`400` for invalid action, `401` for unauthorized, `500` for server errors).
+ */
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
   const action = searchParams.get('action');
@@ -47,7 +52,19 @@ export async function GET(req: NextRequest) {
 }
 
 // POST /api/calendar/sync/callback
-// Exchange Google OAuth code for access tokens
+/**
+ * Handle POST requests for Google Calendar sync actions: exchange OAuth codes, export interviews, import events, and delete calendar events.
+ *
+ * Supports the following query `action` values and required JSON body fields:
+ * - `callback`: requires `code` — exchanges the OAuth authorization code for tokens and persists them to the authenticated user.
+ * - `export`: requires `interviewId` — exports the specified interview to the user's calendar (requires interviewer ownership).
+ * - `import`: no required fields — imports calendar events for the authenticated user.
+ * - `delete`: requires `eventId` and `interviewId` — deletes the specified calendar event (requires interviewer ownership).
+ *
+ * The endpoint enforces authentication and returns appropriate HTTP status codes for missing parameters, unauthorized access, not found resources, invalid actions, and internal errors.
+ *
+ * @returns A JSON HTTP response object containing either a success payload (e.g., messages, event IDs, import counts) or an error message; responses use status codes 200 for success, 400 for bad requests, 401 for unauthorized, 404 for not found, and 500 for server errors.
+ */
 export async function POST(req: NextRequest) {
   const { searchParams } = new URL(req.url);
   const action = searchParams.get('action');
