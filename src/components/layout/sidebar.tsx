@@ -116,6 +116,13 @@ const sidebarItems: SidebarItem[] = [
         href: "/interview-room",
       },
       {
+        id: "questions",
+        label: "Questions",
+        icon: BookOpen,
+        href: "/mock-interview/questions",
+        isNew: true,
+      },
+      {
         id: "recordings",
         label: "Recordings",
         icon: FileVideo,
