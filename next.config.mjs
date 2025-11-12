@@ -111,6 +111,8 @@ const pwa = withPWA({
 });
 
 const nextConfig = {
+  // Silence workspace root warning by explicitly setting the project root
+  outputFileTracingRoot: process.cwd(),
   images: {
     remotePatterns: [
       {
@@ -140,7 +142,8 @@ const nextConfig = {
               "style-src 'self' 'unsafe-inline'",
               "img-src 'self' data: blob: https://models.readyplayer.me https://cdn.jsdelivr.net https://media.licdn.com",
               "font-src 'self' data:",
-              "connect-src 'self' https://models.readyplayer.me https://cdn.jsdelivr.net wss://*.livekit.cloud https://*.livekit.cloud https://api.heygen.com wss://api.heygen.com",
+              "connect-src 'self' https://models.readyplayer.me https://cdn.jsdelivr.net wss://*.livekit.cloud https://*.livekit.cloud https://api.heygen.com wss://api.heygen.com https://*.cloud.appwrite.io",
+              "media-src 'self' blob: https://*.cloud.appwrite.io",
               "worker-src 'self' blob:",
               "child-src 'self' blob:",
               "frame-src 'self' https://models.readyplayer.me",

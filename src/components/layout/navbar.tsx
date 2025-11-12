@@ -2,8 +2,9 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { motion } from "framer-motion";
+import { useSession, signOut } from "@/lib/auth-client";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -63,6 +64,8 @@ interface Notification {
 
 export function Navbar({ onSidebarToggle }: NavbarProps) {
   const pathname = usePathname();
+  const router = useRouter();
+  const { data: session, isPending } = useSession();
   const [searchQuery, setSearchQuery] = useState("");
   const [notifications] = useState<Notification[]>([
     {
@@ -95,6 +98,11 @@ export function Navbar({ onSidebarToggle }: NavbarProps) {
   ]);
 
   const unreadCount = notifications.filter((n) => !n.read).length;
+
+  const handleSignOut = async () => {
+    await signOut();
+    router.push("/");
+  };
 
   const getPageTitle = (path: string) => {
     const routes: Record<string, string> = {
@@ -158,7 +166,7 @@ export function Navbar({ onSidebarToggle }: NavbarProps) {
   };
 
   return (
-    <header className="sticky top-0 z-30 w-full border-b border-gray-200 dark:border-gray-800 bg-white/80 dark:bg-gray-900/80 backdrop-blur-md">
+    <header className="sticky top-0 z-30 w-full border-b border-border bg-background/80 dark:bg-background/80 backdrop-blur-md">
       <div className="flex h-16 items-center justify-between px-4 lg:px-6">
         {/* Left Section */}
         <div className="flex items-center gap-4">
@@ -174,10 +182,10 @@ export function Navbar({ onSidebarToggle }: NavbarProps) {
 
           {/* Page Title & Breadcrumb */}
           <div className="hidden sm:block">
-            <h1 className="text-lg font-semibold text-gray-900 dark:text-white">
+            <h1 className="text-lg font-semibold text-foreground">
               {getPageTitle(pathname)}
             </h1>
-            <p className="text-sm text-gray-500 dark:text-gray-400">
+            <p className="text-sm text-muted-foreground">
               Manage your interview process efficiently
             </p>
           </div>
@@ -186,21 +194,21 @@ export function Navbar({ onSidebarToggle }: NavbarProps) {
         {/* Center Section - Search */}
         <div className="flex-1 max-w-md mx-4 hidden md:block">
           <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
             <Input
-              placeholder="Search interviews, candidates, reports..."
+              placeholder="Search interviews, candidates, reports... (⌘K for commands)"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-10 bg-gray-50 dark:bg-gray-800 border-gray-200 dark:border-gray-700 focus:bg-white dark:focus:bg-gray-900"
+              className="pl-10 bg-muted border-border focus:bg-background dark:focus:bg-background text-sm"
             />
             {searchQuery && (
-              <div className="absolute top-full left-0 right-0 mt-2 bg-white dark:bg-gray-900 rounded-lg shadow-lg border border-gray-200 dark:border-gray-800 py-2 z-50">
-                <div className="px-3 py-2 text-sm text-gray-500 dark:text-gray-400">
+              <div className="absolute top-full left-0 right-0 mt-2 bg-background dark:bg-background rounded-lg shadow-lg border border-border py-2 z-50">
+                <div className="px-3 py-2 text-sm text-muted-foreground">
                   Quick Results
                 </div>
                 <Link
                   href="/candidate-profiles"
-                  className="block px-3 py-2 hover:bg-gray-50 dark:hover:bg-gray-800"
+                  className="block px-3 py-2 hover:bg-muted dark:hover:bg-muted"
                 >
                   <div className="flex items-center gap-2">
                     <Users className="w-4 h-4" />
@@ -209,7 +217,7 @@ export function Navbar({ onSidebarToggle }: NavbarProps) {
                 </Link>
                 <Link
                   href="/reports"
-                  className="block px-3 py-2 hover:bg-gray-50 dark:hover:bg-gray-800"
+                  className="block px-3 py-2 hover:bg-muted dark:hover:bg-muted"
                 >
                   <div className="flex items-center gap-2">
                     <BarChart3 className="w-4 h-4" />
@@ -240,7 +248,7 @@ export function Navbar({ onSidebarToggle }: NavbarProps) {
           </div>
 
           {/* Activity Indicator */}
-          <div className="hidden md:flex items-center gap-1 px-2 py-1 bg-green-50 dark:bg-green-950 rounded-full">
+          <div className="hidden md:flex items-center gap-1 px-2 py-1 bg-green-500/10 dark:bg-green-500/10 rounded-full">
             <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
             <span className="text-xs text-green-700 dark:text-green-300 font-medium">
               3 Active
@@ -271,8 +279,8 @@ export function Navbar({ onSidebarToggle }: NavbarProps) {
                   <div
                     key={notification.id}
                     className={cn(
-                      "p-3 border-b last:border-b-0 hover:bg-gray-50 dark:hover:bg-gray-800",
-                      !notification.read && "bg-blue-50 dark:bg-blue-950"
+                      "p-3 border-b last:border-b-0 hover:bg-muted",
+                      !notification.read && "bg-primary/5 dark:bg-primary/10",
                     )}
                   >
                     <div className="flex items-start gap-3">
@@ -286,11 +294,11 @@ export function Navbar({ onSidebarToggle }: NavbarProps) {
                             <div className="w-2 h-2 bg-blue-500 rounded-full" />
                           )}
                         </div>
-                        <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                        <p className="text-sm text-muted-foreground mt-1">
                           {notification.message}
                         </p>
                         <div className="flex items-center justify-between mt-2">
-                          <span className="text-xs text-gray-500">
+                          <span className="text-xs text-muted-foreground">
                             {formatTimeAgo(notification.timestamp)}
                           </span>
                           {notification.action && (
@@ -339,11 +347,11 @@ export function Navbar({ onSidebarToggle }: NavbarProps) {
                   </Avatar>
                   <div className="flex-1">
                     <p className="font-medium text-sm">Sarah Chen</p>
-                    <p className="text-sm text-gray-600 dark:text-gray-400">
+                    <p className="text-sm text-muted-foreground">
                       Thanks for the interview feedback!
                     </p>
                   </div>
-                  <span className="text-xs text-gray-500">2m</span>
+                  <span className="text-xs text-muted-foreground">2m</span>
                 </div>
                 <div className="flex items-center gap-3">
                   <Avatar className="w-8 h-8">
@@ -351,11 +359,11 @@ export function Navbar({ onSidebarToggle }: NavbarProps) {
                   </Avatar>
                   <div className="flex-1">
                     <p className="font-medium text-sm">Mike Rodriguez</p>
-                    <p className="text-sm text-gray-600 dark:text-gray-400">
+                    <p className="text-sm text-muted-foreground">
                       Can we discuss the evaluation results?
                     </p>
                   </div>
-                  <span className="text-xs text-gray-500">1h</span>
+                  <span className="text-xs text-muted-foreground">1h</span>
                 </div>
               </div>
               <div className="p-2 border-t">
@@ -384,7 +392,7 @@ export function Navbar({ onSidebarToggle }: NavbarProps) {
                     <p className="font-medium text-sm">
                       Interview with John Doe
                     </p>
-                    <p className="text-sm text-gray-600 dark:text-gray-400">
+                    <p className="text-sm text-muted-foreground">
                       2:00 PM - 3:00 PM
                     </p>
                   </div>
@@ -393,7 +401,7 @@ export function Navbar({ onSidebarToggle }: NavbarProps) {
                   <div className="w-2 h-8 bg-green-500 rounded-full" />
                   <div>
                     <p className="font-medium text-sm">Team Review Meeting</p>
-                    <p className="text-sm text-gray-600 dark:text-gray-400">
+                    <p className="text-sm text-muted-foreground">
                       4:00 PM - 4:30 PM
                     </p>
                   </div>
@@ -410,48 +418,68 @@ export function Navbar({ onSidebarToggle }: NavbarProps) {
           </DropdownMenu>
 
           {/* User Menu */}
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" className="relative h-9 w-9 rounded-full">
-                <Avatar className="h-8 w-8">
-                  <AvatarImage src="/placeholder-avatar.jpg" alt="User" />
-                  <AvatarFallback>JD</AvatarFallback>
-                </Avatar>
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent className="w-56" align="end" forceMount>
-              <div className="flex items-center justify-start gap-2 p-2">
-                <div className="flex flex-col space-y-1 leading-none">
-                  <p className="font-medium">John Doe</p>
-                  <p className="w-[200px] truncate text-sm text-muted-foreground">
-                    john.doe@company.com
-                  </p>
+          {isPending ? (
+            <div className="w-9 h-9 bg-gray-200 dark:bg-gray-700 rounded-full animate-pulse" />
+          ) : session?.user ? (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  variant="ghost"
+                  className="relative h-9 w-9 rounded-full"
+                >
+                  <Avatar className="h-8 w-8">
+                    <AvatarImage
+                      src={session.user.image || ""}
+                      alt={session.user.name || "User"}
+                    />
+                    <AvatarFallback>
+                      {session.user.name
+                        ?.split(" ")
+                        .map((n) => n[0])
+                        .join("")
+                        .toUpperCase() || "U"}
+                    </AvatarFallback>
+                  </Avatar>
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent className="w-56" align="end" forceMount>
+                <div className="flex items-center justify-start gap-2 p-2">
+                  <div className="flex flex-col space-y-1 leading-none">
+                    <p className="font-medium">{session.user.name || "User"}</p>
+                    <p className="w-[200px] truncate text-sm text-muted-foreground">
+                      {session.user.email}
+                    </p>
+                  </div>
                 </div>
-              </div>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem>
-                <User className="mr-2 h-4 w-4" />
-                Profile
-              </DropdownMenuItem>
-              <DropdownMenuItem>
-                <Settings className="mr-2 h-4 w-4" />
-                Settings
-              </DropdownMenuItem>
-              <DropdownMenuItem>
-                <Star className="mr-2 h-4 w-4" />
-                Upgrade to Pro
-              </DropdownMenuItem>
-              <DropdownMenuItem>
-                <HelpCircle className="mr-2 h-4 w-4" />
-                Help & Support
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem>
-                <LogOut className="mr-2 h-4 w-4" />
-                Log out
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={() => router.push("/settings")}>
+                  <User className="mr-2 h-4 w-4" />
+                  Profile
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => router.push("/settings")}>
+                  <Settings className="mr-2 h-4 w-4" />
+                  Settings
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => router.push("/pricing")}>
+                  <Star className="mr-2 h-4 w-4" />
+                  Upgrade to Pro
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => router.push("/contact")}>
+                  <HelpCircle className="mr-2 h-4 w-4" />
+                  Help & Support
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={handleSignOut}>
+                  <LogOut className="mr-2 h-4 w-4" />
+                  Log out
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          ) : (
+            <Link href="/sign-in">
+              <Button size="sm">Sign In</Button>
+            </Link>
+          )}
         </div>
       </div>
     </header>

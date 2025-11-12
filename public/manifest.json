@@ -12,6 +12,18 @@
   "lang": "en",
   "icons": [
     {
+      "src": "/icons/one_logo.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/one_logo.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
       "src": "/icons/icon-72x72.png",
       "sizes": "72x72",
       "type": "image/png",
@@ -97,8 +109,8 @@
       "url": "/dashboard",
       "icons": [
         {
-          "src": "/icons/icon-96x96.png",
-          "sizes": "96x96",
+          "src": "/icons/one_logo.png",
+          "sizes": "512x512",
           "type": "image/png"
         }
       ]
@@ -110,11 +122,13 @@
       "url": "/mock-interview",
       "icons": [
         {
-          "src": "/icons/icon-96x96.png",
-          "sizes": "96x96",
+          "src": "/icons/one_logo.png",
+          "sizes": "512x512",
           "type": "image/png"
         }
       ]
     }
-  ]
+  ],
+  "permissions": ["notifications"],
+  "note": "Push notifications require service worker and https"
 }

@@ -49,33 +49,11 @@ export async function middleware(request: NextRequest) {
     "/dashboard",
     "/settings",
     "/profile",
-    "/admin",
-    "/schedule-interview",
     "/interview-scheduler",
     "/interview-room",
     "/mock-interview",
-    "/mock-simulator",
-    "/practice-interview",
-    "/voice-interview",
     "/code-challenge",
-    "/collaborative-evaluation",
-    "/ai-analysis",
-    "/ai-feedback",
-    "/performance-analytics",
-    "/interview-analytics",
-    "/interview-insights",
-    "/interview-dashboard",
-    "/interview-coach",
-    "/replay-center",
-    "/video-recorder",
-    "/screen-sharing",
-    "/adaptive-questions",
-    "/skill-assessment",
-    "/question-builder",
-    "/templates-library",
-    "/candidate-profile",
-    "/feedback",
-    "/organizations",
+    "/recordings",
   ];
 
   const isProtectedRoute = protectedRoutes.some((route) =>
@@ -106,18 +84,6 @@ export async function middleware(request: NextRequest) {
     const signInUrl = new URL("/sign-in", request.url);
     signInUrl.searchParams.set("callbackUrl", pathname);
     return NextResponse.redirect(signInUrl);
-  }
-
-  // Admin routes require admin role
-  if (pathname.startsWith("/admin")) {
-    if (!session) {
-      return NextResponse.redirect(new URL("/sign-in", request.url));
-    }
-
-    // Check if user has admin role (admin plugin adds role to session)
-    if (session.user?.role !== "admin") {
-      return NextResponse.redirect(new URL("/dashboard", request.url));
-    }
   }
 
   return NextResponse.next();

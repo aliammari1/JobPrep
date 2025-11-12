@@ -2,11 +2,14 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import Image from "next/image";
+import { usePathname, useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
+import { useSession, signOut } from "@/lib/auth-client";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
   Home,
   Users,
@@ -67,6 +70,8 @@ import {
   Linkedin,
   CalendarDays,
   CloudUpload,
+  FileVideo,
+  ArrowRight,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -79,6 +84,12 @@ interface SidebarItem {
   children?: SidebarItem[];
   isNew?: boolean;
   isPro?: boolean;
+  description?: string;
+}
+
+interface SidebarSection {
+  label: string;
+  items: SidebarItem[];
 }
 
 interface SidebarProps {
@@ -87,450 +98,154 @@ interface SidebarProps {
   onClose: () => void;
 }
 
-const sidebarItems: SidebarItem[] = [
+const sidebarSections: SidebarSection[] = [
   {
-    id: "dashboard",
-    label: "Dashboard",
-    icon: Home,
-    href: "/dashboard",
-  },
-  {
-    id: "interviews",
-    label: "Interviews",
-    icon: Users,
-    children: [
+    label: "Main",
+    items: [
       {
-        id: "schedule",
-        label: "Schedule Interview",
-        icon: Calendar,
-        href: "/schedule-interview",
-      },
-      {
-        id: "interview-scheduler",
-        label: "Interview Scheduler",
-        icon: CalendarCheck,
-        href: "/interview-scheduler",
-      },
-      {
-        id: "interview-room",
-        label: "Interview Room",
-        icon: Video,
-        href: "/interview-room",
-      },
-      {
-        id: "mock-interview",
-        label: "Mock Interview",
-        icon: Target,
-        href: "/mock-interview",
-      },
-      {
-        id: "mock-simulator",
-        label: "Mock Simulator",
-        icon: Zap,
-        href: "/mock-simulator",
-        isNew: true,
-      },
-      {
-        id: "practice-interview",
-        label: "Practice Session",
-        icon: BookOpen,
-        href: "/practice-interview",
-      },
-      {
-        id: "voice-interview",
-        label: "Voice Interview",
-        icon: Mic,
-        href: "/voice-interview",
-      },
-      {
-        id: "code-challenge",
-        label: "Code Challenge",
-        icon: Code2,
-        href: "/code-challenge",
+        id: "dashboard",
+        label: "Dashboard",
+        icon: Home,
+        href: "/dashboard",
+        description: "View your overview",
       },
     ],
   },
   {
-    id: "evaluation",
-    label: "Evaluation & Review",
-    icon: Scale,
-    children: [
+    label: "Interview Prep",
+    items: [
       {
-        id: "collaborative-eval",
-        label: "Collaborative Evaluation",
-        icon: Handshake,
-        href: "/collaborative-evaluation",
-      },
-      {
-        id: "replay-center",
-        label: "Replay Center",
-        icon: RotateCcw,
-        href: "/replay-center",
-        isNew: true,
-      },
-      {
-        id: "ai-analysis",
-        label: "AI Analysis",
-        icon: Brain,
-        href: "/ai-analysis",
-        isPro: true,
-      },
-      {
-        id: "feedback-system",
-        label: "Feedback System",
-        icon: MessageSquare,
-        href: "/feedback",
-      },
-      {
-        id: "ai-feedback",
-        label: "AI Feedback",
-        icon: Bot,
-        href: "/ai-feedback",
-        isPro: true,
-      },
-      {
-        id: "skill-assessment",
-        label: "Skill Assessment",
-        icon: Award,
-        href: "/skill-assessment",
-      },
-    ],
-  },
-  {
-    id: "analytics",
-    label: "Analytics & Insights",
-    icon: BarChart3,
-    children: [
-      {
-        id: "performance-analytics",
-        label: "Performance Analytics",
-        icon: TrendingUp,
-        href: "/performance-analytics",
-      },
-      {
-        id: "interview-insights",
-        label: "Interview Insights AI",
-        icon: Brain,
-        href: "/interview-insights",
-        isPro: true,
-      },
-      {
-        id: "interview-analytics",
-        label: "Interview Analytics",
-        icon: BarChart,
-        href: "/interview-analytics",
-      },
-      {
-        id: "interview-dashboard",
-        label: "Interview Dashboard",
-        icon: Monitor,
-        href: "/interview-dashboard",
-      },
-      {
-        id: "reports",
-        label: "Advanced Reports",
-        icon: FileText,
-        href: "/reports",
-      },
-      {
-        id: "real-time-metrics",
-        label: "Real-time Metrics",
-        icon: Activity,
-        href: "/real-time-metrics",
-      },
-    ],
-  },
-  {
-    id: "candidates",
-    label: "Candidate Management",
-    icon: Users2,
-    children: [
-      {
-        id: "candidate-profile",
-        label: "Candidate Profile",
-        icon: User,
-        href: "/candidate-profile",
-      },
-      {
-        id: "candidate-profiles",
-        label: "Candidate Profiles",
+        id: "interviews",
+        label: "Interviews",
         icon: Users,
-        href: "/candidate-profiles",
-      },
-      {
-        id: "talent-pipeline",
-        label: "Talent Pipeline",
-        icon: Workflow,
-        href: "/talent-pipeline",
-      },
-      {
-        id: "screening-tools",
-        label: "Screening Tools",
-        icon: Shield,
-        href: "/screening-tools",
-      },
-      {
-        id: "candidate-tracking",
-        label: "Candidate Tracking",
-        icon: Eye,
-        href: "/candidate-tracking",
-      },
-      {
-        id: "organizations",
-        label: "Organizations",
-        icon: Building,
-        href: "/organizations",
-      },
-    ],
-  },
-  {
-    id: "career-tools",
-    label: "Career Tools",
-    icon: Briefcase,
-    badge: "New",
-    children: [
-      {
-        id: "cv-builder",
-        label: "CV Builder",
-        icon: FileEdit,
-        href: "/cv-builder",
-        isNew: true,
-      },
-      {
-        id: "cover-letter",
-        label: "Cover Letter Generator",
-        icon: Mail,
-        href: "/cover-letter",
-        isNew: true,
+        children: [
+          {
+            id: "mock-interview",
+            label: "Mock Interview",
+            icon: Target,
+            href: "/mock-interview",
+          },
+          {
+            id: "interview-room",
+            label: "Interview Room",
+            icon: Video,
+            href: "/interview-room",
+          },
+          {
+            id: "recordings",
+            label: "Recordings",
+            icon: FileVideo,
+            href: "/recordings",
+            isNew: true,
+          },
+          {
+            id: "interview-scheduler",
+            label: "Interview Scheduler",
+            icon: CalendarCheck,
+            href: "/interview-scheduler",
+          },
+          {
+            id: "code-challenge",
+            label: "Code Challenge",
+            icon: Code2,
+            href: "/code-challenge",
+          },
+        ],
       },
     ],
   },
   {
-    id: "ai-features",
-    label: "AI Features",
-    icon: Brain,
-    badge: "Pro",
-    children: [
+    label: "Career Development",
+    items: [
       {
-        id: "adaptive-questions",
-        label: "Adaptive Question Flow",
-        icon: Zap,
-        href: "/adaptive-questions",
-        isNew: true,
-      },
-      {
-        id: "question-builder",
-        label: "Smart Question Builder",
-        icon: Wrench,
-        href: "/question-builder",
-        isNew: true,
-      },
-      {
-        id: "interview-coach",
-        label: "Interview Prep Coach",
-        icon: BookOpen,
-        href: "/interview-coach",
-      },
-      {
-        id: "smart-matching",
-        label: "Smart Candidate Matching",
-        icon: Target,
-        href: "/smart-matching",
-      },
-      {
-        id: "predictive-analytics",
-        label: "Predictive Analytics",
-        icon: LineChart,
-        href: "/predictive-analytics",
+        id: "career-tools",
+        label: "Career Tools",
+        icon: Briefcase,
+        badge: "New",
+        description: "Build your profile",
+        children: [
+          {
+            id: "cv-builder",
+            label: "CV Builder",
+            icon: FileEdit,
+            href: "/cv-builder",
+            isNew: true,
+          },
+          {
+            id: "cover-letter",
+            label: "Cover Letter Generator",
+            icon: Mail,
+            href: "/cover-letter",
+            isNew: true,
+          },
+        ],
       },
     ],
   },
   {
-    id: "collaboration",
-    label: "Collaboration",
-    icon: Users2,
-    children: [
+    label: "Preferences",
+    items: [
       {
-        id: "team-workspace",
-        label: "Team Workspace",
-        icon: Users,
-        href: "/team-workspace",
-      },
-      {
-        id: "real-time-collab",
-        label: "Real-time Collaboration",
-        icon: Globe,
-        href: "/real-time-collaboration",
-        isNew: true,
-      },
-      {
-        id: "shared-notes",
-        label: "Shared Notes",
-        icon: FileText,
-        href: "/shared-notes",
-      },
-      {
-        id: "team-calendar",
-        label: "Team Calendar",
-        icon: Calendar,
-        href: "/team-calendar",
-      },
-      {
-        id: "screen-sharing",
-        label: "Screen Sharing",
-        icon: Share,
-        href: "/screen-sharing",
-      },
-      {
-        id: "video-recorder",
-        label: "Video Recorder",
-        icon: VideoIcon,
-        href: "/video-recorder",
-      },
-    ],
-  },
-  {
-    id: "templates",
-    label: "Templates & Resources",
-    icon: FileText,
-    children: [
-      {
-        id: "templates-library",
-        label: "Templates Library",
-        icon: BookOpen,
-        href: "/templates-library",
-      },
-      {
-        id: "question-templates",
-        label: "Question Templates",
-        icon: MessageSquare,
-        href: "/question-templates",
-      },
-      {
-        id: "evaluation-forms",
-        label: "Evaluation Forms",
-        icon: Scale,
-        href: "/evaluation-forms",
-      },
-      {
-        id: "resource-center",
-        label: "Resource Center",
-        icon: Database,
-        href: "/resource-center",
-      },
-    ],
-  },
-  {
-    id: "integrations",
-    label: "Integrations",
-    icon: Database,
-    badge: "New",
-    children: [
-      {
-        id: "integrations-hub",
-        label: "Integrations Hub",
-        icon: Database,
-        href: "/integrations",
-        isNew: true,
-      },
-      {
-        id: "linkedin-integration",
-        label: "LinkedIn Integration",
-        icon: Linkedin,
-        href: "/integrations/linkedin",
-        isNew: true,
-      },
-      {
-        id: "google-calendar",
-        label: "Google Calendar",
-        icon: CalendarDays,
-        href: "/integrations/calendar",
-        isNew: true,
-      },
-      {
-        id: "integration-dashboard",
-        label: "Integration Dashboard",
-        icon: Database,
-        href: "/integration-dashboard",
-      },
-      {
-        id: "ats-integration",
-        label: "ATS Integration",
-        icon: Workflow,
-        href: "/ats-integration",
-      },
-      {
-        id: "calendar-sync",
-        label: "Calendar Sync",
-        icon: Calendar,
-        href: "/calendar-sync",
-      },
-      {
-        id: "api-management",
-        label: "API Management",
+        id: "settings",
+        label: "Settings",
         icon: Settings,
-        href: "/api-management",
-      },
-    ],
-  },
-  {
-    id: "settings",
-    label: "Settings",
-    icon: Settings,
-    children: [
-      {
-        id: "profile-settings",
-        label: "Profile Settings",
-        icon: Users,
-        href: "/settings/profile",
-      },
-      {
-        id: "security-settings",
-        label: "Security",
-        icon: Shield,
-        href: "/settings/security",
-      },
-      {
-        id: "two-factor",
-        label: "Two-Factor Auth",
-        icon: Shield,
-        href: "/settings/two-factor",
-      },
-      {
-        id: "passkeys",
-        label: "Passkeys",
-        icon: Key,
-        href: "/settings/passkeys",
-      },
-      {
-        id: "phone-settings",
-        label: "Phone Settings",
-        icon: Phone,
-        href: "/settings/phone",
-      },
-      {
-        id: "connected-accounts",
-        label: "Connected Accounts",
-        icon: Link2,
-        href: "/settings/connected-accounts",
-      },
-      {
-        id: "sessions",
-        label: "Active Sessions",
-        icon: Monitor,
-        href: "/settings/sessions",
-      },
-      {
-        id: "notification-settings",
-        label: "Notifications",
-        icon: Bell,
-        href: "/settings/notifications",
-      },
-      {
-        id: "team-settings",
-        label: "Team Settings",
-        icon: Users2,
-        href: "/settings/team",
+        description: "Manage your account",
+        children: [
+          {
+            id: "profile-settings",
+            label: "Profile Settings",
+            icon: Users,
+            href: "/settings/profile",
+          },
+          {
+            id: "security-settings",
+            label: "Security",
+            icon: Shield,
+            href: "/settings/security",
+          },
+          {
+            id: "two-factor",
+            label: "Two-Factor Auth",
+            icon: Shield,
+            href: "/settings/two-factor",
+          },
+          {
+            id: "passkeys",
+            label: "Passkeys",
+            icon: Key,
+            href: "/settings/passkeys",
+          },
+          {
+            id: "phone-settings",
+            label: "Phone Settings",
+            icon: Phone,
+            href: "/settings/phone",
+          },
+          {
+            id: "connected-accounts",
+            label: "Connected Accounts",
+            icon: Link2,
+            href: "/settings/connected-accounts",
+          },
+          {
+            id: "sessions",
+            label: "Active Sessions",
+            icon: Monitor,
+            href: "/settings/sessions",
+          },
+          {
+            id: "notification-settings",
+            label: "Notifications",
+            icon: Bell,
+            href: "/settings/notifications",
+          },
+          {
+            id: "team-settings",
+            label: "Team Settings",
+            icon: Users2,
+            href: "/settings/team",
+          },
+        ],
       },
     ],
   },
@@ -538,16 +253,23 @@ const sidebarItems: SidebarItem[] = [
 
 export function Sidebar({ isOpen, onToggle, onClose }: SidebarProps) {
   const pathname = usePathname();
+  const router = useRouter();
+  const { data: session, isPending } = useSession();
   const [expandedItems, setExpandedItems] = useState<string[]>([
     "interviews",
     "evaluation",
   ]);
 
+  const handleSignOut = async () => {
+    await signOut();
+    router.push("/");
+  };
+
   const toggleExpanded = (itemId: string) => {
     setExpandedItems((prev) =>
       prev.includes(itemId)
         ? prev.filter((id) => id !== itemId)
-        : [...prev, itemId]
+        : [...prev, itemId],
     );
   };
 
@@ -569,75 +291,113 @@ export function Sidebar({ isOpen, onToggle, onClose }: SidebarProps) {
     return (
       <div key={item.id} className="space-y-1">
         {hasChildren ? (
-          <Button
-            variant="ghost"
-            className={cn(
-              "w-full justify-between h-10 px-3 font-medium transition-colors",
-              level > 0 && "ml-4 w-auto",
-              active &&
-                "bg-indigo-50 text-indigo-700 dark:bg-indigo-950 dark:text-indigo-300"
-            )}
+          <button
             onClick={() => toggleExpanded(item.id)}
+            className={cn(
+              "w-full flex items-center justify-between rounded-lg px-3 py-2.5 text-sm font-medium transition-all duration-200",
+              "hover:bg-accent/50",
+              level > 0 && "ml-2",
+              active
+                ? "bg-primary/10 text-primary dark:bg-primary/20"
+                : "text-foreground/80 hover:text-foreground"
+            )}
           >
-            <div className="flex items-center gap-3">
-              <item.icon className="w-4 h-4 shrink-0" />
-              <span className="truncate">{item.label}</span>
+            <div className="flex items-center gap-3 flex-1 min-w-0">
+              <div className={cn(
+                "flex-shrink-0 rounded-md p-1.5 transition-colors",
+                active 
+                  ? "bg-primary/15 text-primary" 
+                  : "bg-muted/50 text-foreground/60 group-hover:bg-muted"
+              )}>
+                <item.icon className="w-4 h-4" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <span className="truncate block">{item.label}</span>
+                {item.description && (
+                  <span className="text-xs text-foreground/50 truncate block">
+                    {item.description}
+                  </span>
+                )}
+              </div>
               {item.badge && (
-                <Badge variant="secondary" className="text-xs px-1.5 py-0.5">
+                <Badge
+                  variant="secondary"
+                  className="text-xs px-2 py-0.5 ml-auto flex-shrink-0"
+                >
                   {item.badge}
                 </Badge>
               )}
               {item.isNew && (
-                <Badge className="text-xs px-1.5 py-0.5 bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300">
+                <Badge className="text-xs px-2 py-0.5 bg-emerald-500/20 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-400 ml-auto flex-shrink-0">
                   New
                 </Badge>
               )}
-              {item.isPro && (
-                <Badge className="text-xs px-1.5 py-0.5 bg-purple-100 text-purple-700 dark:bg-purple-900 dark:text-purple-300">
-                  Pro
-                </Badge>
-              )}
             </div>
-            {isExpanded ? (
-              <ChevronDown className="w-4 h-4 shrink-0" />
-            ) : (
-              <ChevronRight className="w-4 h-4 shrink-0" />
-            )}
-          </Button>
+            <motion.div
+              animate={{ rotate: isExpanded ? 180 : 0 }}
+              transition={{ duration: 0.2 }}
+              className="flex-shrink-0"
+            >
+              <ChevronDown className="w-4 h-4" />
+            </motion.div>
+          </button>
         ) : (
-          <Link href={item.href || "#"} onClick={onClose}>
-            <Button
-              variant="ghost"
+          <Link 
+            href={item.href || "#"} 
+            onClick={() => {
+              if (typeof window !== "undefined" && window.innerWidth < 1024) {
+                onClose();
+              }
+            }} 
+            className="block"
+          >
+            <button
               className={cn(
-                "w-full justify-start h-10 px-3 font-medium transition-colors",
-                level > 0 && "ml-4 w-auto",
-                active &&
-                  "bg-indigo-50 text-indigo-700 dark:bg-indigo-950 dark:text-indigo-300"
+                "w-full flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all duration-200",
+                "hover:bg-accent/50",
+                level > 0 && "ml-2",
+                active
+                  ? "bg-primary/10 text-primary dark:bg-primary/20"
+                  : "text-foreground/80 hover:text-foreground"
               )}
             >
-              <div className="flex items-center gap-3 w-full">
-                <item.icon className="w-4 h-4 shrink-0" />
-                <span className="truncate flex-1 text-left">{item.label}</span>
+              <div className={cn(
+                "flex-shrink-0 rounded-md p-1.5 transition-colors",
+                active 
+                  ? "bg-primary/15 text-primary" 
+                  : "bg-muted/50 text-foreground/60 group-hover:bg-muted"
+              )}>
+                <item.icon className="w-4 h-4" />
+              </div>
+              <div className="flex-1 min-w-0 text-left">
+                <span className="truncate block">{item.label}</span>
+                {item.description && (
+                  <span className="text-xs text-foreground/50 truncate block">
+                    {item.description}
+                  </span>
+                )}
+              </div>
+              <div className="flex items-center gap-1 flex-shrink-0">
                 {item.badge && (
                   <Badge
                     variant="secondary"
-                    className="text-xs px-1.5 py-0.5 ml-auto"
+                    className="text-xs px-2 py-0.5"
                   >
                     {item.badge}
                   </Badge>
                 )}
                 {item.isNew && (
-                  <Badge className="text-xs px-1.5 py-0.5 bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300 ml-auto">
+                  <Badge className="text-xs px-2 py-0.5 bg-emerald-500/20 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-400">
                     New
                   </Badge>
                 )}
                 {item.isPro && (
-                  <Badge className="text-xs px-1.5 py-0.5 bg-purple-100 text-purple-700 dark:bg-purple-900 dark:text-purple-300 ml-auto">
+                  <Badge className="text-xs px-2 py-0.5 bg-purple-500/20 text-purple-700 dark:bg-purple-900/40 dark:text-purple-400">
                     Pro
                   </Badge>
                 )}
               </div>
-            </Button>
+            </button>
           </Link>
         )}
 
@@ -647,12 +407,12 @@ export function Sidebar({ isOpen, onToggle, onClose }: SidebarProps) {
               initial={{ height: 0, opacity: 0 }}
               animate={{ height: "auto", opacity: 1 }}
               exit={{ height: 0, opacity: 0 }}
-              transition={{ duration: 0.2 }}
+              transition={{ duration: 0.2, ease: "easeInOut" }}
               className="overflow-hidden"
             >
-              <div className="space-y-1 ml-4">
+              <div className="space-y-1 mt-1">
                 {item.children?.map((child) =>
-                  renderSidebarItem(child, level + 1)
+                  renderSidebarItem(child, level + 1),
                 )}
               </div>
             </motion.div>
@@ -671,6 +431,7 @@ export function Sidebar({ isOpen, onToggle, onClose }: SidebarProps) {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
+            transition={{ duration: 0.2 }}
             className="fixed inset-0 bg-black/50 backdrop-blur-sm z-40 lg:hidden"
             onClick={onClose}
           />
@@ -678,87 +439,183 @@ export function Sidebar({ isOpen, onToggle, onClose }: SidebarProps) {
       </AnimatePresence>
 
       {/* Sidebar */}
-      <aside
+      <motion.aside
+        initial={false}
+        animate={isOpen ? { x: 0 } : { x: "-100%" }}
+        transition={{ duration: 0.3, ease: "easeInOut" }}
         className={cn(
-          "fixed left-0 top-0 z-50 h-full w-80 bg-white dark:bg-gray-900 border-r border-gray-200 dark:border-gray-800 flex flex-col transition-transform duration-300",
-          isOpen ? "translate-x-0" : "-translate-x-full",
-          "lg:relative lg:translate-x-0 lg:z-0"
+          "fixed left-0 top-0 z-50 h-full w-80 bg-background/95 backdrop-blur-sm border-r border-border flex flex-col shadow-xl",
+          "lg:relative lg:translate-x-0 lg:z-auto lg:shadow-none lg:bg-background/99",
+          "lg:animate-none"
         )}
       >
         {/* Header */}
-        <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-800">
-          <div className="flex items-center gap-3">
-            <div className="w-8 h-8 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-lg flex items-center justify-center">
-              <Brain className="w-4 h-4 text-white" />
+        <div className="flex items-center justify-between p-4 border-b border-border shrink-0 bg-gradient-to-r from-background to-muted/30">
+          <div className="flex items-center gap-3 flex-1">
+            <div className="w-8 h-8 flex items-center justify-center rounded-lg bg-primary/10">
+              <Image
+                src="/icons/one_logo.png"
+                alt="JobPrep Logo"
+                width={32}
+                height={32}
+                className="object-contain"
+              />
             </div>
-            <div>
-              <h2 className="font-semibold text-lg">JobPrep AI</h2>
-              <p className="text-xs text-gray-500">Interview Platform</p>
+            <div className="flex-1">
+              <h2 className="font-bold text-sm bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">
+                JobPrep
+              </h2>
+              <p className="text-xs text-muted-foreground">Interview Platform</p>
             </div>
           </div>
           <Button
             variant="ghost"
             size="sm"
             onClick={onToggle}
-            className="lg:hidden"
+            className="lg:hidden rounded-lg"
           >
             <X className="w-4 h-4" />
           </Button>
         </div>
 
         {/* Quick Actions */}
-        <div className="p-4 space-y-2">
-          <Link href="/schedule-interview">
-            <Button className="w-full justify-start gap-2" size="sm">
+        <div className="px-3 py-4 space-y-2 shrink-0 border-b border-border/50">
+          <Link href="/schedule-interview" 
+            onClick={() => {
+              if (typeof window !== "undefined" && window.innerWidth < 1024) {
+                onClose();
+              }
+            }} 
+            className="block"
+          >
+            <Button className="w-full justify-center gap-2 h-10 rounded-lg shadow-sm hover:shadow-md transition-shadow" size="sm">
               <Plus className="w-4 h-4" />
-              Schedule Interview
+              <span className="text-sm font-semibold">New Interview</span>
             </Button>
           </Link>
-          <Button
-            variant="outline"
-            className="w-full justify-start gap-2"
-            size="sm"
+          <div 
+            className="w-full h-10 rounded-lg border border-input bg-background/50 px-3 py-2 text-sm text-foreground/60 shadow-sm transition-all hover:bg-accent/30 hover:text-foreground/80 cursor-pointer flex items-center justify-between gap-2 group"
+            onClick={() => {
+              if (typeof window !== "undefined" && window.innerWidth < 1024) {
+                onClose();
+              }
+              const isMac = navigator.platform.toUpperCase().includes('MAC');
+              const event = new KeyboardEvent('keydown', {
+                key: 'k',
+                code: 'KeyK',
+                ctrlKey: !isMac,
+                metaKey: isMac,
+                bubbles: true,
+              });
+              document.dispatchEvent(event);
+            }}
           >
-            <Search className="w-4 h-4" />
-            Quick Search
-          </Button>
+            <div className="flex items-center gap-2 flex-1 min-w-0">
+              <Search className="w-4 h-4 flex-shrink-0" />
+              <span className="text-sm font-medium">Quick search...</span>
+            </div>
+            <kbd className="pointer-events-none inline-flex h-6 select-none items-center gap-1 rounded border border-border bg-muted px-1.5 font-mono text-[10px] font-medium text-muted-foreground opacity-100 flex-shrink-0">
+              <span className="text-xs">⌘</span>K
+            </kbd>
+          </div>
         </div>
 
-        {/* Navigation */}
-        <nav className="flex-1 overflow-y-auto px-4 pb-4">
-          <div className="space-y-2">
-            {sidebarItems.map((item) => renderSidebarItem(item))}
-          </div>
+        {/* Navigation Sections */}
+        <nav className="flex-1 overflow-y-auto px-3 py-4 space-y-6">
+          {sidebarSections.map((section) => (
+            <div key={section.label} className="space-y-2">
+              <h3 className="px-3 py-1.5 text-xs font-semibold text-foreground/50 uppercase tracking-wider">
+                {section.label}
+              </h3>
+              <div className="space-y-1">
+                {section.items.map((item) => renderSidebarItem(item))}
+              </div>
+            </div>
+          ))}
         </nav>
 
-        {/* User Profile */}
-        <div className="p-4 border-t border-gray-200 dark:border-gray-800">
-          <div className="flex items-center gap-3 mb-3">
-            <Avatar className="w-10 h-10">
-              <AvatarImage src="/placeholder-avatar.jpg" />
-              <AvatarFallback>JD</AvatarFallback>
-            </Avatar>
-            <div className="flex-1 min-w-0">
-              <p className="font-medium text-sm truncate">John Doe</p>
-              <p className="text-xs text-gray-500 truncate">HR Manager</p>
-            </div>
-            <Button variant="ghost" size="sm">
-              <Settings className="w-4 h-4" />
-            </Button>
-          </div>
+        {/* Footer Divider */}
+        <div className="border-t border-border/50 shrink-0" />
 
-          <div className="grid grid-cols-2 gap-2">
-            <Button variant="outline" size="sm" className="justify-start gap-2">
-              <HelpCircle className="w-3 h-3" />
-              Help
-            </Button>
-            <Button variant="outline" size="sm" className="justify-start gap-2">
-              <LogOut className="w-3 h-3" />
-              Logout
-            </Button>
-          </div>
+        {/* User Profile Section */}
+        <div className="p-4 space-y-3">
+          {isPending ? (
+            <div className="flex items-center gap-3">
+              <Skeleton className="w-10 h-10 rounded-lg shrink-0" />
+              <div className="flex-1 space-y-2">
+                <Skeleton className="h-3 w-24 rounded" />
+                <Skeleton className="h-2.5 w-32 rounded" />
+              </div>
+            </div>
+          ) : session?.user ? (
+            <>
+              <div className="flex items-center gap-3 p-2 rounded-lg bg-muted/50 hover:bg-muted transition-colors">
+                <Avatar className="w-10 h-10 shrink-0">
+                  <AvatarImage src={session.user.image || ""} />
+                  <AvatarFallback className="font-semibold">
+                    {session.user.name
+                      ?.split(" ")
+                      .map((n) => n[0])
+                      .join("")
+                      .toUpperCase() || "U"}
+                  </AvatarFallback>
+                </Avatar>
+                <div className="flex-1 min-w-0">
+                  <p className="font-semibold text-sm text-foreground truncate">
+                    {session.user.name || "User"}
+                  </p>
+                  <p className="text-xs text-muted-foreground truncate">
+                    {session.user.email}
+                  </p>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-2">
+                <Link href="/settings">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="w-full justify-center gap-2 rounded-lg h-9"
+                    onClick={() => {
+                      if (typeof window !== "undefined" && window.innerWidth < 1024) {
+                        onClose();
+                      }
+                    }}
+                  >
+                    <Settings className="w-4 h-4" />
+                    <span className="hidden sm:inline text-xs">Settings</span>
+                  </Button>
+                </Link>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="justify-center gap-2 rounded-lg h-9"
+                  onClick={handleSignOut}
+                >
+                  <LogOut className="w-4 h-4" />
+                  <span className="hidden sm:inline text-xs">Logout</span>
+                </Button>
+              </div>
+            </>
+          ) : (
+            <div className="text-center py-2 space-y-3">
+              <p className="text-sm text-muted-foreground">Not signed in</p>
+              <Link href="/sign-in" 
+                onClick={() => {
+                  if (typeof window !== "undefined" && window.innerWidth < 1024) {
+                    onClose();
+                  }
+                }}
+              >
+                <Button className="w-full rounded-lg h-9 text-sm font-medium gap-2">
+                  <ArrowRight className="w-4 h-4" />
+                  Sign In
+                </Button>
+              </Link>
+            </div>
+          )}
         </div>
-      </aside>
+      </motion.aside>
     </>
   );
 }
