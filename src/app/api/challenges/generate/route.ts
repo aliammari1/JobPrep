@@ -4,6 +4,16 @@ import { headers } from "next/headers";
 import { generateWithOllamaRetry, cleanJsonResponse } from "@/lib/ollama-client";
 
 
+/**
+ * Generate personalized coding challenges for a candidate using CV data and a job description.
+ *
+ * Validates the authenticated session and required input, queries a local Ollama AI to produce a JSON
+ * array of challenges, attempts robust JSON repair/parsing, normalizes and enriches each challenge
+ * (adds unique IDs, defaults, starter code), and returns the result with metadata about extracted skills.
+ *
+ * @param req - NextRequest whose JSON body must include `cvData` and `jobDescription`. Optional fields: `difficulty` (default "Medium") and `count` (default 3).
+ * @returns A JSON HTTP response. On success: an object with `success: true`, `challenges` (array of normalized challenge objects), and `metadata` containing `cvSkills`, `jobSkills`, `matchingSkills`, and `generatedAt`. On failure: an error object `{ error: string, details?: string }` with an appropriate HTTP status code.
+ */
 export async function POST(req: NextRequest) {
   try {
     const session = await auth.api.getSession({
@@ -85,16 +95,18 @@ Return ONLY a valid JSON array of ${count} challenges. No markdown, no explanati
     } catch (e) {
       console.error("❌ JSON parsing failed:", e);
       console.log("Failed response:", cleanedResponse.substring(0, 500));
+      
       // Try to extract array manually
       const arrayMatch = cleanedResponse.match(/\[[\s\S]*\]/);
       if (arrayMatch) {
         try {
           challenges = JSON.parse(arrayMatch[0]);
         } catch (e2) {
-          throw new Error("Invalid JSON response from Ollama AI");
+          console.error("Array extraction also failed:", e2);
+          throw new Error(`Failed to parse challenges after JSON repair: ${e2 instanceof Error ? e2.message : String(e2)}`);
         }
       } else {
-        throw new Error("Could not extract valid JSON array from response");
+        throw new Error("Could not extract valid JSON array from Ollama response");
       }
     }
 
