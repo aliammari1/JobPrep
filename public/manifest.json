@@ -128,5 +128,7 @@
         }
       ]
     }
-  ]
+  ],
+  "permissions": ["notifications"],
+  "note": "Push notifications require service worker and https"
 }

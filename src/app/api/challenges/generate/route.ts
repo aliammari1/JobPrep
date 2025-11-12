@@ -85,16 +85,18 @@ Return ONLY a valid JSON array of ${count} challenges. No markdown, no explanati
     } catch (e) {
       console.error("❌ JSON parsing failed:", e);
       console.log("Failed response:", cleanedResponse.substring(0, 500));
+      
       // Try to extract array manually
       const arrayMatch = cleanedResponse.match(/\[[\s\S]*\]/);
       if (arrayMatch) {
         try {
           challenges = JSON.parse(arrayMatch[0]);
         } catch (e2) {
-          throw new Error("Invalid JSON response from Ollama AI");
+          console.error("Array extraction also failed:", e2);
+          throw new Error(`Failed to parse challenges after JSON repair: ${e2 instanceof Error ? e2.message : String(e2)}`);
         }
       } else {
-        throw new Error("Could not extract valid JSON array from response");
+        throw new Error("Could not extract valid JSON array from Ollama response");
       }
     }
 

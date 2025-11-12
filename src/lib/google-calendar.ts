@@ -195,3 +195,97 @@ export async function isCalendarConnected(userId: string): Promise<boolean> {
     return false;
   }
 }
+
+/**
+ * Fetch events from Google Calendar that aren't already synced to JobPrep
+ */
+export async function fetchGoogleCalendarEvents(
+  userId: string
+): Promise<any[]> {
+  try {
+    const accessToken = await getAccessToken(userId);
+
+    if (!accessToken) {
+      return [];
+    }
+
+    // Fetch events from the primary calendar
+    // Only get events from today onwards
+    const response = await fetch(
+      `https://www.googleapis.com/calendar/v3/calendars/primary/events?singleEvents=true&timeMin=${new Date().toISOString()}&maxResults=250&orderBy=startTime`,
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      }
+    );
+
+    if (!response.ok) {
+      console.error("Failed to fetch calendar events");
+      return [];
+    }
+
+    const data = await response.json();
+    return data.items || [];
+  } catch (error) {
+    console.error("Error fetching calendar events:", error);
+    return [];
+  }
+}
+
+/**
+ * Update an event in Google Calendar
+ */
+export async function updateGoogleCalendarEvent(
+  userId: string,
+  eventId: string,
+  event: GoogleCalendarEvent
+): Promise<{ success: boolean; error?: string }> {
+  try {
+    const accessToken = await getAccessToken(userId);
+
+    if (!accessToken) {
+      return { success: false, error: "Not connected to Google Calendar" };
+    }
+
+    // Convert startTime/endTime to Google Calendar format if provided
+    const calendarEvent = {
+      ...event,
+      start: event.start || (event.startTime ? {
+        dateTime: event.startTime.toISOString(),
+        timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+      } : undefined),
+      end: event.end || (event.endTime ? {
+        dateTime: event.endTime.toISOString(),
+        timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+      } : undefined),
+    };
+
+    // Remove the temporary properties
+    delete (calendarEvent as any).startTime;
+    delete (calendarEvent as any).endTime;
+
+    const response = await fetch(
+      `https://www.googleapis.com/calendar/v3/calendars/primary/events/${eventId}?conferenceDataVersion=1`,
+      {
+        method: "PATCH",
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(calendarEvent),
+      }
+    );
+
+    if (!response.ok) {
+      const error = await response.text();
+      console.error("Failed to update calendar event:", error);
+      return { success: false, error: "Failed to update calendar event" };
+    }
+
+    return { success: true };
+  } catch (error) {
+    console.error("Error updating calendar event:", error);
+    return { success: false, error: "Failed to update calendar event" };
+  }
+}

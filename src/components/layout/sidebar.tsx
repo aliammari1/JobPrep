@@ -71,6 +71,7 @@ import {
   CalendarDays,
   CloudUpload,
   FileVideo,
+  ArrowRight,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -83,6 +84,12 @@ interface SidebarItem {
   children?: SidebarItem[];
   isNew?: boolean;
   isPro?: boolean;
+  description?: string;
+}
+
+interface SidebarSection {
+  label: string;
+  items: SidebarItem[];
 }
 
 interface SidebarProps {
@@ -91,191 +98,154 @@ interface SidebarProps {
   onClose: () => void;
 }
 
-const sidebarItems: SidebarItem[] = [
+const sidebarSections: SidebarSection[] = [
   {
-    id: "dashboard",
-    label: "Dashboard",
-    icon: Home,
-    href: "/dashboard",
-  },
-  {
-    id: "interviews",
-    label: "Interviews",
-    icon: Users,
-    children: [
+    label: "Main",
+    items: [
       {
-        id: "mock-interview",
-        label: "Mock Interview",
-        icon: Target,
-        href: "/mock-interview",
-      },
-      {
-        id: "interview-room",
-        label: "Interview Room",
-        icon: Video,
-        href: "/interview-room",
-      },
-      {
-        id: "questions",
-        label: "Questions",
-        icon: BookOpen,
-        href: "/mock-interview/questions",
-        isNew: true,
-      },
-      {
-        id: "recordings",
-        label: "Recordings",
-        icon: FileVideo,
-        href: "/recordings",
-        isNew: true,
-      },
-      {
-        id: "interview-scheduler",
-        label: "Interview Scheduler",
-        icon: CalendarCheck,
-        href: "/interview-scheduler",
-      },
-      {
-        id: "code-challenge",
-        label: "Code Challenge",
-        icon: Code2,
-        href: "/code-challenge",
+        id: "dashboard",
+        label: "Dashboard",
+        icon: Home,
+        href: "/dashboard",
+        description: "View your overview",
       },
     ],
   },
   {
-    id: "career-tools",
-    label: "Career Tools",
-    icon: Briefcase,
-    badge: "New",
-    children: [
+    label: "Interview Prep",
+    items: [
       {
-        id: "cv-builder",
-        label: "CV Builder",
-        icon: FileEdit,
-        href: "/cv-builder",
-        isNew: true,
-      },
-      {
-        id: "cover-letter",
-        label: "Cover Letter Generator",
-        icon: Mail,
-        href: "/cover-letter",
-        isNew: true,
-      },
-    ],
-  },
-  {
-    id: "integrations",
-    label: "Integrations",
-    icon: Database,
-    badge: "New",
-    children: [
-      {
-        id: "integrations-hub",
-        label: "Integrations Hub",
-        icon: Database,
-        href: "/integrations",
-        isNew: true,
-      },
-      {
-        id: "linkedin-integration",
-        label: "LinkedIn Integration",
-        icon: Linkedin,
-        href: "/integrations/linkedin",
-        isNew: true,
-      },
-      {
-        id: "google-calendar",
-        label: "Google Calendar",
-        icon: CalendarDays,
-        href: "/integrations/calendar",
-        isNew: true,
-      },
-      {
-        id: "integration-dashboard",
-        label: "Integration Dashboard",
-        icon: Database,
-        href: "/integration-dashboard",
-      },
-      {
-        id: "ats-integration",
-        label: "ATS Integration",
-        icon: Workflow,
-        href: "/ats-integration",
-      },
-      {
-        id: "calendar-sync",
-        label: "Calendar Sync",
-        icon: Calendar,
-        href: "/calendar-sync",
-      },
-      {
-        id: "api-management",
-        label: "API Management",
-        icon: Settings,
-        href: "/api-management",
-      },
-    ],
-  },
-  {
-    id: "settings",
-    label: "Settings",
-    icon: Settings,
-    children: [
-      {
-        id: "profile-settings",
-        label: "Profile Settings",
+        id: "interviews",
+        label: "Interviews",
         icon: Users,
-        href: "/settings/profile",
+        children: [
+          {
+            id: "mock-interview",
+            label: "Mock Interview",
+            icon: Target,
+            href: "/mock-interview",
+          },
+          {
+            id: "interview-room",
+            label: "Interview Room",
+            icon: Video,
+            href: "/interview-room",
+          },
+          {
+            id: "recordings",
+            label: "Recordings",
+            icon: FileVideo,
+            href: "/recordings",
+            isNew: true,
+          },
+          {
+            id: "interview-scheduler",
+            label: "Interview Scheduler",
+            icon: CalendarCheck,
+            href: "/interview-scheduler",
+          },
+          {
+            id: "code-challenge",
+            label: "Code Challenge",
+            icon: Code2,
+            href: "/code-challenge",
+          },
+        ],
       },
+    ],
+  },
+  {
+    label: "Career Development",
+    items: [
       {
-        id: "security-settings",
-        label: "Security",
-        icon: Shield,
-        href: "/settings/security",
+        id: "career-tools",
+        label: "Career Tools",
+        icon: Briefcase,
+        badge: "New",
+        description: "Build your profile",
+        children: [
+          {
+            id: "cv-builder",
+            label: "CV Builder",
+            icon: FileEdit,
+            href: "/cv-builder",
+            isNew: true,
+          },
+          {
+            id: "cover-letter",
+            label: "Cover Letter Generator",
+            icon: Mail,
+            href: "/cover-letter",
+            isNew: true,
+          },
+        ],
       },
+    ],
+  },
+  {
+    label: "Preferences",
+    items: [
       {
-        id: "two-factor",
-        label: "Two-Factor Auth",
-        icon: Shield,
-        href: "/settings/two-factor",
-      },
-      {
-        id: "passkeys",
-        label: "Passkeys",
-        icon: Key,
-        href: "/settings/passkeys",
-      },
-      {
-        id: "phone-settings",
-        label: "Phone Settings",
-        icon: Phone,
-        href: "/settings/phone",
-      },
-      {
-        id: "connected-accounts",
-        label: "Connected Accounts",
-        icon: Link2,
-        href: "/settings/connected-accounts",
-      },
-      {
-        id: "sessions",
-        label: "Active Sessions",
-        icon: Monitor,
-        href: "/settings/sessions",
-      },
-      {
-        id: "notification-settings",
-        label: "Notifications",
-        icon: Bell,
-        href: "/settings/notifications",
-      },
-      {
-        id: "team-settings",
-        label: "Team Settings",
-        icon: Users2,
-        href: "/settings/team",
+        id: "settings",
+        label: "Settings",
+        icon: Settings,
+        description: "Manage your account",
+        children: [
+          {
+            id: "profile-settings",
+            label: "Profile Settings",
+            icon: Users,
+            href: "/settings/profile",
+          },
+          {
+            id: "security-settings",
+            label: "Security",
+            icon: Shield,
+            href: "/settings/security",
+          },
+          {
+            id: "two-factor",
+            label: "Two-Factor Auth",
+            icon: Shield,
+            href: "/settings/two-factor",
+          },
+          {
+            id: "passkeys",
+            label: "Passkeys",
+            icon: Key,
+            href: "/settings/passkeys",
+          },
+          {
+            id: "phone-settings",
+            label: "Phone Settings",
+            icon: Phone,
+            href: "/settings/phone",
+          },
+          {
+            id: "connected-accounts",
+            label: "Connected Accounts",
+            icon: Link2,
+            href: "/settings/connected-accounts",
+          },
+          {
+            id: "sessions",
+            label: "Active Sessions",
+            icon: Monitor,
+            href: "/settings/sessions",
+          },
+          {
+            id: "notification-settings",
+            label: "Notifications",
+            icon: Bell,
+            href: "/settings/notifications",
+          },
+          {
+            id: "team-settings",
+            label: "Team Settings",
+            icon: Users2,
+            href: "/settings/team",
+          },
+        ],
       },
     ],
   },
@@ -321,92 +291,113 @@ export function Sidebar({ isOpen, onToggle, onClose }: SidebarProps) {
     return (
       <div key={item.id} className="space-y-1">
         {hasChildren ? (
-          <Button
-            variant="ghost"
-            className={cn(
-              "w-full justify-between h-10 px-3 font-medium transition-all duration-200",
-              level > 0 && "ml-4",
-              active
-                ? "bg-primary/15 text-primary dark:bg-primary/20"
-                : "hover:bg-accent/50 text-foreground/90",
-            )}
+          <button
             onClick={() => toggleExpanded(item.id)}
+            className={cn(
+              "w-full flex items-center justify-between rounded-lg px-3 py-2.5 text-sm font-medium transition-all duration-200",
+              "hover:bg-accent/50",
+              level > 0 && "ml-2",
+              active
+                ? "bg-primary/10 text-primary dark:bg-primary/20"
+                : "text-foreground/80 hover:text-foreground"
+            )}
           >
-            <div className="flex items-center gap-3 min-w-0">
-              <item.icon className="w-4 h-4 shrink-0" />
-              <span className="truncate">{item.label}</span>
+            <div className="flex items-center gap-3 flex-1 min-w-0">
+              <div className={cn(
+                "flex-shrink-0 rounded-md p-1.5 transition-colors",
+                active 
+                  ? "bg-primary/15 text-primary" 
+                  : "bg-muted/50 text-foreground/60 group-hover:bg-muted"
+              )}>
+                <item.icon className="w-4 h-4" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <span className="truncate block">{item.label}</span>
+                {item.description && (
+                  <span className="text-xs text-foreground/50 truncate block">
+                    {item.description}
+                  </span>
+                )}
+              </div>
               {item.badge && (
                 <Badge
                   variant="secondary"
-                  className="text-xs px-1.5 py-0.5"
+                  className="text-xs px-2 py-0.5 ml-auto flex-shrink-0"
                 >
                   {item.badge}
                 </Badge>
               )}
               {item.isNew && (
-                <Badge className="text-xs px-1.5 py-0.5 bg-emerald-500/20 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-400">
+                <Badge className="text-xs px-2 py-0.5 bg-emerald-500/20 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-400 ml-auto flex-shrink-0">
                   New
-                </Badge>
-              )}
-              {item.isPro && (
-                <Badge className="text-xs px-1.5 py-0.5 bg-purple-500/20 text-purple-700 dark:bg-purple-900/40 dark:text-purple-400">
-                  Pro
                 </Badge>
               )}
             </div>
             <motion.div
               animate={{ rotate: isExpanded ? 180 : 0 }}
               transition={{ duration: 0.2 }}
+              className="flex-shrink-0"
             >
-              <ChevronDown className="w-4 h-4 shrink-0" />
+              <ChevronDown className="w-4 h-4" />
             </motion.div>
-          </Button>
+          </button>
         ) : (
           <Link 
             href={item.href || "#"} 
             onClick={() => {
-              // Only close on mobile (when window is small)
               if (typeof window !== "undefined" && window.innerWidth < 1024) {
                 onClose();
               }
             }} 
             className="block"
           >
-            <Button
-              variant="ghost"
+            <button
               className={cn(
-                "w-full justify-start h-10 px-3 font-medium transition-all duration-200",
-                level > 0 && "ml-4",
+                "w-full flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all duration-200",
+                "hover:bg-accent/50",
+                level > 0 && "ml-2",
                 active
-                  ? "bg-primary/15 text-primary dark:bg-primary/20"
-                  : "hover:bg-accent/50 text-foreground/90",
+                  ? "bg-primary/10 text-primary dark:bg-primary/20"
+                  : "text-foreground/80 hover:text-foreground"
               )}
             >
-              <div className="flex items-center gap-3 w-full min-w-0">
-                <item.icon className="w-4 h-4 shrink-0" />
-                <span className="truncate flex-1 text-left">{item.label}</span>
-                <div className="flex items-center gap-1 flex-shrink-0">
-                  {item.badge && (
-                    <Badge
-                      variant="secondary"
-                      className="text-xs px-1.5 py-0.5"
-                    >
-                      {item.badge}
-                    </Badge>
-                  )}
-                  {item.isNew && (
-                    <Badge className="text-xs px-1.5 py-0.5 bg-emerald-500/20 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-400">
-                      New
-                    </Badge>
-                  )}
-                  {item.isPro && (
-                    <Badge className="text-xs px-1.5 py-0.5 bg-purple-500/20 text-purple-700 dark:bg-purple-900/40 dark:text-purple-400">
-                      Pro
-                    </Badge>
-                  )}
-                </div>
+              <div className={cn(
+                "flex-shrink-0 rounded-md p-1.5 transition-colors",
+                active 
+                  ? "bg-primary/15 text-primary" 
+                  : "bg-muted/50 text-foreground/60 group-hover:bg-muted"
+              )}>
+                <item.icon className="w-4 h-4" />
               </div>
-            </Button>
+              <div className="flex-1 min-w-0 text-left">
+                <span className="truncate block">{item.label}</span>
+                {item.description && (
+                  <span className="text-xs text-foreground/50 truncate block">
+                    {item.description}
+                  </span>
+                )}
+              </div>
+              <div className="flex items-center gap-1 flex-shrink-0">
+                {item.badge && (
+                  <Badge
+                    variant="secondary"
+                    className="text-xs px-2 py-0.5"
+                  >
+                    {item.badge}
+                  </Badge>
+                )}
+                {item.isNew && (
+                  <Badge className="text-xs px-2 py-0.5 bg-emerald-500/20 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-400">
+                    New
+                  </Badge>
+                )}
+                {item.isPro && (
+                  <Badge className="text-xs px-2 py-0.5 bg-purple-500/20 text-purple-700 dark:bg-purple-900/40 dark:text-purple-400">
+                    Pro
+                  </Badge>
+                )}
+              </div>
+            </button>
           </Link>
         )}
 
@@ -419,7 +410,7 @@ export function Sidebar({ isOpen, onToggle, onClose }: SidebarProps) {
               transition={{ duration: 0.2, ease: "easeInOut" }}
               className="overflow-hidden"
             >
-              <div className="space-y-1">
+              <div className="space-y-1 mt-1">
                 {item.children?.map((child) =>
                   renderSidebarItem(child, level + 1),
                 )}
@@ -453,15 +444,15 @@ export function Sidebar({ isOpen, onToggle, onClose }: SidebarProps) {
         animate={isOpen ? { x: 0 } : { x: "-100%" }}
         transition={{ duration: 0.3, ease: "easeInOut" }}
         className={cn(
-          "fixed left-0 top-0 z-50 h-full w-80 bg-background border-r border-border flex flex-col",
-          "lg:relative lg:translate-x-0 lg:z-auto",
+          "fixed left-0 top-0 z-50 h-full w-80 bg-background/95 backdrop-blur-sm border-r border-border flex flex-col shadow-xl",
+          "lg:relative lg:translate-x-0 lg:z-auto lg:shadow-none lg:bg-background/99",
           "lg:animate-none"
         )}
       >
         {/* Header */}
-        <div className="flex items-center justify-between p-4 border-b border-border shrink-0">
-          <div className="flex items-center gap-3">
-            <div className="w-8 h-8 flex items-center justify-center">
+        <div className="flex items-center justify-between p-4 border-b border-border shrink-0 bg-gradient-to-r from-background to-muted/30">
+          <div className="flex items-center gap-3 flex-1">
+            <div className="w-8 h-8 flex items-center justify-center rounded-lg bg-primary/10">
               <Image
                 src="/icons/one_logo.png"
                 alt="JobPrep Logo"
@@ -470,8 +461,10 @@ export function Sidebar({ isOpen, onToggle, onClose }: SidebarProps) {
                 className="object-contain"
               />
             </div>
-            <div>
-              <h2 className="font-semibold text-sm">JobPrep AI</h2>
+            <div className="flex-1">
+              <h2 className="font-bold text-sm bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">
+                JobPrep
+              </h2>
               <p className="text-xs text-muted-foreground">Interview Platform</p>
             </div>
           </div>
@@ -479,14 +472,14 @@ export function Sidebar({ isOpen, onToggle, onClose }: SidebarProps) {
             variant="ghost"
             size="sm"
             onClick={onToggle}
-            className="lg:hidden"
+            className="lg:hidden rounded-lg"
           >
             <X className="w-4 h-4" />
           </Button>
         </div>
 
         {/* Quick Actions */}
-        <div className="p-4 space-y-2 shrink-0 border-b border-border">
+        <div className="px-3 py-4 space-y-2 shrink-0 border-b border-border/50">
           <Link href="/schedule-interview" 
             onClick={() => {
               if (typeof window !== "undefined" && window.innerWidth < 1024) {
@@ -495,19 +488,17 @@ export function Sidebar({ isOpen, onToggle, onClose }: SidebarProps) {
             }} 
             className="block"
           >
-            <Button className="w-full justify-center gap-2 h-9" size="sm">
+            <Button className="w-full justify-center gap-2 h-10 rounded-lg shadow-sm hover:shadow-md transition-shadow" size="sm">
               <Plus className="w-4 h-4" />
-              <span className="text-sm font-medium">Mock Interview</span>
+              <span className="text-sm font-semibold">New Interview</span>
             </Button>
           </Link>
           <div 
-            className="w-full h-9 rounded-md border border-input bg-background px-3 py-2 text-sm text-foreground/70 shadow-sm transition-colors hover:text-foreground cursor-pointer flex items-center justify-center gap-2 hover:bg-accent/50"
+            className="w-full h-10 rounded-lg border border-input bg-background/50 px-3 py-2 text-sm text-foreground/60 shadow-sm transition-all hover:bg-accent/30 hover:text-foreground/80 cursor-pointer flex items-center justify-between gap-2 group"
             onClick={() => {
-              // Only close on mobile (when window is small)
               if (typeof window !== "undefined" && window.innerWidth < 1024) {
                 onClose();
               }
-              // Trigger command palette with keyboard shortcut
               const isMac = navigator.platform.toUpperCase().includes('MAC');
               const event = new KeyboardEvent('keydown', {
                 key: 'k',
@@ -519,38 +510,49 @@ export function Sidebar({ isOpen, onToggle, onClose }: SidebarProps) {
               document.dispatchEvent(event);
             }}
           >
-            <Search className="w-4 h-4" />
-            <span className="text-sm font-medium flex-1">Quick Search</span>
-            <kbd className="pointer-events-none inline-flex h-5 select-none items-center gap-1 rounded border border-border bg-muted px-1.5 font-mono text-[10px] font-medium text-muted-foreground opacity-100">
+            <div className="flex items-center gap-2 flex-1 min-w-0">
+              <Search className="w-4 h-4 flex-shrink-0" />
+              <span className="text-sm font-medium">Quick search...</span>
+            </div>
+            <kbd className="pointer-events-none inline-flex h-6 select-none items-center gap-1 rounded border border-border bg-muted px-1.5 font-mono text-[10px] font-medium text-muted-foreground opacity-100 flex-shrink-0">
               <span className="text-xs">⌘</span>K
             </kbd>
           </div>
         </div>
 
-        {/* Navigation */}
-        <nav className="flex-1 overflow-y-auto px-3 py-3 space-y-2">
-          {sidebarItems.map((item) => renderSidebarItem(item))}
+        {/* Navigation Sections */}
+        <nav className="flex-1 overflow-y-auto px-3 py-4 space-y-6">
+          {sidebarSections.map((section) => (
+            <div key={section.label} className="space-y-2">
+              <h3 className="px-3 py-1.5 text-xs font-semibold text-foreground/50 uppercase tracking-wider">
+                {section.label}
+              </h3>
+              <div className="space-y-1">
+                {section.items.map((item) => renderSidebarItem(item))}
+              </div>
+            </div>
+          ))}
         </nav>
 
         {/* Footer Divider */}
-        <div className="border-t border-border shrink-0" />
+        <div className="border-t border-border/50 shrink-0" />
 
         {/* User Profile Section */}
         <div className="p-4 space-y-3">
           {isPending ? (
             <div className="flex items-center gap-3">
-              <Skeleton className="w-9 h-9 rounded-full shrink-0" />
+              <Skeleton className="w-10 h-10 rounded-lg shrink-0" />
               <div className="flex-1 space-y-2">
                 <Skeleton className="h-3 w-24 rounded" />
-                <Skeleton className="h-2.5 w-20 rounded" />
+                <Skeleton className="h-2.5 w-32 rounded" />
               </div>
             </div>
           ) : session?.user ? (
             <>
-              <div className="flex items-center gap-3">
-                <Avatar className="w-9 h-9 shrink-0">
+              <div className="flex items-center gap-3 p-2 rounded-lg bg-muted/50 hover:bg-muted transition-colors">
+                <Avatar className="w-10 h-10 shrink-0">
                   <AvatarImage src={session.user.image || ""} />
-                  <AvatarFallback>
+                  <AvatarFallback className="font-semibold">
                     {session.user.name
                       ?.split(" ")
                       .map((n) => n[0])
@@ -559,43 +561,39 @@ export function Sidebar({ isOpen, onToggle, onClose }: SidebarProps) {
                   </AvatarFallback>
                 </Avatar>
                 <div className="flex-1 min-w-0">
-                  <p className="font-medium text-sm text-foreground truncate">
+                  <p className="font-semibold text-sm text-foreground truncate">
                     {session.user.name || "User"}
                   </p>
                   <p className="text-xs text-muted-foreground truncate">
                     {session.user.email}
                   </p>
                 </div>
-                <Link href="/settings" 
-                  onClick={() => {
-                    if (typeof window !== "undefined" && window.innerWidth < 1024) {
-                      onClose();
-                    }
-                  }}
-                >
-                  <Button variant="ghost" size="sm" className="shrink-0">
-                    <Settings className="w-4 h-4" />
-                  </Button>
-                </Link>
               </div>
 
               <div className="grid grid-cols-2 gap-2">
+                <Link href="/settings">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="w-full justify-center gap-2 rounded-lg h-9"
+                    onClick={() => {
+                      if (typeof window !== "undefined" && window.innerWidth < 1024) {
+                        onClose();
+                      }
+                    }}
+                  >
+                    <Settings className="w-4 h-4" />
+                    <span className="hidden sm:inline text-xs">Settings</span>
+                  </Button>
+                </Link>
                 <Button
                   variant="outline"
                   size="sm"
-                  className="justify-start gap-2"
-                >
-                  <HelpCircle className="w-3.5 h-3.5" />
-                  Help
-                </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="justify-start gap-2"
+                  className="justify-center gap-2 rounded-lg h-9"
                   onClick={handleSignOut}
                 >
-                  <LogOut className="w-3.5 h-3.5" />
-                  Logout
+                  <LogOut className="w-4 h-4" />
+                  <span className="hidden sm:inline text-xs">Logout</span>
                 </Button>
               </div>
             </>
@@ -608,9 +606,9 @@ export function Sidebar({ isOpen, onToggle, onClose }: SidebarProps) {
                     onClose();
                   }
                 }}
-                className="block"
               >
-                <Button size="sm" className="w-full">
+                <Button className="w-full rounded-lg h-9 text-sm font-medium gap-2">
+                  <ArrowRight className="w-4 h-4" />
                   Sign In
                 </Button>
               </Link>

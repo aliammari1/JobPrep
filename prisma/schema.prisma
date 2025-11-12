@@ -322,7 +322,7 @@ model CandidateProfile {
 }
 
 model AIMockSession {
-  id               String    @id @default(cuid())
+  id               String          @id @default(cuid())
   userId           String
   sessionType      String
   aiPersonality    String
@@ -336,32 +336,27 @@ model AIMockSession {
   specificScores   String?
   startedAt        DateTime?
   completedAt      DateTime?
-  createdAt        DateTime  @default(now())
-  user             User      @relation("AIMockSessions", fields: [userId], references: [id], onDelete: Cascade)
-  questions        MockQuestion[]
+  createdAt        DateTime        @default(now())
+  user             User            @relation("AIMockSessions", fields: [userId], references: [id], onDelete: Cascade)
+  mock_question    mock_question[]
 
   @@map("ai_mock_session")
 }
 
-model MockQuestion {
-  id            String        @id @default(cuid())
-  sessionId     String
-  session       AIMockSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
-  
-  questionText  String   @db.Text
-  questionType  String
-  idealAnswer   String?  @db.Text
-  userAnswer    String?  @db.Text
-  timeSpent     Int?
-  
-  score         Float?
-  feedback      String?  @db.Text
-  strengths     String[]
-  weaknesses    String[]
-  suggestions   String[]
-  
-  order         Int
-  createdAt     DateTime @default(now())
-
-  @@map("mock_question")
+model mock_question {
+  id              String        @id
+  sessionId       String
+  questionText    String
+  questionType    String
+  idealAnswer     String?
+  userAnswer      String?
+  timeSpent       Int?
+  score           Float?
+  feedback        String?
+  strengths       String[]
+  weaknesses      String[]
+  suggestions     String[]
+  order           Int
+  createdAt       DateTime      @default(now())
+  ai_mock_session AIMockSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
 }

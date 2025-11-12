@@ -10,6 +10,10 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { useRecordingUpload } from "@/hooks/use-recording-upload";
+import { useLiveKitChat } from "@/hooks/use-livekit-chat";
+import { SettingsPanel } from "@/components/interview/settings-panel";
+import { TemplateManager, type Template } from "@/components/interview/template-manager";
+import { PerformanceAnalyticsPanel } from "@/components/interview/performance-analytics-panel";
 import {
   PhoneOff,
   CircleDot,
@@ -108,6 +112,10 @@ export default function InterviewRoom() {
   const [isSendingEmail, setIsSendingEmail] = useState(false);
   const [recordingUrl, setRecordingUrl] = useState<string | null>(null);
   const [isProcessingRecording, setIsProcessingRecording] = useState(false);
+  const [uploadedFiles, setUploadedFiles] = useState<Array<{ id: string; name: string; size: number; url: string }>>([] as Array<{ id: string; name: string; size: number; url: string }>);
+  const [showTemplateManager, setShowTemplateManager] = useState(false);
+  const [callStartTime, setCallStartTime] = useState<number | null>(null);
+  const [mediaPermissionsChecked, setMediaPermissionsChecked] = useState(false);
   
   // Browser recording state
   const [recordedChunks, setRecordedChunks] = useState<Blob[]>([]);
@@ -116,10 +124,20 @@ export default function InterviewRoom() {
   const recordedChunksRef = useRef<Blob[]>([]); // Use ref to track chunks
   const { uploadRecording, isUploading, uploadProgress } = useRecordingUpload();
   
-  // Debug effect
+  // Call duration timer - Increment while in active call
   useEffect(() => {
-    console.log("showEmailDialog changed to:", showEmailDialog);
-  }, [showEmailDialog]);
+    if (hasJoined && token) {
+      if (callStartTime === null) {
+        setCallStartTime(Date.now());
+      }
+      
+      const interval = setInterval(() => {
+        setCallDuration((prev) => prev + 1);
+      }, 1000);
+
+      return () => clearInterval(interval);
+    }
+  }, [hasJoined, token, callStartTime]);
   
   // Interview store
   const {
@@ -138,6 +156,26 @@ export default function InterviewRoom() {
 
   // AI Transcription
   const { startTranscription, stopTranscription } = useAITranscription();
+
+  // LiveKit Chat - Handle incoming messages and files
+  const { broadcastMessage, broadcastFile } = useLiveKitChat(
+    (message) => {
+      // Receive message from other participants
+      addChatMessage(message);
+    },
+    (file) => {
+      // Receive file from other participants
+      setUploadedFiles((prev) => [...prev, file]);
+      addChatMessage({
+        id: file.id,
+        senderId: file.senderId,
+        senderName: file.senderName,
+        message: `📎 Shared file: ${file.name} (${(file.size / 1024).toFixed(2)} KB)`,
+        timestamp: file.timestamp,
+        type: "message" as const,
+      });
+    }
+  );
 
   // Generate initial room code
   useEffect(() => {
@@ -248,6 +286,14 @@ export default function InterviewRoom() {
 
   // Handle joining room from form
   const handleJoinRoom = async () => {
+    // Check media permissions first
+    if (!hasMediaPermissions && !mediaPermissionsChecked) {
+      toast.error("Please test your media setup first", {
+        description: "Click 'Test Setup' to verify camera and microphone access",
+      });
+      return;
+    }
+
     const userName = session?.user?.name || session?.user?.email || "Guest User";
     
     // Generate room name if creating
@@ -356,8 +402,18 @@ export default function InterviewRoom() {
   };
 
   const handleSendEmail = async () => {
-    if (!emailRecipient || !emailRecipient.includes('@')) {
-      toast.error("Please enter a valid email address");
+    // Enhanced email validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    
+    if (!emailRecipient || !emailRegex.test(emailRecipient)) {
+      toast.error("Please enter a valid email address", {
+        description: "Format: example@domain.com",
+      });
+      return;
+    }
+
+    if (!emailMessage.trim()) {
+      toast.error("Please add a message");
       return;
     }
 
@@ -395,15 +451,22 @@ export default function InterviewRoom() {
         }),
       });
 
-      if (!response.ok) throw new Error("Failed to send email");
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || "Failed to send email");
+      }
       
-      toast.success("Invitation email sent successfully!");
+      toast.success("Invitation email sent successfully!", {
+        description: `Email sent to ${emailRecipient}`,
+      });
       setShowEmailDialog(false);
       setEmailRecipient("");
       setEmailMessage("");
     } catch (error) {
       console.error("Failed to send email:", error);
-      toast.error("Failed to send email. Please try again.");
+      toast.error("Failed to send email", {
+        description: error instanceof Error ? error.message : "Please try again later",
+      });
     } finally {
       setIsSendingEmail(false);
     }
@@ -575,12 +638,14 @@ export default function InterviewRoom() {
       stream.getTracks().forEach(track => track.stop());
       
       setHasMediaPermissions(true);
+      setMediaPermissionsChecked(true);
       toast.success("Camera and microphone are working!", {
         description: "You're all set to join the interview room"
       });
     } catch (error) {
       console.error("Media setup test failed:", error);
       setHasMediaPermissions(false);
+      setMediaPermissionsChecked(true);
       toast.error("Unable to access camera or microphone", {
         description: "Please check your browser permissions and try again"
       });
@@ -624,6 +689,8 @@ export default function InterviewRoom() {
         type: "message" as const,
       };
       addChatMessage(newMessage);
+      // Broadcast to other participants in the room
+      broadcastMessage(newMessage);
       setChatMessage("");
     }
   };
@@ -640,6 +707,8 @@ export default function InterviewRoom() {
         type: "note" as const,
       };
       addChatMessage(newMessage);
+      // Broadcast note to other participants
+      broadcastMessage(newMessage);
       setCurrentNote("");
     }
   };
@@ -714,27 +783,65 @@ export default function InterviewRoom() {
   const handleFileUpload = () => {
     const input = document.createElement('input');
     input.type = 'file';
-    input.accept = '.txt,.pdf,.doc,.docx';
+    input.accept = '.txt,.pdf,.doc,.docx,.jpg,.png';
     input.onchange = (e: Event) => {
       const target = e.target as HTMLInputElement;
       const file = target.files?.[0];
       if (file) {
+        // Check file size (limit to 10MB)
+        const MAX_SIZE = 10 * 1024 * 1024;
+        if (file.size > MAX_SIZE) {
+          toast.error("File too large", {
+            description: "Maximum file size is 10MB",
+          });
+          return;
+        }
+
+        // Create file reference
+        const fileId = Date.now().toString();
+        const fileUrl = URL.createObjectURL(file);
+        const fileRef = {
+          id: fileId,
+          name: file.name,
+          size: file.size,
+          url: fileUrl,
+        };
+
+        // Add to uploaded files
+        setUploadedFiles((prev: typeof uploadedFiles) => [...prev, fileRef]);
+
+        // Add message to chat
         const message = {
-          id: Date.now().toString(),
+          id: fileId,
           senderId: 'local',
           senderName: participantName,
-          message: `📎 Shared file: ${file.name}`,
+          message: `📎 Shared file: ${file.name} (${(file.size / 1024).toFixed(2)} KB)`,
           timestamp: new Date(),
           type: 'message' as const,
         };
         addChatMessage(message);
+        
+        // Broadcast file to other participants
+        broadcastFile({
+          id: fileId,
+          name: file.name,
+          size: file.size,
+          url: fileUrl,
+          senderId: 'local',
+          senderName: participantName,
+          timestamp: new Date(),
+        });
+        
+        toast.success("File shared successfully!", {
+          description: `${file.name} has been added to the chat`,
+        });
       }
     };
     input.click();
   };
 
-  const handleTemplate = (template: string) => {
-    setChatMessage(template);
+  const handleTemplate = (template: Template) => {
+    setChatMessage(template.content);
   };
 
   const handleSuggestQuestions = () => {
@@ -743,6 +850,10 @@ export default function InterviewRoom() {
       "How do you handle challenging situations in your work?",
       "What are your long-term career goals?",
       "Can you walk me through a recent project you completed?",
+      "Tell me about a time you had to learn something new quickly",
+      "How do you prioritize tasks when you have multiple deadlines?",
+      "What's your approach to collaborating with team members?",
+      "Can you describe a time you failed and what you learned?",
     ];
     const randomQuestion = questions[Math.floor(Math.random() * questions.length)];
     const message = {
@@ -754,6 +865,7 @@ export default function InterviewRoom() {
       type: 'question' as const,
     };
     addChatMessage(message);
+    toast.success("Question suggestion added!");
   };
 
   const handlePerformanceAnalysis = () => {
@@ -1151,6 +1263,10 @@ export default function InterviewRoom() {
                           onClick={() => {
                             setFormRoomName(room);
                             setJoinMode("join");
+                            // Auto-join the room
+                            setTimeout(() => {
+                              handleJoinRoom();
+                            }, 0);
                           }}
                           className="w-full text-left px-3 py-2 text-sm font-mono bg-secondary/50 hover:bg-secondary rounded-lg transition-colors"
                         >
@@ -1328,8 +1444,15 @@ export default function InterviewRoom() {
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-4 min-h-[calc(100vh-200px)]">
+          {/* Settings Panel Overlay */}
+          {showSettings && (
+            <div className="lg:col-span-1 h-fit">
+              <SettingsPanel onClose={() => setShowSettings(false)} />
+            </div>
+          )}
+
           {/* Main Video Area */}
-          <div className="lg:col-span-3 space-y-4">
+          <div className={`${showSettings ? 'lg:col-span-3' : 'lg:col-span-3'} space-y-4`}>
             <div className="bg-card rounded-lg p-4 h-full border border-border">
               <LiveKitRoom
                 video={true}
@@ -1414,12 +1537,30 @@ export default function InterviewRoom() {
 
           {/* Sidebar */}
           <div className="space-y-4">
-            <Tabs defaultValue="chat" className="h-full flex flex-col">
-              <TabsList className="grid w-full grid-cols-3 bg-secondary">
-                <TabsTrigger value="chat">Chat</TabsTrigger>
-                <TabsTrigger value="notes">Notes</TabsTrigger>
-                <TabsTrigger value="ai">AI Insights</TabsTrigger>
-              </TabsList>
+            {/* Template Manager Panel */}
+            {showTemplateManager && (
+              <TemplateManager
+                onSelectTemplate={handleTemplate}
+                onClose={() => setShowTemplateManager(false)}
+              />
+            )}
+
+            {/* AI Insights Panel */}
+            {!showTemplateManager && (
+              <>
+                {/* Performance Analytics */}
+                <PerformanceAnalyticsPanel
+                  transcripts={transcripts}
+                  recordingTime={recordingTime}
+                />
+
+                {/* Chat Tabs */}
+                <Tabs defaultValue="chat" className="h-full flex flex-col">
+                  <TabsList className="grid w-full grid-cols-3 bg-secondary">
+                    <TabsTrigger value="chat">Chat</TabsTrigger>
+                    <TabsTrigger value="notes">Notes</TabsTrigger>
+                    <TabsTrigger value="ai">AI Insights</TabsTrigger>
+                  </TabsList>
 
               {/* Chat */}
               <TabsContent value="chat" className="flex-1 flex flex-col space-y-4">
@@ -1487,7 +1628,7 @@ export default function InterviewRoom() {
                           variant="outline" 
                           size="sm" 
                           className="flex-1"
-                          onClick={() => handleTemplate("Thank you for joining this interview. Let's get started!")}
+                          onClick={() => setShowTemplateManager(true)}
                         >
                           <FileText className="w-4 h-4 mr-1" />
                           Template
@@ -1709,6 +1850,8 @@ export default function InterviewRoom() {
                 </Card>
               </TabsContent>
             </Tabs>
+              </>
+            )}
           </div>
         </div>
 
