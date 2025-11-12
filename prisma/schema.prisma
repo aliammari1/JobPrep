@@ -1,9 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
   provider = "prisma-client-js"
   output   = "../src/generated/prisma"
@@ -16,58 +10,51 @@ datasource db {
 }
 
 model User {
-  id               String       @id
-  name             String
-  email            String
-  emailVerified    Boolean      @default(false)
-  image            String?
-  createdAt        DateTime     @default(now())
-  updatedAt        DateTime     @default(now()) @updatedAt
-  username         String?
-  displayUsername  String?
-  twoFactorEnabled Boolean?     @default(false)
-  role             String?
-  banned           Boolean?     @default(false)
-  banReason        String?
-  banExpires       DateTime?
-  sessions         Session[]
-  accounts         Account[]
-  twofactors       TwoFactor[]
-  members          Member[]
-  invitations      Invitation[]
-
-  phoneNumber         String?
+  id                  String                @id
+  name                String
+  email               String                @unique
+  emailVerified       Boolean               @default(false)
+  image               String?
+  createdAt           DateTime              @default(now())
+  updatedAt           DateTime              @default(now()) @updatedAt
+  username            String?               @unique
+  displayUsername     String?
+  twoFactorEnabled    Boolean?              @default(false)
+  role                String?
+  banned              Boolean?              @default(false)
+  banReason           String?
+  banExpires          DateTime?
+  phoneNumber         String?               @unique
   phoneNumberVerified Boolean?
-  passkeys            Passkey[]
-
-  // AI Interview Platform Relations
-  createdTemplates    InterviewTemplate[]   @relation("CreatedTemplates")
+  accounts            Account[]
+  aiMockSessions      AIMockSession[]       @relation("AIMockSessions")
+  candidateProfile    CandidateProfile?     @relation("CandidateProfile")
   candidateInterviews Interview[]           @relation("CandidateInterviews")
   interviewerSessions Interview[]           @relation("InterviewerSessions")
   evaluations         InterviewEvaluation[] @relation("EvaluatorAssessments")
-  candidateProfile    CandidateProfile?     @relation("CandidateProfile")
-  aiMockSessions      AIMockSession[]       @relation("AIMockSessions")
+  createdTemplates    InterviewTemplate[]   @relation("CreatedTemplates")
+  invitations         Invitation[]
+  members             Member[]
+  passkeys            Passkey[]
+  sessions            Session[]
+  twofactors          TwoFactor[]
 
-  @@unique([email])
-  @@unique([username])
-  @@unique([phoneNumber])
   @@map("user")
 }
 
 model Session {
   id                   String   @id
   expiresAt            DateTime
-  token                String
+  token                String   @unique
   createdAt            DateTime @default(now())
   updatedAt            DateTime @updatedAt
   ipAddress            String?
   userAgent            String?
   userId               String
-  user                 User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   impersonatedBy       String?
   activeOrganizationId String?
+  user                 User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  @@unique([token])
   @@map("session")
 }
 
@@ -76,7 +63,6 @@ model Account {
   accountId             String
   providerId            String
   userId                String
-  user                  User      @relation(fields: [userId], references: [id], onDelete: Cascade)
   accessToken           String?
   refreshToken          String?
   idToken               String?
@@ -86,6 +72,7 @@ model Account {
   password              String?
   createdAt             DateTime  @default(now())
   updatedAt             DateTime  @updatedAt
+  user                  User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@map("account")
 }
@@ -114,25 +101,24 @@ model TwoFactor {
 model Organization {
   id          String       @id
   name        String
-  slug        String
+  slug        String       @unique
   logo        String?
   createdAt   DateTime
   metadata    String?
-  members     Member[]
   invitations Invitation[]
+  members     Member[]
 
-  @@unique([slug])
   @@map("organization")
 }
 
 model Member {
   id             String       @id
   organizationId String
-  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   userId         String
-  user           User         @relation(fields: [userId], references: [id], onDelete: Cascade)
   role           String
   createdAt      DateTime
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  user           User         @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@map("member")
 }
@@ -140,13 +126,13 @@ model Member {
 model Invitation {
   id             String       @id
   organizationId String
-  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   email          String
   role           String?
   status         String
   expiresAt      DateTime
   inviterId      String
   user           User         @relation(fields: [inviterId], references: [id], onDelete: Cascade)
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
 
   @@map("invitation")
 }
@@ -156,7 +142,6 @@ model Passkey {
   name         String?
   publicKey    String
   userId       String
-  user         User      @relation(fields: [userId], references: [id], onDelete: Cascade)
   credentialID String
   counter      Int
   deviceType   String
@@ -164,232 +149,219 @@ model Passkey {
   transports   String?
   createdAt    DateTime?
   aaguid       String?
+  user         User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@map("passkey")
 }
 
-// AI Interview Platform Models
-
 model InterviewTemplate {
-  id          String   @id @default(cuid())
+  id          String              @id @default(cuid())
   title       String
   description String?
-  category    String // Technical, Behavioral, System Design, etc.
-  difficulty  String // Easy, Medium, Hard
-  duration    Int // in minutes
-  isPublic    Boolean  @default(false)
+  category    String
+  difficulty  String
+  duration    Int
+  isPublic    Boolean             @default(false)
   createdBy   String
-  creator     User     @relation("CreatedTemplates", fields: [createdBy], references: [id], onDelete: Cascade)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-
-  questions  InterviewQuestion[]
-  interviews Interview[]
-  tags       String[] // JSON array stored as string
+  createdAt   DateTime            @default(now())
+  updatedAt   DateTime            @updatedAt
+  tags        String[]
+  interviews  Interview[]
+  questions   InterviewQuestion[]
+  creator     User                @relation("CreatedTemplates", fields: [createdBy], references: [id], onDelete: Cascade)
 
   @@map("interview_template")
 }
 
 model InterviewQuestion {
-  id                 String            @id @default(cuid())
+  id                 String              @id @default(cuid())
   templateId         String
-  template           InterviewTemplate @relation(fields: [templateId], references: [id], onDelete: Cascade)
-  question           String            @db.Text
-  questionType       String // coding, behavioral, technical, system-design
+  question           String
+  questionType       String
   difficulty         String
-  expectedAnswer     String?           @db.Text
-  timeLimit          Int? // in minutes
-  codeLanguages      String[] // JSON array for coding questions
-  evaluationCriteria String?           @db.Text
+  expectedAnswer     String?
+  timeLimit          Int?
+  codeLanguages      String[]
+  evaluationCriteria String?
   order              Int
-  createdAt          DateTime          @default(now())
-
-  responses InterviewResponse[]
+  createdAt          DateTime            @default(now())
+  template           InterviewTemplate   @relation(fields: [templateId], references: [id], onDelete: Cascade)
+  responses          InterviewResponse[]
 
   @@map("interview_question")
 }
 
 model Interview {
-  id            String            @id @default(cuid())
-  candidateId   String
-  candidate     User              @relation("CandidateInterviews", fields: [candidateId], references: [id], onDelete: Cascade)
-  interviewerId String?
-  interviewer   User?             @relation("InterviewerSessions", fields: [interviewerId], references: [id], onDelete: SetNull)
-  templateId    String
-  template      InterviewTemplate @relation(fields: [templateId], references: [id], onDelete: Cascade)
-
-  status      String    @default("scheduled") // scheduled, in-progress, completed, cancelled
-  scheduledAt DateTime?
-  startedAt   DateTime?
-  completedAt DateTime?
-  duration    Int? // actual duration in minutes
-
-  // Recording and Analytics
-  videoRecordingUrl String?
-  audioRecordingUrl String?
-  aiAnalysisReport  String? @db.Text // JSON report from AI analysis
-
-  // Scores and Evaluation
+  id                 String                @id @default(cuid())
+  candidateId        String
+  interviewerId      String?
+  templateId         String
+  status             String                @default("scheduled")
+  scheduledAt        DateTime?
+  startedAt          DateTime?
+  completedAt        DateTime?
+  duration           Int?
+  videoRecordingUrl  String?
+  audioRecordingUrl  String?
+  aiAnalysisReport   String?
   overallScore       Float?
   technicalScore     Float?
   behavioralScore    Float?
   communicationScore Float?
-
-  // Settings
-  isAIInterviewer Boolean @default(false)
-  allowRecording  Boolean @default(true)
-  settings        String? @db.Text // JSON settings
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  responses   InterviewResponse[]
-  evaluations InterviewEvaluation[]
-  analytics   InterviewAnalytics[]
+  isAIInterviewer    Boolean               @default(false)
+  allowRecording     Boolean               @default(true)
+  settings           String?
+  createdAt          DateTime              @default(now())
+  updatedAt          DateTime              @updatedAt
+  candidateEmail     String?
+  candidateName      String?
+  candidatePhone     String?
+  isCalendarSynced   Boolean               @default(false)
+  location           String?
+  notes              String?
+  position           String?
+  reminderSent       Boolean               @default(false)
+  time               String?
+  type               String                @default("video")
+  candidate          User                  @relation("CandidateInterviews", fields: [candidateId], references: [id], onDelete: Cascade)
+  interviewer        User?                 @relation("InterviewerSessions", fields: [interviewerId], references: [id])
+  template           InterviewTemplate     @relation(fields: [templateId], references: [id], onDelete: Cascade)
+  analytics          InterviewAnalytics[]
+  evaluations        InterviewEvaluation[]
+  responses          InterviewResponse[]
 
   @@map("interview")
 }
 
 model InterviewResponse {
-  id          String            @id @default(cuid())
-  interviewId String
-  interview   Interview         @relation(fields: [interviewId], references: [id], onDelete: Cascade)
-  questionId  String
-  question    InterviewQuestion @relation(fields: [questionId], references: [id], onDelete: Cascade)
-
-  responseText String? @db.Text
-  codeResponse String? @db.Text
+  id           String            @id @default(cuid())
+  interviewId  String
+  questionId   String
+  responseText String?
+  codeResponse String?
   language     String?
-
-  // Time tracking
-  timeSpent   Int? // in seconds
-  startedAt   DateTime?
-  submittedAt DateTime?
-
-  // AI Analysis
-  aiScore    Float?
-  aiFeedback String? @db.Text
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  timeSpent    Int?
+  startedAt    DateTime?
+  submittedAt  DateTime?
+  aiScore      Float?
+  aiFeedback   String?
+  createdAt    DateTime          @default(now())
+  updatedAt    DateTime          @updatedAt
+  interview    Interview         @relation(fields: [interviewId], references: [id], onDelete: Cascade)
+  question     InterviewQuestion @relation(fields: [questionId], references: [id], onDelete: Cascade)
 
   @@map("interview_response")
 }
 
 model InterviewEvaluation {
-  id          String    @id @default(cuid())
-  interviewId String
-  interview   Interview @relation(fields: [interviewId], references: [id], onDelete: Cascade)
-  evaluatorId String
-  evaluator   User      @relation("EvaluatorAssessments", fields: [evaluatorId], references: [id], onDelete: Cascade)
-
+  id                 String    @id @default(cuid())
+  interviewId        String
+  evaluatorId        String
   technicalScore     Float?
   behavioralScore    Float?
   communicationScore Float?
   overallScore       Float?
-
-  strengths      String? @db.Text
-  improvements   String? @db.Text
-  recommendation String? // hire, reject, maybe
-  notes          String? @db.Text
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  strengths          String?
+  improvements       String?
+  recommendation     String?
+  notes              String?
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
+  evaluator          User      @relation("EvaluatorAssessments", fields: [evaluatorId], references: [id], onDelete: Cascade)
+  interview          Interview @relation(fields: [interviewId], references: [id], onDelete: Cascade)
 
   @@map("interview_evaluation")
 }
 
 model InterviewAnalytics {
-  id          String    @id @default(cuid())
-  interviewId String
-  interview   Interview @relation(fields: [interviewId], references: [id], onDelete: Cascade)
-
-  // Voice/Speech Analytics
-  speechClarity Float?
-  speechPace    Float?
-  fillerWords   Int?
-  confidence    Float?
-
-  // Behavioral Analytics
-  eyeContact        Float?
-  facialExpressions String? @db.Text // JSON data
-  bodyLanguage      String? @db.Text // JSON data
-
-  // Performance Metrics
-  responseTime        Float? // average response time
+  id                  String    @id @default(cuid())
+  interviewId         String
+  speechClarity       Float?
+  speechPace          Float?
+  fillerWords         Int?
+  confidence          Float?
+  eyeContact          Float?
+  facialExpressions   String?
+  bodyLanguage        String?
+  responseTime        Float?
   accuracyScore       Float?
   problemSolvingScore Float?
-
-  // Engagement Metrics
-  attention     Float?
-  participation Float?
-
-  analysisData String? @db.Text // Full JSON analysis data
-
-  createdAt DateTime @default(now())
+  attention           Float?
+  participation       Float?
+  analysisData        String?
+  createdAt           DateTime  @default(now())
+  interview           Interview @relation(fields: [interviewId], references: [id], onDelete: Cascade)
 
   @@map("interview_analytics")
 }
 
 model CandidateProfile {
-  id     String @id @default(cuid())
-  userId String @unique
-  user   User   @relation("CandidateProfile", fields: [userId], references: [id], onDelete: Cascade)
-
-  // Basic Info
-  resume      String? @db.Text
-  coverLetter String? @db.Text
-  portfolio   String?
-  linkedIn    String?
-  github      String?
-
-  // Skills and Experience
-  skills         String[] // JSON array
-  experience     String?  @db.Text // JSON experience data
-  education      String?  @db.Text // JSON education data
-  certifications String[] // JSON array
-
-  // Preferences
-  jobTitle       String?
-  expectedSalary String?
-  location       String?
-  remote         Boolean @default(false)
-
-  // AI Assessments
-  skillAssessments String? @db.Text // JSON data
+  id               String   @id @default(cuid())
+  userId           String   @unique
+  resume           String?
+  coverLetter      String?
+  portfolio        String?
+  linkedIn         String?
+  github           String?
+  skills           String[]
+  experience       String?
+  education        String?
+  certifications   String[]
+  jobTitle         String?
+  expectedSalary   String?
+  location         String?
+  remote           Boolean  @default(false)
+  skillAssessments String?
   personalityType  String?
-  careerGoals      String? @db.Text
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  careerGoals      String?
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+  user             User     @relation("CandidateProfile", fields: [userId], references: [id], onDelete: Cascade)
 
   @@map("candidate_profile")
 }
 
 model AIMockSession {
-  id     String @id @default(cuid())
-  userId String
-  user   User   @relation("AIMockSessions", fields: [userId], references: [id], onDelete: Cascade)
-
-  sessionType     String // practice, assessment, mock-interview
-  aiPersonality   String // friendly, professional, challenging
-  difficultyLevel String // beginner, intermediate, advanced
-
-  topics   String[] // JSON array of topics
-  duration Int // in minutes
-
-  // Session Data
-  conversationLog  String?  @db.Text // JSON conversation history
-  feedback         String?  @db.Text // AI generated feedback
-  improvementAreas String[] // JSON array
-
-  // Scores
-  overallScore   Float?
-  specificScores String? @db.Text // JSON detailed scores
-
-  startedAt   DateTime?
-  completedAt DateTime?
-  createdAt   DateTime  @default(now())
+  id               String    @id @default(cuid())
+  userId           String
+  sessionType      String
+  aiPersonality    String
+  difficultyLevel  String
+  topics           String[]
+  duration         Int
+  conversationLog  String?
+  feedback         String?
+  improvementAreas String[]
+  overallScore     Float?
+  specificScores   String?
+  startedAt        DateTime?
+  completedAt      DateTime?
+  createdAt        DateTime  @default(now())
+  user             User      @relation("AIMockSessions", fields: [userId], references: [id], onDelete: Cascade)
+  questions        MockQuestion[]
 
   @@map("ai_mock_session")
+}
+
+model MockQuestion {
+  id            String        @id @default(cuid())
+  sessionId     String
+  session       AIMockSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  
+  questionText  String   @db.Text
+  questionType  String
+  idealAnswer   String?  @db.Text
+  userAnswer    String?  @db.Text
+  timeSpent     Int?
+  
+  score         Float?
+  feedback      String?  @db.Text
+  strengths     String[]
+  weaknesses    String[]
+  suggestions   String[]
+  
+  order         Int
+  createdAt     DateTime @default(now())
+
+  @@map("mock_question")
 }

@@ -3,10 +3,11 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Download, Save, CheckCircle2 } from "lucide-react";
+import { Download, Save, CheckCircle2, Eye } from "lucide-react";
 import { useState } from "react";
 import { generateInterviewPDF, downloadPDF, InterviewPDFData } from "@/lib/pdf-generator";
 import { toast } from "sonner";
+import { FullPageAnswersView } from "./FullPageAnswersView";
 
 interface QuestionDetailedViewProps {
   interviewResults: any[];
@@ -31,6 +32,7 @@ export function QuestionDetailedView({
 }: QuestionDetailedViewProps) {
   const [isSaving, setIsSaving] = useState(false);
   const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
+  const [showSwipeableCards, setShowSwipeableCards] = useState(false);
 
   const handleDownloadPDF = async () => {
     try {
@@ -90,44 +92,63 @@ export function QuestionDetailedView({
   const handleSaveInterview = async () => {
     try {
       setIsSaving(true);
+      console.log("SAVE BUTTON CLICKED - Starting save...");
       toast.info("Saving interview...");
+
+      const payload = {
+        sessionType: "mock-interview",
+        topics: jobTitle ? [jobTitle] : interviewResults.map((r) => r.question.type).filter((v, i, a) => a.indexOf(v) === i),
+        duration: Math.round(
+          interviewResults.reduce((sum, r) => sum + (r.timeSpent || 0), 0) / 60
+        ),
+        conversationLog: interviewResults.map((r) => ({
+          question: r.question,
+          userAnswer: r.userAnswer,
+          evaluation: r.evaluation,
+        })),
+        questions: interviewResults, // Complete question data
+        candidateName,
+        jobTitle,
+        companyName,
+        feedback: finalAssessment,
+        improvementAreas: finalAssessment.developmentAreas || [],
+        overallScore: parseFloat(statistics.averageScore),
+        specificScores: {
+          percentage: statistics.percentage,
+          totalScore: statistics.totalScore,
+        },
+      };
+
+      console.log("Payload prepared:", {
+        questionsCount: payload.questions?.length,
+        candidateName: payload.candidateName,
+        jobTitle: payload.jobTitle,
+        hasOverallScore: !!payload.overallScore,
+      });
 
       const response = await fetch("/api/save-interview", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({
-          sessionType: "mock-interview",
-          topics: jobTitle ? [jobTitle] : interviewResults.map((r) => r.question.type).filter((v, i, a) => a.indexOf(v) === i),
-          duration: Math.round(
-            interviewResults.reduce((sum, r) => sum + (r.timeSpent || 0), 0) / 60
-          ),
-          conversationLog: interviewResults.map((r) => ({
-            question: r.question,
-            userAnswer: r.userAnswer,
-            evaluation: r.evaluation,
-          })),
-          feedback: finalAssessment,
-          improvementAreas: finalAssessment.developmentAreas || [],
-          overallScore: parseFloat(statistics.averageScore),
-          specificScores: {
-            percentage: statistics.percentage,
-            totalScore: statistics.totalScore,
-          },
-        }),
+        body: JSON.stringify(payload),
       });
 
+      console.log("API response status:", response.status);
+      
       if (!response.ok) {
-        throw new Error("Failed to save interview");
+        const errorData = await response.json();
+        console.error("API error response:", errorData);
+        throw new Error(errorData?.details || "Failed to save interview");
       }
 
       const data = await response.json();
+      console.log("Save successful! Session ID:", data.sessionId);
       toast.success("Interview saved successfully!");
       console.log("Saved interview ID:", data.sessionId);
     } catch (error) {
       console.error("Error saving interview:", error);
-      toast.error("Failed to save interview");
+      toast.error(error instanceof Error ? error.message : "Failed to save interview");
     } finally {
       setIsSaving(false);
     }
@@ -149,6 +170,24 @@ export function QuestionDetailedView({
               {isGeneratingPDF ? "Generating PDF..." : "Download PDF Report"}
             </Button>
             <Button 
+              onClick={() => setShowSwipeableCards(true)}
+              size="lg"
+              className="bg-blue-600 hover:bg-blue-700"
+            >
+              <Eye className="w-4 h-4 mr-2" />
+              View Answers Swipeable
+            </Button>
+            <Button 
+              onClick={() => {
+                console.log("TEST CLICK - Button is working!");
+                toast.info("Button clicked!");
+              }}
+              size="lg"
+              className="bg-yellow-600 hover:bg-yellow-700"
+            >
+              Test Click
+            </Button>
+            <Button 
               onClick={handleSaveInterview}
               disabled={isSaving}
               size="lg"
@@ -161,131 +200,21 @@ export function QuestionDetailedView({
         </CardContent>
       </Card>
 
-      {/* Detailed Question-by-Question Breakdown */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-2xl">Detailed Question Analysis</CardTitle>
-          <p className="text-sm text-muted-foreground">
-            Review each question with your answer, the ideal answer, and detailed feedback
-          </p>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-8">
-            {interviewResults.map((result, idx) => (
-              <div 
-                key={idx} 
-                className="border-2 border-slate-200 dark:border-slate-700 rounded-lg p-6 space-y-6"
-              >
-                {/* Header with Question Number and Score */}
-                <div className="flex items-start justify-between">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-3 mb-3">
-                      <Badge variant="outline" className="text-base px-3 py-1">
-                        Question {idx + 1}
-                      </Badge>
-                      <Badge 
-                        className={
-                          result.question.type === "technical"
-                            ? "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200"
-                            : "bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200"
-                        }
-                      >
-                        {result.question.type}
-                      </Badge>
-                    </div>
-                  </div>
-                  <div className="text-right">
-                    <div className="text-3xl font-bold text-green-600">
-                      {result.evaluation?.score || 0}/10
-                    </div>
-                    <div className="text-sm text-muted-foreground">Score</div>
-                  </div>
-                </div>
+      {/* Detailed Question-by-Question Breakdown - Swipeable Cards */}
+      <div>
+        <h2 className="text-2xl font-bold mb-2">Detailed Question Analysis</h2>
+        <p className="text-sm text-muted-foreground mb-6">
+          Swipe through each question or use the arrows to review your answers, ideal responses, and feedback
+        </p>
+      </div>
 
-                {/* Question Block */}
-                <div className="bg-indigo-50 dark:bg-indigo-950/30 rounded-lg p-4 border-l-4 border-indigo-600">
-                  <div className="flex items-center gap-2 mb-2">
-                    <span className="font-semibold text-indigo-900 dark:text-indigo-100">
-                      📋 Question:
-                    </span>
-                  </div>
-                  <p className="text-slate-800 dark:text-slate-200 leading-relaxed">
-                    {result.question.question}
-                  </p>
-                </div>
-
-                {/* Your Answer Block */}
-                <div className="bg-blue-50 dark:bg-blue-950/30 rounded-lg p-4 border-l-4 border-blue-600">
-                  <div className="flex items-center gap-2 mb-2">
-                    <span className="font-semibold text-blue-900 dark:text-blue-100">
-                      ✍️ Your Answer:
-                    </span>
-                  </div>
-                  <p className="text-slate-800 dark:text-slate-200 leading-relaxed whitespace-pre-wrap">
-                    {result.userAnswer || "No answer provided"}
-                  </p>
-                </div>
-
-                {/* Ideal Answer Block */}
-                <div className="bg-green-50 dark:bg-green-950/30 rounded-lg p-4 border-l-4 border-green-600">
-                  <div className="flex items-center gap-2 mb-2">
-                    <span className="font-semibold text-green-900 dark:text-green-100">
-                      ✅ Ideal Answer:
-                    </span>
-                  </div>
-                  <p className="text-slate-800 dark:text-slate-200 leading-relaxed whitespace-pre-wrap">
-                    {result.question.idealAnswer || "Sample answer not available"}
-                  </p>
-                </div>
-
-                {/* Feedback Section */}
-                {result.evaluation && (
-                  <div className="space-y-4 pt-4 border-t-2 border-slate-200 dark:border-slate-700">
-                    {/* Overall Feedback */}
-                    <div>
-                      <h4 className="font-semibold text-slate-900 dark:text-slate-100 mb-2">
-                        💬 Feedback:
-                      </h4>
-                      <p className="text-slate-700 dark:text-slate-300 italic">
-                        {result.evaluation.feedback}
-                      </p>
-                    </div>
-
-                    {/* Strengths */}
-                    {result.evaluation.strengths && result.evaluation.strengths.length > 0 && (
-                      <div>
-                        <h4 className="font-semibold text-green-700 dark:text-green-400 mb-2 flex items-center gap-2">
-                          <CheckCircle2 className="w-4 h-4" />
-                          Strengths:
-                        </h4>
-                        <ul className="list-disc list-inside space-y-1 text-slate-700 dark:text-slate-300">
-                          {result.evaluation.strengths.map((strength: string, sIdx: number) => (
-                            <li key={sIdx}>{strength}</li>
-                          ))}
-                        </ul>
-                      </div>
-                    )}
-
-                    {/* Suggestions */}
-                    {result.evaluation.suggestions && result.evaluation.suggestions.length > 0 && (
-                      <div>
-                        <h4 className="font-semibold text-amber-700 dark:text-amber-400 mb-2">
-                          💡 Suggestions for Improvement:
-                        </h4>
-                        <ul className="list-disc list-inside space-y-1 text-slate-700 dark:text-slate-300">
-                          {result.evaluation.suggestions.map((suggestion: string, sIdx: number) => (
-                            <li key={sIdx}>{suggestion}</li>
-                          ))}
-                        </ul>
-                      </div>
-                    )}
-                  </div>
-                )}
-              </div>
-            ))}
-          </div>
-        </CardContent>
-      </Card>
+      {/* Swipeable Cards Modal */}
+      {showSwipeableCards && (
+        <FullPageAnswersView
+          interviewResults={interviewResults}
+          onClose={() => setShowSwipeableCards(false)}
+        />
+      )}
     </div>
   );
 }
