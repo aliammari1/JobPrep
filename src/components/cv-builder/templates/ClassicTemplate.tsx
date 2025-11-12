@@ -37,29 +37,35 @@ export function ClassicTemplate({ cvData, settings }: TemplateProps) {
 			)}
 
 			{/* Experience */}
-			{experience.length > 0 && (
-				<div className="mb-6">
-					<h2 className="mb-3 border-b border-gray-300 pb-1 text-lg font-bold uppercase tracking-wide">
-						Professional Experience
-					</h2>
-					<div className="space-y-4">
-						{experience.map((exp) => (
-							<div key={exp.id}>
-								<div className="mb-1">
-									<h3 className="inline font-bold">{exp.title}</h3>
-									<span className="mx-2">•</span>
-									<span className="italic">{exp.company}</span>
-								</div>
-								<div className="mb-2 text-sm text-gray-600">
-									{exp.startDate} - {exp.current ? "Present" : exp.endDate}
-									{exp.location && <span> • {exp.location}</span>}
-								</div>
-								{exp.description && <p className="text-sm text-gray-700">{exp.description}</p>}
-							</div>
-						))}
-					</div>
-				</div>
-			)}
+            {experience.length > 0 && (
+                <div className="mb-6">
+                    <h2 className="mb-3 border-b border-gray-300 pb-1 text-lg font-bold uppercase tracking-wide">
+                        Professional Experience
+                    </h2>
+                    <div className="space-y-4">
+                        {experience.map((exp) => (
+                            <div key={exp.id}>
+                                <div className="mb-1">
+                                    <h3 className="inline font-bold">{exp.title}</h3>
+                                    <span className="mx-2">•</span>
+                                    <span className="italic">{exp.company}</span>
+                                </div>
+                                <div className="mb-2 text-sm text-gray-600">
+                                    {exp.startDate} - {exp.current ? "Present" : exp.endDate}
+                                    {exp.location && <span> • {exp.location}</span>}
+                                </div>
+                                {exp.description && exp.description.length > 0 && (
+                                    <ul className="list-inside list-disc space-y-1 text-sm text-gray-700">
+                                        {exp.description.map((bullet: string, idx: number) => (
+                                            <li key={idx}>{bullet}</li>
+                                        ))}
+                                    </ul>
+                                )}
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            )}
 
 			{/* Education */}
 			{education.length > 0 && (
@@ -99,21 +105,34 @@ export function ClassicTemplate({ cvData, settings }: TemplateProps) {
 			)}
 
 			{/* Additional Sections */}
-			{projects.length > 0 && (
-				<div className="mb-6">
-					<h2 className="mb-3 border-b border-gray-300 pb-1 text-lg font-bold uppercase tracking-wide">
-						Projects
-					</h2>
-					<div className="space-y-2">
-						{projects.map((proj) => (
-							<div key={proj.id}>
-								<h3 className="font-semibold">{proj.name}</h3>
-								<p className="text-sm text-gray-700">{proj.description}</p>
-							</div>
-						))}
-					</div>
-				</div>
-			)}
+			
+            {/* Projects */}
+            {projects.length > 0 && (
+                <div className="mb-6">
+                    <h2 className="mb-3 border-b border-gray-300 pb-1 text-lg font-bold uppercase tracking-wide">
+                        Projects
+                    </h2>
+                    <div className="space-y-2">
+                        {projects.map((proj) => (
+                            <div key={proj.id}>
+                                <h3 className="font-semibold">{proj.name}</h3>
+                                {proj.description && proj.description.length > 0 && (
+                                    <ul className="mt-1 list-inside list-disc space-y-1 text-sm text-gray-700">
+                                        {proj.description.map((bullet: string, idx: number) => (
+                                            <li key={idx}>{bullet}</li>
+                                        ))}
+                                    </ul>
+                                )}
+                                {proj.technologies && proj.technologies.length > 0 && (
+                                    <p className="mt-1 text-sm text-gray-600">
+                                        <span className="font-semibold">Technologies:</span> {proj.technologies.join(", ")}
+                                    </p>
+                                )}
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            )}
 
 			{certifications.length > 0 && (
 				<div className="mb-6">

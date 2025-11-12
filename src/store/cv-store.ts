@@ -22,7 +22,7 @@ export interface CVExperience {
 	startDate: string;
 	endDate: string;
 	current: boolean;
-	description: string;
+	description: string[];
 	highlights: string[];
 	order: number;
 }
@@ -65,7 +65,7 @@ export interface CVCertification {
 export interface CVProject {
 	id: string;
 	name: string;
-	description: string;
+	description: string[];
 	technologies: string[];
 	url: string;
 	github: string;
