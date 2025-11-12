@@ -12,6 +12,14 @@ import { headers } from 'next/headers';
 import { sendEmail } from '@/lib/email-service';
 import { getReminderEmailTemplate } from '@/lib/email-templates';
 
+/**
+ * Send interview reminder emails for the authenticated interviewer.
+ *
+ * Validates input, fetches interviews belonging to the authenticated user, sends reminder emails to each candidate, updates interview records when reminders are sent, and returns a summary of per-interview results.
+ *
+ * @param req - The incoming NextRequest containing a JSON body with `interviewIds: string[]`.
+ * @returns A JSON object on success: `{ success: true, sent: number, failed: number, details: Array<{ interviewId: string, success: boolean, error?: string }>, message: string }`. Returns error JSON with appropriate HTTP status for unauthorized (401), bad request (400), not found (404), or server error (500).
+ */
 export async function POST(req: NextRequest) {
   try {
     const session = await auth.api.getSession({

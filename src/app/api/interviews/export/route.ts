@@ -4,7 +4,12 @@ import prisma from "@/lib/prisma";
 import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
 
-// POST /api/interviews/export - Export interviews to CSV
+/**
+ * Export interviews that match optional filters as either a downloadable CSV or a JSON payload.
+ *
+ * @param req - Incoming request containing an optional `format` ("csv" or "json") and `filters` (e.g., `status`, `startDate`, `endDate`)
+ * @returns For `format: "csv"`, a CSV attachment named "interviews.csv" with interview rows; for `format: "json"`, an object `{ success, count, data, exportedAt }`; for unsupported formats or auth failures, a JSON error response with appropriate HTTP status (400 or 401). On internal errors, returns a 500 JSON error.
+ */
 export async function POST(req: NextRequest) {
   try {
     const session = await auth.api.getSession({

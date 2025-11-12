@@ -5,6 +5,17 @@
 
 import { NextRequest, NextResponse } from "next/server";
 
+/**
+ * Handle POST requests to record a dismissed notification.
+ *
+ * Validates the request body for a `notificationTag`, logs the dismissal, and returns
+ * an appropriate JSON response indicating success or the validation/error reason.
+ *
+ * @returns A JSON HTTP response:
+ * - 200: `{ success: true, message: "Dismissal tracked" }` on success.
+ * - 400: `{ error: "Invalid notification tag" }` when `notificationTag` is missing.
+ * - 500: `{ error: "Failed to track dismissal" }` on unexpected error.
+ */
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();

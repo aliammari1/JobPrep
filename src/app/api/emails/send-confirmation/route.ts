@@ -12,6 +12,14 @@ import { headers } from 'next/headers';
 import { sendEmail } from '@/lib/email-service';
 import { getConfirmationEmailTemplate } from '@/lib/email-templates';
 
+/**
+ * HTTP POST handler that sends an interview confirmation email to the candidate and marks the interview as having received a confirmation.
+ *
+ * Expects a JSON body with an `interviewId`. Authenticates the requester, validates and authorizes access to the interview, formats the scheduled date/time, generates and sends the confirmation email, and updates the interview's settings to record the confirmation.
+ *
+ * @param req - Incoming request whose JSON body must include `interviewId`
+ * @returns A NextResponse containing JSON: on success `{ success: true, emailId, message }`; on failure an error object with `error` (and sometimes `details`) and an appropriate HTTP status code
+ */
 export async function POST(req: NextRequest) {
   try {
     const session = await auth.api.getSession({
