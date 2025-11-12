@@ -65,6 +65,15 @@ interface NewInterviewForm {
   notes: string;
 }
 
+/**
+ * Render the Interview Scheduler dashboard with calendar views, interview list, quick stats, modals, and related actions.
+ *
+ * The component manages interview state, fetches and syncs data with backend endpoints (interviews, notifications, calendar status),
+ * provides day/week/month calendar views with slot generation, supports creating, editing, deleting, importing/exporting interviews,
+ * sending reminders, and controlling calendar integration and UI settings.
+ *
+ * @returns The JSX element tree for the interview scheduling dashboard.
+ */
 function InterviewScheduler() {
   const [selectedView, setSelectedView] = useState<"day" | "week" | "month">(
     "week",

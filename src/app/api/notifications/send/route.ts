@@ -20,6 +20,12 @@ interface SendNotificationRequest {
   broadcastToAll?: boolean;
 }
 
+/**
+ * Handles POST requests to send a push notification based on the request JSON.
+ *
+ * @param request - Incoming NextRequest whose JSON body must match SendNotificationRequest (requires `title` and `body`; optional `icon`, `badge`, `tag`, `actions`, `data`, `targetUserId`, `broadcastToAll`).
+ * @returns A NextResponse with JSON: on success `{ success: true, message: "Notification sent successfully", notification: { title, body, icon, badge, tag, actions, data } }`; on failure `{ error: string }`.
+ */
 export async function POST(request: NextRequest) {
   try {
     const body: SendNotificationRequest = await request.json();
@@ -77,8 +83,12 @@ export async function POST(request: NextRequest) {
 }
 
 /**
- * Example: Send notification to specific user
- * In production, implement with web-push library
+ * Send a push notification payload to all saved subscriptions for a specific user.
+ *
+ * Intended to deliver the given notification payload to each of the user's stored push subscriptions.
+ * Currently a placeholder: example sending logic is commented out and must be implemented (e.g., using a Web Push library).
+ *
+ * @param payload - The notification payload to deliver (typically contains title, body, icon, tag, data, etc.)
  */
 async function sendToUser(userId: string, payload: any): Promise<void> {
   // const subscriptions = await db.notification.findMany({
@@ -96,8 +106,12 @@ async function sendToUser(userId: string, payload: any): Promise<void> {
 }
 
 /**
- * Example: Broadcast notification to all users
- * In production, implement with web-push library
+ * Broadcast a notification payload to all subscribed users.
+ *
+ * Placeholder implementation that does not send notifications; intended to iterate stored push
+ * subscriptions and deliver `payload` to each subscriber in production.
+ *
+ * @param payload - The notification payload to deliver to subscribers
  */
 async function broadcastToAll(payload: any): Promise<void> {
   // const subscriptions = await db.notification.findMany({

@@ -36,6 +36,15 @@ interface OnboardingStep {
   status: "pending" | "in-progress" | "completed";
 }
 
+/**
+ * Multi-step onboarding UI that guides users to upload or paste a CV, provide a job description
+ * (via LinkedIn URL or paste), choose a difficulty level, and generate personalized coding challenges.
+ *
+ * Persists temporary inputs to sessionStorage, interacts with backend endpoints for CV parsing and
+ * LinkedIn scraping, shows progress and validation, and navigates to the challenges page on completion.
+ *
+ * @returns The JSX element for the onboarding flow UI.
+ */
 export default function CodeChallengeOnboardingImproved() {
   const router = useRouter();
   const fileInputRef = useRef<HTMLInputElement>(null);

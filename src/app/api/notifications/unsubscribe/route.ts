@@ -5,6 +5,13 @@
 
 import { NextRequest, NextResponse } from "next/server";
 
+/**
+ * Handles POST requests to unsubscribe a push notification endpoint.
+ *
+ * @param request - Incoming request whose JSON body must include an `endpoint` string to remove from subscriptions
+ * @returns A JSON response: `200` with `{ success: true, message: "Successfully unsubscribed from notifications" }` on success;
+ * `400` with `{ error: "Invalid endpoint" }` if `endpoint` is missing; `500` with `{ error: "Failed to unsubscribe from notifications" }` on internal error
+ */
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();

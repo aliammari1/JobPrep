@@ -84,6 +84,13 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 
+/**
+ * Render the InterviewRoom UI and manage room lifecycle, media setup, real-time chat/files, browser recording, AI transcription/insights, and interview persistence.
+ *
+ * This component handles creating/joining LiveKit rooms, token acquisition, media permission testing, local browser recording (with upload), sending invitations (link and email), chat and note management (including broadcasting to peers), transcript and notes download, AI-driven insights and tools, and persisting interview state to the backend.
+ *
+ * @returns The React element for the interview room interface, including dialogs, video area, controls, and sidebar panels.
+ */
 export default function InterviewRoom() {
   // Get user session
   const { data: session, isPending: isLoadingSession } = useSession();
