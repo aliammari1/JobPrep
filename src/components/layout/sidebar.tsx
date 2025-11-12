@@ -118,12 +118,20 @@ const sidebarSections: SidebarSection[] = [
         id: "interviews",
         label: "Interviews",
         icon: Users,
+        href: "/interview",
         children: [
           {
             id: "mock-interview",
             label: "Mock Interview",
             icon: Target,
             href: "/mock-interview",
+          },
+          {
+            id: "questions",
+            label: "Questions",
+            icon: BookOpen,
+            href: "/mock-interview/questions",
+            isNew: true,
           },
           {
             id: "interview-room",
@@ -305,8 +313,8 @@ export function Sidebar({ isOpen, onToggle, onClose }: SidebarProps) {
             <div className="flex items-center gap-3 flex-1 min-w-0">
               <div className={cn(
                 "flex-shrink-0 rounded-md p-1.5 transition-colors",
-                active 
-                  ? "bg-primary/15 text-primary" 
+                active
+                  ? "bg-primary/15 text-primary"
                   : "bg-muted/50 text-foreground/60 group-hover:bg-muted"
               )}>
                 <item.icon className="w-4 h-4" />
@@ -342,13 +350,13 @@ export function Sidebar({ isOpen, onToggle, onClose }: SidebarProps) {
             </motion.div>
           </button>
         ) : (
-          <Link 
-            href={item.href || "#"} 
+          <Link
+            href={item.href || "#"}
             onClick={() => {
               if (typeof window !== "undefined" && window.innerWidth < 1024) {
                 onClose();
               }
-            }} 
+            }}
             className="block"
           >
             <button
@@ -363,8 +371,8 @@ export function Sidebar({ isOpen, onToggle, onClose }: SidebarProps) {
             >
               <div className={cn(
                 "flex-shrink-0 rounded-md p-1.5 transition-colors",
-                active 
-                  ? "bg-primary/15 text-primary" 
+                active
+                  ? "bg-primary/15 text-primary"
                   : "bg-muted/50 text-foreground/60 group-hover:bg-muted"
               )}>
                 <item.icon className="w-4 h-4" />
@@ -480,12 +488,12 @@ export function Sidebar({ isOpen, onToggle, onClose }: SidebarProps) {
 
         {/* Quick Actions */}
         <div className="px-3 py-4 space-y-2 shrink-0 border-b border-border/50">
-          <Link href="/schedule-interview" 
+          <Link href="/schedule-interview"
             onClick={() => {
               if (typeof window !== "undefined" && window.innerWidth < 1024) {
                 onClose();
               }
-            }} 
+            }}
             className="block"
           >
             <Button className="w-full justify-center gap-2 h-10 rounded-lg shadow-sm hover:shadow-md transition-shadow" size="sm">
@@ -493,7 +501,7 @@ export function Sidebar({ isOpen, onToggle, onClose }: SidebarProps) {
               <span className="text-sm font-semibold">New Interview</span>
             </Button>
           </Link>
-          <div 
+          <div
             className="w-full h-10 rounded-lg border border-input bg-background/50 px-3 py-2 text-sm text-foreground/60 shadow-sm transition-all hover:bg-accent/30 hover:text-foreground/80 cursor-pointer flex items-center justify-between gap-2 group"
             onClick={() => {
               if (typeof window !== "undefined" && window.innerWidth < 1024) {
@@ -600,7 +608,7 @@ export function Sidebar({ isOpen, onToggle, onClose }: SidebarProps) {
           ) : (
             <div className="text-center py-2 space-y-3">
               <p className="text-sm text-muted-foreground">Not signed in</p>
-              <Link href="/sign-in" 
+              <Link href="/sign-in"
                 onClick={() => {
                   if (typeof window !== "undefined" && window.innerWidth < 1024) {
                     onClose();
