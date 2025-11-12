@@ -7,6 +7,7 @@ import { Navbar } from "./navbar";
 import { Sidebar } from "./sidebar";
 import { LandingNavbar } from "@/components/landing/landing-navbar";
 import { LandingFooter } from "@/components/landing/landing-footer";
+import { CommandPalette } from "@/components/custom/command-palette";
 import { useSession } from "@/lib/auth-client";
 
 interface AppLayoutProps {
@@ -28,33 +29,11 @@ export function AppLayout({ children }: AppLayoutProps) {
   const isDashboardRoute =
     pathname.startsWith("/dashboard") ||
     pathname.startsWith("/settings") ||
-    pathname.startsWith("/schedule-interview") ||
     pathname.startsWith("/interview-scheduler") ||
     pathname.startsWith("/interview-room") ||
     pathname.startsWith("/mock-interview") ||
-    pathname.startsWith("/mock-simulator") ||
-    pathname.startsWith("/practice-interview") ||
-    pathname.startsWith("/voice-interview") ||
     pathname.startsWith("/code-challenge") ||
-    pathname.startsWith("/collaborative-evaluation") ||
-    pathname.startsWith("/ai-analysis") ||
-    pathname.startsWith("/ai-feedback") ||
-    pathname.startsWith("/performance-analytics") ||
-    pathname.startsWith("/interview-analytics") ||
-    pathname.startsWith("/interview-insights") ||
-    pathname.startsWith("/interview-dashboard") ||
-    pathname.startsWith("/interview-coach") ||
-    pathname.startsWith("/replay-center") ||
-    pathname.startsWith("/video-recorder") ||
-    pathname.startsWith("/screen-sharing") ||
-    pathname.startsWith("/adaptive-questions") ||
-    pathname.startsWith("/skill-assessment") ||
-    pathname.startsWith("/question-builder") ||
-    pathname.startsWith("/templates-library") ||
-    pathname.startsWith("/candidate-profile") ||
-    pathname.startsWith("/feedback") ||
-    pathname.startsWith("/organizations") ||
-    pathname.startsWith("/admin");
+    pathname.startsWith("/recordings");
 
   const isAuthRoute =
     pathname.startsWith("/sign-in") ||
@@ -107,7 +86,7 @@ export function AppLayout({ children }: AppLayoutProps) {
   // Dashboard layout with sidebar and navbar
   if (showDashboardLayout) {
     return (
-      <div className="h-screen bg-gray-50 dark:bg-gray-950 flex overflow-hidden">
+      <div className="h-screen bg-gradient-to-br from-background via-background to-muted/20 dark:from-background dark:via-background dark:to-muted/10 flex overflow-hidden">
         {/* Sidebar */}
         <Sidebar
           isOpen={sidebarOpen}
@@ -132,6 +111,9 @@ export function AppLayout({ children }: AppLayoutProps) {
             </motion.div>
           </main>
         </div>
+
+        {/* Command Palette */}
+        <CommandPalette />
       </div>
     );
   }
@@ -149,6 +131,9 @@ export function AppLayout({ children }: AppLayoutProps) {
         {children}
       </motion.div>
       {showLandingNavbar && <LandingFooter />}
+
+      {/* Command Palette */}
+      <CommandPalette />
     </div>
   );
 }

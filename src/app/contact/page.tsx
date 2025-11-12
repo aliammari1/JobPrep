@@ -34,6 +34,7 @@ import {
   ArrowRight,
 } from "lucide-react";
 import { toast } from "react-hot-toast";
+import { useEmail } from "@/hooks/use-email";
 
 const contactMethods = [
   {
@@ -83,34 +84,111 @@ export default function ContactPage() {
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
+  const { sendEmail } = useEmail();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
 
-    // Simulate form submission
-    await new Promise((resolve) => setTimeout(resolve, 1500));
+    try {
+      // Create email HTML template
+      const emailHtml = `
+        <!DOCTYPE html>
+        <html>
+          <head>
+            <meta charset="utf-8">
+            <title>Contact Form Submission</title>
+          </head>
+          <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
+            <div style="max-width: 600px; margin: 0 auto; padding: 20px; background-color: #f9fafb; border-radius: 8px;">
+              <h1 style="color: #2563eb; border-bottom: 2px solid #2563eb; padding-bottom: 10px;">New Contact Form Submission</h1>
+              
+              <div style="background-color: white; padding: 20px; border-radius: 6px; margin: 20px 0;">
+                <h2 style="color: #1f2937; margin-top: 0;">Contact Details</h2>
+                <p><strong>Name:</strong> ${formData.name}</p>
+                <p><strong>Email:</strong> ${formData.email}</p>
+                ${formData.company ? `<p><strong>Company:</strong> ${formData.company}</p>` : ""}
+                <p><strong>Inquiry Type:</strong> ${formData.inquiryType}</p>
+              </div>
 
-    setIsSubmitting(false);
-    setIsSubmitted(true);
-    toast.success("Message sent successfully! We'll get back to you soon.");
+              <div style="background-color: white; padding: 20px; border-radius: 6px; margin: 20px 0;">
+                <h2 style="color: #1f2937; margin-top: 0;">Subject</h2>
+                <p>${formData.subject}</p>
+              </div>
 
-    // Reset form after 3 seconds
-    setTimeout(() => {
-      setIsSubmitted(false);
-      setFormData({
-        name: "",
-        email: "",
-        company: "",
-        inquiryType: "",
-        subject: "",
-        message: "",
+              <div style="background-color: white; padding: 20px; border-radius: 6px; margin: 20px 0;">
+                <h2 style="color: #1f2937; margin-top: 0;">Message</h2>
+                <p style="white-space: pre-wrap;">${formData.message}</p>
+              </div>
+
+              <div style="margin-top: 30px; padding: 15px; background-color: #e0f2fe; border-radius: 6px; border-left: 4px solid #2563eb;">
+                <p style="margin: 0; font-size: 14px; color: #0c4a6e;">
+                  <strong>Reply to:</strong> <a href="mailto:${formData.email}" style="color: #2563eb;">${formData.email}</a>
+                </p>
+              </div>
+            </div>
+          </body>
+        </html>
+      `;
+
+      // Send email using the email service
+      const result = await sendEmail({
+        to: "ammari.ali.0001@gmail.com",
+        subject: `Contact Form: ${formData.subject}`,
+        html: emailHtml,
+        text: `
+New Contact Form Submission
+
+Name: ${formData.name}
+Email: ${formData.email}
+${formData.company ? `Company: ${formData.company}\n` : ""}Inquiry Type: ${formData.inquiryType}
+Subject: ${formData.subject}
+
+Message:
+${formData.message}
+
+Reply to: ${formData.email}
+        `,
+        tags: [
+          { name: "category", value: "contact_form" },
+          {
+            name: "inquiry_type",
+            value: formData.inquiryType.toLowerCase().replace(/\s+/g, "_"),
+          },
+        ],
       });
-    }, 3000);
+
+      if (result.success) {
+        setIsSubmitted(true);
+        toast.success("Message sent successfully! We'll get back to you soon.");
+
+        // Reset form after 3 seconds
+        setTimeout(() => {
+          setIsSubmitted(false);
+          setFormData({
+            name: "",
+            email: "",
+            company: "",
+            inquiryType: "",
+            subject: "",
+            message: "",
+          });
+        }, 3000);
+      } else {
+        toast.error(
+          result.error || "Failed to send message. Please try again.",
+        );
+      }
+    } catch (error) {
+      console.error("Error sending email:", error);
+      toast.error("Failed to send message. Please try again.");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
   ) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };

@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
@@ -28,8 +29,14 @@ export function LandingNavbar() {
         <div className="flex h-16 items-center justify-between">
           {/* Logo */}
           <Link href="/" className="flex items-center space-x-2">
-            <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-primary to-primary/60 flex items-center justify-center">
-              <span className="text-white font-bold text-lg">J</span>
+            <div className="h-8 w-8 rounded-lg flex items-center justify-center">
+              <Image 
+                src="/icons/one_logo.png" 
+                alt="JobPrep Logo" 
+                width={32} 
+                height={32}
+                className="object-contain"
+              />
             </div>
             <span className="font-bold text-xl bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">
               JobPrep AI

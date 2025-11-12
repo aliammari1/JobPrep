@@ -61,7 +61,7 @@ export default function SignUpPage() {
     // Username validation
     if (formData.username && !/^[a-zA-Z0-9_]{3,20}$/.test(formData.username)) {
       setError(
-        "Username must be 3-20 characters and contain only letters, numbers, and underscores"
+        "Username must be 3-20 characters and contain only letters, numbers, and underscores",
       );
       return false;
     }
@@ -118,25 +118,25 @@ export default function SignUpPage() {
       }
     } catch (err) {
       setError(
-        err instanceof Error ? err.message : "An unexpected error occurred"
+        err instanceof Error ? err.message : "An unexpected error occurred",
       );
     } finally {
       setIsLoading(false);
     }
   };
 
-  const handleSocialSignUp = async (provider: "google" | "github") => {
+  const handleGoogleSignUp = async () => {
     setIsLoading(true);
     setError(null);
 
     try {
       await authClient.signIn.social({
-        provider,
+        provider: "google",
         callbackURL: "/dashboard",
       });
     } catch (err) {
       setError(
-        err instanceof Error ? err.message : "An unexpected error occurred"
+        err instanceof Error ? err.message : "An unexpected error occurred",
       );
       setIsLoading(false);
     }
@@ -318,36 +318,20 @@ export default function SignUpPage() {
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-3">
-            <Button
-              variant="outline"
-              type="button"
-              disabled={isLoading}
-              onClick={() => handleSocialSignUp("github")}
-              className="h-11"
-            >
-              {isLoading ? (
-                <Icons.spinner className="mr-2 h-4 w-4 animate-spin" />
-              ) : (
-                <Icons.gitHub className="mr-2 h-4 w-4" />
-              )}
-              GitHub
-            </Button>
-            <Button
-              variant="outline"
-              type="button"
-              disabled={isLoading}
-              onClick={() => handleSocialSignUp("google")}
-              className="h-11"
-            >
-              {isLoading ? (
-                <Icons.spinner className="mr-2 h-4 w-4 animate-spin" />
-              ) : (
-                <Icons.google className="mr-2 h-4 w-4" />
-              )}
-              Google
-            </Button>
-          </div>
+          <Button
+            variant="outline"
+            type="button"
+            disabled={isLoading}
+            onClick={handleGoogleSignUp}
+            className="w-full h-11"
+          >
+            {isLoading ? (
+              <Icons.spinner className="mr-2 h-4 w-4 animate-spin" />
+            ) : (
+              <Icons.google className="mr-2 h-4 w-4" />
+            )}
+            Continue with Google
+          </Button>
         </CardContent>
         <CardFooter>
           <div className="text-sm text-center w-full text-muted-foreground">
