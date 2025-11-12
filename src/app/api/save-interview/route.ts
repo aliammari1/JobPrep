@@ -130,6 +130,7 @@ export async function POST(request: NextRequest) {
 
         await prisma.mockQuestion.create({
           data: {
+            id: `${mockSession.id}-q${q.order}`,
             sessionId: mockSession.id,
             questionText: q.questionText,
             questionType: q.questionType,
@@ -205,7 +206,7 @@ export async function GET(request: NextRequest) {
         createdAt: 'desc',
       },
       include: {
-        questions: {
+        mockQuestions: {
           orderBy: {
             order: 'asc',
           }

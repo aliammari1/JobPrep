@@ -69,7 +69,8 @@ export function AISuggestionPanel() {
 			newScore -= 15;
 		} else {
 			cvData.experience.forEach((exp) => {
-				if (exp.description.length < 100) {
+				const description = exp.description.flat().join(" ") || '';
+				if (description.length < 100) {
 					newSuggestions.push({
 						id: `exp-desc-${exp.id}`,
 						type: "warning",
@@ -82,7 +83,7 @@ export function AISuggestionPanel() {
 				// Check for action verbs
 				const actionVerbs = ["led", "managed", "developed", "implemented", "created", "improved"];
 				const hasActionVerb = actionVerbs.some((verb) =>
-					exp.description.toLowerCase().includes(verb)
+					description.toLowerCase().includes(verb)
 				);
 				if (!hasActionVerb) {
 					newSuggestions.push({

@@ -1363,7 +1363,6 @@ export default function InterviewRoom() {
       </>
     );
   }
-
   const serverUrl = process.env.NEXT_PUBLIC_LIVEKIT_URL || process.env.LIVEKIT_URL || "wss://jobprep-xundsxxf.livekit.cloud";
 
   return (

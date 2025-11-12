@@ -338,12 +338,12 @@ model AIMockSession {
   completedAt      DateTime?
   createdAt        DateTime        @default(now())
   user             User            @relation("AIMockSessions", fields: [userId], references: [id], onDelete: Cascade)
-  mock_question    mock_question[]
+  mockQuestions    MockQuestion[]
 
   @@map("ai_mock_session")
 }
 
-model mock_question {
+model MockQuestion {
   id              String        @id
   sessionId       String
   questionText    String
@@ -358,5 +358,5 @@ model mock_question {
   suggestions     String[]
   order           Int
   createdAt       DateTime      @default(now())
-  ai_mock_session AIMockSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  aiMockSession   AIMockSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
 }

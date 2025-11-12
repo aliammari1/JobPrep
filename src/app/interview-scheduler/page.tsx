@@ -197,7 +197,6 @@ function InterviewScheduler() {
         console.error("Error fetching notifications:", error);
       }
     };
-
     fetchNotifications();
   }, [interviews]);
   const [showNewInterviewModal, setShowNewInterviewModal] = useState(false);
