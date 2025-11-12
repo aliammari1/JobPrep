@@ -99,53 +99,45 @@ export function cleanJsonResponse(text: string): string {
     }
   }
 
-  // Fix double-escaped quotes (\\") while preserving valid single escapes (\")
-  // Only collapse sequences where quote is preceded by two backslashes
-  cleaned = cleaned.replace(/\\\\"/g, '\\"');  // Convert \\" to \"
-  
-  // Remove any trailing commas before closing braces/brackets
-  cleaned = cleaned.replace(/,(\s*[}\]])/g, "$1");
-
-  // Fix common JSON issues
-  cleaned = cleaned.replace(/[\u0000-\u001F\u007F-\u009F]/g, ""); // Remove control characters
-  
-  // Remove newlines within string values (can break JSON)
-  cleaned = cleaned.replace(/("\w+":\s*")([^"]*?)"/g, (match, prefix, content) => {
-    return prefix + content.replace(/\n/g, ' ').replace(/\r/g, '') + '"';
-  });
-
-  // Try to parse first
-  try {
-    JSON.parse(cleaned);
-    return cleaned; // If it works, return as-is
-  } catch (e) {
-    console.log("⚠️ JSON parsing failed, attempting repair...");
-    
-    // If parsing fails, try to fix common issues
-    // Add missing closing bracket if needed
-    const openBraces = (cleaned.match(/\{/g) || []).length;
-    const closeBraces = (cleaned.match(/\}/g) || []).length;
-    if (openBraces > closeBraces) {
-      cleaned += "}".repeat(openBraces - closeBraces);
-    }
-
-    const openBrackets = (cleaned.match(/\[/g) || []).length;
-    const closeBrackets = (cleaned.match(/\]/g) || []).length;
-    if (openBrackets > closeBrackets) {
-      cleaned += "]".repeat(openBrackets - closeBrackets);
-    }
-
-    // Remove trailing incomplete properties
-    cleaned = cleaned.replace(/,?\s*"[^"]*$/, "");
-    
-    // Ensure proper closing
-    if (!cleaned.endsWith("}") && !cleaned.endsWith("]")) {
-      if (cleaned.includes("{")) cleaned += "}";
-      if (cleaned.includes("[")) cleaned += "]";
-    }
-    
-    console.log("🔧 Repaired JSON, last 100 chars:", cleaned.slice(-100));
-  }
+  // Fix common JSON issues from LLM output
+  cleaned = fixMalformedJson(cleaned);
 
   return cleaned;
+}
+
+/**
+ * Attempt to repair malformed JSON from LLM
+ */
+function fixMalformedJson(text: string): string {
+  let fixed = text;
+
+  // Fix unterminated strings by adding quotes before closing brackets
+  fixed = fixed.replace(/":\s*"([^"]*?)([,\n\s]*[}\]])/g, '":" "$1"$2');
+
+  // Fix missing commas between objects/arrays
+  fixed = fixed.replace(/}(\s*{)/g, '},$1');
+  fixed = fixed.replace(/](\s*\[)/g, '],$1');
+  fixed = fixed.replace(/}(\s*\[)/g, '},$1');
+  fixed = fixed.replace(/](\s*{)/g, '],$1');
+
+  // Fix trailing commas before closing brackets
+  fixed = fixed.replace(/,(\s*[}\]])/g, '$1');
+
+  // Remove control characters
+  fixed = fixed.replace(/[\u0000-\u001F\u007F-\u009F]/g, "");
+
+  // Try to balance brackets
+  let openBraces = (fixed.match(/{/g) || []).length;
+  let closeBraces = (fixed.match(/}/g) || []).length;
+  if (openBraces > closeBraces) {
+    fixed += '}' .repeat(openBraces - closeBraces);
+  }
+
+  let openBrackets = (fixed.match(/\[/g) || []).length;
+  let closeBrackets = (fixed.match(/]/g) || []).length;
+  if (openBrackets > closeBrackets) {
+    fixed += ']'.repeat(openBrackets - closeBrackets);
+  }
+
+  return fixed;
 }
