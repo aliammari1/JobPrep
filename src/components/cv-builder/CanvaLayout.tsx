@@ -13,10 +13,7 @@ import {
   Redo2,
   Download,
   Brain,
-  MessageSquare,
-  Mic,
   BarChart3,
-  Palette,
   GripVertical,
   Edit3,
 } from "lucide-react";
@@ -29,10 +26,7 @@ import {
 } from "@/components/ui/tooltip";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { AISuggestionPanel } from "./AISuggestionPanel";
-import { InterviewQAPredictor } from "./InterviewQAPredictor";
-import { VoiceToCVFeature } from "./VoiceToCVFeature";
 import { SkillsGapAnalyzer } from "./SkillsGapAnalyzer";
-import { CustomizePanel } from "./CustomizePanel";
 import { useCVStore } from "@/store/cv-store";
 import { toast } from "sonner";
 import { useSearchParams } from "next/navigation";
@@ -111,33 +105,150 @@ export function CanvaLayout() {
     }
   };
 
-  const handleEnhanceWithAI = async () => {
-    if (!cvData.personalInfo.summary) {
-      toast.error("Please add a summary first");
-      return;
-    }
 
-    toast.loading("Enhancing with AI...");
+  function normalizeCV(data: any) {
+    return {
+      personalInfo: {
+        fullName: data.personalInfo?.fullName || "",
+        title: data.personalInfo?.title || "",
+        email: data.personalInfo?.email || "",
+        phone: data.personalInfo?.phone || "",
+        location: data.personalInfo?.location || "",
+        summary: data.personalInfo?.summary || "",
+        website: data.personalInfo?.website || "",
+        linkedin: data.personalInfo?.linkedin || "",
+        github: data.personalInfo?.github || "",
+        photo: data.personalInfo?.photo || "",
+      },
+      // provide both keys to be compatible with different server/templates
+      experience: (data.experience || data.experiences || []).map((e: any) => ({
+        id: e.id,
+        title: e.title || "",
+        company: e.company || "",
+        location: e.location || "",
+        startDate: e.startDate || "",
+        endDate: e.endDate || "",
+        current: !!e.current,
+        description: typeof e.description === "string" ? e.description : "",
+        highlights: Array.isArray(e.highlights) ? e.highlights : [],
+      })),
+      experiences: (data.experience || data.experiences || []).map((e: any) => ({
+        id: e.id,
+        title: e.title || "",
+        company: e.company || "",
+        location: e.location || "",
+        startDate: e.startDate || "",
+        endDate: e.endDate || "",
+        current: !!e.current,
+        description: typeof e.description === "string" ? e.description : "",
+        highlights: Array.isArray(e.highlights) ? e.highlights : [],
+      })),
+      education: (data.education || []).map((ed: any) => ({
+        id: ed.id,
+        degree: ed.degree || "",
+        institution: ed.institution || "",
+        startDate: ed.startDate || "",
+        endDate: ed.endDate || "",
+        location: ed.location || "",
+        gpa: ed.gpa || "",
+      })),
+      skills: (data.skills || []).map((s: any) => ({
+        category: s.category || "",
+        items: Array.isArray(s.items) ? s.items : [],
+      })),
+      languages: (data.languages || []).map((l: any) =>
+        typeof l === "string" ? l : `${l.language || ""}${l.proficiency ? " - " + l.proficiency : ""}`
+      ),
+      projects: (data.projects || []).map((p: any) => ({
+        id: p.id,
+        name: p.name || "",
+        description: typeof p.description === "string" ? p.description : "",
+        technologies: Array.isArray(p.technologies) ? p.technologies : [],
+      })),
+      certifications: (data.certifications || []).map((c: any) => ({
+        id: c.id,
+        name: c.name || "",
+        issuer: c.issuer || "",
+        date: c.date || "",
+      })),
+      awards: (data.awards || []).map((a: any) => ({
+        id: a.id,
+        title: a.title || "",
+        issuer: a.issuer || "",
+        date: a.date || "",
+      })),
+      settings: data.settings || {},
+    };
+  }
+
+  // convert image URL to data URL so server-side PDF can embed it
+  async function fetchImageAsDataURL(url: string) {
     try {
-      const res = await fetch("/api/cv/enhance", {
+      const res = await fetch(url, { cache: "no-store" });
+      if (!res.ok) return "";
+      const blob = await res.blob();
+      const arrayBuffer = await blob.arrayBuffer();
+      const bytes = new Uint8Array(arrayBuffer);
+      let binary = "";
+      const chunk = 0x8000;
+      for (let i = 0; i < bytes.length; i += chunk) {
+        binary += String.fromCharCode.apply(null, Array.prototype.slice.call(bytes, i, i + chunk));
+      }
+      const base64 = btoa(binary);
+      const mime = blob.type || "image/png";
+      return `data:${mime};base64,${base64}`;
+    } catch (err) {
+      console.error("fetchImageAsDataURL error:", err);
+      return "";
+    }
+  }
+
+  const handleDownload = async () => {
+    const loadingToast = toast.loading("Generating PDF...");
+    try {
+      const normalized = normalizeCV(cvData);
+
+      // embed photo as data URL (if available and not already embedded)
+      if (normalized.personalInfo.photo && typeof normalized.personalInfo.photo === "string" && !normalized.personalInfo.photo.startsWith("data:")) {
+        const dataUrl = await fetchImageAsDataURL(normalized.personalInfo.photo);
+        if (dataUrl) normalized.personalInfo.photo = dataUrl;
+      }
+
+      const payload = {
+        cvData: normalized,
+        template: settings.template,
+        colorScheme: settings.colorScheme,
+      };
+
+      const res = await fetch("/api/cv/generate-pdf", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ cvData }),
+        body: JSON.stringify(payload),
       });
 
-      const result = await res.json();
-      if (result.success) {
-        useCVStore.getState().importData(result.enhancedData);
-        toast.success("CV enhanced successfully!");
-      } else {
-        toast.error("Failed to enhance CV");
+      if (!res.ok) {
+        const errorData = await res.json().catch(() => ({}));
+        throw new Error(errorData.error || "Failed to generate PDF");
       }
+
+      const blob = await res.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `${(cvData.personalInfo?.fullName || "CV").replace(/\s+/g, "_")}_Resume.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      window.URL.revokeObjectURL(url);
+      toast.dismiss(loadingToast);
+      toast.success("PDF downloaded!");
     } catch (error: unknown) {
-      const message =
-        error instanceof Error ? error.message : "Failed to enhance CV";
+      toast.dismiss(loadingToast);
+      const message = error instanceof Error ? error.message : "Failed to download PDF";
       toast.error(message);
     }
   };
+
 
   const handleSave = () => {
     localStorage.setItem(
@@ -147,38 +258,6 @@ export function CanvaLayout() {
     toast.success("CV saved successfully!");
   };
 
-  const handleDownload = async () => {
-    const loadingToast = toast.loading("Generating PDF...");
-    try {
-      const res = await fetch("/api/cv/generate-pdf", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ cvData, template: settings.template }),
-      });
-
-      if (!res.ok) {
-        const errorData = await res.json();
-        throw new Error(errorData.error || "Failed to generate PDF");
-      }
-
-      const blob = await res.blob();
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = `${cvData.personalInfo.fullName || "CV"}_Resume.pdf`;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      window.URL.revokeObjectURL(url);
-      toast.dismiss(loadingToast);
-      toast.success("PDF downloaded!");
-    } catch (error: unknown) {
-      toast.dismiss(loadingToast);
-      const message =
-        error instanceof Error ? error.message : "Failed to download PDF";
-      toast.error(message);
-    }
-  };
 
   return (
     <TooltipProvider>
@@ -292,33 +371,6 @@ export function CanvaLayout() {
                   </TooltipContent>
                 </Tooltip>
 
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <TabsTrigger
-                      value="interview-qa"
-                      className="w-full aspect-square p-0 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
-                    >
-                      <MessageSquare className="h-5 w-5" />
-                    </TabsTrigger>
-                  </TooltipTrigger>
-                  <TooltipContent side="right">
-                    <p>Interview Q&A</p>
-                  </TooltipContent>
-                </Tooltip>
-
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <TabsTrigger
-                      value="voice-cv"
-                      className="w-full aspect-square p-0 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
-                    >
-                      <Mic className="h-5 w-5" />
-                    </TabsTrigger>
-                  </TooltipTrigger>
-                  <TooltipContent side="right">
-                    <p>Voice to CV</p>
-                  </TooltipContent>
-                </Tooltip>
 
                 <Tooltip>
                   <TooltipTrigger asChild>
@@ -331,38 +383,6 @@ export function CanvaLayout() {
                   </TooltipTrigger>
                   <TooltipContent side="right">
                     <p>Skills Gap</p>
-                  </TooltipContent>
-                </Tooltip>
-
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <TabsTrigger
-                      value="customize"
-                      className="w-full aspect-square p-0 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
-                    >
-                      <Palette className="h-5 w-5" />
-                    </TabsTrigger>
-                  </TooltipTrigger>
-                  <TooltipContent side="right">
-                    <p>Customize</p>
-                  </TooltipContent>
-                </Tooltip>
-
-                <div className="flex-1" />
-
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={handleEnhanceWithAI}
-                      className="w-full aspect-square p-0"
-                    >
-                      <Sparkles className="h-5 w-5" />
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent side="right">
-                    <p>Auto-Enhance CV</p>
                   </TooltipContent>
                 </Tooltip>
               </TabsList>
@@ -388,28 +408,6 @@ export function CanvaLayout() {
               </TabsContent>
 
               <TabsContent
-                value="interview-qa"
-                className="flex-1 h-full m-0 p-0 border-0"
-              >
-                <ScrollArea className="h-full">
-                  <div className="p-4">
-                    <InterviewQAPredictor />
-                  </div>
-                </ScrollArea>
-              </TabsContent>
-
-              <TabsContent
-                value="voice-cv"
-                className="flex-1 h-full m-0 p-0 border-0"
-              >
-                <ScrollArea className="h-full">
-                  <div className="p-4">
-                    <VoiceToCVFeature />
-                  </div>
-                </ScrollArea>
-              </TabsContent>
-
-              <TabsContent
                 value="skills-gap"
                 className="flex-1 h-full m-0 p-0 border-0"
               >
@@ -420,16 +418,6 @@ export function CanvaLayout() {
                 </ScrollArea>
               </TabsContent>
 
-              <TabsContent
-                value="customize"
-                className="flex-1 h-full m-0 p-0 border-0"
-              >
-                <ScrollArea className="h-full">
-                  <div className="p-4">
-                    <CustomizePanel />
-                  </div>
-                </ScrollArea>
-              </TabsContent>
             </Tabs>
           </Panel>
 
