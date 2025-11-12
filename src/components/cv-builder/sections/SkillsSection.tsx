@@ -18,8 +18,7 @@ export function SkillsSection() {
 	const handleAdd = () => {
 		addSkill({
 			category: "",
-			items: [],
-			level: "intermediate",
+			items: []
 		});
 	};
 
@@ -80,23 +79,6 @@ export function SkillsSection() {
 										/>
 									</div>
 
-									<div>
-										<Label>Proficiency Level</Label>
-										<Select
-											value={skill.level}
-											onValueChange={(value: any) => updateSkill(skill.id, { level: value })}
-										>
-											<SelectTrigger>
-												<SelectValue />
-											</SelectTrigger>
-											<SelectContent>
-												<SelectItem value="beginner">Beginner</SelectItem>
-												<SelectItem value="intermediate">Intermediate</SelectItem>
-												<SelectItem value="advanced">Advanced</SelectItem>
-												<SelectItem value="expert">Expert</SelectItem>
-											</SelectContent>
-										</Select>
-									</div>
 								</div>
 
 								<div>

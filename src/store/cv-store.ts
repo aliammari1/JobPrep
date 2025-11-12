@@ -22,7 +22,7 @@ export interface CVExperience {
 	startDate: string;
 	endDate: string;
 	current: boolean;
-	description: string;
+	description: string[];
 	highlights: string[];
 	order: number;
 }
@@ -43,7 +43,6 @@ export interface CVSkill {
 	id: string;
 	category: string;
 	items: string[];
-	level: "beginner" | "intermediate" | "advanced" | "expert";
 	order: number;
 }
 
@@ -66,7 +65,7 @@ export interface CVCertification {
 export interface CVProject {
 	id: string;
 	name: string;
-	description: string;
+	description: string[];
 	technologies: string[];
 	url: string;
 	github: string;
@@ -94,7 +93,7 @@ export interface CVData {
 }
 
 export interface CVSettings {
-	template: "modern" | "classic" | "minimal" | "creative" | "professional";
+	template: "modern" | "classic" | "minimal" ;
 	colorScheme: string;
 	fontSize: "small" | "medium" | "large";
 	spacing: "compact" | "normal" | "relaxed";
@@ -149,6 +148,7 @@ interface CVStore {
 	canUndo: () => boolean;
 	canRedo: () => boolean;
 }
+
 
 const initialCVData: CVData = {
 	personalInfo: {
