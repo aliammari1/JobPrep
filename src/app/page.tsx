@@ -25,17 +25,6 @@ import {
 export const revalidate = 60; // periodically refresh social proof
 
 export default async function Home() {
-  let recentUsers: { id: string; name: string | null }[] = [];
-  try {
-    recentUsers = await prisma.user.findMany({
-      take: 6,
-      orderBy: { createdAt: "desc" },
-      select: { id: true, name: true },
-    });
-  } catch {
-    // swallow error; landing should not break if DB unavailable
-  }
-
   return (
     <div className="flex flex-col">
       {/* Hero */}
@@ -58,20 +47,6 @@ export default async function Home() {
             <Button asChild variant="outline" size="lg">
               <Link href="/dashboard">View Dashboard</Link>
             </Button>
-          </div>
-          <div className="mt-10 flex flex-wrap justify-center gap-3 text-xs text-muted-foreground">
-            {recentUsers.length > 0 ? (
-              recentUsers.map((u) => (
-                <span
-                  key={u.id}
-                  className="px-3 py-1 rounded-full bg-muted/60 border text-muted-foreground"
-                >
-                  {u.name || "New User"}
-                </span>
-              ))
-            ) : (
-              <span className="px-3 py-1 rounded-full bg-muted/60 border">Join early adopters</span>
-            )}
           </div>
         </div>
       </section>
