@@ -5,7 +5,6 @@ import { AppLayout } from "@/components/layout/app-layout";
 import { ThemeProvider } from "@/components/theme-provider";
 import { ReactQueryProvider } from "@/components/providers/query-client-provider";
 import { Toaster } from "sonner";
-import { PWAInstallPrompt } from "@/components/custom/pwa-install-prompt";
 import { OfflineDetector } from "@/components/custom/offline-detector";
 
 const geistSans = Geist({
@@ -73,7 +72,6 @@ export default function RootLayout({
           <ReactQueryProvider>
             <AppLayout>{children}</AppLayout>
             <Toaster position="top-right" richColors expand={true} />
-            <PWAInstallPrompt />
             <OfflineDetector />
           </ReactQueryProvider>
         </ThemeProvider>
