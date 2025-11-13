@@ -317,13 +317,20 @@ sendBtn.addEventListener('click', async () => {
     if (result.success) {
       showMessage('✅ Data sent successfully! Opening CV Builder...', 'success', 4000);
       
-      // Open CV builder with data ID in URL
-      setTimeout(() => {
-        const dataId = result.dataId;
-        const cvBuilderUrl = dataId 
-          ? `${targetUrl}/cv-builder?import=${dataId}`
-          : `${targetUrl}/cv-builder`;
-        console.log('Opening tab with URL:', cvBuilderUrl);
+      // Store sessionId in chrome.storage, then open CV Builder only after successful storage
+      chrome.storage.local.set({ linkedInImportSessionId: result.sessionId }, () => {
+        // Check for storage errors
+        if (chrome.runtime.lastError) {
+          console.error('Failed to store import session ID:', chrome.runtime.lastError);
+          showMessage(`Storage error: ${chrome.runtime.lastError.message}`, 'error');
+          return;
+        }
+        
+        console.log('Stored import session ID:', result.sessionId);
+        
+        // Storage succeeded, now open CV Builder tab
+        const cvBuilderUrl = `${targetUrl}/cv-builder?import=linkedin`;
+        console.log('Opening CV Builder:', cvBuilderUrl);
         chrome.tabs.create({ url: cvBuilderUrl }, (tab) => {
           if (chrome.runtime.lastError) {
             console.error('Failed to create tab:', chrome.runtime.lastError);
@@ -332,7 +339,7 @@ sendBtn.addEventListener('click', async () => {
             console.log('Tab created successfully:', tab.id, tab.url);
           }
         });
-      }, 1500);
+      });
     } else {
       showMessage(`Error: ${result.error || 'Unknown error'}`, 'error');
     }

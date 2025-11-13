@@ -50,23 +50,41 @@ export function CanvaLayout() {
     setActiveTab("ai-suggestions");
   });
 
-  // Auto-import from LinkedIn extension if dataId is present
+  // Auto-import from LinkedIn extension via window message
   useEffect(() => {
-    const dataId = searchParams.get("import");
-    if (dataId) {
-      const importLinkedInData = async () => {
-        const toastId = toast.loading("Importing LinkedIn data...");
+    const importType = searchParams.get("import");
+    if (importType === "linkedin") {
+      const toastId = toast.loading("Waiting for LinkedIn data...");
+      
+      // Listen for message from extension
+      const handleMessage = async (event: MessageEvent) => {
+        // Security: Verify origin if needed
+        if (event.data?.type !== 'LINKEDIN_IMPORT_SESSION') return;
+        
+        const sessionId = event.data?.sessionId;
+        if (!sessionId) {
+          toast.error("No session ID received from extension", { id: toastId });
+          return;
+        }
+
         try {
-          const res = await fetch(`/api/cv/import-extension?dataId=${dataId}`);
+          // Retrieve data via POST (secure, no PII in URLs)
+          const res = await fetch('/api/cv/import-extension/retrieve', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ sessionId }),
+          });
+
           const result = await res.json();
 
           if (result.success && result.data) {
             useCVStore.getState().importData(result.data);
-            toast.success("LinkedIn data imported successfully!", {
-              id: toastId,
-            });
+            toast.success("LinkedIn data imported successfully!", { id: toastId });
+            
+            // Clean up listener
+            window.removeEventListener('message', handleMessage);
           } else {
-            toast.error("Failed to import LinkedIn data", { id: toastId });
+            toast.error(result.error || "Failed to import LinkedIn data", { id: toastId });
           }
         } catch (error) {
           console.error("Import error:", error);
@@ -74,7 +92,21 @@ export function CanvaLayout() {
         }
       };
 
-      importLinkedInData();
+      window.addEventListener('message', handleMessage);
+
+      // Request session ID from extension content script
+      window.postMessage({ type: 'REQUEST_LINKEDIN_SESSION' }, '*');
+
+      // Timeout after 10 seconds
+      const timeout = setTimeout(() => {
+        window.removeEventListener('message', handleMessage);
+        toast.error("Import timeout - no data received from extension", { id: toastId });
+      }, 10000);
+
+      return () => {
+        window.removeEventListener('message', handleMessage);
+        clearTimeout(timeout);
+      };
     }
   }, [searchParams]);
   const handleLinkedInImport = async () => {

@@ -360,3 +360,16 @@ model MockQuestion {
   createdAt       DateTime      @default(now())
   aiMockSession   AIMockSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
 }
+
+model LinkedInImportSession {
+  id        String   @id @default(cuid())
+  sessionId String   @unique @default(cuid()) // Cryptographic session ID for security
+  data      Json     // Stores complete CVData as JSON
+  expiresAt DateTime // Session expiration time
+  createdAt DateTime @default(now())
+  retrievedAt DateTime? // Track if/when it was retrieved
+  
+  @@index([expiresAt])
+  @@index([sessionId])
+  @@map("linkedin_import_session")
+}
