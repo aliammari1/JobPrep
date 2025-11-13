@@ -461,7 +461,9 @@ export const useCVStore = create<CVStore>((set, get) => ({
 			cvData: {
 				...state.cvData,
 				...data,
-				personalInfo: { ...state.cvData.personalInfo, ...data.personalInfo },
+				personalInfo: data.personalInfo 
+					? { ...initialCVData.personalInfo, ...data.personalInfo }
+					: state.cvData.personalInfo,
 			},
 		})),
 
