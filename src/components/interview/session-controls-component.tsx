@@ -20,6 +20,7 @@ export function SessionControlsComponent() {
     isPaused,
     isRecording,
     sessionTime,
+    totalDuration,
     startSession,
     pauseSession,
     resumeSession,
@@ -32,7 +33,12 @@ export function SessionControlsComponent() {
     incrementSessionTime,
   } = useMockInterviewStore();
 
-  const [timeLeft, setTimeLeft] = useState(30 * 60); // 30 minutes default
+  const [timeLeft, setTimeLeft] = useState(totalDuration * 60);
+
+  // Reset timer when totalDuration changes
+  useEffect(() => {
+    setTimeLeft(totalDuration * 60);
+  }, [totalDuration]);
 
   // Timer effect
   useEffect(() => {
@@ -45,7 +51,6 @@ export function SessionControlsComponent() {
 
     return () => clearInterval(interval);
   }, [isActive, isPaused, incrementSessionTime]);
-
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
     const secs = seconds % 60;

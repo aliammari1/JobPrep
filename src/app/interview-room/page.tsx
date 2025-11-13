@@ -213,16 +213,21 @@ export default function InterviewRoom() {
   // Get room name from URL and fetch token
   useEffect(() => {
     const initializeRoom = async () => {
+      // Only process URL if not already in a room
+      if (hasJoined) {
+        setIsLoadingToken(false);
+        return;
+      }
+
       const urlParams = new URLSearchParams(window.location.search);
       const room = urlParams.get("room");
       const name = urlParams.get("name");
       
       // If room is provided in URL
-      if (room) {
-        const userName = name || session?.user?.name || session?.user?.email || "User";
+      if (room && session?.user) {
+        const userName = name || session.user.name || session.user.email || "User";
         setRoomName(room);
         setParticipantName(userName);
-        setHasJoined(true);
 
         try {
           const response = await fetch("/api/livekit/token", {
@@ -237,11 +242,14 @@ export default function InterviewRoom() {
           if (response.ok) {
             const data = await response.json();
             setToken(data.token);
+            setHasJoined(true);
             
             // Save to recent rooms
             const updatedRecent = [room, ...recentRooms.filter(r => r !== room)].slice(0, 5);
             setRecentRooms(updatedRecent);
             localStorage.setItem('recentInterviewRooms', JSON.stringify(updatedRecent));
+          } else {
+            toast.error("Failed to connect to room");
           }
         } catch (error) {
           console.error("Failed to get token:", error);
@@ -252,10 +260,10 @@ export default function InterviewRoom() {
       setIsLoadingToken(false);
     };
 
-    if (!isLoadingSession) {
+    if (!isLoadingSession && session?.user) {
       initializeRoom();
     }
-  }, [isLoadingSession, session]);
+  }, [isLoadingSession, session, hasJoined]);
 
   // Recording timer
   useEffect(() => {
@@ -301,16 +309,25 @@ export default function InterviewRoom() {
       return;
     }
 
-    const userName = session?.user?.name || session?.user?.email || "Guest User";
-    
-    // Generate room name if creating
-    const finalRoomName = joinMode === "create" 
-      ? generatedRoomCode || generateRoomName()
-      : formRoomName;
-
-    if (joinMode === "join" && !finalRoomName.trim()) {
-      toast.error("Please enter the room code");
+    // Validate session exists
+    if (!session?.user) {
+      toast.error("Please log in to join a room");
       return;
+    }
+
+    const userName = session.user.name || session.user.email || "Guest User";
+    
+    // Validate room name based on mode
+    let finalRoomName: string;
+    if (joinMode === "create") {
+      finalRoomName = generatedRoomCode || generateRoomName();
+    } else {
+      // Join mode - must have a room code
+      if (!formRoomName || !formRoomName.trim()) {
+        toast.error("Please enter or paste the room code");
+        return;
+      }
+      finalRoomName = formRoomName.trim();
     }
 
     setRoomName(finalRoomName);
@@ -933,35 +950,47 @@ export default function InterviewRoom() {
             <AlertDialogAction
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
               onClick={async () => {
-                if (isRecording) {
-                  await stopLiveKitRecording();
-                }
-
-                // Persist interview data to database before leaving
-                const interviewId = localStorage.getItem(`interview_${roomName}`);
-                if (interviewId && session?.user?.id) {
-                  try {
-                    await fetch("/api/interviews", {
-                      method: "PATCH",
-                      headers: { "Content-Type": "application/json" },
-                      body: JSON.stringify({
-                        interviewId,
-                        status: "completed",
-                        completedAt: new Date().toISOString(),
-                        duration: Math.floor(callDuration / 60), // Convert seconds to minutes
-                        ...(recordingUrl && { videoRecordingUrl: recordingUrl }),
-                      }),
-                    });
-                    toast.success("Interview data saved successfully");
-                  } catch (error) {
-                    console.error("Failed to save interview data:", error);
-                    toast.error("Failed to save interview data");
+                try {
+                  // Stop recording if active
+                  if (isRecording) {
+                    await stopLiveKitRecording();
                   }
-                }
 
-                toast.info("Left interview room");
-                // Navigate back or close
-                window.location.href = "/dashboard";
+                  // Persist interview data to database before leaving
+                  const interviewId = localStorage.getItem(`interview_${roomName}`);
+                  if (interviewId && session?.user?.id) {
+                    try {
+                      await fetch("/api/interviews", {
+                        method: "PATCH",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({
+                          interviewId,
+                          status: "completed",
+                          completedAt: new Date().toISOString(),
+                          duration: Math.floor(callDuration / 60), // Convert seconds to minutes
+                          ...(recordingUrl && { videoRecordingUrl: recordingUrl }),
+                        }),
+                      });
+                      toast.success("Interview data saved successfully");
+                    } catch (error) {
+                      console.error("Failed to save interview data:", error);
+                    }
+                  }
+                } finally {
+                  // Clear room state before leaving
+                  setHasJoined(false);
+                  setToken("");
+                  setRoomName("");
+                  setParticipantName("");
+                  setCallDuration(0);
+                  setCallStartTime(null);
+                  setFormRoomName("");
+                  setShowEndCallConfirm(false);
+                  
+                  toast.info("Left interview room");
+                  // Navigate back
+                  window.location.href = "/dashboard";
+                }
               }}
             >
               End Call

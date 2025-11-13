@@ -14,15 +14,12 @@ export async function POST(request: NextRequest) {
 		}
 
 		// Remove LinkedIn tokens from database
-		const prisma = (await import('@/lib/prisma')).default;
 		await prisma.integrationToken.deleteMany({
 			where: {
 				userId: session.user.id,
 				provider: 'linkedin',
 			}
-		});
-
-		return NextResponse.json({ success: true });
+		});	
 	} catch (error) {
 		return NextResponse.json(
 			{ error: "Failed to disconnect" },
