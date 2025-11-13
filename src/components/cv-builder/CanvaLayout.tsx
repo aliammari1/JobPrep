@@ -55,15 +55,24 @@ export function CanvaLayout() {
     const importType = searchParams.get("import");
     if (importType === "linkedin") {
       const toastId = toast.loading("Waiting for LinkedIn data...");
+      let timeoutId: NodeJS.Timeout | null = null;
+      let isHandled = false;
       
       // Listen for message from extension
       const handleMessage = async (event: MessageEvent) => {
         // Security: Verify origin if needed
         if (event.data?.type !== 'LINKEDIN_IMPORT_SESSION') return;
         
+        if (isHandled) return; // Prevent duplicate processing
+        isHandled = true;
+        
+        // Clear timeout immediately when message received
+        if (timeoutId) clearTimeout(timeoutId);
+        
         const sessionId = event.data?.sessionId;
         if (!sessionId) {
           toast.error("No session ID received from extension", { id: toastId });
+          window.removeEventListener('message', handleMessage);
           return;
         }
 
@@ -80,15 +89,14 @@ export function CanvaLayout() {
           if (result.success && result.data) {
             useCVStore.getState().importData(result.data);
             toast.success("LinkedIn data imported successfully!", { id: toastId });
-            
-            // Clean up listener
-            window.removeEventListener('message', handleMessage);
           } else {
             toast.error(result.error || "Failed to import LinkedIn data", { id: toastId });
           }
         } catch (error) {
           console.error("Import error:", error);
           toast.error("Failed to import LinkedIn data", { id: toastId });
+        } finally {
+          window.removeEventListener('message', handleMessage);
         }
       };
 
@@ -98,14 +106,16 @@ export function CanvaLayout() {
       window.postMessage({ type: 'REQUEST_LINKEDIN_SESSION' }, '*');
 
       // Timeout after 10 seconds
-      const timeout = setTimeout(() => {
-        window.removeEventListener('message', handleMessage);
-        toast.error("Import timeout - no data received from extension", { id: toastId });
+      timeoutId = setTimeout(() => {
+        if (!isHandled) {
+          window.removeEventListener('message', handleMessage);
+          toast.error("Import timeout - no data received from extension", { id: toastId });
+        }
       }, 10000);
 
       return () => {
         window.removeEventListener('message', handleMessage);
-        clearTimeout(timeout);
+        if (timeoutId) clearTimeout(timeoutId);
       };
     }
   }, [searchParams]);
@@ -461,7 +471,7 @@ export function CanvaLayout() {
 
           {/* Preview Panel - Right Side */}
           <Panel defaultSize={55} minSize={30}>
-            <div className="h-full overflow-hidden bg-gradient-to-br from-muted/5 to-muted/20">
+            <div className="h-full overflow-auto bg-gradient-to-br from-muted/5 to-muted/20">
               <PreviewPanel />
             </div>
           </Panel>
