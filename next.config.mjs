@@ -4,8 +4,7 @@ const pwa = withPWA({
   dest: "public",
   register: true,
   skipWaiting: true,
-  disable: false, // Keep PWA enabled in development
-  mode: "production", // CRITICAL: Force production mode for full caching in dev
+  disable: process.env.NODE_ENV === "development", // Disable only in development
   disableDevLogs: false,
   buildExcludes: [/middleware-manifest\.json$/],
   cacheOnFrontEndNav: true,
