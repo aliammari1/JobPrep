@@ -1,4 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
+import { randomBytes } from "crypto";
+import prisma from "@/lib/prisma";
 
 // Add CORS headers for Chrome extension
 const corsHeaders = {
@@ -6,17 +8,6 @@ const corsHeaders = {
   'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
   'Access-Control-Allow-Headers': 'Content-Type',
 };
-
-// Global cache type definition
-declare global {
-  var linkedInImportCache: {
-    [key: string]: {
-      data: CVData;
-      timestamp: number;
-      expiresAt: number;
-    };
-  } | undefined;
-}
 
 interface CVData {
   personalInfo: {
@@ -88,16 +79,71 @@ interface CVData {
   }>;
 }
 
+// Constants
+const TTL_MINUTES = 15;
+const MAX_PAYLOAD_SIZE = 1024 * 1024; // 1MB max for security
+const SESSION_ID_LENGTH = 32; // Cryptographically secure random ID
+
+// Generate cryptographically secure session ID
+function generateSessionId(): string {
+  return randomBytes(SESSION_ID_LENGTH).toString('hex');
+}
+
+// Validate payload size
+function validatePayloadSize(cvData: CVData): boolean {
+  const size = JSON.stringify(cvData).length;
+  return size <= MAX_PAYLOAD_SIZE;
+}
+
+// Store CV data in database and return session ID
+async function storeImportSession(cvData: CVData): Promise<string> {
+  const sessionId = generateSessionId();
+  const expiresAt = new Date(Date.now() + (TTL_MINUTES * 60 * 1000));
+  
+  try {
+    await prisma.linkedInImportSession.create({
+      data: {
+        sessionId: sessionId,
+        data: cvData as any, // Prisma stores as JSON
+        expiresAt: expiresAt,
+      },
+    });
+    
+    console.log(`Created import session in database: ${sessionId} (expires in ${TTL_MINUTES} minutes)`);
+    return sessionId;
+  } catch (error) {
+    console.error('Failed to store import session:', error);
+    throw error;
+  }
+}
+
+
 export async function POST(request: NextRequest) {
   try {
     const cvData: CVData = await request.json();
 
     // Validate required fields
-    if (!cvData.personalInfo || !cvData.personalInfo.fullName) {
-      return NextResponse.json(
+    if (!cvData?.personalInfo?.fullName) {
+      const response = NextResponse.json(
         { error: "Missing required field: personalInfo.fullName" },
         { status: 400 }
       );
+      Object.entries(corsHeaders).forEach(([key, value]) => {
+        response.headers.set(key, value);
+      });
+      return response;
+    }
+
+    // Validate payload size
+    if (!validatePayloadSize(cvData)) {
+      const response = NextResponse.json(
+        { error: "Payload too large. Maximum 1MB allowed." },
+        { status: 413 }
+      );
+      Object.entries(corsHeaders).forEach(([key, value]) => {
+        response.headers.set(key, value);
+      });
+      return response;
     }
 
     console.log("Received LinkedIn data from Chrome extension:", {
@@ -107,33 +153,14 @@ export async function POST(request: NextRequest) {
       skillsCount: cvData.skills?.length || 0,
     });
 
-    // Store data in a way that CV builder can access it
-    // We'll use a simple in-memory store with expiration
-    const dataId = `linkedin_${Date.now()}_${Math.random().toString(36).substring(7)}`;
-    
-    // In a production app, you'd store this in Redis or a database
-    // For now, we'll return the data and let the extension pass it via URL
-    global.linkedInImportCache = global.linkedInImportCache || {};
-    global.linkedInImportCache[dataId] = {
-      data: cvData,
-      timestamp: Date.now(),
-      expiresAt: Date.now() + (5 * 60 * 1000) // 5 minutes
-    };
-
-    // Clean up old entries
-    const cache = global.linkedInImportCache;
-    if (cache) {
-      Object.keys(cache).forEach(key => {
-        if (cache[key].expiresAt < Date.now()) {
-          delete cache[key];
-        }
-      });
-    }
+    // Store data server-side with secure session ID
+    const sessionId = await storeImportSession(cvData);
 
     const response = NextResponse.json({
       success: true,
       message: "LinkedIn data received successfully",
-      dataId: dataId,
+      sessionId: sessionId,
+      expiresIn: TTL_MINUTES * 60, // seconds
       data: {
         fullName: cvData.personalInfo.fullName,
         itemsExtracted: {
@@ -175,42 +202,24 @@ export async function OPTIONS(request: NextRequest) {
   });
 }
 
+// New endpoint: POST to retrieve stored session data
 export async function GET(request: NextRequest) {
-  // Get data by ID from cache
-  const searchParams = request.nextUrl.searchParams;
-  const dataId = searchParams.get('dataId');
-  
-  if (!dataId) {
-    return NextResponse.json(
-      {
-        message:
-          "This endpoint accepts POST requests from the JobPrep Chrome extension",
-        usage: "POST /api/cv/import-extension with LinkedIn profile data",
+  // This endpoint now returns API documentation
+  const response = NextResponse.json(
+    {
+      message: "LinkedIn Import API",
+      usage: {
+        step1: "POST /api/cv/import-extension with LinkedIn profile data",
+        step2: "Receive sessionId in response",
+        step3: "POST /api/cv/import-extension/retrieve with { sessionId } to fetch data",
       },
-      { status: 200 }
-    );
-  }
-
-  // Retrieve data from cache
-  const cache = global.linkedInImportCache || {};
-  const cached = cache[dataId];
-
-  if (!cached || cached.expiresAt < Date.now()) {
-    return NextResponse.json(
-      { error: "Data not found or expired" },
-      { status: 404 }
-    );
-  }
-
-  // Delete after retrieval for security
-  delete cache[dataId];
-
-  const response = NextResponse.json({
-    success: true,
-    data: cached.data,
-  });
+      notes: "Data is stored securely server-side and expires after 15 minutes",
+    },
+    { status: 200 }
+  );
   Object.entries(corsHeaders).forEach(([key, value]) => {
     response.headers.set(key, value);
   });
   return response;
 }
+
