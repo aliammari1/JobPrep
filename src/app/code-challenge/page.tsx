@@ -137,13 +137,19 @@ export default function CodeChallengeArena() {
   const { execute: executeAutoSave } = useAPIRequest(
     `code-save-${store.selectedLanguage}`,
     useCallback(async () => {
+      // Don't save if there's no current challenge
+      if (!store.currentChallenge?.id) {
+        console.warn("Cannot save: No challenge loaded");
+        return { success: false, message: "No challenge loaded" };
+      }
+
       const response = await fetch("/api/code-challenge/save", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           code: store.code[store.selectedLanguage],
           language: store.selectedLanguage,
-          challengeId: store.currentChallenge?.id,
+          challengeId: store.currentChallenge.id,
         }),
       });
 
@@ -231,8 +237,6 @@ export default function CodeChallengeArena() {
 
       // Auto-generate with error handling and retry
       generateChallengesWithRetry(onboardingCv, onboardingJob, difficulty);
-    } else {
-      fetchChallenge("1");
     }
   }, []);
 
@@ -259,10 +263,27 @@ export default function CodeChallengeArena() {
         });
 
         if (result?.challenges?.length > 0) {
+          // Set the generated challenges in the store
+          store.setGeneratedChallenges(result.challenges);
+          store.setCurrentChallenge(result.challenges[0]);
+          store.setCurrentChallengeIndex(0);
+          
+          // Initialize code for all languages with starter code
+          const firstChallenge = result.challenges[0];
+          if (firstChallenge.starterCode) {
+            Object.entries(firstChallenge.starterCode).forEach(([lang, code]) => {
+              if (code) {
+                store.setCode(lang, code as string);
+              }
+            });
+          }
+          
           toast.success("✨ Challenges ready!", { id: "auto-generate" });
+          // Clean up all onboarding data from sessionStorage
           sessionStorage.removeItem("onboarding_cv");
           sessionStorage.removeItem("onboarding_job");
           sessionStorage.removeItem("onboarding_difficulty");
+          sessionStorage.removeItem("onboarding_completed");
         }
       } catch (error) {
         retries++;
@@ -275,10 +296,9 @@ export default function CodeChallengeArena() {
           await attemptGenerate();
         } else {
           console.error("Challenge generation failed after retries:", error);
-          toast.error("Failed to generate challenges. Using default.", {
+          toast.error("Failed to generate challenges. Please try again.", {
             id: "auto-generate",
           });
-          fetchChallenge("1");
         }
       }
     };

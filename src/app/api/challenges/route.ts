@@ -6,6 +6,14 @@ import prisma from "@/lib/prisma";
 // GET - Fetch all challenges or a specific challenge
 export async function GET(request: NextRequest) {
   try {
+    const session = await auth.api.getSession({
+      headers: await headers(),
+    });
+
+    if (!session?.user) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
     const { searchParams } = new URL(request.url);
     const id = searchParams.get("id");
     const difficulty = searchParams.get("difficulty");
@@ -15,7 +23,7 @@ export async function GET(request: NextRequest) {
 
     if (id) {
       // Fetch specific challenge from database
-      const challenge = await prisma.codeSubmission.findUnique({
+      const challenge = await prisma.challenge.findUnique({
         where: { id },
       });
 
@@ -30,24 +38,24 @@ export async function GET(request: NextRequest) {
     }
 
     // Fetch challenges with filters from database
-    const where: any = {};
+    const where: any = { userId: session.user.id };
 
     if (difficulty) {
       where.difficulty = difficulty;
     }
 
     if (category) {
-      where.description = { contains: category };
+      where.category = category;
     }
 
     const [challenges, total] = await Promise.all([
-      prisma.codeSubmission.findMany({
+      prisma.challenge.findMany({
         where,
         take: limit,
         skip: offset,
         orderBy: { createdAt: "desc" },
       }),
-      prisma.codeSubmission.count({ where }),
+      prisma.challenge.count({ where }),
     ]);
 
     return NextResponse.json({

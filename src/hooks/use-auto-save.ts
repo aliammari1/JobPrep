@@ -36,6 +36,11 @@ export function useAutoSave<T>(
   const isSavingRef = useRef(false);
 
   const save = useCallback(async () => {
+    // Skip if data is undefined or null
+    if (data === undefined || data === null) {
+      return;
+    }
+
     // Skip if data hasn't changed
     if (JSON.stringify(lastSavedRef.current) === JSON.stringify(data)) {
       return;
@@ -78,7 +83,7 @@ export function useAutoSave<T>(
         }
       }
 
-      lastSavedRef.current = JSON.parse(JSON.stringify(data));
+      lastSavedRef.current = structuredClone(data);
     } finally {
       isSavingRef.current = false;
     }
@@ -132,7 +137,12 @@ export function useAutoSave<T>(
       return null;
     };
 
-    lastSavedRef.current = loadData() || JSON.parse(JSON.stringify(data));
+    const loaded = loadData();
+    if (loaded) {
+      lastSavedRef.current = loaded;
+    } else if (data !== undefined) {
+      lastSavedRef.current = JSON.parse(JSON.stringify(data));
+    }
   }, []);
 
   const saveNow = useCallback(async () => {
