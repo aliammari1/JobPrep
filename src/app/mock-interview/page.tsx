@@ -204,107 +204,147 @@ export default function MockInterview() {
   const [currentAnswer, setCurrentAnswer] = useState("");
   const [answerStartTime, setAnswerStartTime] = useState<number>(0);
   const [isRecording, setIsRecording] = useState(false);
-  const [mediaRecorder, setMediaRecorder] = useState<MediaRecorder | null>(null);
   const [isTranscribing, setIsTranscribing] = useState(false);
-  const audioChunksRef = useRef<BlobPart[]>([]);
+  const recognitionRef = useRef<SpeechRecognition | null>(null);
+  const isRecordingRef = useRef(false);
 
-  // Initialize or re-initialize media recorder for Whisper transcription
-  const initializeMediaRecorder = async () => {
-    try {
-      if (typeof window !== "undefined" && navigator.mediaDevices) {
-        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-        const recorder = new MediaRecorder(stream, { mimeType: "audio/webm" });
-        
-        audioChunksRef.current = [];
 
-        recorder.ondataavailable = (e) => {
-          audioChunksRef.current.push(e.data);
-        };
-
-        recorder.onstop = async () => {
-          const audioBlob = new Blob(audioChunksRef.current, { type: "audio/webm" });
-          audioChunksRef.current = [];
-          
-          // Send to Whisper transcription API
-          await transcribeAudio(audioBlob);
-          
-          // Stop current tracks
-          stream.getTracks().forEach(track => track.stop());
-          
-          // Re-initialize for next recording
-          await initializeMediaRecorder();
-        };
-
-        setMediaRecorder(recorder);
-        return recorder;
-      }
-    } catch (error) {
-      console.log("⚠️ Media recorder not available:", error);
-      return null;
-    }
-  };
-
-  // Initialize media recorder on mount
+  // Initialize Web Speech API on mount
   useEffect(() => {
-    initializeMediaRecorder();
+    if (typeof window === 'undefined') return;
+
+    const SpeechRecognition = window.SpeechRecognition || (window as any).webkitSpeechRecognition;
+    
+    if (!SpeechRecognition) {
+      console.warn('Web Speech API not supported in this browser');
+      return;
+    }
+
+    recognitionRef.current = new SpeechRecognition();
+    recognitionRef.current.continuous = true;
+    recognitionRef.current.interimResults = true;
+    recognitionRef.current.lang = 'en-US';
+
+    recognitionRef.current.onstart = () => {
+      console.log('🎤 Speech recognition started');
+    };
+
+    recognitionRef.current.onresult = async (event: any) => {
+      const last = event.results.length - 1;
+      const transcript = event.results[last][0].transcript;
+      const confidence = event.results[last][0].confidence || 0.9;
+      const isFinal = event.results[last].isFinal;
+
+      // Show interim results in console
+      if (!isFinal) {
+        console.log('📝 Interim:', transcript);
+      }
+
+      if (isFinal && transcript.trim()) {
+        console.log('✅ Final transcription:', transcript);
+
+        // Send to backend for validation
+        try {
+          const response = await fetch('/api/transcribe-audio', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ text: transcript, confidence }),
+          });
+
+          if (response.ok) {
+            const result = await response.json();
+            setCurrentAnswer((prev) => (prev ? prev + ' ' + result.text : result.text));
+            console.log('💾 Answer updated');
+          } else {
+            console.error('Backend validation failed');
+          }
+        } catch (error) {
+          console.error('Failed to send to backend:', error);
+        }
+      }
+    };
+
+    recognitionRef.current.onerror = (event: any) => {
+      console.error('Speech recognition error:', event.error);
+      if (event.error === 'no-speech') {
+        console.log('No speech detected, continuing...');
+        return;
+      }
+      if (event.error === 'aborted') {
+        console.log('Recognition aborted');
+        return;
+      }
+      setIsRecording(false);
+      setIsTranscribing(false);
+      isRecordingRef.current = false;
+    };
+
+    recognitionRef.current.onend = () => {
+      console.log('Speech recognition ended');
+      // Auto-restart if still recording
+      if (isRecordingRef.current && recognitionRef.current) {
+        try {
+          console.log('🔄 Auto-restarting recognition...');
+          recognitionRef.current.start();
+        } catch (err) {
+          console.error('Could not restart recognition:', err);
+          setIsRecording(false);
+          setIsTranscribing(false);
+          isRecordingRef.current = false;
+        }
+      } else {
+        setIsTranscribing(false);
+      }
+    };
 
     return () => {
-      if (mediaRecorder) {
-        mediaRecorder.stream.getTracks().forEach(track => track.stop());
+      if (recognitionRef.current) {
+        try {
+          isRecordingRef.current = false;
+          recognitionRef.current.stop();
+        } catch (err) {
+          // Ignore
+        }
       }
     };
   }, []);
 
-  // Transcribe audio using Whisper API
-  const transcribeAudio = async (audioBlob: Blob) => {
-    try {
-      setIsTranscribing(true);
-      console.log("🎤 Sending audio to Whisper transcription...");
 
-      const formData = new FormData();
-      formData.append("audio", audioBlob, "audio.webm");
 
-      const response = await fetch("/api/transcribe-audio", {
-        method: "POST",
-        body: formData,
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        console.error("Transcription failed:", errorData);
-        setIsTranscribing(false);
-        return;
-      }
-
-      const result = await response.json();
-      console.log("✅ Transcription result:", result.text?.substring(0, 100));
-
-      if (result.text) {
-        setCurrentAnswer((prev) => (prev ? prev + " " + result.text : result.text));
-      }
-
-      setIsTranscribing(false);
-    } catch (error) {
-      console.error("Transcription error:", error);
-      setIsTranscribing(false);
-    }
-  };
-
-  // Toggle voice recording with Whisper
+  // Toggle voice recording with Web Speech API
   const toggleVoiceRecording = () => {
-    if (!mediaRecorder) {
-      alert("Microphone access is required for voice recording. Please allow access and refresh.");
+    if (!recognitionRef.current) {
+      console.error('Speech recognition not initialized');
+      alert('Speech recognition is not supported in your browser. Please use Chrome, Edge, or Safari.');
       return;
     }
 
     if (isRecording) {
       // Stop recording
-      mediaRecorder.stop();
-      setIsRecording(false);
+      try {
+        isRecordingRef.current = false;
+        recognitionRef.current.stop();
+        setIsRecording(false);
+        setIsTranscribing(false);
+        console.log('🛑 Stopped voice recording');
+      } catch (error) {
+        console.error('Failed to stop recording:', error);
+      }
     } else {
       // Start recording
-      mediaRecorder.start();
-      setIsRecording(true);
+      try {
+        isRecordingRef.current = true;
+        recognitionRef.current.start();
+        setIsRecording(true);
+        setIsTranscribing(true);
+        console.log('🎤 Started voice recording');
+      } catch (error) {
+        console.error('Failed to start recording:', error);
+        alert('Failed to start voice recording. Please allow microphone access.');
+        setIsRecording(false);
+        setIsTranscribing(false);
+        isRecordingRef.current = false;
+      }
     }
   };
 
@@ -1807,19 +1847,17 @@ export default function MockInterview() {
                     </div>
                   </CardHeader>
                   <CardContent className="flex-1 p-6 flex flex-col justify-between space-y-3">
-                    {/* Whisper Info */}
-                    {typeof window !== 'undefined' && mediaRecorder && (
-                      <motion.div
-                        initial={{ opacity: 0, scale: 0.95 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        className="p-2 bg-blue-50/50 dark:bg-blue-950/20 rounded-lg border border-blue-200 dark:border-blue-800 flex items-start gap-2"
-                      >
-                        <Mic className="w-4 h-4 text-blue-600 mt-0.5 flex-shrink-0" />
-                        <p className="text-xs text-blue-700 dark:text-blue-300">
-                          Using AI Whisper for accurate transcription
-                        </p>
-                      </motion.div>
-                    )}
+                    {/* Transcription Info */}
+                    <motion.div
+                      initial={{ opacity: 0, scale: 0.95 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      className="p-2 bg-blue-50/50 dark:bg-blue-950/20 rounded-lg border border-blue-200 dark:border-blue-800 flex items-start gap-2"
+                    >
+                      <Mic className="w-4 h-4 text-blue-600 mt-0.5 flex-shrink-0" />
+                      <p className="text-xs text-blue-700 dark:text-blue-300">
+                        Using Web Speech API for voice transcription
+                      </p>
+                    </motion.div>
 
                     {/* Answer Textarea */}
                     <div className="flex-1 relative min-h-[200px]">
@@ -1859,18 +1897,17 @@ export default function MockInterview() {
                         )}
                       </Button>
 
-                      {/* Voice Recording Button - Using Whisper */}
-                      {typeof window !== 'undefined' && mediaRecorder && (
-                        <Button
-                          onClick={toggleVoiceRecording}
-                          variant={isRecording ? "destructive" : "outline"}
-                          size="sm"
-                          className={cn(
-                            "w-full font-semibold transition-all text-xs",
-                            isRecording && "animate-pulse bg-destructive text-white border-destructive"
-                          )}
-                          disabled={isEvaluatingAnswer || isTranscribing}
-                        >
+                      {/* Voice Recording Button - Using Web Speech API */}
+                      <Button
+                        onClick={toggleVoiceRecording}
+                        variant={isRecording ? "destructive" : "outline"}
+                        size="sm"
+                        className={cn(
+                          "w-full font-semibold transition-all text-xs",
+                          isRecording && "animate-pulse bg-destructive text-white border-destructive"
+                        )}
+                        disabled={isEvaluatingAnswer || isTranscribing}
+                      >
                           {isTranscribing ? (
                             <>
                               <Loader2 className="w-3 h-3 mr-2 animate-spin" />
@@ -1888,7 +1925,6 @@ export default function MockInterview() {
                             </>
                           )}
                         </Button>
-                      )}
                     </div>
 
                     {/* Recording Indicator */}
