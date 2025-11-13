@@ -17,8 +17,8 @@ interface BetterAuthSession {
   user: SessionUser;
 }
 
-// Pin to Node.js runtime for serverless compatibility
 export const runtime = 'nodejs';
+export const maxDuration = 30;
 
 export async function POST(request: NextRequest) {
   try {
@@ -54,134 +54,230 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Dynamic imports for puppeteer-core and chromium
-    const puppeteer = await import("puppeteer-core");
-    const chromiumModule = await import("@sparticuz/chromium");
-    const chromium = chromiumModule.default;
+    // Try to extract Open Graph metadata from the URL
+    const jobData = await extractJobDataFromHTML(url);
 
-    // Determine if we're in production (Vercel) or development
-    const isProduction = process.env.VERCEL || process.env.NODE_ENV === 'production';
-
-    // Launch browser with appropriate configuration
-    const browser = await puppeteer.launch({
-      args: isProduction 
-        ? chromium.args
-        : [
-            '--no-sandbox',
-            '--disable-setuid-sandbox',
-            '--disable-dev-shm-usage',
-            '--disable-accelerated-2d-canvas',
-            '--disable-gpu',
-          ],
-      defaultViewport: {
-        width: 1920,
-        height: 1080,
-      },
-      executablePath: isProduction
-        ? await chromium.executablePath()
-        : process.platform === 'win32'
-          ? 'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe'
-          : process.platform === 'darwin'
-            ? '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome'
-            : '/usr/bin/google-chrome',
-      headless: true,
-    });
-
-    const page = await browser.newPage();
-
-    // Set user agent to avoid detection
-    await page.setUserAgent(
-      'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
-    );
-
-    try {
-      // Navigate to the job posting
-      await page.goto(url, { 
-        waitUntil: 'networkidle2',
-        timeout: 30000 
-      });
-
-      // Wait for job description to load
-      await page.waitForSelector('.description__text, .show-more-less-html__markup, .jobs-description__content', {
-        timeout: 10000
-      });
-
-      // Extract job information
-      const jobData = await page.evaluate(() => {
-        // Try multiple selectors for job title
-        const titleElement = 
-          document.querySelector('.top-card-layout__title') ||
-          document.querySelector('.jobs-unified-top-card__job-title') ||
-          document.querySelector('h1.t-24');
-        const title = titleElement?.textContent?.trim() || '';
-
-        // Try multiple selectors for company name
-        const companyElement = 
-          document.querySelector('.topcard__org-name-link') ||
-          document.querySelector('.jobs-unified-top-card__company-name') ||
-          document.querySelector('.topcard__flavor--black-link');
-        const company = companyElement?.textContent?.trim() || '';
-
-        // Try multiple selectors for location
-        const locationElement = 
-          document.querySelector('.topcard__flavor--bullet') ||
-          document.querySelector('.jobs-unified-top-card__bullet');
-        const location = locationElement?.textContent?.trim() || '';
-
-        // Try multiple selectors for job description
-        const descriptionElement = 
-          document.querySelector('.description__text') ||
-          document.querySelector('.show-more-less-html__markup') ||
-          document.querySelector('.jobs-description__content') ||
-          document.querySelector('.jobs-box__html-content');
-        
-        let description = '';
-        if (descriptionElement) {
-          // Get text content and clean it up
-          description = descriptionElement.textContent?.trim() || '';
-          // Remove extra whitespace and normalize line breaks
-          description = description
-            .replace(/\s+/g, ' ')
-            .replace(/\n\s*\n/g, '\n')
-            .trim();
-        }
-
-        return { title, company, location, description };
-      });
-
-      await browser.close();
-
-      // Format the job description
-      const formattedDescription = `Job Title: ${jobData.title}
-Company: ${jobData.company}
-Location: ${jobData.location}
-
-Job Description:
-${jobData.description}`;
-
+    if (jobData.success) {
       return NextResponse.json({
-        jobDescription: formattedDescription,
+        jobDescription: formatJobData(jobData),
         success: true,
-      });
-
-    } catch (scrapeError) {
-      await browser.close();
-      console.error("Scraping error:", scrapeError);
-      
-      return NextResponse.json({
-        jobDescription: `Unable to scrape job details from LinkedIn.\n\nThis could be due to:\n- LinkedIn's anti-scraping protections\n- The job posting requires login\n- The URL format has changed\n\nPlease copy and paste the job description manually.`,
-        success: false,
+        source: 'og-metadata'
       });
     }
 
+    // Fallback to user-friendly extraction guide
+    return NextResponse.json({
+      jobDescription: generateExtractionGuide(url),
+      success: false,
+      source: 'fallback',
+      message: "Please copy the job details from LinkedIn and paste below. We've provided a guide to help."
+    });
+
   } catch (error) {
-    console.error("LinkedIn scraping error:", error);
+    console.error("LinkedIn data extraction error:", error);
     return NextResponse.json(
       { 
-        error: "Failed to scrape LinkedIn job",
-        details: error instanceof Error ? error.message : "Unknown error"
+        error: "Failed to process LinkedIn job",
+        details: error instanceof Error ? error.message : "Unknown error",
+        fallback: true
       },
       { status: 500 }
     );
   }
 }
+
+async function extractJobDataFromHTML(url: string): Promise<any> {
+  try {
+    // Fetch with strict timeout
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 5000);
+
+    const response = await fetch(url, {
+      method: 'GET',
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+        'Accept-Language': 'en-US,en;q=0.5',
+        'Cache-Control': 'no-cache',
+      },
+      signal: controller.signal,
+    });
+
+    clearTimeout(timeoutId);
+
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}`);
+    }
+
+    const html = await response.text();
+    const jobData = parseHTMLMetadata(html, url);
+
+    if (jobData.title || jobData.description) {
+      return {
+        success: true,
+        ...jobData
+      };
+    }
+
+    return { success: false };
+  } catch (error) {
+    console.log("HTML extraction failed:", error instanceof Error ? error.message : 'Unknown error');
+    return { success: false };
+  }
+}
+
+function parseHTMLMetadata(html: string, url: string): any {
+  try {
+    // Extract Open Graph metadata
+    const ogTitleMatch = html.match(/<meta\s+property="og:title"\s+content="([^"]*)"/);
+    const ogDescMatch = html.match(/<meta\s+property="og:description"\s+content="([^"]*)"/);
+    const ogImageMatch = html.match(/<meta\s+property="og:image"\s+content="([^"]*)"/);
+
+    // Extract structured data (JSON-LD)
+    const jsonLdMatch = html.match(/<script\s+type="application\/ld\+json">([\s\S]*?)<\/script>/);
+    let jsonLdData = null;
+
+    if (jsonLdMatch) {
+      try {
+        jsonLdData = JSON.parse(jsonLdMatch[1]);
+      } catch (e) {
+        // JSON parse error, continue
+      }
+    }
+
+    // Extract job-related metadata from various sources
+    const title = ogTitleMatch ? decodeHTML(ogTitleMatch[1]) : extractTitleFromHTML(html);
+    const description = ogDescMatch ? decodeHTML(ogDescMatch[1]) : extractDescriptionFromHTML(html);
+    
+    // Try to extract company and location from JSON-LD
+    let company = '';
+    let location = '';
+
+    if (jsonLdData) {
+      if (jsonLdData.hiringOrganization?.name) {
+        company = jsonLdData.hiringOrganization.name;
+      }
+      if (jsonLdData.jobLocation?.address?.addressLocality) {
+        location = jsonLdData.jobLocation.address.addressLocality;
+        if (jsonLdData.jobLocation.address.addressCountry) {
+          location += ', ' + jsonLdData.jobLocation.address.addressCountry;
+        }
+      }
+    }
+
+    return {
+      title: title.substring(0, 200),
+      company: company || 'Not specified',
+      location: location || 'Remote',
+      description: description.substring(0, 2000)
+    };
+  } catch (error) {
+    console.log("HTML parsing error:", error);
+    return {};
+  }
+}
+
+function extractTitleFromHTML(html: string): string {
+  // Try common patterns for job title
+  const patterns = [
+    /<h1[^>]*>([^<]+)<\/h1>/,
+    /<h2[^>]*class="[^"]*job[^"]*"[^>]*>([^<]+)<\/h2>/,
+    /<title>([^-|]*)([-|].*)?<\/title>/,
+  ];
+
+  for (const pattern of patterns) {
+    const match = html.match(pattern);
+    if (match && match[1]) {
+      return decodeHTML(match[1].trim()).substring(0, 200);
+    }
+  }
+
+  return 'Job Position';
+}
+
+function extractDescriptionFromHTML(html: string): string {
+  // Try to find the main content area
+  const patterns = [
+    /<div[^>]*class="[^"]*description[^"]*"[^>]*>([\s\S]{0,3000}?)<\/div>/i,
+    /<article[^>]*>([\s\S]{0,3000}?)<\/article>/i,
+    /<main[^>]*>([\s\S]{0,3000}?)<\/main>/i,
+  ];
+
+  for (const pattern of patterns) {
+    const match = html.match(pattern);
+    if (match && match[1]) {
+      const content = stripHTML(match[1]).trim();
+      if (content.length > 50) {
+        return content.substring(0, 2000);
+      }
+    }
+  }
+
+  return 'Job description content';
+}
+
+function stripHTML(html: string): string {
+  return html
+    .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '')
+    .replace(/<style\b[^<]*(?:(?!<\/style>)<[^<]*)*<\/style>/gi, '')
+    .replace(/<[^>]+>/g, ' ')
+    .replace(/&nbsp;/g, ' ')
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/&quot;/g, '"')
+    .replace(/&amp;/g, '&')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+function decodeHTML(text: string): string {
+  const entities: { [key: string]: string } = {
+    '&amp;': '&',
+    '&lt;': '<',
+    '&gt;': '>',
+    '&quot;': '"',
+    '&#39;': "'",
+    '&nbsp;': ' ',
+  };
+  
+  return text.replace(/&[a-z]+;/gi, match => entities[match] || match);
+}
+
+function formatJobData(data: any): string {
+  return `Job Title: ${data.title || 'N/A'}
+Company: ${data.company || 'N/A'}
+Location: ${data.location || 'N/A'}
+
+Job Description:
+${data.description || 'Description not available'}`;
+}
+
+function generateExtractionGuide(url: string): string {
+  return `📋 LinkedIn Job Details Extraction Guide
+
+**This job couldn't be automatically extracted. Here's how to copy it:**
+
+1. **Go to the job posting:** ${url}
+
+2. **Copy the following information:**
+   • Job Title (usually at the top in large text)
+   • Company Name
+   • Location
+   • Full Job Description (scroll down and copy the entire description)
+
+3. **Paste it in the field below** - Our AI will automatically parse and organize it
+
+**Tips:**
+- Make sure to include the complete job description
+- Include any requirements, responsibilities, and benefits sections
+- If there's a "Show More" button, click it first to see the full description
+
+**Alternative Methods:**
+- Copy the URL and share it with team members
+- Print to PDF and upload if your job requires attachments
+- Use your browser's reader mode to clean up the layout before copying
+
+This manual approach ensures 100% accuracy while respecting LinkedIn's Terms of Service.`;
+}
+
+

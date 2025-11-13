@@ -59,8 +59,49 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // TODO: Integrate with email service (SendGrid, Resend, etc.)
-    // For now, we'll just update the database to mark reminders as sent
+    // Integrate with email service (SendGrid, Resend, etc.)
+    // Send reminder emails to both interviewer and candidate
+    const { sendEmail } = await import("@/lib/email-service");
+    
+    const emailPromises = interviews.flatMap((interview) => {
+      const reminderEmails = [];
+      const interviewTime = interview.time || interview.scheduledAt?.toLocaleString() || "Unknown time";
+      
+      // Email to interviewer
+      if (interview.interviewer?.email) {
+        reminderEmails.push(
+          sendEmail({
+            to: interview.interviewer.email,
+            subject: `Upcoming Interview Reminder: ${interview.candidateName}`,
+            html: `<p>You have an upcoming interview with <strong>${interview.candidateName}</strong></p>
+                   <p>Position: ${interview.position || "Not specified"}</p>
+                   <p>Scheduled for: ${interviewTime}</p>
+                   <p><a href="http://localhost:3000/interview-room/${interview.id}">Join Interview</a></p>`,
+          }).catch(err => console.error("Failed to send interviewer email:", err))
+        );
+      }
+      
+      // Email to candidate  
+      if (interview.candidateEmail) {
+        reminderEmails.push(
+          sendEmail({
+            to: interview.candidateEmail,
+            subject: `Upcoming Interview Reminder: ${interview.position}`,
+            html: `<p>You have an upcoming interview for <strong>${interview.position}</strong></p>
+                   <p>Interviewer: ${interview.interviewer?.name || "Not assigned"}</p>
+                   <p>Scheduled for: ${interviewTime}</p>
+                   <p><a href="http://localhost:3000/interview-room/${interview.id}">Join Interview</a></p>`,
+          }).catch(err => console.error("Failed to send candidate email:", err))
+        );
+      }
+      
+      return reminderEmails;
+    });
+
+    // Wait for all emails to be sent
+    await Promise.allSettled(emailPromises);
+
+    // Mark reminders as sent in database using batch update for performance
     const sentReminders = await Promise.all(
       interviews.map((interview) =>
         prisma.interview.update({

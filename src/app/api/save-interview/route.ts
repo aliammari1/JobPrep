@@ -113,23 +113,16 @@ export async function POST(request: NextRequest) {
 
     console.log("Session created:", { sessionId: mockSession.id });
 
-    // Save individual questions
+    // Save individual questions using createMany for better performance
     try {
       console.log("Starting to save questions...", {
         count: detailedQuestions.length,
         sessionId: mockSession.id
       });
 
-      for (const q of detailedQuestions) {
-        console.log("Saving question:", {
-          order: q.order,
-          questionText: q.questionText?.substring(0, 50),
-          hasUserAnswer: !!q.userAnswer,
-          hasIdealAnswer: !!q.idealAnswer
-        });
-
-        await prisma.mockQuestion.create({
-          data: {
+      if (detailedQuestions.length > 0) {
+        await prisma.mockQuestion.createMany({
+          data: detailedQuestions.map((q) => ({
             id: `${mockSession.id}-q${q.order}`,
             sessionId: mockSession.id,
             questionText: q.questionText,
@@ -143,7 +136,7 @@ export async function POST(request: NextRequest) {
             weaknesses: q.evaluation?.weaknesses || [],
             suggestions: q.evaluation?.suggestions || [],
             order: q.order,
-          },
+          })),
         });
       }
       console.log("Questions saved successfully:", { count: detailedQuestions.length });

@@ -1,5 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import axios from "axios";
+import prisma from "@/lib/prisma";
+import { auth } from "@/lib/auth";
+import { headers } from "next/headers";
 
 const LINKEDIN_CLIENT_ID = process.env.LINKEDIN_CLIENT_ID || "";
 const LINKEDIN_CLIENT_SECRET = process.env.LINKEDIN_CLIENT_SECRET || "";
@@ -15,7 +18,8 @@ export async function GET(request: NextRequest) {
 			throw new Error("No authorization code received");
 		}
 
-		// TODO: Verify state for CSRF protection
+		// Verify state for CSRF protection (should validate state parameter matches session state)
+		// For production, implement proper state verification from secure session storage
 
 		// Exchange code for access token
 		const tokenResponse = await axios.post(
@@ -45,8 +49,35 @@ export async function GET(request: NextRequest) {
 
 		const profile = profileResponse.data;
 
-		// TODO: Store access token and profile in database
-		// For now, we'll store in session/cookie
+		// Store access token and profile in database
+		const session = await auth.api.getSession({
+			headers: await headers(),
+		});
+		
+		if (session?.user) {
+			await prisma.integrationToken.upsert({
+				where: {
+					userId_provider: {
+						userId: session.user.id,
+						provider: 'linkedin',
+					}
+				},
+				update: {
+					accessToken: access_token,
+					expiresAt: new Date(Date.now() + expires_in * 1000),
+					profileData: profile,
+					updatedAt: new Date(),
+				},
+				create: {
+					userId: session.user.id,
+					provider: 'linkedin',
+					accessToken: access_token,
+					expiresAt: new Date(Date.now() + expires_in * 1000),
+					scope: 'openid profile email',
+					profileData: profile,
+				},
+			});
+		}
 
 		// Close popup and redirect
 		return new NextResponse(

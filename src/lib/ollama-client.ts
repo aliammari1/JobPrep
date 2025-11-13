@@ -1,10 +1,23 @@
 /**
- * Ollama Client for Local AI
- * Much faster than Gemini API - runs locally!
+ * Ollama Client for Local AI & API
+ * Supports both local Ollama and Ollama API (ollama.com)
  */
 
-const OLLAMA_BASE_URL = process.env.OLLAMA_BASE_URL || 'http://localhost:11434';
-const OLLAMA_MODEL = process.env.OLLAMA_MODEL || 'llama3.2:latest';
+import { Ollama } from "ollama";
+
+// Determine if using local or API-based Ollama
+const isLocalOllama = !process.env.OLLAMA_API_KEY;
+
+const ollama = new Ollama({
+  host: process.env.OLLAMA_HOST || (isLocalOllama ? "http://localhost:11434" : "https://ollama.com"),
+  ...(process.env.OLLAMA_API_KEY && {
+    headers: {
+      Authorization: "Bearer " + process.env.OLLAMA_API_KEY,
+    },
+  }),
+});
+
+const OLLAMA_MODEL = process.env.OLLAMA_MODEL || "llama3.2:latest";
 
 interface OllamaResponse {
   model: string;
@@ -17,30 +30,53 @@ export async function generateWithOllama(
   systemPrompt?: string
 ): Promise<string> {
   try {
-    const response = await fetch(`${OLLAMA_BASE_URL}/api/generate`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        model: OLLAMA_MODEL,
-        prompt: systemPrompt ? `${systemPrompt}\n\n${prompt}` : prompt,
-        stream: false,
-        options: {
-          temperature: 0.7,
-          top_p: 0.9,
-        },
-      }),
+    const response = await ollama.chat({
+      model: OLLAMA_MODEL,
+      messages: [
+        ...(systemPrompt ? [{ role: "system" as const, content: systemPrompt }] : []),
+        { role: "user" as const, content: prompt },
+      ],
+      stream: false,
     });
 
-    if (!response.ok) {
-      throw new Error(`Ollama API error: ${response.statusText}`);
+    // Handle the response object
+    if (typeof response === "string") {
+      return response;
     }
 
-    const data: OllamaResponse = await response.json();
-    return data.response;
+    if (response && typeof response === "object" && "message" in response) {
+      return (response as any).message.content;
+    }
+
+    return "";
   } catch (error) {
-    console.error('Ollama generation error:', error);
+    console.error("Ollama generation error:", error);
+    throw error;
+  }
+}
+
+export async function* generateWithOllamaStream(
+  prompt: string,
+  systemPrompt?: string
+): AsyncGenerator<string, void, unknown> {
+  try {
+    const response = await ollama.chat({
+      model: OLLAMA_MODEL,
+      messages: [
+        ...(systemPrompt ? [{ role: "system" as const, content: systemPrompt }] : []),
+        { role: "user" as const, content: prompt },
+      ],
+      stream: true,
+    });
+
+    // For streaming responses
+    for await (const part of response) {
+      if (part.message?.content) {
+        yield part.message.content;
+      }
+    }
+  } catch (error) {
+    console.error("Ollama streaming error:", error);
     throw error;
   }
 }
@@ -130,7 +166,7 @@ function fixMalformedJson(text: string): string {
   let openBraces = (fixed.match(/{/g) || []).length;
   let closeBraces = (fixed.match(/}/g) || []).length;
   if (openBraces > closeBraces) {
-    fixed += '}' .repeat(openBraces - closeBraces);
+    fixed += '}'.repeat(openBraces - closeBraces);
   }
 
   let openBrackets = (fixed.match(/\[/g) || []).length;
