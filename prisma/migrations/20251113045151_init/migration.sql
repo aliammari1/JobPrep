@@ -1,3 +1,9 @@
+-- CreateEnum
+CREATE TYPE "SubscriptionTier" AS ENUM ('FREE', 'MONTHLY', 'YEARLY');
+
+-- CreateEnum
+CREATE TYPE "SubscriptionStatus" AS ENUM ('ACTIVE', 'INACTIVE', 'PAST_DUE', 'CANCELED', 'TRIALING');
+
 -- CreateTable
 CREATE TABLE "user" (
     "id" TEXT NOT NULL,
@@ -16,8 +22,50 @@ CREATE TABLE "user" (
     "banExpires" TIMESTAMP(3),
     "phoneNumber" TEXT,
     "phoneNumberVerified" BOOLEAN,
+    "stripeCustomerId" TEXT,
+    "subscriptionTier" "SubscriptionTier" NOT NULL DEFAULT 'FREE',
+    "subscriptionStatus" "SubscriptionStatus" NOT NULL DEFAULT 'INACTIVE',
+    "currentPeriodEnd" TIMESTAMP(3),
+    "cancelAtPeriodEnd" BOOLEAN NOT NULL DEFAULT false,
 
     CONSTRAINT "user_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "subscription" (
+    "id" TEXT NOT NULL,
+    "userId" TEXT NOT NULL,
+    "stripeSubscriptionId" TEXT NOT NULL,
+    "stripePriceId" TEXT NOT NULL,
+    "stripeProductId" TEXT NOT NULL,
+    "tier" "SubscriptionTier" NOT NULL,
+    "status" "SubscriptionStatus" NOT NULL,
+    "currentPeriodStart" TIMESTAMP(3) NOT NULL,
+    "currentPeriodEnd" TIMESTAMP(3) NOT NULL,
+    "cancelAtPeriodEnd" BOOLEAN NOT NULL DEFAULT false,
+    "canceledAt" TIMESTAMP(3),
+    "trialStart" TIMESTAMP(3),
+    "trialEnd" TIMESTAMP(3),
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "subscription_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "payment" (
+    "id" TEXT NOT NULL,
+    "userId" TEXT NOT NULL,
+    "stripePaymentId" TEXT NOT NULL,
+    "amount" INTEGER NOT NULL,
+    "currency" TEXT NOT NULL DEFAULT 'usd',
+    "status" TEXT NOT NULL,
+    "description" TEXT,
+    "receiptUrl" TEXT,
+    "invoiceUrl" TEXT,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "payment_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
@@ -350,6 +398,24 @@ CREATE UNIQUE INDEX "user_username_key" ON "user"("username");
 CREATE UNIQUE INDEX "user_phoneNumber_key" ON "user"("phoneNumber");
 
 -- CreateIndex
+CREATE UNIQUE INDEX "user_stripeCustomerId_key" ON "user"("stripeCustomerId");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "subscription_stripeSubscriptionId_key" ON "subscription"("stripeSubscriptionId");
+
+-- CreateIndex
+CREATE INDEX "subscription_userId_idx" ON "subscription"("userId");
+
+-- CreateIndex
+CREATE INDEX "subscription_stripeSubscriptionId_idx" ON "subscription"("stripeSubscriptionId");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "payment_stripePaymentId_key" ON "payment"("stripePaymentId");
+
+-- CreateIndex
+CREATE INDEX "payment_userId_idx" ON "payment"("userId");
+
+-- CreateIndex
 CREATE UNIQUE INDEX "session_token_key" ON "session"("token");
 
 -- CreateIndex
@@ -366,6 +432,12 @@ CREATE INDEX "linkedin_import_session_expiresAt_idx" ON "linkedin_import_session
 
 -- CreateIndex
 CREATE INDEX "linkedin_import_session_sessionId_idx" ON "linkedin_import_session"("sessionId");
+
+-- AddForeignKey
+ALTER TABLE "subscription" ADD CONSTRAINT "subscription_userId_fkey" FOREIGN KEY ("userId") REFERENCES "user"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "payment" ADD CONSTRAINT "payment_userId_fkey" FOREIGN KEY ("userId") REFERENCES "user"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "session" ADD CONSTRAINT "session_userId_fkey" FOREIGN KEY ("userId") REFERENCES "user"("id") ON DELETE CASCADE ON UPDATE CASCADE;

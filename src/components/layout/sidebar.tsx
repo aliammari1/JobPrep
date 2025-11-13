@@ -6,6 +6,7 @@ import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { useSession, signOut } from "@/lib/auth-client";
+import { useSubscription } from "@/hooks/use-subscription";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -72,6 +73,7 @@ import {
   CloudUpload,
   FileVideo,
   ArrowRight,
+  CreditCard,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -253,6 +255,13 @@ const sidebarSections: SidebarSection[] = [
             icon: Users2,
             href: "/settings/team",
           },
+          {
+            id: "billing",
+            label: "Billing & Subscription",
+            icon: CreditCard,
+            href: "/settings/billing",
+            isPro: true,
+          },
         ],
       },
     ],
@@ -263,6 +272,7 @@ export function Sidebar({ isOpen, onToggle, onClose }: SidebarProps) {
   const pathname = usePathname();
   const router = useRouter();
   const { data: session, isPending } = useSession();
+  const { data: subscription, isLoading: subscriptionLoading } = useSubscription();
   const [expandedItems, setExpandedItems] = useState<string[]>([
     "interviews",
     "evaluation",
@@ -544,6 +554,39 @@ export function Sidebar({ isOpen, onToggle, onClose }: SidebarProps) {
 
         {/* Footer Divider */}
         <div className="border-t border-border/50 shrink-0" />
+
+        {/* Subscription Card */}
+        {session?.user && !subscriptionLoading && subscription && (
+          <div className="px-4 pt-3 pb-2">
+            <Link href="/settings/billing">
+              <div className="rounded-lg border border-primary/50 bg-primary/5 p-3 hover:bg-primary/10 transition-colors cursor-pointer">
+                <div className="flex items-center gap-2 mb-2">
+                  <CreditCard className="w-4 h-4 text-primary" />
+                  <span className="text-xs font-semibold text-primary">
+                    {subscription.tier === "FREE" ? "Free Plan" : "Premium"}
+                  </span>
+                </div>
+                <p className="text-xs text-foreground font-medium truncate">
+                  {subscription.tier === "FREE"
+                    ? "Upgrade to Pro"
+                    : subscription.tier === "MONTHLY"
+                    ? "Pro Monthly"
+                    : "Pro Yearly"}
+                </p>
+                <Badge
+                  variant="outline"
+                  className={`mt-2 text-xs ${
+                    subscription.status === "ACTIVE"
+                      ? "border-green-500/50 text-green-600 dark:text-green-400"
+                      : "border-yellow-500/50 text-yellow-600 dark:text-yellow-400"
+                  }`}
+                >
+                  {subscription.status}
+                </Badge>
+              </div>
+            </Link>
+          </div>
+        )}
 
         {/* User Profile Section */}
         <div className="p-4 space-y-3">

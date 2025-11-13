@@ -3,6 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { AppLayout } from "@/components/layout/app-layout";
 import { ThemeProvider } from "@/components/theme-provider";
+import { ReactQueryProvider } from "@/components/providers/query-client-provider";
 import { Toaster } from "sonner";
 import { PWAInstallPrompt } from "@/components/custom/pwa-install-prompt";
 import { OfflineDetector } from "@/components/custom/offline-detector";
@@ -69,10 +70,12 @@ export default function RootLayout({
           enableSystem
           storageKey="jobprep-theme"
         >
-          <AppLayout>{children}</AppLayout>
-          <Toaster position="top-right" richColors expand={true} />
-          <PWAInstallPrompt />
-          <OfflineDetector />
+          <ReactQueryProvider>
+            <AppLayout>{children}</AppLayout>
+            <Toaster position="top-right" richColors expand={true} />
+            <PWAInstallPrompt />
+            <OfflineDetector />
+          </ReactQueryProvider>
         </ThemeProvider>
       </body>
     </html>

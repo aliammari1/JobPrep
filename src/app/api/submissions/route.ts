@@ -1,24 +1,29 @@
 import { NextRequest, NextResponse } from "next/server";
+import { auth } from "@/lib/auth";
+import { headers } from "next/headers";
+import prisma from "@/lib/prisma";
 
 // POST - Submit a solution
 export async function POST(request: NextRequest) {
   try {
+    // ✅ Add authentication
+    const session = await auth.api.getSession({
+      headers: await headers(),
+    });
+    
+    if (!session?.user) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
     const body = await request.json();
     const {
       challengeId,
-      userId,
       language,
       code,
       testResults,
       metrics,
       timeElapsed,
     } = body;
-
-    // TODO: Add authentication
-    // const session = await getServerSession();
-    // if (!session) {
-    //   return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    // }
 
     // Validate required fields
     if (!challengeId || !language || !code) {
@@ -28,34 +33,31 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // TODO: Save to database
-    // const submission = await prisma.codeSubmission.create({
-    //   data: {
-    //     challengeId,
-    //     userId: session.user.id,
-    //     language,
-    //     code,
-    //     testResults,
-    //     metrics,
-    //     timeElapsed,
-    //     status: metrics.passedTests === metrics.totalTests ? 'ACCEPTED' : 'WRONG_ANSWER',
-    //   },
-    // });
+    // ✅ Save to database - track for usage
+    const submission = await prisma.codeSubmission.create({
+      data: {
+        userId: session.user.id,
+        title: `Challenge ${challengeId}`,
+        description: `Submitted solution in ${language}`,
+        language,
+        code,
+        testsPassed: metrics.passedTests,
+        totalTests: metrics.totalTests,
+        status: metrics.passedTests === metrics.totalTests ? "passed" : "failed",
+      },
+    });
 
-    const submission = {
-      id: Date.now().toString(),
+    return NextResponse.json({
+      id: submission.id,
       challengeId,
-      userId: userId || "anonymous",
+      userId: session.user.id,
       language,
-      code,
       testResults,
       metrics,
       timeElapsed,
       status: metrics.passedTests === metrics.totalTests ? "ACCEPTED" : "WRONG_ANSWER",
-      submittedAt: new Date().toISOString(),
-    };
-
-    return NextResponse.json(submission, { status: 201 });
+      submittedAt: submission.createdAt.toISOString(),
+    }, { status: 201 });
   } catch (error) {
     console.error("Error submitting solution:", error);
     return NextResponse.json(
@@ -68,47 +70,47 @@ export async function POST(request: NextRequest) {
 // GET - Fetch user's submissions
 export async function GET(request: NextRequest) {
   try {
+    // ✅ Add authentication
+    const session = await auth.api.getSession({
+      headers: await headers(),
+    });
+    
+    if (!session?.user) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
     const { searchParams } = new URL(request.url);
-    const challengeId = searchParams.get("challengeId");
-    const userId = searchParams.get("userId");
     const limit = parseInt(searchParams.get("limit") || "10");
     const offset = parseInt(searchParams.get("offset") || "0");
 
-    // TODO: Add authentication and fetch from database
-    // const session = await getServerSession();
-    // if (!session) {
-    //   return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    // }
-
-    // const submissions = await prisma.codeSubmission.findMany({
-    //   where: {
-    //     userId: session.user.id,
-    //     ...(challengeId && { challengeId }),
-    //   },
-    //   orderBy: { submittedAt: 'desc' },
-    //   take: limit,
-    //   skip: offset,
-    // });
-
-    // Mock data for development
-    const submissions = [
-      {
-        id: "1",
-        challengeId: "1",
-        language: "javascript",
-        status: "ACCEPTED",
-        metrics: {
-          passedTests: 5,
-          totalTests: 5,
-          avgExecutionTime: 45.2,
+    // ✅ Fetch from database
+    const [submissions, total] = await Promise.all([
+      prisma.codeSubmission.findMany({
+        where: {
+          userId: session.user.id,
         },
-        submittedAt: new Date(Date.now() - 86400000).toISOString(),
-      },
-    ];
+        orderBy: { createdAt: "desc" },
+        take: limit,
+        skip: offset,
+      }),
+      prisma.codeSubmission.count({
+        where: { userId: session.user.id },
+      }),
+    ]);
 
     return NextResponse.json({
-      submissions,
-      total: submissions.length,
+      submissions: submissions.map(s => ({
+        id: s.id,
+        title: s.title,
+        language: s.language,
+        status: s.status,
+        testsPassed: s.testsPassed,
+        totalTests: s.totalTests,
+        createdAt: s.createdAt.toISOString(),
+      })),
+      total,
+      limit,
+      offset,
     });
   } catch (error) {
     console.error("Error fetching submissions:", error);
