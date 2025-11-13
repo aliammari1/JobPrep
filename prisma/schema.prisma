@@ -458,6 +458,7 @@ model CoverLetter {
 model CodeSubmission {
   id           String   @id @default(cuid())
   userId       String
+  challengeId  String?  // Optional reference to the challenge
   title        String
   description  String?
   language     String
@@ -468,10 +469,37 @@ model CodeSubmission {
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
   user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  challenge    Challenge? @relation(fields: [challengeId], references: [id], onDelete: SetNull)
 
   @@index([userId])
+  @@index([challengeId])
   @@index([createdAt])
   @@map("code_submission")
+}
+
+model Challenge {
+  id            String           @id @default(cuid())
+  userId        String
+  title         String
+  difficulty    String           // Easy, Medium, Hard
+  description   String           @db.Text
+  constraints   String[]
+  examples      Json
+  testCases     Json
+  timeLimit     Int              @default(1000)
+  memoryLimit   Int              @default(256)
+  category      String?
+  tags          String[]
+  hints         String[]
+  starterCode   Json?
+  createdAt     DateTime         @default(now())
+  updatedAt     DateTime         @updatedAt
+  submissions   CodeSubmission[]
+
+  @@index([userId])
+  @@index([difficulty])
+  @@index([category])
+  @@map("challenge")
 }
 
 model CodeDraft {

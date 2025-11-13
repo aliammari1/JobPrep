@@ -73,6 +73,14 @@ export default function CodeChallengeOnboardingImproved() {
     if (jobDescriptionText) sessionStorage.setItem("onboarding_job_temp", jobDescriptionText);
   }, [cvText, jobDescriptionText]);
 
+  // Clean up old onboarding data on mount
+  useEffect(() => {
+    sessionStorage.removeItem("onboarding_cv");
+    sessionStorage.removeItem("onboarding_job");
+    sessionStorage.removeItem("onboarding_difficulty");
+    sessionStorage.removeItem("onboarding_completed");
+  }, []);
+
   const validateCVLength = (text: string) => {
     return text.trim().length >= 100;
   };
