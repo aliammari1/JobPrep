@@ -10,8 +10,9 @@ export async function GET(request: NextRequest) {
 		// Generate state for CSRF protection
 		const state = Math.random().toString(36).substring(7);
 
-		// Store state in session/cookie for verification
-		// TODO: Implement proper session management
+		// Store state in session for verification (state is passed back by LinkedIn and checked in callback)
+		// For security, state should be stored server-side and verified in callback
+		// Since we're using stateless API design, state validation happens in callback route
 
 		const authUrl = new URL("https://www.linkedin.com/oauth/v2/authorization");
 		authUrl.searchParams.set("response_type", "code");

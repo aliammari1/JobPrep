@@ -1,23 +1,49 @@
 import { NextRequest, NextResponse } from "next/server";
 import { google } from "googleapis";
-
-// TODO: Get tokens from database
-const getOAuthClient = () => {
-	const oauth2Client = new google.auth.OAuth2(
-		process.env.GOOGLE_CLIENT_ID,
-		process.env.GOOGLE_CLIENT_SECRET,
-		process.env.GOOGLE_REDIRECT_URI
-	);
-
-	// TODO: Load stored tokens
-	// oauth2Client.setCredentials(tokens);
-
-	return oauth2Client;
-};
+import prisma from "@/lib/prisma";
+import { auth } from "@/lib/auth";
+import { headers } from "next/headers";
 
 export async function GET(request: NextRequest) {
 	try {
-		const oauth2Client = getOAuthClient();
+		const session = await auth.api.getSession({
+			headers: await headers(),
+		});
+
+		if (!session?.user) {
+			return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+		}
+
+		// Get tokens from database
+		const tokenRecord = await prisma.integrationToken.findUnique({
+			where: {
+				userId_provider: {
+					userId: session.user.id,
+					provider: 'google',
+				}
+			}
+		});
+
+		if (!tokenRecord?.accessToken) {
+			return NextResponse.json(
+				{ error: 'Google Calendar not connected' },
+				{ status: 401 }
+			);
+		}
+
+		// Load stored tokens
+		const oauth2Client = new google.auth.OAuth2(
+			process.env.GOOGLE_CLIENT_ID,
+			process.env.GOOGLE_CLIENT_SECRET,
+			process.env.GOOGLE_REDIRECT_URI
+		);
+
+		oauth2Client.setCredentials({
+			access_token: tokenRecord.accessToken,
+			refresh_token: tokenRecord.refreshToken,
+			expiry_date: tokenRecord.expiresAt?.getTime(),
+		});
+
 		const calendar = google.calendar({ version: "v3", auth: oauth2Client });
 
 		const response = await calendar.events.list({
@@ -49,8 +75,45 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
 	try {
+		const session = await auth.api.getSession({
+			headers: await headers(),
+		});
+
+		if (!session?.user) {
+			return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+		}
+
 		const eventData = await request.json();
-		const oauth2Client = getOAuthClient();
+		
+		// Get tokens from database
+		const tokenRecord = await prisma.integrationToken.findUnique({
+			where: {
+				userId_provider: {
+					userId: session.user.id,
+					provider: 'google',
+				}
+			}
+		});
+
+		if (!tokenRecord?.accessToken) {
+			return NextResponse.json(
+				{ error: 'Google Calendar not connected' },
+				{ status: 401 }
+			);
+		}
+
+		const oauth2Client = new google.auth.OAuth2(
+			process.env.GOOGLE_CLIENT_ID,
+			process.env.GOOGLE_CLIENT_SECRET,
+			process.env.GOOGLE_REDIRECT_URI
+		);
+
+		oauth2Client.setCredentials({
+			access_token: tokenRecord.accessToken,
+			refresh_token: tokenRecord.refreshToken,
+			expiry_date: tokenRecord.expiresAt?.getTime(),
+		});
+
 		const calendar = google.calendar({ version: "v3", auth: oauth2Client });
 
 		const event = {
@@ -84,6 +147,14 @@ export async function POST(request: NextRequest) {
 
 export async function DELETE(request: NextRequest) {
 	try {
+		const session = await auth.api.getSession({
+			headers: await headers(),
+		});
+
+		if (!session?.user) {
+			return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+		}
+
 		const searchParams = request.nextUrl.searchParams;
 		const eventId = searchParams.get("id");
 
@@ -91,7 +162,35 @@ export async function DELETE(request: NextRequest) {
 			throw new Error("Event ID required");
 		}
 
-		const oauth2Client = getOAuthClient();
+		// Get tokens from database
+		const tokenRecord = await prisma.integrationToken.findUnique({
+			where: {
+				userId_provider: {
+					userId: session.user.id,
+					provider: 'google',
+				}
+			}
+		});
+
+		if (!tokenRecord?.accessToken) {
+			return NextResponse.json(
+				{ error: 'Google Calendar not connected' },
+				{ status: 401 }
+			);
+		}
+
+		const oauth2Client = new google.auth.OAuth2(
+			process.env.GOOGLE_CLIENT_ID,
+			process.env.GOOGLE_CLIENT_SECRET,
+			process.env.GOOGLE_REDIRECT_URI
+		);
+
+		oauth2Client.setCredentials({
+			access_token: tokenRecord.accessToken,
+			refresh_token: tokenRecord.refreshToken,
+			expiry_date: tokenRecord.expiresAt?.getTime(),
+		});
+
 		const calendar = google.calendar({ version: "v3", auth: oauth2Client });
 
 		await calendar.events.delete({

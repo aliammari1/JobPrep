@@ -63,6 +63,8 @@ export async function POST(req: NextRequest) {
       error?: string;
     }> = [];
 
+    const successfulInterviewIds: string[] = [];
+
     // Send reminder emails
     for (const interview of interviews) {
       try {
@@ -107,17 +109,7 @@ export async function POST(req: NextRequest) {
         });
 
         if (result.success) {
-          // Update interview to mark reminder as sent
-          await prisma.interview.update({
-            where: { id: interview.id },
-            data: {
-              settings: JSON.stringify({
-                reminderSent: true,
-                reminderSentAt: new Date().toISOString(),
-              }),
-            },
-          });
-
+          successfulInterviewIds.push(interview.id);
           emailResults.push({
             interviewId: interview.id,
             success: true,
@@ -136,6 +128,21 @@ export async function POST(req: NextRequest) {
           error: error.message,
         });
       }
+    }
+
+    // Batch update all successful interviews (single query instead of N queries)
+    if (successfulInterviewIds.length > 0) {
+      await prisma.interview.updateMany({
+        where: {
+          id: { in: successfulInterviewIds },
+        },
+        data: {
+          settings: JSON.stringify({
+            reminderSent: true,
+            reminderSentAt: new Date().toISOString(),
+          }),
+        },
+      });
     }
 
     const successCount = emailResults.filter((r) => r.success).length;

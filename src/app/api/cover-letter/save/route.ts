@@ -1,14 +1,41 @@
 import { NextRequest, NextResponse } from "next/server";
+import { auth } from "@/lib/auth";
+import { headers } from "next/headers";
+import prisma from "@/lib/prisma";
 
 export async function POST(request: NextRequest) {
 	try {
-		const _letterData = await request.json();
+		// Verify authentication
+		const session = await auth.api.getSession({
+			headers: await headers(),
+		});
 
-		// TODO: Implement database save when CoverLetter model is added to schema
-		// For now, return success as the app uses localStorage
-		const mockId = `letter-${Date.now()}`;
+		if (!session?.user) {
+			return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+		}
 
-		return NextResponse.json({ success: true, id: mockId });
+		const letterData = await request.json();
+		const { title, content, jobTitle, company } = letterData;
+
+		if (!content) {
+			return NextResponse.json(
+				{ error: "Cover letter content is required" },
+				{ status: 400 }
+			);
+		}
+
+		// Save cover letter to database
+		const coverLetter = await prisma.coverLetter.create({
+			data: {
+				userId: session.user.id,
+				title: title || "Untitled Cover Letter",
+				content,
+				jobTitle,
+				company,
+			},
+		});
+
+		return NextResponse.json({ success: true, id: coverLetter.id });
 	} catch (error) {
 		console.error("Save error:", error);
 		return NextResponse.json(

@@ -1,5 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { google } from "googleapis";
+import prisma from "@/lib/prisma";
+import { auth } from "@/lib/auth";
+import { headers } from "next/headers";
 
 const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID || "";
 const GOOGLE_CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET || "";
@@ -23,7 +26,35 @@ export async function GET(request: NextRequest) {
 		const { tokens } = await oauth2Client.getToken(code);
 		oauth2Client.setCredentials(tokens);
 
-		// TODO: Store tokens in database
+				// Store tokens in database
+		const session = await auth.api.getSession({
+			headers: await headers(),
+		});
+		
+		if (session?.user && tokens.access_token) {
+			await prisma.integrationToken.upsert({
+				where: {
+					userId_provider: {
+						userId: session.user.id,
+						provider: 'google',
+					}
+				},
+				update: {
+					accessToken: tokens.access_token,
+					refreshToken: tokens.refresh_token || undefined,
+					expiresAt: tokens.expiry_date ? new Date(tokens.expiry_date) : null,
+					updatedAt: new Date(),
+				},
+				create: {
+					userId: session.user.id,
+					provider: 'google',
+					accessToken: tokens.access_token,
+					refreshToken: tokens.refresh_token || null,
+					expiresAt: tokens.expiry_date ? new Date(tokens.expiry_date) : null,
+					scope: 'calendar email profile',
+				},
+			});
+		}
 
 		return new NextResponse(
 			`

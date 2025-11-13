@@ -20,8 +20,11 @@ export async function GET(req: NextRequest) {
     const candidateId = searchParams.get("candidateId");
     const interviewerId = searchParams.get("interviewerId");
     const templateId = searchParams.get("templateId");
+    const page = parseInt(searchParams.get("page") || "1");
+    const limit = parseInt(searchParams.get("limit") || "20");
+    const skip = (page - 1) * limit;
 
-    const where: Record<string, string> = {};
+    const where: Record<string, any> = {};
 
     if (status && status !== "all") {
       where.status = status;
@@ -38,6 +41,9 @@ export async function GET(req: NextRequest) {
     if (templateId) {
       where.templateId = templateId;
     }
+
+    // Get total count for pagination
+    const total = await prisma.interview.count({ where });
 
     const interviews = await prisma.interview.findMany({
       where,
@@ -83,9 +89,20 @@ export async function GET(req: NextRequest) {
       orderBy: {
         scheduledAt: "desc",
       },
+      skip,
+      take: limit,
     });
 
-    return NextResponse.json({ interviews });
+    return NextResponse.json({ 
+      interviews,
+      pagination: {
+        total,
+        page,
+        limit,
+        pages: Math.ceil(total / limit),
+        hasMore: skip + limit < total,
+      }
+    });
   } catch (error) {
     console.error("Error fetching interviews:", error);
     return NextResponse.json(

@@ -1,20 +1,50 @@
 import { NextRequest, NextResponse } from "next/server";
 import ical from "ical-generator";
 import { google } from "googleapis";
-
-const getOAuthClient = () => {
-	const oauth2Client = new google.auth.OAuth2(
-		process.env.GOOGLE_CLIENT_ID,
-		process.env.GOOGLE_CLIENT_SECRET,
-		process.env.GOOGLE_REDIRECT_URI
-	);
-	// TODO: Load stored tokens
-	return oauth2Client;
-};
+import prisma from "@/lib/prisma";
+import { auth } from "@/lib/auth";
+import { headers } from "next/headers";
 
 export async function GET(request: NextRequest) {
 	try {
-		const oauth2Client = getOAuthClient();
+		const session = await auth.api.getSession({
+			headers: await headers(),
+		});
+
+		if (!session?.user) {
+			return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+		}
+
+		// Load stored tokens from database
+		const tokenRecord = await prisma.integrationToken.findUnique({
+			where: {
+				userId_provider: {
+					userId: session.user.id,
+					provider: 'google',
+				}
+			}
+		});
+		
+		if (!tokenRecord?.accessToken) {
+			return NextResponse.json(
+				{ error: 'Google Calendar not connected' },
+				{ status: 401 }
+			);
+		}
+		
+		const tokens = {
+			access_token: tokenRecord.accessToken,
+			refresh_token: tokenRecord.refreshToken,
+			expiry_date: tokenRecord.expiresAt?.getTime(),
+		};
+
+		const oauth2Client = new google.auth.OAuth2(
+			process.env.GOOGLE_CLIENT_ID,
+			process.env.GOOGLE_CLIENT_SECRET,
+			process.env.GOOGLE_REDIRECT_URI
+		);
+		oauth2Client.setCredentials(tokens);
+
 		const calendar = google.calendar({ version: "v3", auth: oauth2Client });
 
 		const response = await calendar.events.list({

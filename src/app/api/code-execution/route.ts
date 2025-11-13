@@ -60,13 +60,6 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // ⚠️ Warning: Check if API is properly configured
-    if (!JUDGE0_API_KEY && !process.env.PISTON_API_URL) {
-      console.warn("⚠️  WARNING: No code execution API configured!");
-      console.warn("   Set JUDGE0_API_KEY or PISTON_API_URL in environment variables");
-      console.warn("   Currently using MOCK execution - results are not real!");
-    }
-
     // Execute code for each test case
     const results: TestResult[] = [];
 
@@ -149,9 +142,11 @@ async function executeCode({
   timeLimit: number;
   memoryLimit: number;
 }) {
-  // If Judge0 API is not configured, use mock execution
+  // Require a configured execution backend
   if (!JUDGE0_API_KEY && !process.env.PISTON_API_URL) {
-    return mockExecution(code, input, expectedOutput);
+    throw new Error(
+      "Code execution is not configured. Set JUDGE0_API_KEY or PISTON_API_URL in environment variables."
+    );
   }
 
   try {
@@ -179,7 +174,7 @@ async function executeCode({
       });
     }
 
-    return mockExecution(code, input, expectedOutput);
+    throw new Error("No code execution backend available");
   } catch (error) {
     console.error("Execution error:", error);
     throw error;
@@ -294,21 +289,5 @@ async function executeWithPiston({
     memoryUsed: 0, // Piston doesn't provide memory usage
     error: error || undefined,
     status: result.run?.code === 0 ? "Accepted" : "Runtime Error",
-  };
-}
-
-// Mock execution for development/testing when no API is configured
-function mockExecution(code: string, input: string, expectedOutput: string) {
-  // Simple validation: check if code is not empty and has some logic
-  const hasLogic = code.length > 50 && code.includes("return");
-  const passed = hasLogic && Math.random() > 0.3; // 70% pass rate for mock
-
-  return {
-    output: passed ? expectedOutput.trim() : "[mock output]",
-    passed,
-    executionTime: Math.random() * 100 + 10,
-    memoryUsed: Math.random() * 1024 + 512,
-    error: passed ? undefined : "Mock execution - API not configured",
-    status: passed ? "Accepted" : "Wrong Answer",
   };
 }

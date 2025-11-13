@@ -6,6 +6,9 @@ import type Stripe from "stripe";
 
 const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET!;
 
+// Disable body parsing for this route
+export const runtime = "nodejs";
+
 export async function POST(req: Request) {
   try {
     const body = await req.text();

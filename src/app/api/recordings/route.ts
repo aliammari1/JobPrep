@@ -13,6 +13,24 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
+    const searchParams = req.nextUrl.searchParams;
+    const page = parseInt(searchParams.get("page") || "1");
+    const limit = parseInt(searchParams.get("limit") || "15");
+    const skip = (page - 1) * limit;
+
+    // Get total count for pagination
+    const total = await prisma.interview.count({
+      where: {
+        OR: [
+          { interviewerId: session.user.id },
+          { candidateId: session.user.id },
+        ],
+        videoRecordingUrl: {
+          not: null,
+        },
+      },
+    });
+
     // Fetch interviews for the current user
     // Include all completed interviews, even those without cloud recording URLs
     const interviews = await prisma.interview.findMany({
@@ -45,6 +63,8 @@ export async function GET(req: NextRequest) {
       orderBy: {
         createdAt: "desc",
       },
+      skip,
+      take: limit,
     });
 
     console.log(`Found ${interviews.length} interviews for user ${session.user.id}:`, 
@@ -109,7 +129,16 @@ export async function GET(req: NextRequest) {
 
     console.log(`Returning ${recordings.length} recordings, ${recordings.filter(r => r.fileUrl).length} with URLs`);
 
-    return NextResponse.json({ recordings });
+    return NextResponse.json({ 
+      recordings,
+      pagination: {
+        total,
+        page,
+        limit,
+        pages: Math.ceil(total / limit),
+        hasMore: skip + limit < total,
+      }
+    });
   } catch (error) {
     console.error("Error fetching recordings:", error);
     return NextResponse.json(

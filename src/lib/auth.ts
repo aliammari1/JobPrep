@@ -154,19 +154,28 @@ export const auth = betterAuth({
           console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n");
         }
 
-        // TODO: In production, integrate with SMS service like Twilio
-        // Example with Twilio:
+        // In production, integrate with SMS service like Twilio
+        // To enable Twilio:
+        // 1. Install twilio: npm install twilio
+        // 2. Set environment variables: TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN, TWILIO_PHONE_NUMBER
+        // 3. Uncomment the code below
         /*
-        const twilio = require('twilio');
-        const client = twilio(
-          process.env.TWILIO_ACCOUNT_SID,
-          process.env.TWILIO_AUTH_TOKEN
-        );
-        await client.messages.create({
-          body: `Your JobPrep verification code is: ${code}`,
-          from: process.env.TWILIO_PHONE_NUMBER,
-          to: phoneNumber,
-        });
+        if (process.env.TWILIO_ACCOUNT_SID && process.env.TWILIO_AUTH_TOKEN) {
+          try {
+            const twilio = require('twilio');
+            const client = twilio(
+              process.env.TWILIO_ACCOUNT_SID,
+              process.env.TWILIO_AUTH_TOKEN
+            );
+            await client.messages.create({
+              body: `Your JobPrep verification code is: ${code}`,
+              from: process.env.TWILIO_PHONE_NUMBER,
+              to: phoneNumber,
+            });
+          } catch (error) {
+            console.error('Failed to send SMS via Twilio:', error);
+          }
+        }
         */
       },
       async sendPasswordResetOTP({ phoneNumber, code }) {

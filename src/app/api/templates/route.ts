@@ -18,6 +18,9 @@ export async function GET(req: NextRequest) {
     const category = searchParams.get("category");
     const difficulty = searchParams.get("difficulty");
     const isPublic = searchParams.get("isPublic");
+    const page = parseInt(searchParams.get("page") || "1");
+    const limit = parseInt(searchParams.get("limit") || "15");
+    const skip = (page - 1) * limit;
 
     const where: any = {};
 
@@ -35,6 +38,9 @@ export async function GET(req: NextRequest) {
       // By default, show public templates or user's own templates
       where.OR = [{ isPublic: true }, { createdBy: session.user.id }];
     }
+
+    // Get total count for pagination
+    const total = await prisma.interviewTemplate.count({ where });
 
     const templates = await prisma.interviewTemplate.findMany({
       where,
@@ -69,9 +75,20 @@ export async function GET(req: NextRequest) {
       orderBy: {
         createdAt: "desc",
       },
+      skip,
+      take: limit,
     });
 
-    return NextResponse.json(templates);
+    return NextResponse.json({
+      templates,
+      pagination: {
+        total,
+        page,
+        limit,
+        pages: Math.ceil(total / limit),
+        hasMore: skip + limit < total,
+      }
+    });
   } catch (error) {
     console.error("Error fetching templates:", error);
     return NextResponse.json(

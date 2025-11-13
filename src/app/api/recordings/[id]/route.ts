@@ -32,8 +32,25 @@ export async function DELETE(
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
-    // TODO: Delete file from Appwrite Storage
-    // For now, just remove the URL from the database
+    // Delete file from Appwrite Storage if URL exists
+    if (interview.videoRecordingUrl) {
+      try {
+        // Extract file ID from URL if needed
+        const fileId = interview.settings ? 
+          JSON.parse(typeof interview.settings === 'string' ? interview.settings : '{}').recordingFileId :
+          recordingId;
+        
+        if (fileId) {
+          const { deleteRecording } = await import('@/lib/appwrite');
+          await deleteRecording(fileId);
+        }
+      } catch (storageError) {
+        console.error('Failed to delete from storage, but removing from database:', storageError);
+        // Continue with database deletion even if storage deletion fails
+      }
+    }
+    
+    // Remove the URL from the database
     await prisma.interview.update({
       where: { id: recordingId },
       data: {

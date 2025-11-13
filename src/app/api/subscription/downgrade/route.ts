@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import prisma from "@/lib/prisma";
+import { stripe } from "@/lib/stripe";
 import { headers } from "next/headers";
 
 export async function POST(request: NextRequest) {
@@ -23,6 +24,19 @@ export async function POST(request: NextRequest) {
         { message: "No active subscription found" },
         { status: 404 }
       );
+    }
+
+    // Cancel Stripe subscription if it exists
+    if (existingSubscription.stripeSubscriptionId) {
+      try {
+        await stripe.subscriptions.cancel(existingSubscription.stripeSubscriptionId);
+      } catch (stripeError: any) {
+        // Log but don't fail if Stripe subscription doesn't exist
+        if (stripeError.code !== "resource_missing") {
+          throw stripeError;
+        }
+        console.warn("Stripe subscription not found, proceeding with downgrade");
+      }
     }
 
     // Downgrade to FREE plan

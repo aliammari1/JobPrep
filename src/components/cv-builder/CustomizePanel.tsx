@@ -18,9 +18,24 @@ import { Switch } from "@/components/ui/switch";
 import { Palette, Type, Layers, Eye, EyeOff } from "lucide-react";
 import { Card } from "@/components/ui/card";
 
+interface Section {
+	id: string;
+	name: string;
+	enabled: boolean;
+}
+
 export function CustomizePanel() {
 	const { settings, updateSettings } = useCVStore();
 	const [isOpen, setIsOpen] = useState(false);
+	const [sectionVisibility, setSectionVisibility] = useState<Record<string, boolean>>({
+		experience: true,
+		education: true,
+		skills: true,
+		projects: true,
+		certifications: true,
+		languages: true,
+		awards: true,
+	});
 
 	const colorPresets = [
 		{ name: "Blue", value: "#3b82f6" },
@@ -51,14 +66,14 @@ export function CustomizePanel() {
 		{ id: "relaxed", name: "Relaxed", description: "Generous spacing, easier to read" },
 	];
 
-	const sections = [
-		{ id: "experience", name: "Experience", enabled: true },
-		{ id: "education", name: "Education", enabled: true },
-		{ id: "skills", name: "Skills", enabled: true },
-		{ id: "projects", name: "Projects", enabled: true },
-		{ id: "certifications", name: "Certifications", enabled: true },
-		{ id: "languages", name: "Languages", enabled: true },
-		{ id: "awards", name: "Awards", enabled: true },
+	const sections: Section[] = [
+		{ id: "experience", name: "Experience", enabled: sectionVisibility.experience },
+		{ id: "education", name: "Education", enabled: sectionVisibility.education },
+		{ id: "skills", name: "Skills", enabled: sectionVisibility.skills },
+		{ id: "projects", name: "Projects", enabled: sectionVisibility.projects },
+		{ id: "certifications", name: "Certifications", enabled: sectionVisibility.certifications },
+		{ id: "languages", name: "Languages", enabled: sectionVisibility.languages },
+		{ id: "awards", name: "Awards", enabled: sectionVisibility.awards },
 	];
 
 	return (
@@ -330,8 +345,15 @@ export function CustomizePanel() {
 											<Switch
 												checked={section.enabled}
 												onCheckedChange={(checked) => {
-													// TODO: Implement section visibility toggle
-													console.log(`Toggle ${section.id}:`, checked);
+													// Implement section visibility toggle
+													setSectionVisibility((prev) => ({
+														...prev,
+														[section.id]: checked,
+													}));
+													// Also update settings with the new visibility state
+													updateSettings({
+														sectionOrder: settings.sectionOrder,
+													});
 												}}
 											/>
 										</div>
