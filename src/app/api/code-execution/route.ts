@@ -60,6 +60,13 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // ⚠️ Warning: Check if API is properly configured
+    if (!JUDGE0_API_KEY && !process.env.PISTON_API_URL) {
+      console.warn("⚠️  WARNING: No code execution API configured!");
+      console.warn("   Set JUDGE0_API_KEY or PISTON_API_URL in environment variables");
+      console.warn("   Currently using MOCK execution - results are not real!");
+    }
+
     // Execute code for each test case
     const results: TestResult[] = [];
 
