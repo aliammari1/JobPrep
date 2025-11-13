@@ -57,17 +57,16 @@ export async function POST(request: NextRequest) {
     }
 
     // Add contact info
-    if (personalInfo?.email || personalInfo?.phone || personalInfo?.location) {
+    const contactParts = [
+      personalInfo?.email,
+      personalInfo?.phone,
+      personalInfo?.location,
+    ].filter(item => item && typeof item === 'string' && item.trim() !== '');
+    
+    if (contactParts.length > 0) {
       doc.setFontSize(8);
       doc.setTextColor(102, 102, 102);
-      const contactInfo = [
-        personalInfo?.email,
-        personalInfo?.phone,
-        personalInfo?.location,
-      ]
-        .filter(Boolean)
-        .join(' • ');
-      doc.text(contactInfo, pageWidth / 2, yPosition, { align: 'center' });
+      doc.text(contactParts.join(' • '), pageWidth / 2, yPosition, { align: 'center' });
       yPosition += 8;
     }
 
@@ -106,79 +105,116 @@ export async function POST(request: NextRequest) {
     }
 
     // Add experience
-    if (experience && experience.length > 0) {
+    if (Array.isArray(experience) && experience.length > 0) {
       let expContent = '';
       experience.forEach((exp: any) => {
-        expContent += `${exp.title} at ${exp.company}\n`;
-        expContent += `${exp.startDate} - ${exp.current ? 'Present' : exp.endDate}`;
+        if (!exp) return;
+        expContent += `${exp.title || 'Position'} at ${exp.company || 'Company'}\n`;
+        const startDate = exp.startDate || 'Start';
+        const endDate = exp.current ? 'Present' : (exp.endDate || 'End');
+        expContent += `${startDate} - ${endDate}`;
         if (exp.location) expContent += ` • ${exp.location}`;
         expContent += '\n';
-        if (exp.highlights?.length) {
+        if (Array.isArray(exp.highlights) && exp.highlights.length > 0) {
           exp.highlights.forEach((h: string) => {
-            expContent += `  • ${h}\n`;
+            if (h) expContent += `  • ${h}\n`;
           });
-        } else if (exp.description?.length) {
-          exp.description.forEach((d: string) => {
-            expContent += `  • ${d}\n`;
+        } else if (exp.description) {
+          const descriptions = Array.isArray(exp.description) ? exp.description : [exp.description];
+          descriptions.forEach((d: string) => {
+            if (d) expContent += `  • ${d}\n`;
           });
         }
         expContent += '\n';
       });
-      addSection('Experience', expContent.trim());
+      if (expContent.trim()) {
+        addSection('Experience', expContent.trim());
+      }
     }
 
     // Add education
-    if (education && education.length > 0) {
+    if (Array.isArray(education) && education.length > 0) {
       let eduContent = '';
       education.forEach((edu: any) => {
-        eduContent += `${edu.degree}\n`;
-        eduContent += `${edu.institution}`;
+        if (!edu) return;
+        eduContent += `${edu.degree || 'Degree'}\n`;
+        eduContent += `${edu.institution || 'Institution'}`;
         if (edu.location) eduContent += ` • ${edu.location}`;
         eduContent += '\n';
-        eduContent += `${edu.startDate} - ${edu.endDate}`;
+        const startDate = edu.startDate || 'Start';
+        const endDate = edu.endDate || 'End';
+        eduContent += `${startDate} - ${endDate}`;
         if (edu.gpa) eduContent += ` • GPA: ${edu.gpa}`;
         eduContent += '\n\n';
       });
-      addSection('Education', eduContent.trim());
+      if (eduContent.trim()) {
+        addSection('Education', eduContent.trim());
+      }
     }
 
     // Add skills
-    if (skills && skills.length > 0) {
+    if (Array.isArray(skills) && skills.length > 0) {
       let skillsContent = '';
       skills.forEach((skillGroup: any) => {
-        skillsContent += `${skillGroup.category}: ${skillGroup.items?.join(', ')}\n`;
+        if (!skillGroup) return;
+        const category = skillGroup.category || 'Skills';
+        const items = Array.isArray(skillGroup.items) ? skillGroup.items.filter(Boolean) : [];
+        if (items.length > 0) {
+          skillsContent += `${category}: ${items.join(', ')}\n`;
+        }
       });
-      addSection('Skills', skillsContent.trim());
+      if (skillsContent.trim()) {
+        addSection('Skills', skillsContent.trim());
+      }
     }
 
     // Add projects
-    if (projects && projects.length > 0) {
+    if (Array.isArray(projects) && projects.length > 0) {
       let projectsContent = '';
       projects.forEach((proj: any) => {
-        projectsContent += `${proj.name}\n`;
+        if (!proj) return;
+        projectsContent += `${proj.name || 'Project'}\n`;
         if (proj.description) projectsContent += `${proj.description}\n`;
-        if (proj.technologies?.length) projectsContent += `Technologies: ${proj.technologies.join(', ')}\n`;
+        if (Array.isArray(proj.technologies) && proj.technologies.length > 0) {
+          const techs = proj.technologies.filter(Boolean);
+          if (techs.length > 0) {
+            projectsContent += `Technologies: ${techs.join(', ')}\n`;
+          }
+        }
         projectsContent += '\n';
       });
-      addSection('Projects', projectsContent.trim());
+      if (projectsContent.trim()) {
+        addSection('Projects', projectsContent.trim());
+      }
     }
 
     // Add certifications
-    if (certifications && certifications.length > 0) {
+    if (Array.isArray(certifications) && certifications.length > 0) {
       let certsContent = '';
       certifications.forEach((cert: any) => {
-        certsContent += `${cert.name} - ${cert.issuer} (${cert.date})\n`;
+        if (!cert) return;
+        const name = cert.name || 'Certification';
+        const issuer = cert.issuer || 'Issuer';
+        const date = cert.date || 'Date';
+        certsContent += `${name} - ${issuer} (${date})\n`;
       });
-      addSection('Certifications', certsContent.trim());
+      if (certsContent.trim()) {
+        addSection('Certifications', certsContent.trim());
+      }
     }
 
     // Add languages
-    if (languages && languages.length > 0) {
+    if (Array.isArray(languages) && languages.length > 0) {
       let langsContent = '';
       languages.forEach((lang: any) => {
-        langsContent += `${lang.language} - ${lang.proficiency}\n`;
+        if (!lang) return;
+        const language = lang.language || 'Language';
+        const proficiency = lang.proficiency || 'Proficiency';
+        langsContent += `${language} - ${proficiency}\n`;
       });
-      addSection('Languages', langsContent.trim());
+      if (langsContent.trim()) {
+        addSection('Languages', langsContent.trim());
+      }
     }
 
     const pdfBuffer = Buffer.from(doc.output('arraybuffer'));
