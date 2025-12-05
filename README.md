@@ -1,376 +1,509 @@
 <div align="center">
 
+<img src="https://capsule-render.vercel.app/api?type=waving&color=gradient&customColorList=6,11,20&height=150&section=header&text=JobPrep%20AI&fontSize=50&fontColor=fff&animation=fadeIn&fontAlignY=38" width="100%">
+
 # 🚀 JobPrep AI
 
-### *Your AI-Powered Career Launchpad*
+### *Your AI-Powered Career Companion for Interview Success*
 
-[![Next.js](https://img.shields.io/badge/Next.js-15.5-black?style=for-the-badge&logo=next.js&logoColor=white)](https://nextjs.org/)
-[![TypeScript](https://img.shields.io/badge/TypeScript-5.0-3178C6?style=for-the-badge&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
-[![Prisma](https://img.shields.io/badge/Prisma-6.17-2D3748?style=for-the-badge&logo=prisma&logoColor=white)](https://www.prisma.io/)
-[![Tailwind CSS](https://img.shields.io/badge/Tailwind-4.0-06B6D4?style=for-the-badge&logo=tailwindcss&logoColor=white)](https://tailwindcss.com/)
-[![Vercel](https://img.shields.io/badge/Vercel-Deployed-000000?style=for-the-badge&logo=vercel&logoColor=white)](https://job-prep-fawn.vercel.app)
+[![Next.js](https://img.shields.io/badge/Next.js-15.5-black?style=for-the-badge&logo=next.js)](https://nextjs.org/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.0-blue?style=for-the-badge&logo=typescript)](https://www.typescriptlang.org/)
+[![Prisma](https://img.shields.io/badge/Prisma-6.17-2D3748?style=for-the-badge&logo=prisma)](https://www.prisma.io/)
+[![Tailwind](https://img.shields.io/badge/Tailwind-4.0-38B2AC?style=for-the-badge&logo=tailwind-css)](https://tailwindcss.com/)
+[![License](https://img.shields.io/badge/License-MIT-green?style=for-the-badge)](LICENSE)
 
-<br />
+[![React](https://img.shields.io/badge/React-19.1-61DAFB?style=for-the-badge&logo=react&logoColor=black)](https://react.dev/)
+[![LiveKit](https://img.shields.io/badge/LiveKit-WebRTC-00A86B?style=for-the-badge)](https://livekit.io/)
+[![Stripe](https://img.shields.io/badge/Stripe-Payments-008CDD?style=for-the-badge&logo=stripe&logoColor=white)](https://stripe.com/)
+[![Vercel](https://img.shields.io/badge/Vercel-Deployed-000000?style=for-the-badge&logo=vercel)](https://vercel.com/)
 
-<img src="https://raw.githubusercontent.com/Tarikul-Islam-Anik/Animated-Fluent-Emojis/master/Emojis/Objects/Briefcase.png" alt="Briefcase" width="100" />
-
-**Transform your interview preparation with cutting-edge AI technology**
-
-[🌐 Live Demo](https://job-prep-fawn.vercel.app) • [📖 Documentation](#-documentation) • [🚀 Quick Start](#-quick-start) • [💡 Features](#-features)
+[🎯 Live Demo](https://jobprep.aliammari.dev) • [📚 Documentation](https://docs.jobprep.ai) • [🐛 Report Bug](https://github.com/aliammari1/JobPrep/issues) • [💡 Request Feature](https://github.com/aliammari1/JobPrep/issues)
 
 ---
 
-<img src="https://user-images.githubusercontent.com/74038190/212284100-561aa473-3905-4a80-b561-0d28506553ee.gif" width="700">
+### ✨ **Land Your Dream Job with AI-Powered Interview Preparation**
+
+JobPrep is a comprehensive, next-generation platform that combines cutting-edge AI technology with practical career tools to help you ace interviews, build stunning CVs, master coding challenges, and stand out in the competitive job market.
 
 </div>
 
-## 🎯 What is JobPrep AI?
+---
 
-**JobPrep AI** is a comprehensive, AI-powered interview preparation platform that combines cutting-edge machine learning with intuitive design to help job seekers land their dream positions. From mock interviews to CV building, skill gap analysis to real-time coding challenges – we've got you covered.
+## 🎯 Key Highlights
 
-<div align="center">
+- 🤖 **Multi-AI Intelligence** - Powered by Google Gemini, OpenAI GPT-4, Claude & Ollama
+- 🎥 **Real-Time Video Interviews** - LiveKit-powered immersive practice with AI feedback
+- 📄 **Professional CV Builder** - ATS-friendly templates with LinkedIn import
+- 💻 **Code Challenge Arena** - Practice coding in 15+ languages with instant feedback
+- ✍️ **AI Cover Letters** - Generate tailored cover letters in seconds
+- 🎤 **Voice & Emotion Analysis** - MediaPipe-powered body language insights
+- 📊 **Smart Analytics** - Track progress, identify weak areas, improve systematically
+- 🔐 **Secure & Modern** - Passkey authentication, 2FA, enterprise-grade security
 
-```
-┌─────────────────────────────────────────────────────────────────────────────┐
-│                                                                             │
-│   ┌───────────┐    ┌───────────┐    ┌───────────┐    ┌───────────┐        │
-│   │   Mock    │    │    CV     │    │  Skill    │    │   Code    │        │
-│   │ Interview │───▶│  Builder  │───▶│   Gap     │───▶│ Challenge │        │
-│   │    AI     │    │           │    │ Analysis  │    │           │        │
-│   └───────────┘    └───────────┘    └───────────┘    └───────────┘        │
-│         │                                                   │              │
-│         └─────────────────────┬─────────────────────────────┘              │
-│                               ▼                                            │
-│                    ┌───────────────────┐                                   │
-│                    │   🎯 Dream Job    │                                   │
-│                    │     SUCCESS!      │                                   │
-│                    └───────────────────┘                                   │
-│                                                                             │
-└─────────────────────────────────────────────────────────────────────────────┘
-```
+---
 
-</div>
-
-## ✨ Features
-
-### 🤖 AI-Powered Mock Interviews
-
-<table>
-<tr>
-<td width="50%">
-
-**Realistic Interview Simulation**
-- 🎙️ Voice-based interview practice
-- 📹 Video recording with analysis
-- 🧠 AI interviewer adapts to your responses
-- 📊 Real-time performance metrics
-
-</td>
-<td width="50%">
-
-**Smart Question Generation**
-- 🎯 Role-specific questions
-- 💼 Behavioral & technical mix
-- 🔄 Dynamic difficulty adjustment
-- 📈 Progress tracking
-
-</td>
-</tr>
-</table>
-
-### 📄 Professional CV Builder
-
-<table>
-<tr>
-<td width="33%">
-
-**🎨 Multiple Templates**
-- Modern
-- Classic
-- Minimal
-
-</td>
-<td width="33%">
-
-**🔧 Customization**
-- Color schemes
-- Font sizes
-- Section ordering
-
-</td>
-<td width="33%">
-
-**📤 Export Options**
-- PDF download
-- ATS-optimized
-- Print-ready
-
-</td>
-</tr>
-</table>
-
-### 🔌 Chrome Extension
-
-Import your LinkedIn profile data directly into the CV Builder with our companion Chrome extension!
+## 🏗️ Architecture
 
 ```
-🔗 LinkedIn → 📊 Extract → ✍️ CV Builder → 📄 Perfect Resume
+┌─────────────────────────────────────────────────────────────────┐
+│                         Frontend Layer                          │
+│  Next.js 15 • React 19 • TypeScript • Tailwind CSS • shadcn/ui │
+└────────────────────────┬────────────────────────────────────────┘
+                         │
+┌────────────────────────┴────────────────────────────────────────┐
+│                      API Routes Layer                           │
+│     /api/ai • /api/interviews • /api/cv • /api/challenges      │
+└────────────────────────┬────────────────────────────────────────┘
+                         │
+┌────────────────────────┴────────────────────────────────────────┐
+│                    AI Services Layer                            │
+│   Gemini • OpenAI • Claude • Ollama • HeyGen • MediaPipe       │
+└────────────────────────┬────────────────────────────────────────┘
+                         │
+┌────────────────────────┴────────────────────────────────────────┐
+│                   Real-time Services                            │
+│        LiveKit (Video) • Liveblocks • Socket.io                │
+└────────────────────────┬────────────────────────────────────────┘
+                         │
+┌────────────────────────┴────────────────────────────────────────┐
+│                    Data & Storage Layer                         │
+│   PostgreSQL (Prisma) • Appwrite • Cloudinary • Stripe         │
+└─────────────────────────────────────────────────────────────────┘
 ```
 
-### 💻 Code Challenge Arena
+---
 
-```javascript
-// Practice coding interviews with real-time execution
-const languages = [
-  '🟨 JavaScript',
-  '🐍 Python', 
-  '☕ Java',
-  '➕ C++',
-  // ... and 11 more!
-];
-```
+## 🌟 Features
 
-### 📊 Advanced Analytics
+### 🎤 AI Mock Interviews
 
 | Feature | Description |
 |---------|-------------|
-| 📈 **Performance Trends** | Track your improvement over time |
-| 🎯 **Skill Heat Maps** | Visualize your strengths and weaknesses |
-| 🏆 **Achievement Badges** | Earn rewards for milestones |
-| 📋 **Shareable Reports** | PDF exports for employers |
+| **Multi-AI Support** | Choose between Gemini, GPT-4, Claude, or local Ollama |
+| **Real-time Video** | LiveKit-powered HD video/audio with screen sharing |
+| **Smart Questions** | AI generates role-specific technical & behavioral questions |
+| **Instant Feedback** | Get detailed analysis of answers, tone, and body language |
+| **Voice Analysis** | Speech-to-text transcription with emotion detection |
+| **Recording** | Save interviews for review and improvement tracking |
+| **Scheduling** | Google Calendar integration for practice sessions |
 
-## 🏗️ Tech Stack
+### 📄 CV Builder
 
-<div align="center">
+| Feature | Description |
+|---------|-------------|
+| **3 Templates** | Professional, modern, and creative ATS-optimized designs |
+| **LinkedIn Import** | Chrome extension auto-fills CV from LinkedIn profile |
+| **Smart Suggestions** | AI-powered improvements for bullet points and keywords |
+| **Multi-format Export** | PDF, DOCX, JSON with customizable styling |
+| **Version Control** | Save multiple versions, track changes over time |
+| **Real-time Preview** | Live updates as you type with mobile-responsive view |
 
-| Category | Technologies |
-|----------|-------------|
-| **Frontend** | ![Next.js](https://img.shields.io/badge/-Next.js-000?logo=next.js) ![React](https://img.shields.io/badge/-React-61DAFB?logo=react&logoColor=black) ![TypeScript](https://img.shields.io/badge/-TypeScript-3178C6?logo=typescript&logoColor=white) ![Tailwind](https://img.shields.io/badge/-Tailwind-06B6D4?logo=tailwindcss&logoColor=white) |
-| **Backend** | ![Prisma](https://img.shields.io/badge/-Prisma-2D3748?logo=prisma) ![Node.js](https://img.shields.io/badge/-Node.js-339933?logo=node.js&logoColor=white) |
-| **AI/ML** | ![Google AI](https://img.shields.io/badge/-Gemini-4285F4?logo=google&logoColor=white) ![Ollama](https://img.shields.io/badge/-Ollama-000000?logo=ollama) ![OpenAI](https://img.shields.io/badge/-OpenAI-412991?logo=openai&logoColor=white) |
-| **Real-time** | ![LiveKit](https://img.shields.io/badge/-LiveKit-FF5733?logo=webrtc&logoColor=white) ![Liveblocks](https://img.shields.io/badge/-Liveblocks-6366F1) |
-| **Storage** | ![Appwrite](https://img.shields.io/badge/-Appwrite-FD366E?logo=appwrite&logoColor=white) |
-| **Auth** | ![Better Auth](https://img.shields.io/badge/-Better_Auth-22C55E) |
-| **Payments** | ![Stripe](https://img.shields.io/badge/-Stripe-635BFF?logo=stripe&logoColor=white) |
+### 💻 Code Challenges
 
-</div>
+| Feature | Description |
+|---------|-------------|
+| **15+ Languages** | Java, Python, JavaScript, C++, Go, Rust, and more |
+| **Difficulty Levels** | Easy, Medium, Hard with curated problem sets |
+| **Real-time Execution** | Piston API-powered instant code evaluation |
+| **Test Cases** | Run against multiple test cases with detailed feedback |
+| **Leaderboard** | Compete with others, track rankings and statistics |
+| **Time Tracking** | Practice under interview conditions with timers |
+
+### ✍️ Cover Letter Generator
+
+AI-powered cover letter creation tailored to job descriptions using Gemini & GPT-4 with customizable tone and multiple revisions.
+
+### 🔌 Chrome Extension
+
+One-click LinkedIn CV import - automatically extracts work experience, education, skills, and certifications into JobPrep format.
+
+---
+
+## 🛠️ Technology Stack
+
+### Frontend
+- **Next.js 15.5** - React framework with App Router & Server Components
+- **React 19.1** - UI library with React Compiler
+- **TypeScript 5** - Type safety
+- **Tailwind CSS 4.0** - Utility-first styling
+- **shadcn/ui** - Beautiful accessible components
+- **Framer Motion** - Smooth animations
+
+### Backend
+- **Node.js 20+** - JavaScript runtime
+- **Prisma 6.17** - Type-safe ORM
+- **PostgreSQL** - Primary database
+- **Better Auth 1.3** - Authentication with passkeys & 2FA
+
+### AI & ML
+- **Google Gemini** - Primary AI for interviews & CV analysis
+- **OpenAI GPT-4** - Advanced reasoning & code evaluation
+- **Anthropic Claude** - Alternative AI provider
+- **Ollama** - Local AI models (optional)
+- **HeyGen** - AI avatar generation
+- **MediaPipe** - Body language & emotion analysis
+
+### Real-time & Media
+- **LiveKit** - WebRTC video/audio conferencing
+- **Socket.io** - Real-time notifications
+- **Liveblocks** - Collaborative features
+
+### Storage & Services
+- **Appwrite** - File storage & backend services
+- **Cloudinary** - Image optimization & CDN
+- **Stripe** - Payment processing & subscriptions
+
+### Document Processing
+- **Puppeteer** - PDF generation
+- **pdf-lib** - PDF manipulation
+- **mammoth** - DOCX parsing
+
+### Code Execution
+- **Piston API** - Multi-language code runner (15+ languages)
+
+---
 
 ## 🚀 Quick Start
 
 ### Prerequisites
 
 ```bash
-# Required
-node >= 18.0.0
-npm >= 9.0.0
-
-# Optional (for local AI)
-ollama  # For local LLM inference
+Node.js 20+
+PostgreSQL 14+
+npm or pnpm
+Git
 ```
 
 ### Installation
 
 ```bash
-# 1. Clone the repository
+# Clone repository
 git clone https://github.com/aliammari1/JobPrep.git
 cd JobPrep
 
-# 2. Install dependencies
+# Install dependencies
 npm install
 
-# 3. Set up environment variables
+# Set up environment variables
 cp .env.example .env
 # Edit .env with your API keys
 
-# 4. Initialize the database
-npm run prisma:migrate
-npm run prisma:generate
+# Set up database
+npx prisma generate
+npx prisma db push
 
-# 5. Start development server
+# Run development server
 npm run dev
 ```
 
-<div align="center">
+Visit `http://localhost:3000` 🎉
 
-🎉 **Open [http://localhost:3000](http://localhost:3000) to see your app!**
+### Environment Variables
 
-</div>
+```bash
+# Database
+DATABASE_URL="postgresql://user:password@localhost:5432/jobprep"
+
+# AI APIs
+GOOGLE_GENERATIVE_AI_API_KEY="your_gemini_key"
+OPENAI_API_KEY="your_openai_key"
+ANTHROPIC_API_KEY="your_claude_key"
+
+# Authentication
+BETTER_AUTH_SECRET="your_secret_key"
+BETTER_AUTH_URL="http://localhost:3000"
+
+# LiveKit (Video)
+LIVEKIT_API_KEY="your_livekit_key"
+LIVEKIT_API_SECRET="your_livekit_secret"
+LIVEKIT_URL="wss://your-project.livekit.cloud"
+
+# Stripe Payments
+STRIPE_SECRET_KEY="your_stripe_secret"
+STRIPE_WEBHOOK_SECRET="your_webhook_secret"
+
+# Storage
+APPWRITE_ENDPOINT="your_appwrite_endpoint"
+APPWRITE_PROJECT_ID="your_project_id"
+CLOUDINARY_URL="cloudinary://key:secret@cloud_name"
+
+# Email
+SMTP_HOST="smtp.gmail.com"
+SMTP_USER="your_email@gmail.com"
+SMTP_PASS="your_app_password"
+
+# Google Calendar
+GOOGLE_CLIENT_ID="your_google_client_id"
+GOOGLE_CLIENT_SECRET="your_google_client_secret"
+```
+
+---
 
 ## 📁 Project Structure
 
 ```
 JobPrep/
-├── 📂 src/
-│   ├── 📂 app/                    # Next.js App Router pages
-│   │   ├── 📂 api/                # API routes
-│   │   │   ├── 📂 ai/             # AI endpoints
-│   │   │   ├── 📂 cv/             # CV operations
-│   │   │   └── 📂 auth/           # Authentication
-│   │   ├── 📂 mock-interview/     # Mock interview feature
-│   │   ├── 📂 cv-builder/         # CV builder feature
-│   │   ├── 📂 code-challenge/     # Coding challenges
-│   │   ├── 📂 cover-letter/       # Cover letter generator
-│   │   └── 📂 recordings/         # Interview recordings
-│   ├── 📂 components/             # React components
-│   │   ├── 📂 ui/                 # shadcn/ui components
-│   │   ├── 📂 cv-builder/         # CV builder components
-│   │   ├── 📂 interview/          # Interview components
-│   │   └── 📂 custom/             # Custom components
-│   ├── 📂 hooks/                  # Custom React hooks
-│   ├── 📂 lib/                    # Utility functions
-│   └── 📂 store/                  # Zustand state management
-├── 📂 chrome-extension/           # LinkedIn importer extension
-├── 📂 functions/                  # Appwrite cloud functions
-├── 📂 prisma/                     # Database schema & migrations
-└── 📂 public/                     # Static assets
+├── src/
+│   ├── app/                    # Next.js App Router
+│   │   ├── (auth)/            # Auth pages (login, register)
+│   │   ├── (dashboard)/       # Protected dashboard routes
+│   │   ├── api/               # API routes (35+ endpoints)
+│   │   │   ├── ai/           # AI chat & processing
+│   │   │   ├── interviews/   # Mock interview endpoints
+│   │   │   ├── cv/           # CV builder & export
+│   │   │   ├── challenges/   # Code challenge submission
+│   │   │   ├── livekit/      # Video conferencing
+│   │   │   └── stripe/       # Payment webhooks
+│   │   └── layout.tsx        # Root layout
+│   ├── components/            # React components (150+)
+│   │   ├── ui/               # shadcn/ui components
+│   │   ├── interviews/       # Interview-related components
+│   │   ├── cv/               # CV builder components
+│   │   └── challenges/       # Code editor components
+│   ├── lib/                  # Utilities & helpers
+│   │   ├── prisma.ts        # Database client
+│   │   ├── auth.ts          # Auth configuration
+│   │   └── ai/              # AI service integrations
+│   └── styles/              # Global styles
+├── prisma/
+│   └── schema.prisma        # Database schema (25+ models)
+├── chrome-extension/        # LinkedIn CV importer
+│   ├── manifest.json
+│   ├── content.js          # LinkedIn scraper
+│   └── popup.html          # Extension UI
+├── public/                 # Static assets
+└── package.json           # Dependencies (80+)
 ```
 
-## 🎨 Core Modules
+---
 
-<details>
-<summary><b>🎤 Mock Interview System</b></summary>
+## 💾 Database Schema
 
-The mock interview system provides:
-- **AI-Generated Questions**: Tailored to job description and your skills
-- **Voice Recognition**: Real-time speech-to-text for responses
-- **Video Recording**: Record yourself for self-review
-- **Performance Scoring**: AI-powered evaluation across multiple dimensions
-- **Feedback Reports**: Detailed improvement suggestions
+```prisma
+model User {
+  id            String          @id @default(cuid())
+  email         String          @unique
+  name          String?
+  image         String?
+  interviews    Interview[]
+  cvs           CV[]
+  submissions   Submission[]
+  subscription  Subscription?
+  createdAt     DateTime        @default(now())
+}
 
-</details>
+model Interview {
+  id            String              @id @default(cuid())
+  userId        String
+  user          User                @relation(fields: [userId], references: [id])
+  jobTitle      String
+  jobDescription String
+  difficulty    Difficulty
+  aiProvider    AIProvider
+  questions     Question[]
+  responses     InterviewResponse[]
+  recordingUrl  String?
+  score         Float?
+  feedback      String?
+  status        InterviewStatus     @default(PENDING)
+  scheduledAt   DateTime?
+  completedAt   DateTime?
+  createdAt     DateTime            @default(now())
+}
 
-<details>
-<summary><b>📝 CV Builder</b></summary>
+model CV {
+  id            String      @id @default(cuid())
+  userId        String
+  user          User        @relation(fields: [userId], references: [id])
+  template      String
+  personalInfo  Json
+  experience    Json[]
+  education     Json[]
+  skills        Json[]
+  certifications Json[]
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+}
 
-Build professional resumes with:
-- **3 Premium Templates**: Modern, Classic, and Minimal designs
-- **Drag-and-Drop Sections**: Reorder sections easily
-- **LinkedIn Import**: Pull data from LinkedIn via Chrome extension
-- **ATS Optimization**: Ensure your CV passes applicant tracking systems
-- **PDF Export**: Download print-ready resumes
+model Challenge {
+  id            String       @id @default(cuid())
+  title         String
+  description   String
+  difficulty    Difficulty
+  language      String
+  testCases     Json[]
+  submissions   Submission[]
+  tags          String[]
+  createdAt     DateTime     @default(now())
+}
 
-</details>
-
-<details>
-<summary><b>💻 Code Challenge Platform</b></summary>
-
-Practice coding interviews with:
-- **15+ Programming Languages**: JavaScript, Python, Java, C++, and more
-- **Real-time Execution**: Powered by Pistion API
-- **Test Cases**: Run your code against hidden test cases
-- **Performance Metrics**: Time complexity analysis
-- **Progress Tracking**: Track your improvement over time
-
-</details>
-
-<details>
-<summary><b>📊 Analytics Dashboard</b></summary>
-
-Track your progress with:
-- **Skill Assessments**: Technical and soft skill evaluation
-- **Performance Trends**: Historical data visualization
-- **Comparative Analytics**: See how you stack up
-- **Achievement System**: Earn badges for milestones
-
-</details>
-
-## 🔧 Configuration
-
-### Environment Variables
-
-```env
-# Database
-DATABASE_URL="postgresql://..."
-
-# Authentication
-BETTER_AUTH_SECRET="your-secret"
-
-# AI Providers
-GOOGLE_GENERATIVE_AI_API_KEY="..."
-OPENAI_API_KEY="..."
-
-# Real-time Features
-LIVEKIT_API_KEY="..."
-LIVEKIT_API_SECRET="..."
-LIVEBLOCKS_SECRET_KEY="..."
-
-# Storage
-APPWRITE_ENDPOINT="..."
-APPWRITE_PROJECT_ID="..."
-APPWRITE_API_KEY="..."
-
-# Payments
-STRIPE_SECRET_KEY="..."
-STRIPE_WEBHOOK_SECRET="..."
+model Subscription {
+  id            String   @id @default(cuid())
+  userId        String   @unique
+  user          User     @relation(fields: [userId], references: [id])
+  plan          Plan
+  status        String
+  stripeId      String   @unique
+  currentPeriodEnd DateTime
+}
 ```
 
-## 📜 Scripts
+---
 
-| Command | Description |
-|---------|-------------|
-| `npm run dev` | Start development server |
-| `npm run build` | Build for production |
-| `npm run start` | Start production server |
-| `npm run lint` | Run Biome linter |
-| `npm run format` | Format code with Biome |
-| `npm run prisma:studio` | Open Prisma Studio |
-| `npm run prisma:migrate` | Run database migrations |
+## 🎨 Screenshots
 
-## 🌟 Roadmap
+<div align="center">
 
-- [x] AI Mock Interviews
-- [x] CV Builder with Templates
-- [x] Code Challenge Platform
-- [x] Chrome Extension for LinkedIn
-- [x] Cover Letter Generator
-- [ ] 🔮 VR Interview Simulation
-- [ ] 🌍 Multi-language Support
-- [ ] 📱 Mobile App (React Native)
-- [ ] 🤝 Interview Peer Matching
-- [ ] 🎓 Interview Coaching Marketplace
+### 🏠 Dashboard
+![Dashboard](https://via.placeholder.com/800x450/1a1a2e/ffffff?text=Smart+Analytics+Dashboard)
+
+### 🎤 AI Mock Interview
+![Interview](https://via.placeholder.com/800x450/16213e/ffffff?text=Real-time+AI+Interview)
+
+### 📄 CV Builder
+![CV Builder](https://via.placeholder.com/800x450/0f3460/ffffff?text=Professional+CV+Builder)
+
+### 💻 Code Challenges
+![Code Challenge](https://via.placeholder.com/800x450/533483/ffffff?text=Multi-language+Code+Arena)
+
+</div>
+
+---
+
+## 🔐 Security
+
+- 🔒 **Modern Authentication** - Better Auth with passkeys & 2FA
+- 🛡️ **HTTPS Only** - Automatic SSL via Vercel
+- 🔑 **API Key Encryption** - AES-256 encrypted storage
+- 🚫 **Rate Limiting** - DDoS & brute force protection
+- ✅ **SQL Injection Safe** - Prisma parameterized queries
+- 🧹 **XSS Protection** - React automatic HTML sanitization
+- 🎫 **CSRF Tokens** - Built-in cross-site attack prevention
+- 📋 **Security Headers** - CSP, HSTS, X-Frame-Options
+
+---
+
+## 🗺️ Roadmap
+
+### ✅ Completed (v1.0)
+- [x] AI-powered mock interviews with multi-provider support
+- [x] Professional CV builder with 3 templates
+- [x] Code challenge arena (15+ languages)
+- [x] Chrome extension for LinkedIn import
+- [x] Real-time video interviews (LiveKit)
+- [x] Stripe payment integration
+- [x] Dashboard & analytics
+
+### 🚧 In Progress (v1.1 - Q1 2026)
+- [ ] 🎓 AI interview coaching with personalized tips
+- [ ] 📊 Advanced analytics & skill gap analysis
+- [ ] 🎮 Gamification & achievement system
+- [ ] 🌍 Multi-language support (i18n)
+- [ ] 📱 Mobile responsive improvements
+
+### 🔮 Planned (v2.0 - Q2 2026)
+- [ ] 🥽 VR Interview simulation
+- [ ] 📱 iOS & Android mobile apps
+- [ ] 👥 Peer interview matching
+- [ ] 🎓 Interview coaching marketplace
+- [ ] 🧠 Emotion detection & personality analysis
+- [ ] 🏢 Company-specific prep (FAANG, startups)
+- [ ] 🤝 ATS integration & job application tracking
+
+---
 
 ## 🤝 Contributing
 
-We welcome contributions! Please see our [Contributing Guide](CONTRIBUTING.md) for details.
+Contributions are welcome! See our [Contributing Guide](CONTRIBUTING.md) for details.
 
 ```bash
-# Fork the repo
-# Create your feature branch
-git checkout -b feature/AmazingFeature
+# Fork & clone
+git clone https://github.com/YOUR_USERNAME/JobPrep.git
 
-# Commit your changes
-git commit -m 'Add some AmazingFeature'
+# Create branch
+git checkout -b feature/amazing-feature
 
-# Push to the branch
-git push origin feature/AmazingFeature
+# Commit changes
+git commit -m 'feat: add amazing feature'
 
-# Open a Pull Request
+# Push & create PR
+git push origin feature/amazing-feature
 ```
+
+### Commit Convention
+- `feat:` New feature
+- `fix:` Bug fix
+- `docs:` Documentation
+- `refactor:` Code refactoring
+- `test:` Adding tests
+- `chore:` Maintenance
+
+---
 
 ## 📄 License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+MIT License - see [LICENSE](LICENSE) for details.
 
-## 💖 Acknowledgments
+Copyright (c) 2024-2025 Ali Ammari
 
-- [shadcn/ui](https://ui.shadcn.com/) for beautiful UI components
-- [Vercel](https://vercel.com) for hosting
-- [Prisma](https://prisma.io) for database ORM
-- [LiveKit](https://livekit.io) for real-time video
-- All our amazing contributors!
+---
+
+## 👨‍💻 Author
+
+<div align="center">
+
+### **Ali Ammari**
+
+[![GitHub](https://img.shields.io/badge/GitHub-@aliammari1-181717?style=for-the-badge&logo=github)](https://github.com/aliammari1)
+[![LinkedIn](https://img.shields.io/badge/LinkedIn-Ali%20Ammari-0A66C2?style=for-the-badge&logo=linkedin)](https://linkedin.com/in/aliammari1)
+[![Twitter](https://img.shields.io/badge/Twitter-@aliammari1-1DA1F2?style=for-the-badge&logo=twitter)](https://twitter.com/aliammari1)
+[![Website](https://img.shields.io/badge/Website-aliammari.dev-4285F4?style=for-the-badge&logo=google-chrome&logoColor=white)](https://aliammari.dev)
+
+**Full-Stack Developer | AI Enthusiast | Open Source Contributor**
+
+</div>
+
+---
+
+## 🙏 Acknowledgments
+
+Special thanks to:
+- [Next.js](https://nextjs.org/) - The React Framework
+- [Vercel](https://vercel.com/) - Deployment & Hosting
+- [Prisma](https://prisma.io/) - Next-gen ORM
+- [shadcn/ui](https://ui.shadcn.com/) - Beautiful Components
+- [LiveKit](https://livekit.io/) - Real-time Video
+- [Better Auth](https://better-auth.com/) - Modern Auth
+- [Google AI](https://ai.google.dev/) - Gemini API
+- [OpenAI](https://openai.com/) - GPT Models
+- [Stripe](https://stripe.com/) - Payments
+
+---
+
+## ⭐ Support
+
+If you find JobPrep helpful:
+
+- ⭐ **Star the repository**
+- 🐦 **Share on social media**
+- ☕ **[Buy me a coffee](https://buymeacoffee.com/aliammari)**
 
 ---
 
 <div align="center">
 
-### 🌟 Star this repo if you find it helpful!
+### 📈 Star History
 
-<img src="https://raw.githubusercontent.com/Tarikul-Islam-Anik/Animated-Fluent-Emojis/master/Emojis/Hand%20gestures/Clapping%20Hands.png" alt="Clapping Hands" width="50" />
+[![Star History Chart](https://api.star-history.com/svg?repos=aliammari1/JobPrep&type=Date)](https://star-history.com/#aliammari1/JobPrep&Date)
 
-**Made with ❤️ by [Ali Ammari](https://github.com/aliammari1)**
+---
 
-[![GitHub followers](https://img.shields.io/github/followers/aliammari1?style=social)](https://github.com/aliammari1)
+**Built with ❤️ by [Ali Ammari](https://github.com/aliammari1)**
 
-<img src="https://capsule-render.vercel.app/api?type=waving&color=gradient&customColorList=6,11,20&height=100&section=footer" width="100%">
+*Helping job seekers land their dream jobs, one interview at a time* 🚀
+
+---
+
+<img src="https://capsule-render.vercel.app/api?type=waving&color=gradient&customColorList=6,11,20&height=120&section=footer" width="100%">
 
 </div>
