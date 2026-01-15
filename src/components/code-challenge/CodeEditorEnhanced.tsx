@@ -2,13 +2,12 @@
 
 import { useState, useRef } from "react";
 import { motion } from "framer-motion";
-import CodeMirror from "@uiw/react-codemirror";
+import CodeMirror, { EditorView } from "@uiw/react-codemirror";
 import { javascript } from "@codemirror/lang-javascript";
 import { python } from "@codemirror/lang-python";
 import { java } from "@codemirror/lang-java";
 import { cpp } from "@codemirror/lang-cpp";
 import { oneDark } from "@codemirror/theme-one-dark";
-import { EditorView } from "@codemirror/view";
 import { useTheme } from "next-themes";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -121,11 +120,13 @@ export function CodeEditorEnhanced({
       animate={{ opacity: 1, y: 0 }}
       className={cn(
         "h-full",
-        isFullscreen && "fixed inset-0 z-50 bg-background"
+        isFullscreen && "fixed inset-0 z-50 bg-background",
       )}
       ref={editorRef}
     >
-      <Card className={cn("h-full flex flex-col", isFullscreen && "rounded-none")}>
+      <Card
+        className={cn("h-full flex flex-col", isFullscreen && "rounded-none")}
+      >
         {/* Header with controls */}
         <CardHeader className="pb-3 border-b">
           <div className="space-y-3">
@@ -144,8 +145,8 @@ export function CodeEditorEnhanced({
                       successRate === 100
                         ? "text-green-600 border-green-300 bg-green-50 dark:bg-green-950/20"
                         : successRate > 0
-                        ? "text-yellow-600 border-yellow-300 bg-yellow-50 dark:bg-yellow-950/20"
-                        : "text-red-600 border-red-300 bg-red-50 dark:bg-red-950/20"
+                          ? "text-yellow-600 border-yellow-300 bg-yellow-50 dark:bg-yellow-950/20"
+                          : "text-red-600 border-red-300 bg-red-50 dark:bg-red-950/20",
                     )}
                   >
                     {Math.round(successRate)}%
@@ -170,8 +171,11 @@ export function CodeEditorEnhanced({
             <div className="flex items-center justify-between gap-2 flex-wrap">
               {/* Language selector */}
               <div className="flex items-center gap-2">
-                <Select value={selectedLanguage} onValueChange={onLanguageChange}>
-                  <SelectTrigger className="w-[160px] h-9 text-sm">
+                <Select
+                  value={selectedLanguage}
+                  onValueChange={onLanguageChange}
+                >
+                  <SelectTrigger className="w-40 h-9 text-sm">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -190,13 +194,17 @@ export function CodeEditorEnhanced({
                   onClick={onRun}
                   disabled={isRunning}
                   size="sm"
-                  className="gap-1 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white h-9"
+                  className="gap-1 bg-linear-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white h-9"
                 >
                   {isRunning ? (
                     <>
                       <motion.div
                         animate={{ rotate: 360 }}
-                        transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                        transition={{
+                          duration: 1,
+                          repeat: Infinity,
+                          ease: "linear",
+                        }}
                       >
                         <Zap className="w-4 h-4" />
                       </motion.div>
@@ -329,7 +337,8 @@ export function CodeEditorEnhanced({
               </div>
             </div>
             <Badge variant="outline">
-              {executionMetrics.passedTests}/{executionMetrics.totalTests} Tests Passed
+              {executionMetrics.passedTests}/{executionMetrics.totalTests} Tests
+              Passed
             </Badge>
           </div>
         )}

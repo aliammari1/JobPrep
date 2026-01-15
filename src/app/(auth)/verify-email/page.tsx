@@ -52,12 +52,12 @@ function VerifyEmailForm() {
         }
       } catch (err) {
         setError(
-          err instanceof Error ? err.message : "An unexpected error occurred"
+          err instanceof Error ? err.message : "An unexpected error occurred",
         );
         setAutoVerifying(false);
       }
     },
-    [hasVerified, router]
+    [hasVerified, router],
   );
 
   useEffect(() => {
@@ -84,7 +84,7 @@ function VerifyEmailForm() {
       }
     } catch (err) {
       setError(
-        err instanceof Error ? err.message : "An unexpected error occurred"
+        err instanceof Error ? err.message : "An unexpected error occurred",
       );
     } finally {
       setIsLoading(false);
@@ -93,7 +93,7 @@ function VerifyEmailForm() {
 
   if (autoVerifying) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background via-background to-muted/20 p-4">
+      <div className="min-h-screen flex items-center justify-center bg-linear-to-br from-background via-background to-muted/20 p-4">
         <Card className="w-full max-w-md shadow-xl">
           <CardHeader className="space-y-1">
             <div className="flex justify-center mb-4">
@@ -115,7 +115,7 @@ function VerifyEmailForm() {
 
   if (success && !error) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background via-background to-muted/20 p-4">
+      <div className="min-h-screen flex items-center justify-center bg-linear-to-br from-background via-background to-muted/20 p-4">
         <Card className="w-full max-w-md shadow-xl">
           <CardHeader className="space-y-1">
             <div className="flex justify-center mb-4">
@@ -148,7 +148,7 @@ function VerifyEmailForm() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background via-background to-muted/20 p-4">
+    <div className="min-h-screen flex items-center justify-center bg-linear-to-br from-background via-background to-muted/20 p-4">
       <Card className="w-full max-w-md shadow-xl">
         <CardHeader className="space-y-1">
           <div className="flex justify-center mb-4">
@@ -226,7 +226,7 @@ export default function VerifyEmailPage() {
   return (
     <Suspense
       fallback={
-        <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background via-background to-muted/20 p-4">
+        <div className="min-h-screen flex items-center justify-center bg-linear-to-br from-background via-background to-muted/20 p-4">
           <Card className="w-full max-w-md shadow-xl">
             <CardContent className="py-12 text-center">
               <Icons.spinner className="h-8 w-8 animate-spin mx-auto" />

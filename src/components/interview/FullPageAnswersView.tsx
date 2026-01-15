@@ -70,7 +70,8 @@ export function FullPageAnswersView({
 
   const checkScrollPosition = () => {
     if (scrollContainerRef.current) {
-      const { scrollLeft, scrollWidth, clientWidth } = scrollContainerRef.current;
+      const { scrollLeft, scrollWidth, clientWidth } =
+        scrollContainerRef.current;
       setCanScrollLeft(scrollLeft > 0);
       setCanScrollRight(scrollLeft < scrollWidth - clientWidth - 10);
     }
@@ -108,12 +109,16 @@ export function FullPageAnswersView({
     return "bg-red-500";
   };
 
-  const strongAnswers = questions.filter((r) => (r.evaluation?.score || 0) >= 8).length;
+  const strongAnswers = questions.filter(
+    (r) => (r.evaluation?.score || 0) >= 8,
+  ).length;
   const averageAnswers = questions.filter((r) => {
     const score = r.evaluation?.score || 0;
     return score >= 6 && score < 8;
   }).length;
-  const weakAnswers = questions.filter((r) => (r.evaluation?.score || 0) < 6).length;
+  const weakAnswers = questions.filter(
+    (r) => (r.evaluation?.score || 0) < 6,
+  ).length;
 
   const progress = ((currentIndex + 1) / questions.length) * 100;
 
@@ -122,7 +127,9 @@ export function FullPageAnswersView({
       {/* Header */}
       <div className="bg-card border-b border-border px-6 py-4 flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-foreground">Interview Answers Review</h1>
+          <h1 className="text-2xl font-bold text-foreground">
+            Interview Answers Review
+          </h1>
           <p className="text-sm text-muted-foreground">
             Question {currentIndex + 1} of {questions.length}
           </p>
@@ -141,18 +148,29 @@ export function FullPageAnswersView({
       <div className="bg-muted border-b border-border px-6 py-4 flex items-center gap-8">
         <div className="flex items-center gap-3">
           <CheckCircle2 className="w-5 h-5 text-accent" />
-          <span className="text-sm font-semibold text-foreground">Strong: <span className="text-accent font-bold">{strongAnswers}</span></span>
+          <span className="text-sm font-semibold text-foreground">
+            Strong:{" "}
+            <span className="text-accent font-bold">{strongAnswers}</span>
+          </span>
         </div>
         <div className="flex items-center gap-3">
           <AlertTriangle className="w-5 h-5 text-accent" />
-          <span className="text-sm font-semibold text-foreground">Average: <span className="text-accent font-bold">{averageAnswers}</span></span>
+          <span className="text-sm font-semibold text-foreground">
+            Average:{" "}
+            <span className="text-accent font-bold">{averageAnswers}</span>
+          </span>
         </div>
         <div className="flex items-center gap-3">
           <AlertTriangle className="w-5 h-5 text-destructive" />
-          <span className="text-sm font-semibold text-foreground">Weak: <span className="text-destructive font-bold">{weakAnswers}</span></span>
+          <span className="text-sm font-semibold text-foreground">
+            Weak:{" "}
+            <span className="text-destructive font-bold">{weakAnswers}</span>
+          </span>
         </div>
         <div className="ml-auto flex items-center gap-3">
-          <span className="text-sm font-medium text-muted-foreground">Progress</span>
+          <span className="text-sm font-medium text-muted-foreground">
+            Progress
+          </span>
           <div className="w-64 bg-border rounded-full h-2">
             <div
               className="bg-primary h-2 rounded-full transition-all duration-300"
@@ -190,7 +208,7 @@ export function FullPageAnswersView({
                 animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, x: -20 }}
                 transition={{ duration: 0.3 }}
-                className="flex-shrink-0 w-full h-full flex items-center justify-center px-8 snap-center"
+                className="shrink-0 w-full h-full flex items-center justify-center px-8 snap-center"
               >
                 <Card className="w-full max-w-4xl h-5/6 overflow-y-auto shadow-2xl border-border bg-card">
                   <CardHeader className="bg-secondary border-b-2 border-border sticky top-0">
@@ -207,7 +225,7 @@ export function FullPageAnswersView({
                       </div>
                       <Badge
                         className={`${getScoreBadgeColor(
-                          result.evaluation?.score || 0
+                          result.evaluation?.score || 0,
                         )} text-primary-foreground text-lg px-4 py-2 font-bold`}
                       >
                         {(result.evaluation?.score || 0).toFixed(1)}/10
@@ -246,7 +264,10 @@ export function FullPageAnswersView({
                           </h4>
                           <ul className="space-y-1">
                             {result.evaluation.strengths.map((s, i) => (
-                              <li key={i} className="text-sm text-foreground flex gap-2">
+                              <li
+                                key={i}
+                                className="text-sm text-foreground flex gap-2"
+                              >
                                 <span className="text-accent font-bold">✓</span>
                                 <span>{s}</span>
                               </li>
@@ -265,8 +286,13 @@ export function FullPageAnswersView({
                           </h4>
                           <ul className="space-y-1">
                             {result.evaluation.weaknesses.map((w, i) => (
-                              <li key={i} className="text-sm text-foreground flex gap-2">
-                                <span className="text-destructive font-bold">•</span>
+                              <li
+                                key={i}
+                                className="text-sm text-foreground flex gap-2"
+                              >
+                                <span className="text-destructive font-bold">
+                                  •
+                                </span>
                                 <span>{w}</span>
                               </li>
                             ))}
@@ -284,8 +310,13 @@ export function FullPageAnswersView({
                           </h4>
                           <ul className="space-y-1">
                             {result.evaluation.suggestions.map((s, i) => (
-                              <li key={i} className="text-sm text-foreground flex gap-2">
-                                <span className="text-primary font-bold">•</span>
+                              <li
+                                key={i}
+                                className="text-sm text-foreground flex gap-2"
+                              >
+                                <span className="text-primary font-bold">
+                                  •
+                                </span>
                                 <span>{s}</span>
                               </li>
                             ))}
@@ -296,7 +327,9 @@ export function FullPageAnswersView({
                     {/* General Feedback */}
                     {result.evaluation?.feedback && (
                       <div className="space-y-2">
-                        <h4 className="font-bold text-foreground">Overall Feedback</h4>
+                        <h4 className="font-bold text-foreground">
+                          Overall Feedback
+                        </h4>
                         <div className="bg-muted border-2 border-border rounded-lg p-4 text-sm text-foreground leading-relaxed">
                           {result.evaluation.feedback}
                         </div>
@@ -331,7 +364,7 @@ export function FullPageAnswersView({
               onClick={() => scrollToCard(index)}
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
-              className={`flex-shrink-0 px-3 py-2 rounded-lg font-semibold text-sm transition-all ${
+              className={`shrink-0 px-3 py-2 rounded-lg font-semibold text-sm transition-all ${
                 index === currentIndex
                   ? "bg-primary text-primary-foreground shadow-lg"
                   : `${getScoreColor(result.evaluation?.score || 0)} cursor-pointer hover:opacity-80 shadow-sm border border-border`

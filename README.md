@@ -154,7 +154,6 @@ One-click LinkedIn CV import - automatically extracts work experience, education
 - **Stripe** - Payment processing & subscriptions
 
 ### Document Processing
-- **Puppeteer** - PDF generation
 - **pdf-lib** - PDF manipulation
 - **mammoth** - DOCX parsing
 

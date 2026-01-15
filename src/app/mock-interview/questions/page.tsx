@@ -54,11 +54,14 @@ interface ParsedInterview {
 
 export default function QuestionsPage() {
   const [interviews, setInterviews] = useState<InterviewSession[]>([]);
-  const [parsedInterviews, setParsedInterviews] = useState<ParsedInterview[]>([]);
+  const [parsedInterviews, setParsedInterviews] = useState<ParsedInterview[]>(
+    [],
+  );
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
-  const [selectedInterview, setSelectedInterview] = useState<ParsedInterview | null>(null);
+  const [selectedInterview, setSelectedInterview] =
+    useState<ParsedInterview | null>(null);
   const [showFullView, setShowFullView] = useState(false);
 
   useEffect(() => {
@@ -78,60 +81,71 @@ export default function QuestionsPage() {
       setInterviews(data.interviews || []);
 
       // Parse interviews
-      const parsed = (data.interviews || []).map((session: InterviewSession) => {
-        let questions = [];
-        let candidateName = "";
-        let jobTitle = "";
-        let companyName = "";
-        let feedback = null;
-        let specificScores = null;
+      const parsed = (data.interviews || []).map(
+        (session: InterviewSession) => {
+          let questions = [];
+          let candidateName = "";
+          let jobTitle = "";
+          let companyName = "";
+          let feedback = null;
+          let specificScores = null;
 
-        // Try to get questions from the database questions array first
-        if (session.questions && Array.isArray(session.questions) && session.questions.length > 0) {
-          questions = session.questions;
-          console.log("Using database questions:", questions.length);
-        } else {
-          // Fall back to parsing from conversationLog
-          try {
-            const conversationData = JSON.parse(session.conversationLog);
-            questions = conversationData.questions || conversationData || [];
-            candidateName = conversationData.candidateName || "";
-            jobTitle = conversationData.jobTitle || "";
-            companyName = conversationData.companyName || "";
-            console.log("Using parsed conversation log questions:", questions.length);
-          } catch (e) {
-            console.error("Error parsing conversation log:", e);
+          // Try to get questions from the database questions array first
+          if (
+            session.questions &&
+            Array.isArray(session.questions) &&
+            session.questions.length > 0
+          ) {
+            questions = session.questions;
+            console.log("Using database questions:", questions.length);
+          } else {
+            // Fall back to parsing from conversationLog
+            try {
+              const conversationData = JSON.parse(session.conversationLog);
+              questions = conversationData.questions || conversationData || [];
+              candidateName = conversationData.candidateName || "";
+              jobTitle = conversationData.jobTitle || "";
+              companyName = conversationData.companyName || "";
+              console.log(
+                "Using parsed conversation log questions:",
+                questions.length,
+              );
+            } catch (e) {
+              console.error("Error parsing conversation log:", e);
+            }
           }
-        }
 
-        try {
-          feedback = JSON.parse(session.feedback);
-        } catch (e) {
-          console.error("Error parsing feedback:", e);
-        }
+          try {
+            feedback = JSON.parse(session.feedback);
+          } catch (e) {
+            console.error("Error parsing feedback:", e);
+          }
 
-        try {
-          specificScores = JSON.parse(session.specificScores || "{}");
-        } catch (e) {
-          console.error("Error parsing specific scores:", e);
-        }
+          try {
+            specificScores = JSON.parse(session.specificScores || "{}");
+          } catch (e) {
+            console.error("Error parsing specific scores:", e);
+          }
 
-        return {
-          session,
-          questions,
-          candidateName,
-          jobTitle,
-          companyName,
-          feedback,
-          specificScores,
-        };
-      });
+          return {
+            session,
+            questions,
+            candidateName,
+            jobTitle,
+            companyName,
+            feedback,
+            specificScores,
+          };
+        },
+      );
 
       setParsedInterviews(parsed);
       setError(null);
     } catch (err) {
       console.error("Error fetching interviews:", err);
-      setError(err instanceof Error ? err.message : "Failed to load interviews");
+      setError(
+        err instanceof Error ? err.message : "Failed to load interviews",
+      );
       toast.error("Failed to load interviews");
     } finally {
       setLoading(false);
@@ -144,7 +158,9 @@ export default function QuestionsPage() {
       interview.jobTitle?.toLowerCase().includes(searchLower) ||
       interview.candidateName?.toLowerCase().includes(searchLower) ||
       interview.companyName?.toLowerCase().includes(searchLower) ||
-      interview.session.topics.some((t) => t.toLowerCase().includes(searchLower))
+      interview.session.topics.some((t) =>
+        t.toLowerCase().includes(searchLower),
+      )
     );
   });
 
@@ -240,7 +256,9 @@ export default function QuestionsPage() {
           <div className="flex items-center justify-center py-20">
             <div className="text-center">
               <Loader className="w-10 h-10 text-primary animate-spin mx-auto mb-4" />
-              <p className="text-muted-foreground">Loading your interviews...</p>
+              <p className="text-muted-foreground">
+                Loading your interviews...
+              </p>
             </div>
           </div>
         )}
@@ -253,7 +271,11 @@ export default function QuestionsPage() {
                 <AlertCircle className="w-5 h-5" />
                 <p>{error}</p>
               </div>
-              <Button onClick={fetchInterviews} variant="outline" className="mt-4">
+              <Button
+                onClick={fetchInterviews}
+                variant="outline"
+                className="mt-4"
+              >
                 Retry
               </Button>
             </CardContent>
@@ -265,7 +287,9 @@ export default function QuestionsPage() {
           <Card>
             <CardContent className="pt-12 text-center">
               <BookOpen className="w-16 h-16 text-muted-foreground mx-auto mb-4 opacity-50" />
-              <p className="text-lg font-semibold text-foreground mb-2">No interviews yet</p>
+              <p className="text-lg font-semibold text-foreground mb-2">
+                No interviews yet
+              </p>
               <p className="text-muted-foreground">
                 {searchTerm
                   ? "No interviews match your search."
@@ -290,7 +314,9 @@ export default function QuestionsPage() {
                     <div className="flex items-start justify-between mb-2">
                       <div className="flex-1">
                         <CardTitle className="text-lg line-clamp-2">
-                          {interview.jobTitle || interview.session.topics[0] || "Untitled Interview"}
+                          {interview.jobTitle ||
+                            interview.session.topics[0] ||
+                            "Untitled Interview"}
                         </CardTitle>
                         {interview.candidateName && (
                           <p className="text-sm text-muted-foreground mt-1">
@@ -301,7 +327,7 @@ export default function QuestionsPage() {
                       {interview.session.overallScore !== null && (
                         <Badge
                           className={`${getScoreBgColor(
-                            interview.session.overallScore
+                            interview.session.overallScore,
                           )} ${getScoreColor(interview.session.overallScore)} font-bold`}
                         >
                           {interview.session.overallScore.toFixed(1)}/10
@@ -340,11 +366,17 @@ export default function QuestionsPage() {
                     {/* Topics */}
                     {interview.session.topics.length > 0 && (
                       <div className="flex flex-wrap gap-1">
-                        {interview.session.topics.slice(0, 2).map((topic, i) => (
-                          <Badge key={i} variant="secondary" className="text-xs">
-                            {topic}
-                          </Badge>
-                        ))}
+                        {interview.session.topics
+                          .slice(0, 2)
+                          .map((topic, i) => (
+                            <Badge
+                              key={i}
+                              variant="secondary"
+                              className="text-xs"
+                            >
+                              {topic}
+                            </Badge>
+                          ))}
                         {interview.session.topics.length > 2 && (
                           <Badge variant="secondary" className="text-xs">
                             +{interview.session.topics.length - 2}
@@ -383,7 +415,9 @@ export default function QuestionsPage() {
                   <p className="text-3xl font-bold text-primary">
                     {filteredInterviews.length}
                   </p>
-                  <p className="text-sm text-muted-foreground mt-1">Total Interviews</p>
+                  <p className="text-sm text-muted-foreground mt-1">
+                    Total Interviews
+                  </p>
                 </div>
               </CardContent>
             </Card>
@@ -393,11 +427,15 @@ export default function QuestionsPage() {
                 <div className="text-center">
                   <p className="text-3xl font-bold text-primary">
                     {(
-                      filteredInterviews.reduce((sum, i) => sum + (i.session.overallScore || 0), 0) /
-                      filteredInterviews.length
+                      filteredInterviews.reduce(
+                        (sum, i) => sum + (i.session.overallScore || 0),
+                        0,
+                      ) / filteredInterviews.length
                     ).toFixed(1)}
                   </p>
-                  <p className="text-sm text-muted-foreground mt-1">Average Score</p>
+                  <p className="text-sm text-muted-foreground mt-1">
+                    Average Score
+                  </p>
                 </div>
               </CardContent>
             </Card>
@@ -406,9 +444,14 @@ export default function QuestionsPage() {
               <CardContent className="pt-6">
                 <div className="text-center">
                   <p className="text-3xl font-bold text-primary">
-                    {filteredInterviews.reduce((sum, i) => sum + i.session.duration, 0)}
+                    {filteredInterviews.reduce(
+                      (sum, i) => sum + i.session.duration,
+                      0,
+                    )}
                   </p>
-                  <p className="text-sm text-muted-foreground mt-1">Total Minutes</p>
+                  <p className="text-sm text-muted-foreground mt-1">
+                    Total Minutes
+                  </p>
                 </div>
               </CardContent>
             </Card>
@@ -419,7 +462,9 @@ export default function QuestionsPage() {
       {/* Full Page Answers View Modal */}
       {showFullView && selectedInterview && (
         <FullPageAnswersView
-          interviewResults={transformQuestionsForDisplay(selectedInterview.questions)}
+          interviewResults={transformQuestionsForDisplay(
+            selectedInterview.questions,
+          )}
           onClose={() => {
             setShowFullView(false);
             setSelectedInterview(null);

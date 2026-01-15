@@ -3,12 +3,12 @@ import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
 import prisma from "@/lib/prisma";
 
-export const runtime = 'nodejs';
+export const runtime = "nodejs";
 
 // GET: Retrieve a specific interview
 export async function GET(
   request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ id: string }> },
 ) {
   try {
     const session = await auth.api.getSession({
@@ -16,10 +16,7 @@ export async function GET(
     });
 
     if (!session?.user) {
-      return NextResponse.json(
-        { error: "Unauthorized" },
-        { status: 401 }
-      );
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     const { id } = await params;
@@ -47,7 +44,7 @@ export async function GET(
     if (!interview) {
       return NextResponse.json(
         { error: "Interview not found" },
-        { status: 404 }
+        { status: 404 },
       );
     }
 
@@ -55,15 +52,14 @@ export async function GET(
       success: true,
       interview,
     });
-
   } catch (error) {
     console.error("Error fetching interview:", error);
     return NextResponse.json(
-      { 
+      {
         error: "Failed to fetch interview",
-        details: error instanceof Error ? error.message : "Unknown error"
+        details: error instanceof Error ? error.message : "Unknown error",
       },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
@@ -71,7 +67,7 @@ export async function GET(
 // DELETE: Delete a specific interview
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ id: string }> },
 ) {
   try {
     const session = await auth.api.getSession({
@@ -79,10 +75,7 @@ export async function DELETE(
     });
 
     if (!session?.user) {
-      return NextResponse.json(
-        { error: "Unauthorized" },
-        { status: 401 }
-      );
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     const { id } = await params;
@@ -98,7 +91,7 @@ export async function DELETE(
     if (!interview) {
       return NextResponse.json(
         { error: "Interview not found or unauthorized" },
-        { status: 404 }
+        { status: 404 },
       );
     }
 
@@ -113,15 +106,14 @@ export async function DELETE(
       success: true,
       message: "Interview deleted successfully",
     });
-
   } catch (error) {
     console.error("Error deleting interview:", error);
     return NextResponse.json(
-      { 
+      {
         error: "Failed to delete interview",
-        details: error instanceof Error ? error.message : "Unknown error"
+        details: error instanceof Error ? error.message : "Unknown error",
       },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

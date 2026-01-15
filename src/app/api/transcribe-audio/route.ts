@@ -8,7 +8,7 @@ export async function POST(request: NextRequest) {
     if (!text) {
       return NextResponse.json(
         { error: "No transcribed text provided" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -26,12 +26,14 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     console.error("❌ Transcription processing error:", error);
     return NextResponse.json(
-      { 
-        error: error instanceof Error ? error.message : "Transcription processing failed",
+      {
+        error:
+          error instanceof Error
+            ? error.message
+            : "Transcription processing failed",
         text: "",
       },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
-

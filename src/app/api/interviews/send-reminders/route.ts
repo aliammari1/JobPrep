@@ -22,10 +22,14 @@ export async function POST(req: NextRequest) {
     const body = await req.json();
     const { interviewIds } = body;
 
-    if (!interviewIds || !Array.isArray(interviewIds) || interviewIds.length === 0) {
+    if (
+      !interviewIds ||
+      !Array.isArray(interviewIds) ||
+      interviewIds.length === 0
+    ) {
       return NextResponse.json(
         { error: "Invalid interview IDs" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -55,18 +59,21 @@ export async function POST(req: NextRequest) {
     if (interviews.length === 0) {
       return NextResponse.json(
         { error: "No interviews found" },
-        { status: 404 }
+        { status: 404 },
       );
     }
 
     // Integrate with email service (SendGrid, Resend, etc.)
     // Send reminder emails to both interviewer and candidate
     const { sendEmail } = await import("@/lib/email-service");
-    
+
     const emailPromises = interviews.flatMap((interview) => {
       const reminderEmails = [];
-      const interviewTime = interview.time || interview.scheduledAt?.toLocaleString() || "Unknown time";
-      
+      const interviewTime =
+        interview.time ||
+        interview.scheduledAt?.toLocaleString() ||
+        "Unknown time";
+
       // Email to interviewer
       if (interview.interviewer?.email) {
         reminderEmails.push(
@@ -77,11 +84,13 @@ export async function POST(req: NextRequest) {
                    <p>Position: ${interview.position || "Not specified"}</p>
                    <p>Scheduled for: ${interviewTime}</p>
                    <p><a href="http://localhost:3000/interview-room/${interview.id}">Join Interview</a></p>`,
-          }).catch(err => console.error("Failed to send interviewer email:", err))
+          }).catch((err) =>
+            console.error("Failed to send interviewer email:", err),
+          ),
         );
       }
-      
-      // Email to candidate  
+
+      // Email to candidate
       if (interview.candidateEmail) {
         reminderEmails.push(
           sendEmail({
@@ -91,10 +100,12 @@ export async function POST(req: NextRequest) {
                    <p>Interviewer: ${interview.interviewer?.name || "Not assigned"}</p>
                    <p>Scheduled for: ${interviewTime}</p>
                    <p><a href="http://localhost:3000/interview-room/${interview.id}">Join Interview</a></p>`,
-          }).catch(err => console.error("Failed to send candidate email:", err))
+          }).catch((err) =>
+            console.error("Failed to send candidate email:", err),
+          ),
         );
       }
-      
+
       return reminderEmails;
     });
 
@@ -113,8 +124,8 @@ export async function POST(req: NextRequest) {
               reminderSentAt: new Date().toISOString(),
             }),
           },
-        })
-      )
+        }),
+      ),
     );
 
     // Log reminder activity
@@ -129,7 +140,7 @@ export async function POST(req: NextRequest) {
     console.error("Error sending reminders:", error);
     return NextResponse.json(
       { error: "Failed to send reminders" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

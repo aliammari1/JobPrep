@@ -87,7 +87,7 @@ export default function SecuritySettingsPage() {
       }
     } catch (err) {
       setError(
-        err instanceof Error ? err.message : "An unexpected error occurred"
+        err instanceof Error ? err.message : "An unexpected error occurred",
       );
     } finally {
       setIsLoading(false);
@@ -116,14 +116,14 @@ export default function SecuritySettingsPage() {
         }
       } catch (err) {
         setError(
-          err instanceof Error ? err.message : "An unexpected error occurred"
+          err instanceof Error ? err.message : "An unexpected error occurred",
         );
       }
     }
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20">
+    <div className="min-h-screen bg-linear-to-br from-background via-background to-muted/20">
       <div className="container mx-auto p-4 md:p-8 max-w-4xl">
         {/* Header */}
         <div className="mb-8">

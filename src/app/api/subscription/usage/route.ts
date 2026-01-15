@@ -86,7 +86,7 @@ export async function GET(req: Request) {
     console.error("Error fetching usage stats:", error);
     return NextResponse.json(
       { error: "Failed to fetch usage stats" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

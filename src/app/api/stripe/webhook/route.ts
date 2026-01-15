@@ -18,7 +18,7 @@ export async function POST(req: Request) {
     if (!signature) {
       return NextResponse.json(
         { error: "No signature found" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -30,7 +30,7 @@ export async function POST(req: Request) {
       console.error("Webhook signature verification failed:", err);
       return NextResponse.json(
         { error: "Webhook signature verification failed" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -38,21 +38,27 @@ export async function POST(req: Request) {
     switch (event.type) {
       case "checkout.session.completed":
         await handleCheckoutSessionCompleted(
-          event.data.object as Stripe.Checkout.Session
+          event.data.object as Stripe.Checkout.Session,
         );
         break;
 
       case "customer.subscription.created":
       case "customer.subscription.updated":
-        await handleSubscriptionUpdate(event.data.object as Stripe.Subscription);
+        await handleSubscriptionUpdate(
+          event.data.object as Stripe.Subscription,
+        );
         break;
 
       case "customer.subscription.deleted":
-        await handleSubscriptionDeleted(event.data.object as Stripe.Subscription);
+        await handleSubscriptionDeleted(
+          event.data.object as Stripe.Subscription,
+        );
         break;
 
       case "invoice.payment_succeeded":
-        await handleInvoicePaymentSucceeded(event.data.object as Stripe.Invoice);
+        await handleInvoicePaymentSucceeded(
+          event.data.object as Stripe.Invoice,
+        );
         break;
 
       case "invoice.payment_failed":
@@ -68,13 +74,13 @@ export async function POST(req: Request) {
     console.error("Error processing webhook:", error);
     return NextResponse.json(
       { error: "Webhook processing failed" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
 
 async function handleCheckoutSessionCompleted(
-  session: Stripe.Checkout.Session
+  session: Stripe.Checkout.Session,
 ) {
   const userId = session.metadata?.userId;
 
@@ -109,13 +115,13 @@ async function handleSubscriptionUpdate(subscription: Stripe.Subscription) {
     await updateUserSubscription(
       user.id,
       subscription,
-      subscription.customer as string
+      subscription.customer as string,
     );
   } else {
     await updateUserSubscription(
       userId,
       subscription,
-      subscription.customer as string
+      subscription.customer as string,
     );
   }
 }
@@ -181,14 +187,14 @@ async function handleInvoicePaymentFailed(invoice: Stripe.Invoice) {
 async function updateUserSubscription(
   userId: string,
   subscription: Stripe.Subscription,
-  customerId: string
+  customerId: string,
 ) {
   const priceId = subscription.items.data[0]?.price.id;
   const productId = subscription.items.data[0]?.price.product as string;
 
   // Determine tier based on price ID
   let tier: "FREE" | "MONTHLY" | "YEARLY" = "FREE";
-  
+
   if (priceId === process.env.NEXT_PUBLIC_STRIPE_PRICE_MONTHLY) {
     tier = "MONTHLY";
   } else if (priceId === process.env.NEXT_PUBLIC_STRIPE_PRICE_YEARLY) {
@@ -209,7 +215,9 @@ async function updateUserSubscription(
       stripeCustomerId: customerId,
       subscriptionTier: tier,
       subscriptionStatus: status,
-      currentPeriodEnd: new Date(((subscription as any).current_period_end || 0) * 1000),
+      currentPeriodEnd: new Date(
+        ((subscription as any).current_period_end || 0) * 1000,
+      ),
       cancelAtPeriodEnd: (subscription as any).cancel_at_period_end || false,
     },
   });
@@ -224,8 +232,12 @@ async function updateUserSubscription(
       stripeProductId: productId,
       tier,
       status,
-      currentPeriodStart: new Date(((subscription as any).current_period_start || 0) * 1000),
-      currentPeriodEnd: new Date(((subscription as any).current_period_end || 0) * 1000),
+      currentPeriodStart: new Date(
+        ((subscription as any).current_period_start || 0) * 1000,
+      ),
+      currentPeriodEnd: new Date(
+        ((subscription as any).current_period_end || 0) * 1000,
+      ),
       cancelAtPeriodEnd: (subscription as any).cancel_at_period_end || false,
       trialStart: (subscription as any).trial_start
         ? new Date((subscription as any).trial_start * 1000)
@@ -239,8 +251,12 @@ async function updateUserSubscription(
       stripeProductId: productId,
       tier,
       status,
-      currentPeriodStart: new Date(((subscription as any).current_period_start || 0) * 1000),
-      currentPeriodEnd: new Date(((subscription as any).current_period_end || 0) * 1000),
+      currentPeriodStart: new Date(
+        ((subscription as any).current_period_start || 0) * 1000,
+      ),
+      currentPeriodEnd: new Date(
+        ((subscription as any).current_period_end || 0) * 1000,
+      ),
       cancelAtPeriodEnd: (subscription as any).cancel_at_period_end || false,
       canceledAt: (subscription as any).canceled_at
         ? new Date((subscription as any).canceled_at * 1000)
@@ -276,9 +292,10 @@ async function recordPayment(userId: string, invoice: Stripe.Invoice) {
   await prisma.payment.create({
     data: {
       userId,
-      stripePaymentId: typeof paymentIntentId === 'string' ? paymentIntentId : paymentIntentId,
+      stripePaymentId:
+        typeof paymentIntentId === "string" ? paymentIntentId : paymentIntentId,
       amount: (invoice as any).amount_paid || 0,
-      currency: invoice.currency || 'usd',
+      currency: invoice.currency || "usd",
       status: invoice.status || "succeeded",
       description: invoice.description || undefined,
       receiptUrl: (invoice as any).hosted_invoice_url || undefined,

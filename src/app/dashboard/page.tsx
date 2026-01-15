@@ -95,14 +95,14 @@ export default function DashboardPage() {
     "U";
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-primary/5 to-muted/10 relative overflow-hidden">
-      <div className="absolute inset-0 -z-10 bg-gradient-to-br from-primary/5 via-primary/10 to-transparent" />
+    <div className="min-h-screen bg-linear-to-br from-background via-primary/5 to-muted/10 relative overflow-hidden">
+      <div className="absolute inset-0 -z-10 bg-linear-to-br from-primary/5 via-primary/10 to-transparent" />
       <div className="container mx-auto p-4 md:p-8 max-w-7xl">
         {/* Header */}
         <div className="mb-8">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-4xl font-bold bg-gradient-to-b from-foreground to-muted-foreground/70 bg-clip-text text-transparent">
+              <h1 className="text-4xl font-bold bg-linear-to-b from-foreground to-muted-foreground/70 bg-clip-text text-transparent">
                 Welcome back, {user.name?.split(" ")[0] || "User"}!
               </h1>
               <p className="text-muted-foreground mt-2">
@@ -121,7 +121,7 @@ export default function DashboardPage() {
         </div>
 
         {/* User Profile Card */}
-        <Card className="mb-8 shadow-lg bg-gradient-to-br from-background to-muted/40 border-muted hover:border-primary/60 transition">
+        <Card className="mb-8 shadow-lg bg-linear-to-br from-background to-muted/40 border-muted hover:border-primary/60 transition">
           <CardHeader>
             <CardTitle>Profile Information</CardTitle>
             <CardDescription>Your account details and status</CardDescription>
@@ -133,7 +133,7 @@ export default function DashboardPage() {
                   src={user.image || undefined}
                   alt={user.name || "User"}
                 />
-                <AvatarFallback className="text-2xl font-bold bg-gradient-to-br from-primary to-primary/60">
+                <AvatarFallback className="text-2xl font-bold bg-linear-to-br from-primary to-primary/60">
                   {initials}
                 </AvatarFallback>
               </Avatar>
@@ -206,7 +206,7 @@ export default function DashboardPage() {
         {/* Statistics */}
         {stats && (
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4 mb-8">
-            <Card className="bg-gradient-to-br from-background to-muted/40 border-muted hover:border-primary/60 transition">
+            <Card className="bg-linear-to-br from-background to-muted/40 border-muted hover:border-primary/60 transition">
               <CardHeader className="pb-2">
                 <CardTitle className="text-sm font-medium text-muted-foreground">
                   Total Interviews
@@ -219,7 +219,7 @@ export default function DashboardPage() {
               </CardContent>
             </Card>
 
-            <Card className="bg-gradient-to-br from-background to-muted/40 border-muted hover:border-primary/60 transition">
+            <Card className="bg-linear-to-br from-background to-muted/40 border-muted hover:border-primary/60 transition">
               <CardHeader className="pb-2">
                 <CardTitle className="text-sm font-medium text-muted-foreground">
                   Completed
@@ -232,7 +232,7 @@ export default function DashboardPage() {
               </CardContent>
             </Card>
 
-            <Card className="bg-gradient-to-br from-background to-muted/40 border-muted hover:border-primary/60 transition">
+            <Card className="bg-linear-to-br from-background to-muted/40 border-muted hover:border-primary/60 transition">
               <CardHeader className="pb-2">
                 <CardTitle className="text-sm font-medium text-muted-foreground">
                   Upcoming
@@ -245,7 +245,7 @@ export default function DashboardPage() {
               </CardContent>
             </Card>
 
-            <Card className="bg-gradient-to-br from-background to-muted/40 border-muted hover:border-primary/60 transition">
+            <Card className="bg-linear-to-br from-background to-muted/40 border-muted hover:border-primary/60 transition">
               <CardHeader className="pb-2">
                 <CardTitle className="text-sm font-medium text-muted-foreground">
                   Completion Rate
@@ -262,7 +262,7 @@ export default function DashboardPage() {
 
         {/* Recent Interviews */}
         {stats && stats.recentInterviews.length > 0 && (
-          <Card className="mb-8 bg-gradient-to-br from-background to-muted/40 border-muted hover:border-primary/60 transition">
+          <Card className="mb-8 bg-linear-to-br from-background to-muted/40 border-muted hover:border-primary/60 transition">
             <CardHeader>
               <CardTitle>Recent Interviews</CardTitle>
               <CardDescription>Your latest interview activity</CardDescription>
@@ -286,8 +286,8 @@ export default function DashboardPage() {
                           interview.status === "completed"
                             ? "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300"
                             : interview.status === "scheduled"
-                            ? "bg-primary/10 text-primary dark:bg-primary/20 dark:text-primary"
-                            : "bg-muted text-muted-foreground dark:bg-muted dark:text-muted-foreground"
+                              ? "bg-primary/10 text-primary dark:bg-primary/20 dark:text-primary"
+                              : "bg-muted text-muted-foreground dark:bg-muted dark:text-muted-foreground"
                         }`}
                       >
                         {interview.status}
@@ -302,7 +302,7 @@ export default function DashboardPage() {
 
         {/* Quick Actions */}
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 mb-8">
-          <Card className="hover:shadow-lg transition-shadow cursor-pointer bg-gradient-to-br from-background to-muted/40 border-muted hover:border-primary/60">
+          <Card className="hover:shadow-lg transition-shadow cursor-pointer bg-linear-to-br from-background to-muted/40 border-muted hover:border-primary/60">
             <Link href="/settings/profile">
               <CardHeader>
                 <div className="flex items-center gap-3">
@@ -318,7 +318,7 @@ export default function DashboardPage() {
             </Link>
           </Card>
 
-          <Card className="hover:shadow-lg transition-shadow cursor-pointer bg-gradient-to-br from-background to-muted/40 border-muted hover:border-primary/60">
+          <Card className="hover:shadow-lg transition-shadow cursor-pointer bg-linear-to-br from-background to-muted/40 border-muted hover:border-primary/60">
             <Link href="/settings/security">
               <CardHeader>
                 <div className="flex items-center gap-3">
@@ -334,7 +334,7 @@ export default function DashboardPage() {
             </Link>
           </Card>
 
-          <Card className="hover:shadow-lg transition-shadow cursor-pointer bg-gradient-to-br from-background to-muted/40 border-muted hover:border-primary/60">
+          <Card className="hover:shadow-lg transition-shadow cursor-pointer bg-linear-to-br from-background to-muted/40 border-muted hover:border-primary/60">
             <Link href="/settings/sessions">
               <CardHeader>
                 <div className="flex items-center gap-3">
@@ -350,7 +350,7 @@ export default function DashboardPage() {
             </Link>
           </Card>
 
-          <Card className="hover:shadow-lg transition-shadow cursor-pointer bg-gradient-to-br from-background to-muted/40 border-muted hover:border-primary/60">
+          <Card className="hover:shadow-lg transition-shadow cursor-pointer bg-linear-to-br from-background to-muted/40 border-muted hover:border-primary/60">
             <Link href="/settings/two-factor">
               <CardHeader>
                 <div className="flex items-center gap-3">
@@ -366,7 +366,7 @@ export default function DashboardPage() {
             </Link>
           </Card>
 
-          <Card className="hover:shadow-lg transition-shadow cursor-pointer bg-gradient-to-br from-background to-muted/40 border-muted hover:border-primary/60">
+          <Card className="hover:shadow-lg transition-shadow cursor-pointer bg-linear-to-br from-background to-muted/40 border-muted hover:border-primary/60">
             <Link href="/settings/passkeys">
               <CardHeader>
                 <div className="flex items-center gap-3">
@@ -382,7 +382,7 @@ export default function DashboardPage() {
             </Link>
           </Card>
 
-          <Card className="hover:shadow-lg transition-shadow cursor-pointer bg-gradient-to-br from-background to-muted/40 border-muted hover:border-primary/60">
+          <Card className="hover:shadow-lg transition-shadow cursor-pointer bg-linear-to-br from-background to-muted/40 border-muted hover:border-primary/60">
             <Link href="/settings/connected-accounts">
               <CardHeader>
                 <div className="flex items-center gap-3">

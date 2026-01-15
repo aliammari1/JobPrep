@@ -29,16 +29,18 @@ export default async function Home() {
     <div className="flex flex-col">
       {/* Hero */}
       <section className="relative pt-20 pb-24 px-4 sm:px-8 md:px-12 overflow-hidden">
-        <div className="absolute inset-0 -z-10 bg-gradient-to-br from-primary/5 via-primary/10 to-transparent" />
+        <div className="absolute inset-0 -z-10 bg-linear-to-br from-primary/5 via-primary/10 to-transparent" />
         <div className="max-w-5xl mx-auto text-center">
           <Badge variant="outline" className="mb-6 backdrop-blur-sm">
             Empower Every Interview
           </Badge>
-          <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold tracking-tight bg-gradient-to-b from-foreground to-muted-foreground/70 bg-clip-text text-transparent">
+          <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold tracking-tight bg-linear-to-b from-foreground to-muted-foreground/70 bg-clip-text text-transparent">
             AI-Powered Interview Preparation Platform
           </h1>
           <p className="mt-6 text-lg md:text-xl text-muted-foreground max-w-3xl mx-auto leading-relaxed">
-            Practice, simulate, analyze and continuously improve your interviewing performance with adaptive AI coaching, real-time feedback, and actionable analytics.
+            Practice, simulate, analyze and continuously improve your
+            interviewing performance with adaptive AI coaching, real-time
+            feedback, and actionable analytics.
           </p>
           <div className="mt-8 flex flex-col sm:flex-row gap-4 justify-center">
             <Button asChild size="lg">
@@ -58,7 +60,10 @@ export default async function Home() {
             <h2 className="text-2xl md:text-3xl font-semibold tracking-tight flex items-center gap-2">
               <Sparkles className="size-6 text-primary" /> Platform Highlights
             </h2>
-            <Link href="#workflow" className="text-sm text-primary font-medium hover:underline">
+            <Link
+              href="#workflow"
+              className="text-sm text-primary font-medium hover:underline"
+            >
               See How It Works ↓
             </Link>
           </div>
@@ -108,11 +113,17 @@ export default async function Home() {
       </section>
 
       {/* Workflow */}
-      <section id="workflow" className="px-4 sm:px-8 md:px-12 py-20 bg-muted/40 border-y">
+      <section
+        id="workflow"
+        className="px-4 sm:px-8 md:px-12 py-20 bg-muted/40 border-y"
+      >
         <div className="max-w-6xl mx-auto">
-          <h2 className="text-2xl md:text-3xl font-semibold tracking-tight mb-2">Your Continuous Improvement Loop</h2>
+          <h2 className="text-2xl md:text-3xl font-semibold tracking-tight mb-2">
+            Your Continuous Improvement Loop
+          </h2>
           <p className="text-muted-foreground max-w-2xl mb-10">
-            A simple, repeatable system that compounds your interview readiness and elevates your confidence.
+            A simple, repeatable system that compounds your interview readiness
+            and elevates your confidence.
           </p>
           <div className="grid gap-6 md:grid-cols-3 lg:grid-cols-5">
             <WorkflowStep
@@ -153,13 +164,32 @@ export default async function Home() {
       <section className="px-4 sm:px-8 md:px-12 py-20">
         <div className="max-w-6xl mx-auto">
           <div className="flex items-center justify-between mb-8">
-            <h2 className="text-2xl md:text-3xl font-semibold tracking-tight">Trusted by ambitious candidates</h2>
-            <Badge variant="secondary" className="hidden sm:inline-flex">Early Access</Badge>
+            <h2 className="text-2xl md:text-3xl font-semibold tracking-tight">
+              Trusted by ambitious candidates
+            </h2>
+            <Badge variant="secondary" className="hidden sm:inline-flex">
+              Early Access
+            </Badge>
           </div>
           <div className="grid gap-6 md:grid-cols-3">
-            <Testimonial quote="The adaptive feedback loop helped me prioritize the exact skills that moved the needle." name="Aisha" position="Senior Frontend Engineer" initials="AI" />
-            <Testimonial quote="Felt like having a personal interview coach on demand. The analytics are gold." name="Carlos" position="Product Manager" initials="CA" />
-            <Testimonial quote="My confidence skyrocketed after a week of structured mock sessions and performance reviews." name="Mei" position="Data Scientist" initials="ME" />
+            <Testimonial
+              quote="The adaptive feedback loop helped me prioritize the exact skills that moved the needle."
+              name="Aisha"
+              position="Senior Frontend Engineer"
+              initials="AI"
+            />
+            <Testimonial
+              quote="Felt like having a personal interview coach on demand. The analytics are gold."
+              name="Carlos"
+              position="Product Manager"
+              initials="CA"
+            />
+            <Testimonial
+              quote="My confidence skyrocketed after a week of structured mock sessions and performance reviews."
+              name="Mei"
+              position="Data Scientist"
+              initials="ME"
+            />
           </div>
         </div>
       </section>
@@ -169,15 +199,27 @@ export default async function Home() {
         <div className="max-w-6xl mx-auto grid md:grid-cols-2 gap-10 items-center">
           <div>
             <h3 className="text-xl md:text-2xl font-semibold tracking-tight mb-4 flex items-center gap-2">
-              <ShieldCheck className="size-6 text-primary" /> Privacy & Reliability
+              <ShieldCheck className="size-6 text-primary" /> Privacy &
+              Reliability
             </h3>
             <p className="text-sm text-muted-foreground leading-relaxed mb-4">
-              We prioritize confidentiality and data minimization. Your practice sessions and analytics are encrypted at rest and never shared with third parties.
+              We prioritize confidentiality and data minimization. Your practice
+              sessions and analytics are encrypted at rest and never shared with
+              third parties.
             </p>
             <ul className="space-y-2 text-sm">
-              <li className="flex items-start gap-2"><Sparkles className="size-4 mt-0.5 text-primary" /> Role-based access controls</li>
-              <li className="flex items-start gap-2"><Sparkles className="size-4 mt-0.5 text-primary" /> Option to purge history at any time</li>
-              <li className="flex items-start gap-2"><Sparkles className="size-4 mt-0.5 text-primary" /> Continuous model quality audits</li>
+              <li className="flex items-start gap-2">
+                <Sparkles className="size-4 mt-0.5 text-primary" /> Role-based
+                access controls
+              </li>
+              <li className="flex items-start gap-2">
+                <Sparkles className="size-4 mt-0.5 text-primary" /> Option to
+                purge history at any time
+              </li>
+              <li className="flex items-start gap-2">
+                <Sparkles className="size-4 mt-0.5 text-primary" /> Continuous
+                model quality audits
+              </li>
             </ul>
           </div>
           <div className="relative rounded-xl border bg-background p-8 shadow-sm">
@@ -189,7 +231,9 @@ export default async function Home() {
                 <span className="text-lg font-semibold">2,400+</span>
               </div>
               <div className="flex flex-col gap-1">
-                <span className="text-muted-foreground">Practice Questions</span>
+                <span className="text-muted-foreground">
+                  Practice Questions
+                </span>
                 <span className="text-lg font-semibold">18k+</span>
               </div>
               <div className="flex flex-col gap-1">
@@ -211,9 +255,12 @@ export default async function Home() {
       {/* Final CTA */}
       <section className="px-4 sm:px-8 md:px-12 py-24">
         <div className="max-w-4xl mx-auto text-center">
-          <h2 className="text-3xl md:text-4xl font-bold tracking-tight mb-4">Ready to level up your interview game?</h2>
+          <h2 className="text-3xl md:text-4xl font-bold tracking-tight mb-4">
+            Ready to level up your interview game?
+          </h2>
           <p className="text-muted-foreground max-w-2xl mx-auto mb-8">
-            Start practicing in minutes. No credit card required to explore core features. Upgrade when you are ready for deeper analytics.
+            Start practicing in minutes. No credit card required to explore core
+            features. Upgrade when you are ready for deeper analytics.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Button asChild size="lg">
@@ -223,7 +270,16 @@ export default async function Home() {
               <Link href="/performance-analytics">View Sample Analytics</Link>
             </Button>
           </div>
-          <p className="mt-6 text-xs text-muted-foreground">Have a team? <Link href="/organizations" className="text-primary hover:underline">Request workspace access</Link>.</p>
+          <p className="mt-6 text-xs text-muted-foreground">
+            Have a team?{" "}
+            <Link
+              href="/organizations"
+              className="text-primary hover:underline"
+            >
+              Request workspace access
+            </Link>
+            .
+          </p>
         </div>
       </section>
     </div>

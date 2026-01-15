@@ -11,7 +11,9 @@ import { z } from "zod";
 const isLocalOllama = !process.env.OLLAMA_API_KEY;
 
 const ollama = createOpenAICompatible({
-  baseURL: process.env.OLLAMA_HOST || (isLocalOllama ? "http://localhost:11434/v1" : "https://ollama.com/v1"),
+  baseURL:
+    process.env.OLLAMA_HOST ||
+    (isLocalOllama ? "http://localhost:11434/v1" : "https://ollama.com/v1"),
   apiKey: process.env.OLLAMA_API_KEY || "ollama", // Ollama doesn't require API key for local
   name: "ollama",
 });
@@ -25,7 +27,7 @@ const OLLAMA_MODEL = process.env.OLLAMA_MODEL || "llama3.2:latest";
 export async function generateStructuredOutput<T>(
   prompt: string,
   schema: z.ZodSchema<T>,
-  systemPrompt?: string
+  systemPrompt?: string,
 ): Promise<T> {
   try {
     const { text } = await generateText({
@@ -37,7 +39,7 @@ export async function generateStructuredOutput<T>(
     // Clean and parse JSON
     const cleaned = cleanJsonResponse(text);
     const parsed = JSON.parse(cleaned);
-    
+
     // Validate with schema
     return schema.parse(parsed);
   } catch (error) {
@@ -53,7 +55,7 @@ export async function generateStructuredOutputRetry<T>(
   prompt: string,
   schema: z.ZodSchema<T>,
   systemPrompt?: string,
-  maxRetries: number = 3
+  maxRetries: number = 3,
 ): Promise<T> {
   let lastError: Error | null = null;
 
@@ -62,17 +64,17 @@ export async function generateStructuredOutputRetry<T>(
       return await generateStructuredOutput(prompt, schema, systemPrompt);
     } catch (error: any) {
       lastError = error;
-      
+
       if (attempt < maxRetries) {
         const delay = 1000 * Math.pow(2, attempt);
         console.log(`Attempt ${attempt + 1} failed, retrying in ${delay}ms...`);
-        await new Promise(resolve => setTimeout(resolve, delay));
+        await new Promise((resolve) => setTimeout(resolve, delay));
         continue;
       }
     }
   }
 
-  throw lastError || new Error('Max retries exceeded');
+  throw lastError || new Error("Max retries exceeded");
 }
 
 /**
@@ -108,7 +110,7 @@ export function cleanJsonResponse(text: string): string {
 // Legacy functions for backwards compatibility
 export async function generateWithOllama(
   prompt: string,
-  systemPrompt?: string
+  systemPrompt?: string,
 ): Promise<string> {
   const { text } = await generateText({
     model: ollama(OLLAMA_MODEL),
@@ -121,7 +123,7 @@ export async function generateWithOllama(
 export async function generateWithOllamaRetry(
   prompt: string,
   systemPrompt?: string,
-  maxRetries: number = 2
+  maxRetries: number = 2,
 ): Promise<string> {
   let lastError: Error | null = null;
 
@@ -130,15 +132,15 @@ export async function generateWithOllamaRetry(
       return await generateWithOllama(prompt, systemPrompt);
     } catch (error: any) {
       lastError = error;
-      
+
       if (attempt < maxRetries) {
         const delay = 1000 * Math.pow(2, attempt);
         console.log(`Attempt ${attempt + 1} failed, retrying in ${delay}ms...`);
-        await new Promise(resolve => setTimeout(resolve, delay));
+        await new Promise((resolve) => setTimeout(resolve, delay));
         continue;
       }
     }
   }
 
-  throw lastError || new Error('Max retries exceeded');
+  throw lastError || new Error("Max retries exceeded");
 }

@@ -65,12 +65,15 @@ export default function CodeChallengeOnboardingImproved() {
   const [isScrapingJob, setIsScrapingJob] = useState(false);
 
   // Step 3: Difficulty
-  const [difficulty, setDifficulty] = useState<"Easy" | "Medium" | "Hard">("Medium");
+  const [difficulty, setDifficulty] = useState<"Easy" | "Medium" | "Hard">(
+    "Medium",
+  );
 
   // Auto-save state to sessionStorage
   useEffect(() => {
     if (cvText) sessionStorage.setItem("onboarding_cv_temp", cvText);
-    if (jobDescriptionText) sessionStorage.setItem("onboarding_job_temp", jobDescriptionText);
+    if (jobDescriptionText)
+      sessionStorage.setItem("onboarding_job_temp", jobDescriptionText);
   }, [cvText, jobDescriptionText]);
 
   // Clean up old onboarding data on mount
@@ -96,7 +99,8 @@ export default function CodeChallengeOnboardingImproved() {
   };
 
   const canProceedToStep2 = validateCVLength(cvText);
-  const canProceedToStep3 = canProceedToStep2 && validateJobLength(jobDescriptionText);
+  const canProceedToStep3 =
+    canProceedToStep2 && validateJobLength(jobDescriptionText);
   const canGenerate = canProceedToStep3 && difficulty;
 
   // Steps array for progress tracking
@@ -162,7 +166,8 @@ export default function CodeChallengeOnboardingImproved() {
         description: "Your resume has been analyzed",
       });
     } catch (error) {
-      const errorMsg = error instanceof Error ? error.message : "Failed to parse CV";
+      const errorMsg =
+        error instanceof Error ? error.message : "Failed to parse CV";
       setCvParseError(errorMsg);
       setCvFile(null);
       setCvText("");
@@ -251,10 +256,8 @@ export default function CodeChallengeOnboardingImproved() {
     }
   };
 
-
-
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-primary/5 to-muted/10 relative overflow-hidden">
+    <div className="min-h-screen bg-linear-to-br from-background via-primary/5 to-muted/10 relative overflow-hidden">
       {/* Decorative background */}
       <div className="absolute inset-0 -z-10">
         <div className="absolute top-1/4 -left-1/2 w-96 h-96 bg-primary/10 rounded-full blur-3xl" />
@@ -269,15 +272,16 @@ export default function CodeChallengeOnboardingImproved() {
           className="text-center mb-12"
         >
           <div className="inline-flex items-center gap-3 mb-4">
-            <div className="p-3 bg-gradient-to-br from-primary to-blue-600 rounded-lg">
+            <div className="p-3 bg-linear-to-br from-primary to-blue-600 rounded-lg">
               <Brain className="w-6 h-6 text-white" />
             </div>
-            <h1 className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-primary to-blue-600 bg-clip-text text-transparent">
+            <h1 className="text-4xl md:text-5xl font-bold bg-linear-to-r from-primary to-blue-600 bg-clip-text text-transparent">
               AI Code Challenge Setup
             </h1>
           </div>
           <p className="text-lg text-muted-foreground max-w-xl mx-auto">
-            Get personalized coding challenges tailored to your skills and target job
+            Get personalized coding challenges tailored to your skills and
+            target job
           </p>
         </motion.div>
 
@@ -329,8 +333,8 @@ export default function CodeChallengeOnboardingImproved() {
                     step.status === "completed"
                       ? "border-green-500 bg-green-50 dark:bg-green-950/20 text-green-700 dark:text-green-300"
                       : step.status === "in-progress"
-                      ? "border-primary bg-primary/10 text-primary"
-                      : "border-muted bg-muted/30 text-muted-foreground opacity-50 disabled:cursor-not-allowed"
+                        ? "border-primary bg-primary/10 text-primary"
+                        : "border-muted bg-muted/30 text-muted-foreground opacity-50 disabled:cursor-not-allowed",
                   )}
                 >
                   {step.status === "completed" ? (
@@ -396,14 +400,16 @@ export default function CodeChallengeOnboardingImproved() {
                   {uploadMethod === "file" && (
                     <div className="space-y-4">
                       <div
-                        onClick={() => !isLoading && fileInputRef.current?.click()}
+                        onClick={() =>
+                          !isLoading && fileInputRef.current?.click()
+                        }
                         className={cn(
                           "border-2 border-dashed rounded-lg p-8 text-center transition-all",
                           isLoading
                             ? "border-muted bg-muted/20 cursor-not-allowed opacity-60"
                             : cvParseError
-                            ? "border-red-300 bg-red-50 dark:bg-red-950/20 cursor-pointer hover:bg-red-100 dark:hover:bg-red-950/30"
-                            : "border-primary/30 cursor-pointer hover:bg-primary/5"
+                              ? "border-red-300 bg-red-50 dark:bg-red-950/20 cursor-pointer hover:bg-red-100 dark:hover:bg-red-950/30"
+                              : "border-primary/30 cursor-pointer hover:bg-primary/5",
                         )}
                       >
                         <input
@@ -417,7 +423,9 @@ export default function CodeChallengeOnboardingImproved() {
                         {isLoading ? (
                           <>
                             <Loader2 className="w-8 h-8 text-primary/50 mx-auto mb-2 animate-spin" />
-                            <p className="text-sm font-medium">Analyzing CV...</p>
+                            <p className="text-sm font-medium">
+                              Analyzing CV...
+                            </p>
                           </>
                         ) : (
                           <>
@@ -435,13 +443,14 @@ export default function CodeChallengeOnboardingImproved() {
                       {cvParseError && (
                         <div className="p-3 bg-red-50 dark:bg-red-950/20 border border-red-200 dark:border-red-800 rounded-lg">
                           <div className="flex items-start gap-2">
-                            <AlertCircle className="w-4 h-4 text-red-600 mt-0.5 flex-shrink-0" />
+                            <AlertCircle className="w-4 h-4 text-red-600 mt-0.5 shrink-0" />
                             <div>
                               <p className="text-sm font-medium text-red-900 dark:text-red-300">
                                 Could not parse CV file
                               </p>
                               <p className="text-xs text-red-800 dark:text-red-200 mt-1">
-                                {cvParseError}. Try pasting your CV text instead.
+                                {cvParseError}. Try pasting your CV text
+                                instead.
                               </p>
                             </div>
                           </div>
@@ -456,7 +465,7 @@ export default function CodeChallengeOnboardingImproved() {
                         >
                           <div className="flex items-center justify-between">
                             <div className="flex items-center gap-2">
-                              <CheckCircle2 className="w-5 h-5 text-green-600 flex-shrink-0" />
+                              <CheckCircle2 className="w-5 h-5 text-green-600 shrink-0" />
                               <div>
                                 <p className="text-sm font-medium text-green-900 dark:text-green-300">
                                   ✓ {cvFile.name}
@@ -473,7 +482,8 @@ export default function CodeChallengeOnboardingImproved() {
                                 setCvFile(null);
                                 setCvText("");
                                 setCvParseError(null);
-                                if (fileInputRef.current) fileInputRef.current.value = "";
+                                if (fileInputRef.current)
+                                  fileInputRef.current.value = "";
                               }}
                             >
                               <Trash2 className="w-4 h-4" />
@@ -488,7 +498,9 @@ export default function CodeChallengeOnboardingImproved() {
                   {uploadMethod === "paste" && (
                     <div className="space-y-3">
                       <div>
-                        <Label className="mb-2 block">Paste your CV content</Label>
+                        <Label className="mb-2 block">
+                          Paste your CV content
+                        </Label>
                         <textarea
                           value={cvText}
                           onChange={(e) => {
@@ -501,8 +513,8 @@ export default function CodeChallengeOnboardingImproved() {
                             validateCVLength(cvText)
                               ? "border-green-300 focus:ring-green-500"
                               : cvText.length > 0
-                              ? "border-yellow-300 focus:ring-yellow-500"
-                              : "border-input focus:ring-primary"
+                                ? "border-yellow-300 focus:ring-yellow-500"
+                                : "border-input focus:ring-primary",
                           )}
                         />
                         <div className="flex items-center justify-between mt-2">
@@ -510,7 +522,10 @@ export default function CodeChallengeOnboardingImproved() {
                             {cvText.length} / 100 characters minimum
                           </p>
                           {validateCVLength(cvText) && (
-                            <Badge variant="secondary" className="text-xs bg-green-100 text-green-700 dark:bg-green-950 dark:text-green-300">
+                            <Badge
+                              variant="secondary"
+                              className="text-xs bg-green-100 text-green-700 dark:bg-green-950 dark:text-green-300"
+                            >
                               ✓ Ready
                             </Badge>
                           )}
@@ -525,9 +540,13 @@ export default function CodeChallengeOnboardingImproved() {
                       💡 Tips for best results:
                     </p>
                     <ul className="text-sm text-blue-800 dark:text-blue-200 space-y-1">
-                      <li>• Include technical skills and programming languages</li>
+                      <li>
+                        • Include technical skills and programming languages
+                      </li>
                       <li>• Add relevant work experience and projects</li>
-                      <li>• Mention frameworks and tools you're familiar with</li>
+                      <li>
+                        • Mention frameworks and tools you're familiar with
+                      </li>
                       <li>• Include years of experience with each skill</li>
                     </ul>
                   </div>
@@ -630,7 +649,7 @@ export default function CodeChallengeOnboardingImproved() {
 
                   {jobDescriptionText && (
                     <div className="p-4 bg-green-50 dark:bg-green-950/20 border border-green-200 dark:border-green-800 rounded-lg flex items-start gap-2">
-                      <CheckCircle2 className="w-5 h-5 text-green-600 mt-0.5 flex-shrink-0" />
+                      <CheckCircle2 className="w-5 h-5 text-green-600 mt-0.5 shrink-0" />
                       <div>
                         <p className="text-sm font-semibold text-green-900 dark:text-green-300">
                           ✓ Job description added
@@ -713,7 +732,7 @@ export default function CodeChallengeOnboardingImproved() {
                           "p-6 rounded-lg border-2 transition-all text-left",
                           difficulty === option.level
                             ? "border-primary bg-primary/10"
-                            : "border-muted bg-muted/30 hover:border-muted-foreground/30"
+                            : "border-muted bg-muted/30 hover:border-muted-foreground/30",
                         )}
                       >
                         <div className="text-2xl mb-2">{option.icon}</div>
@@ -721,10 +740,7 @@ export default function CodeChallengeOnboardingImproved() {
                         <p className="text-xs text-muted-foreground mb-3">
                           {option.description}
                         </p>
-                        <Badge
-                          variant="secondary"
-                          className="text-xs"
-                        >
+                        <Badge variant="secondary" className="text-xs">
                           {option.focus}
                         </Badge>
                       </button>
@@ -733,7 +749,9 @@ export default function CodeChallengeOnboardingImproved() {
 
                   {/* Summary */}
                   <div className="p-4 bg-muted/30 border rounded-lg space-y-3">
-                    <h4 className="font-semibold text-sm">Your Setup Summary:</h4>
+                    <h4 className="font-semibold text-sm">
+                      Your Setup Summary:
+                    </h4>
                     <div className="space-y-2 text-sm">
                       <div className="flex items-center justify-between">
                         <span className="text-muted-foreground">CV Data:</span>
@@ -750,14 +768,16 @@ export default function CodeChallengeOnboardingImproved() {
                         </Badge>
                       </div>
                       <div className="flex items-center justify-between">
-                        <span className="text-muted-foreground">Difficulty:</span>
+                        <span className="text-muted-foreground">
+                          Difficulty:
+                        </span>
                         <Badge
                           className={cn(
                             difficulty === "Easy"
                               ? "bg-green-100 text-green-700 dark:bg-green-950 dark:text-green-300"
                               : difficulty === "Medium"
-                              ? "bg-yellow-100 text-yellow-700 dark:bg-yellow-950 dark:text-yellow-300"
-                              : "bg-red-100 text-red-700 dark:bg-red-950 dark:text-red-300"
+                                ? "bg-yellow-100 text-yellow-700 dark:bg-yellow-950 dark:text-yellow-300"
+                                : "bg-red-100 text-red-700 dark:bg-red-950 dark:text-red-300",
                           )}
                         >
                           {difficulty}
@@ -771,7 +791,7 @@ export default function CodeChallengeOnboardingImproved() {
                     onClick={handleGenerateChallenges}
                     disabled={!canGenerate || isLoading}
                     size="lg"
-                    className="w-full bg-gradient-to-r from-primary to-blue-600 hover:from-primary/90 hover:to-blue-600/90"
+                    className="w-full bg-linear-to-r from-primary to-blue-600 hover:from-primary/90 hover:to-blue-600/90"
                   >
                     {isLoading ? (
                       <>

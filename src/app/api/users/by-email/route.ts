@@ -20,7 +20,7 @@ export async function GET(req: NextRequest) {
     if (!email) {
       return NextResponse.json(
         { error: "Email parameter is required" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -46,7 +46,7 @@ export async function GET(req: NextRequest) {
     console.error("Error fetching user by email:", error);
     return NextResponse.json(
       { error: "Failed to fetch user" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

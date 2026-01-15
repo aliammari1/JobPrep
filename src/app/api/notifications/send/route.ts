@@ -34,7 +34,7 @@ export async function POST(request: NextRequest) {
     if (!body.title || !body.body) {
       return NextResponse.json(
         { error: "Title and body are required" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -71,13 +71,13 @@ export async function POST(request: NextRequest) {
         message: "Notification sent successfully",
         notification: notificationPayload,
       },
-      { status: 200 }
+      { status: 200 },
     );
   } catch (error) {
     console.error("[API] Error sending notification:", error);
     return NextResponse.json(
       { error: "Failed to send notification" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
@@ -95,7 +95,6 @@ async function sendToUser(userId: string, payload: any): Promise<void> {
   //   where: { userId },
   //   select: { subscription: true }
   // });
-
   // for (const { subscription } of subscriptions) {
   //   try {
   //     await webpush.sendNotification(subscription, JSON.stringify(payload));
@@ -117,7 +116,6 @@ async function broadcastToAll(payload: any): Promise<void> {
   // const subscriptions = await db.notification.findMany({
   //   select: { subscription: true }
   // });
-
   // for (const { subscription } of subscriptions) {
   //   try {
   //     await webpush.sendNotification(subscription, JSON.stringify(payload));

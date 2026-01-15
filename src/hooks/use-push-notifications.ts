@@ -63,7 +63,7 @@ export const usePushNotifications = () => {
         "/sw-push.js",
         {
           scope: "/",
-        }
+        },
       );
 
       console.log("Service Worker registered successfully:", registration);
@@ -160,7 +160,9 @@ export const usePushNotifications = () => {
 
       const subscription = await registration.pushManager.subscribe({
         userVisibleOnly: true,
-        applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY) as BufferSource,
+        applicationServerKey: urlBase64ToUint8Array(
+          VAPID_PUBLIC_KEY,
+        ) as BufferSource,
       });
 
       // Send subscription to server
@@ -268,7 +270,7 @@ export const usePushNotifications = () => {
         console.error("Error showing notification:", error);
       }
     },
-    []
+    [],
   );
 
   /**
@@ -316,7 +318,7 @@ function urlBase64ToUint8Array(base64String: string): Uint8Array {
  * Send subscription to backend server
  */
 async function sendSubscriptionToServer(
-  subscription: PushSubscription
+  subscription: PushSubscription,
 ): Promise<void> {
   try {
     const response = await fetch("/api/notifications/subscribe", {
@@ -345,7 +347,7 @@ async function sendSubscriptionToServer(
  * Send unsubscription to backend server
  */
 async function sendUnsubscriptionToServer(
-  subscription: PushSubscription
+  subscription: PushSubscription,
 ): Promise<void> {
   try {
     const response = await fetch("/api/notifications/unsubscribe", {

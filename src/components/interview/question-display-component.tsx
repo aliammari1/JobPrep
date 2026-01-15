@@ -1,16 +1,13 @@
-import { useMockInterviewStore } from '@/store/mock-interview-store';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Progress } from '@/components/ui/progress';
-import { Clock, AlertCircle } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import { useMockInterviewStore } from "@/store/mock-interview-store";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Progress } from "@/components/ui/progress";
+import { Clock, AlertCircle } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 export function QuestionDisplayComponent() {
-  const {
-    questions,
-    currentQuestionIndex,
-    currentQuestionTime,
-  } = useMockInterviewStore();
+  const { questions, currentQuestionIndex, currentQuestionTime } =
+    useMockInterviewStore();
 
   if (!questions || questions.length === 0) {
     return (
@@ -32,14 +29,14 @@ export function QuestionDisplayComponent() {
 
   const getDifficultyColor = (difficulty: string) => {
     switch (difficulty) {
-      case 'easy':
-        return 'bg-green-100 text-green-800 dark:bg-green-900/30';
-      case 'medium':
-        return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30';
-      case 'hard':
-        return 'bg-red-100 text-red-800 dark:bg-red-900/30';
+      case "easy":
+        return "bg-green-100 text-green-800 dark:bg-green-900/30";
+      case "medium":
+        return "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30";
+      case "hard":
+        return "bg-red-100 text-red-800 dark:bg-red-900/30";
       default:
-        return 'bg-gray-100 text-gray-800 dark:bg-gray-900/30';
+        return "bg-gray-100 text-gray-800 dark:bg-gray-900/30";
     }
   };
 
@@ -56,7 +53,9 @@ export function QuestionDisplayComponent() {
           {currentQuestion.timeLimit && (
             <div className="flex items-center gap-2 text-sm text-muted-foreground">
               <Clock className="w-4 h-4" />
-              <span>{currentQuestionTime}s / {currentQuestion.timeLimit}s</span>
+              <span>
+                {currentQuestionTime}s / {currentQuestion.timeLimit}s
+              </span>
             </div>
           )}
         </div>

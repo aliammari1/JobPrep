@@ -65,7 +65,7 @@ export function UserNav() {
               src={user.image || undefined}
               alt={user.name || "User"}
             />
-            <AvatarFallback className="bg-gradient-to-br from-primary to-primary/60 text-primary-foreground font-semibold">
+            <AvatarFallback className="bg-linear-to-br from-primary to-primary/60 text-primary-foreground font-semibold">
               {initials}
             </AvatarFallback>
           </Avatar>

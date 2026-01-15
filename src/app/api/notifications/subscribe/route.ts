@@ -23,7 +23,7 @@ export async function POST(request: NextRequest) {
     if (!subscription || !subscription.endpoint) {
       return NextResponse.json(
         { error: "Invalid subscription data" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -50,13 +50,13 @@ export async function POST(request: NextRequest) {
         message: "Successfully subscribed to notifications",
         subscriptionId: subscriptionKey,
       },
-      { status: 201 }
+      { status: 201 },
     );
   } catch (error) {
     console.error("[API] Error handling subscription:", error);
     return NextResponse.json(
       { error: "Failed to subscribe to notifications" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

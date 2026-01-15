@@ -118,12 +118,14 @@ export function ProblemPanel({
             <div className="flex items-start justify-between gap-3">
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2 mb-2 flex-wrap">
-                  <h2 className="text-lg font-bold truncate">{challenge.title}</h2>
+                  <h2 className="text-lg font-bold truncate">
+                    {challenge.title}
+                  </h2>
                   <Badge
                     className={cn(
                       "text-xs font-semibold h-fit whitespace-nowrap",
                       difficultyColors.bg,
-                      difficultyColors.text
+                      difficultyColors.text,
                     )}
                   >
                     {challenge.difficulty}
@@ -144,13 +146,17 @@ export function ProblemPanel({
                   <div className="flex items-center gap-1">
                     <Zap className="w-3 h-3 text-blue-600 dark:text-blue-400" />
                     <span>
-                      <span className="font-semibold">{challenge.timeLimit}ms</span>
+                      <span className="font-semibold">
+                        {challenge.timeLimit}ms
+                      </span>
                     </span>
                   </div>
                 )}
                 {challenge.memoryLimit && (
                   <div className="flex items-center gap-1">
-                    <span className="font-semibold">{challenge.memoryLimit}MB</span>
+                    <span className="font-semibold">
+                      {challenge.memoryLimit}MB
+                    </span>
                   </div>
                 )}
               </div>
@@ -162,9 +168,15 @@ export function ProblemPanel({
         <CardContent className="flex-1 overflow-y-auto p-4">
           <Tabs defaultValue="description" className="w-full">
             <TabsList className="grid w-full grid-cols-3 h-9 mb-4">
-              <TabsTrigger value="description" className="text-xs">Description</TabsTrigger>
-              <TabsTrigger value="examples" className="text-xs">Examples</TabsTrigger>
-              <TabsTrigger value="constraints" className="text-xs">Hints</TabsTrigger>
+              <TabsTrigger value="description" className="text-xs">
+                Description
+              </TabsTrigger>
+              <TabsTrigger value="examples" className="text-xs">
+                Examples
+              </TabsTrigger>
+              <TabsTrigger value="constraints" className="text-xs">
+                Hints
+              </TabsTrigger>
             </TabsList>
 
             {/* Description Tab */}
@@ -188,12 +200,10 @@ export function ProblemPanel({
                   <Card
                     className={cn(
                       "cursor-pointer transition-colors hover:bg-muted/50",
-                      expandedExample === index && "ring-2 ring-primary"
+                      expandedExample === index && "ring-2 ring-primary",
                     )}
                     onClick={() =>
-                      setExpandedExample(
-                        expandedExample === index ? -1 : index
-                      )
+                      setExpandedExample(expandedExample === index ? -1 : index)
                     }
                   >
                     <CardHeader className="pb-3">
@@ -230,7 +240,7 @@ export function ProblemPanel({
                                   onClick={(e) => {
                                     e.stopPropagation();
                                     navigator.clipboard.writeText(
-                                      example.input
+                                      example.input,
                                     );
                                     toast.success("Input copied!");
                                   }}
@@ -257,7 +267,7 @@ export function ProblemPanel({
                                   onClick={(e) => {
                                     e.stopPropagation();
                                     navigator.clipboard.writeText(
-                                      example.output
+                                      example.output,
                                     );
                                     toast.success("Output copied!");
                                   }}
@@ -310,7 +320,10 @@ export function ProblemPanel({
                         className="p-3 bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800/50 rounded text-sm"
                       >
                         <p className="text-amber-900 dark:text-amber-100">
-                          <span className="font-semibold">Hint {index + 1}:</span> {hint}
+                          <span className="font-semibold">
+                            Hint {index + 1}:
+                          </span>{" "}
+                          {hint}
                         </p>
                       </motion.div>
                     ))}
@@ -320,7 +333,13 @@ export function ProblemPanel({
 
               {/* Constraints Section */}
               {challenge.constraints && challenge.constraints.length > 0 && (
-                <div className={cn(challenge.hints && challenge.hints.length > 0 && "pt-4 border-t")}>
+                <div
+                  className={cn(
+                    challenge.hints &&
+                      challenge.hints.length > 0 &&
+                      "pt-4 border-t",
+                  )}
+                >
                   <h3 className="font-semibold text-sm mb-3">Constraints</h3>
                   <ul className="space-y-2">
                     {challenge.constraints.map((constraint, index) => (

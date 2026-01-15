@@ -2,32 +2,32 @@
 
 import { useEffect, useRef, useState } from "react";
 import StreamingAvatar, {
-	AvatarQuality,
-	StreamingEvents,
-	TaskType,
-	VoiceChatTransport,
+  AvatarQuality,
+  StreamingEvents,
+  TaskType,
+  VoiceChatTransport,
 } from "@heygen/streaming-avatar";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import {
-	Mic,
-	MicOff,
-	Volume2,
-	VolumeX,
-	Play,
-	Square,
-	Send,
-	Loader2,
+  Mic,
+  MicOff,
+  Volume2,
+  VolumeX,
+  Play,
+  Square,
+  Send,
+  Loader2,
 } from "lucide-react";
 
 interface HeyGenAvatarProps {
-	avatarId?: string;
-	voiceId?: string;
-	quality?: AvatarQuality;
-	onError?: (error: string) => void;
-	questionToSpeak?: string; // Auto-speak this question when it changes
-	compact?: boolean; // New: renders without card wrapper and minimal controls
+  avatarId?: string;
+  voiceId?: string;
+  quality?: AvatarQuality;
+  onError?: (error: string) => void;
+  questionToSpeak?: string; // Auto-speak this question when it changes
+  compact?: boolean; // New: renders without card wrapper and minimal controls
 }
 
 export default function HeyGenAvatar({
@@ -58,11 +58,11 @@ export default function HeyGenAvatar({
   // Filter non-critical errors
   const isNonCriticalError = (message: string): boolean => {
     return (
-      message.includes('DataChannel error') ||
-      message.includes('lossy') ||
-      message.includes('ICE connection') ||
-      message.includes('STUN') ||
-      message.includes('ICE failed')
+      message.includes("DataChannel error") ||
+      message.includes("lossy") ||
+      message.includes("ICE connection") ||
+      message.includes("STUN") ||
+      message.includes("ICE failed")
     );
   };
 
@@ -70,10 +70,10 @@ export default function HeyGenAvatar({
     // Setup SDK error event listener
     const handleSDKError = (event: any) => {
       const errorMsg = event?.message || event?.toString?.() || String(event);
-      
+
       // Only log critical errors
       if (!isNonCriticalError(errorMsg)) {
-        console.error('HeyGen SDK Error:', event);
+        console.error("HeyGen SDK Error:", event);
       }
     };
 
@@ -91,12 +91,14 @@ export default function HeyGenAvatar({
   // Auto-speak question when it changes
   useEffect(() => {
     if (questionToSpeak && avatarRef.current && sessionData) {
-      avatarRef.current.speak({
-        text: questionToSpeak,
-        task_type: TaskType.TALK,
-      }).catch((error) => {
-        console.error("Error speaking question:", error);
-      });
+      avatarRef.current
+        .speak({
+          text: questionToSpeak,
+          task_type: TaskType.TALK,
+        })
+        .catch((error) => {
+          console.error("Error speaking question:", error);
+        });
     }
   }, [questionToSpeak, sessionData]);
 
@@ -135,21 +137,21 @@ export default function HeyGenAvatar({
         );
       }
 
-			const { data } = await tokenResponse.json();
-			const token = data?.token;
+      const { data } = await tokenResponse.json();
+      const token = data?.token;
 
-			if (!token) {
-				throw new Error("No token received from API");
-			}
+      if (!token) {
+        throw new Error("No token received from API");
+      }
 
-			console.log("Token received, initializing avatar...");
+      console.log("Token received, initializing avatar...");
 
-			// Initialize streaming avatar
-			const avatar = new StreamingAvatar({ token });
-			avatarRef.current = avatar;
-			
-			console.log("Avatar SDK initialized, creating session...");      
-      
+      // Initialize streaming avatar
+      const avatar = new StreamingAvatar({ token });
+      avatarRef.current = avatar;
+
+      console.log("Avatar SDK initialized, creating session...");
+
       // Setup event listeners
       avatar.on(StreamingEvents.AVATAR_START_TALKING, () => {
         console.log("Avatar started talking");
@@ -185,12 +187,12 @@ export default function HeyGenAvatar({
       });
 
       // Create and start avatar session
-      console.log("Calling createStartAvatar with:", { 
-        quality, 
-        avatarName: avatarId, 
-        language: "en" 
+      console.log("Calling createStartAvatar with:", {
+        quality,
+        avatarName: avatarId,
+        language: "en",
       });
-      
+
       let session;
       try {
         session = await avatar.createStartAvatar({
@@ -198,7 +200,8 @@ export default function HeyGenAvatar({
           avatarName: avatarId,
           language: "en",
           voiceChatTransport: VoiceChatTransport.WEBSOCKET,
-          knowledgeBase: "You are an interview assistant. Your ONLY job is to read the interview questions exactly as provided to you. Do NOT add any business advice, commentary, suggestions, or extra information. Just read the questions word-for-word and wait for the candidate's response. Never talk about business topics unless specifically asked in the question itself.",
+          knowledgeBase:
+            "You are an interview assistant. Your ONLY job is to read the interview questions exactly as provided to you. Do NOT add any business advice, commentary, suggestions, or extra information. Just read the questions word-for-word and wait for the candidate's response. Never talk about business topics unless specifically asked in the question itself.",
         });
       } catch (sdkError: any) {
         // Filter and ignore non-critical SDK errors
@@ -227,12 +230,12 @@ export default function HeyGenAvatar({
       if (!isNonCriticalError(errorMsg)) {
         console.error("Error initializing avatar:", error);
         console.error("Error details:", {
-          name: error instanceof Error ? error.name : 'Unknown',
+          name: error instanceof Error ? error.name : "Unknown",
           message: errorMsg,
-          stack: error instanceof Error ? error.stack : undefined
+          stack: error instanceof Error ? error.stack : undefined,
         });
       }
-      
+
       let errorMessage = "Failed to initialize avatar";
 
       if (error instanceof Error) {
@@ -392,13 +395,17 @@ export default function HeyGenAvatar({
       )}
 
       {/* Video Stream */}
-      <div className={`relative ${compact ? 'aspect-square' : 'aspect-video'} bg-gradient-to-br from-primary/20 to-primary/5 rounded-lg overflow-hidden`}>
+      <div
+        className={`relative ${compact ? "aspect-square" : "aspect-video"} bg-linear-to-br from-primary/20 to-primary/5 rounded-lg overflow-hidden`}
+      >
         {!stream && (
           <div className="absolute inset-0 flex items-center justify-center text-muted-foreground z-10">
             {isLoadingSession ? (
               <div className="flex flex-col items-center gap-2">
                 <Loader2 className="w-8 h-8 animate-spin text-primary" />
-                {!compact && <p className="text-sm">Starting avatar session...</p>}
+                {!compact && (
+                  <p className="text-sm">Starting avatar session...</p>
+                )}
               </div>
             ) : (
               <div className="flex flex-col items-center gap-3 p-4">
@@ -414,7 +421,11 @@ export default function HeyGenAvatar({
                   <Play className="w-3 h-3 mr-2" />
                   Start Avatar
                 </Button>
-                {!compact && <p className="text-xs text-muted-foreground mt-1">Click to begin</p>}
+                {!compact && (
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Click to begin
+                  </p>
+                )}
               </div>
             )}
           </div>
@@ -426,7 +437,7 @@ export default function HeyGenAvatar({
           aria-label="AI Avatar Video Stream"
           className="w-full h-full object-cover"
         />
-        
+
         {/* Compact mode: Show speaking/listening indicators over video */}
         {compact && stream && (
           <div className="absolute top-2 right-2 flex gap-1 z-20">
@@ -442,7 +453,7 @@ export default function HeyGenAvatar({
             )}
           </div>
         )}
-        
+
         {/* Compact mode: Show stop button over video */}
         {compact && sessionData && (
           <div className="absolute bottom-2 right-2 z-20">

@@ -18,14 +18,14 @@ const challengeSchema = z.object({
           input: z.string(),
           output: z.string(),
           explanation: z.string(),
-        })
+        }),
       ),
       testCases: z.array(
         z.object({
           id: z.string(),
           input: z.string(),
           expectedOutput: z.string(),
-        })
+        }),
       ),
       timeLimit: z.number(),
       memoryLimit: z.number(),
@@ -42,10 +42,9 @@ const challengeSchema = z.object({
           go: z.string().optional(),
         })
         .optional(),
-    })
+    }),
   ),
 });
-
 
 /**
  * Generate personalized coding challenges for a candidate using CV data and a job description.
@@ -67,12 +66,17 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const { cvData, jobDescription, difficulty = "Medium", count = 3 } = await req.json();
+    const {
+      cvData,
+      jobDescription,
+      difficulty = "Medium",
+      count = 3,
+    } = await req.json();
 
     if (!cvData || !jobDescription) {
       return NextResponse.json(
         { error: "CV data and job description are required" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -80,14 +84,18 @@ export async function POST(req: NextRequest) {
     const cvSkills = extractSkills(cvData);
     const jobSkills = extractSkills(jobDescription);
     const matchingSkills = cvSkills.filter((skill) =>
-      jobSkills.some((js) => js.toLowerCase().includes(skill.toLowerCase()))
+      jobSkills.some((js) => js.toLowerCase().includes(skill.toLowerCase())),
     );
 
     // Generate personalized coding challenges using Ollama with Vercel AI SDK
     const systemPrompt = `You are an expert technical interviewer. Generate ONLY valid JSON. No explanations, no markdown, just pure JSON.`;
-    
-    const cvExperience = cvData.experience ? cvData.experience.map((e: any) => `${e.title} at ${e.company}`).join(", ") : "N/A";
-    
+
+    const cvExperience = cvData.experience
+      ? cvData.experience
+          .map((e: any) => `${e.title} at ${e.company}`)
+          .join(", ")
+      : "N/A";
+
     const prompt = `Generate ${count} coding challenges in this EXACT JSON format:
 
 {
@@ -132,19 +140,21 @@ Job: ${jobDescription.substring(0, 500)}
 Return ONLY the JSON object. Start with { and end with }. No other text.`;
 
     console.log("🤖 Generating challenges with Ollama (Vercel AI SDK)...");
-    
+
     const result = await generateStructuredOutputRetry(
       prompt,
       challengeSchema,
       systemPrompt,
-      3
+      3,
     );
 
-    console.log(`✅ Generated ${result.challenges.length} challenges successfully`);
+    console.log(
+      `✅ Generated ${result.challenges.length} challenges successfully`,
+    );
 
     // Save challenges to database and return with IDs
     const userId = session.user.id;
-    
+
     const savedChallenges = await Promise.all(
       result.challenges.map(async (challenge) => {
         return await prisma.challenge.create({
@@ -161,10 +171,12 @@ Return ONLY the JSON object. Start with { and end with }. No other text.`;
             category: challenge.category || "General",
             tags: challenge.tags || [],
             hints: challenge.hints || [],
-            starterCode: challenge.starterCode || generateDefaultStarterCode(challenge.title || "Challenge"),
+            starterCode:
+              challenge.starterCode ||
+              generateDefaultStarterCode(challenge.title || "Challenge"),
           },
         });
-      })
+      }),
     );
 
     return NextResponse.json({
@@ -184,7 +196,7 @@ Return ONLY the JSON object. Start with { and end with }. No other text.`;
         error: "Failed to generate challenges",
         details: error instanceof Error ? error.message : "Unknown error",
       },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
@@ -207,17 +219,48 @@ function extractSkills(text: string | any): string[] {
 
   // Extract from text
   const commonSkills = [
-    "JavaScript", "TypeScript", "Python", "Java", "C++", "Go", "Rust",
-    "React", "Vue", "Angular", "Node.js", "Express", "Django", "Flask",
-    "MongoDB", "PostgreSQL", "MySQL", "Redis", "Docker", "Kubernetes",
-    "AWS", "Azure", "GCP", "Git", "CI/CD", "REST API", "GraphQL",
-    "Machine Learning", "Data Structures", "Algorithms", "System Design",
-    "Microservices", "Testing", "Agile", "Scrum", "TDD", "BDD"
+    "JavaScript",
+    "TypeScript",
+    "Python",
+    "Java",
+    "C++",
+    "Go",
+    "Rust",
+    "React",
+    "Vue",
+    "Angular",
+    "Node.js",
+    "Express",
+    "Django",
+    "Flask",
+    "MongoDB",
+    "PostgreSQL",
+    "MySQL",
+    "Redis",
+    "Docker",
+    "Kubernetes",
+    "AWS",
+    "Azure",
+    "GCP",
+    "Git",
+    "CI/CD",
+    "REST API",
+    "GraphQL",
+    "Machine Learning",
+    "Data Structures",
+    "Algorithms",
+    "System Design",
+    "Microservices",
+    "Testing",
+    "Agile",
+    "Scrum",
+    "TDD",
+    "BDD",
   ];
 
   const textLower = text.toLowerCase();
-  return commonSkills.filter(skill => 
-    textLower.includes(skill.toLowerCase())
+  return commonSkills.filter((skill) =>
+    textLower.includes(skill.toLowerCase()),
   );
 }
 

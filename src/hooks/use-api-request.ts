@@ -1,4 +1,4 @@
-import { useCallback, useRef } from 'react';
+import { useCallback, useRef } from "react";
 
 interface RequestCache<T> {
   data: T;
@@ -24,7 +24,7 @@ const inflightRequests = new Map<string, Promise<any>>();
 export function useAPIRequest<T>(
   key: string,
   fetcher: () => Promise<T>,
-  options: RequestOptions = {}
+  options: RequestOptions = {},
 ) {
   const { ttl = DEFAULT_TTL, deduplicate = true } = options;
   const abortControllerRef = useRef<AbortController | null>(null);
@@ -94,14 +94,14 @@ export function useAPIRequest<T>(
 export function clearAllAPICache() {
   requestCache.clear();
   inflightRequests.clear();
-  console.log('Cleared all API caches');
+  console.log("Cleared all API caches");
 }
 
 /**
  * Global function to invalidate cache by pattern
  */
 export function invalidateAPICache(pattern: string | RegExp) {
-  const regex = typeof pattern === 'string' ? new RegExp(pattern) : pattern;
+  const regex = typeof pattern === "string" ? new RegExp(pattern) : pattern;
   let count = 0;
 
   for (const key of requestCache.keys()) {

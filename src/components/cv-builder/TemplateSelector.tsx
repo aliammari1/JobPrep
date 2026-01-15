@@ -18,9 +18,21 @@ export function TemplateSelector() {
   const { settings, updateSettings } = useCVStore();
 
   const templates = [
-    { id: "modern", name: "Modern", description: "Two-column with colored headers" },
-    { id: "classic", name: "Classic", description: "Traditional centered layout" },
-    { id: "minimal", name: "Minimal", description: "Clean with lots of whitespace" },
+    {
+      id: "modern",
+      name: "Modern",
+      description: "Two-column with colored headers",
+    },
+    {
+      id: "classic",
+      name: "Classic",
+      description: "Traditional centered layout",
+    },
+    {
+      id: "minimal",
+      name: "Minimal",
+      description: "Clean with lots of whitespace",
+    },
   ];
 
   const currentTemplate = templates.find((t) => t.id === settings.template);
@@ -29,7 +41,9 @@ export function TemplateSelector() {
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <Button variant="outline" size="sm" className="gap-2">
-          <span className="text-xs font-medium">{currentTemplate?.name || "Template"}</span>
+          <span className="text-xs font-medium">
+            {currentTemplate?.name || "Template"}
+          </span>
           <ChevronDown className="h-4 w-4" />
         </Button>
       </DropdownMenuTrigger>
@@ -44,7 +58,9 @@ export function TemplateSelector() {
           >
             <div className="flex flex-col gap-1">
               <p className="font-medium text-sm">{template.name}</p>
-              <p className="text-xs text-muted-foreground">{template.description}</p>
+              <p className="text-xs text-muted-foreground">
+                {template.description}
+              </p>
             </div>
           </DropdownMenuItem>
         ))}
@@ -53,7 +69,10 @@ export function TemplateSelector() {
           <>
             <DropdownMenuSeparator />
             <div className="px-2 py-2">
-              <Label htmlFor="colorScheme" className="text-xs font-medium flex items-center gap-2 mb-2">
+              <Label
+                htmlFor="colorScheme"
+                className="text-xs font-medium flex items-center gap-2 mb-2"
+              >
                 <Palette className="h-3 w-3" />
                 Accent Color
               </Label>
@@ -61,7 +80,9 @@ export function TemplateSelector() {
                 id="colorScheme"
                 type="color"
                 value={settings.colorScheme}
-                onChange={(e) => updateSettings({ colorScheme: e.target.value })}
+                onChange={(e) =>
+                  updateSettings({ colorScheme: e.target.value })
+                }
                 className="h-8 w-full cursor-pointer rounded border p-1"
               />
             </div>

@@ -116,7 +116,7 @@ export function WhiteboardCollaboration({
 
   const drawElement = (
     ctx: CanvasRenderingContext2D,
-    element: DrawingElement
+    element: DrawingElement,
   ) => {
     ctx.strokeStyle = element.color;
     ctx.lineWidth = element.size;
@@ -161,7 +161,7 @@ export function WhiteboardCollaboration({
           const start = element.points[0];
           const end = element.points[element.points.length - 1];
           const radius = Math.sqrt(
-            Math.pow(end.x - start.x, 2) + Math.pow(end.y - start.y, 2)
+            Math.pow(end.x - start.x, 2) + Math.pow(end.y - start.y, 2),
           );
           ctx.beginPath();
           ctx.arc(start.x, start.y, radius, 0, 2 * Math.PI);
@@ -351,7 +351,7 @@ export function WhiteboardCollaboration({
                   "w-6 h-6 rounded-full border-2 transition-all",
                   currentColor === color
                     ? "border-gray-900 scale-110"
-                    : "border-gray-300"
+                    : "border-gray-300",
                 )}
                 style={{ backgroundColor: color }}
               />
@@ -439,7 +439,7 @@ export function WhiteboardCollaboration({
                       {participant.name}
                     </span>
                   </motion.div>
-                )
+                ),
             )}
         </div>
       </CardContent>

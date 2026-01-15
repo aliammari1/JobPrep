@@ -114,14 +114,17 @@ export const SUBSCRIPTION_PLANS = {
   },
 } as const;
 
-export type SubscriptionPlan = typeof SUBSCRIPTION_PLANS[keyof typeof SUBSCRIPTION_PLANS];
+export type SubscriptionPlan =
+  (typeof SUBSCRIPTION_PLANS)[keyof typeof SUBSCRIPTION_PLANS];
 
 export function getPlanByTier(tier: SubscriptionTier): SubscriptionPlan {
   const plans: Record<SubscriptionTier, SubscriptionPlan> = SUBSCRIPTION_PLANS;
   return plans[tier];
 }
 
-export function getPlanByStripePriceId(priceId: string): SubscriptionPlan | null {
+export function getPlanByStripePriceId(
+  priceId: string,
+): SubscriptionPlan | null {
   for (const plan of Object.values(SUBSCRIPTION_PLANS)) {
     if (
       plan.stripePriceId.monthly === priceId ||
@@ -135,7 +138,7 @@ export function getPlanByStripePriceId(priceId: string): SubscriptionPlan | null
 
 export function canAccessFeature(
   userTier: SubscriptionTier,
-  feature: keyof SubscriptionPlan["features"]
+  feature: keyof SubscriptionPlan["features"],
 ): boolean {
   const plan = getPlanByTier(userTier);
   return plan.features[feature] === true;
@@ -144,16 +147,16 @@ export function canAccessFeature(
 export function checkLimit(
   userTier: SubscriptionTier,
   limitType: keyof SubscriptionPlan["limits"],
-  currentUsage: number
+  currentUsage: number,
 ): { allowed: boolean; limit: number; remaining: number } {
   const plan = getPlanByTier(userTier);
   const limit = plan.limits[limitType];
-  
+
   // -1 means unlimited
   if (limit === -1) {
     return { allowed: true, limit: -1, remaining: -1 };
   }
-  
+
   const remaining = Math.max(0, limit - currentUsage);
   return {
     allowed: currentUsage < limit,

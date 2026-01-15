@@ -115,8 +115,8 @@ export async function sendBatchEmails(emails: EmailOptions[]) {
           html: email.html,
           text: email.text || email.html,
           replyTo: email.replyTo || process.env.GMAIL_USER_EMAIL,
-        })
-      )
+        }),
+      ),
     );
 
     return { success: true, data: results };
@@ -129,7 +129,7 @@ export async function sendBatchEmails(emails: EmailOptions[]) {
 // Email Templates
 export function getVerificationEmailTemplate(
   verificationUrl: string,
-  userName?: string
+  userName?: string,
 ) {
   return `
     <!DOCTYPE html>
@@ -163,7 +163,7 @@ export function getVerificationEmailTemplate(
 
 export function getPasswordResetEmailTemplate(
   resetUrl: string,
-  userName?: string
+  userName?: string,
 ) {
   return `
     <!DOCTYPE html>
@@ -278,7 +278,7 @@ export function getWelcomeEmailTemplate(userName: string) {
 export async function sendVerificationEmail(
   email: string,
   verificationToken: string,
-  userName?: string
+  userName?: string,
 ) {
   const appUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
   const verificationUrl = `${appUrl}/verify-email?token=${verificationToken}`;
@@ -297,7 +297,7 @@ export async function sendVerificationEmail(
 export async function sendPasswordResetEmail(
   email: string,
   resetToken: string,
-  userName?: string
+  userName?: string,
 ) {
   const appUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
   const resetUrl = `${appUrl}/reset-password?token=${resetToken}`;
@@ -328,7 +328,7 @@ export async function scheduleInterviewReminder(
     interviewUrl: string;
     candidateName?: string;
   },
-  sendAt: Date
+  sendAt: Date,
 ) {
   return await sendEmail({
     to: email,

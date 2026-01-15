@@ -18,7 +18,7 @@ export async function POST(req: Request) {
     if (!question || !answer) {
       return NextResponse.json(
         { error: "Missing required fields: question and answer" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -46,7 +46,7 @@ Format your response clearly with headers and bullet points.`,
     console.error("Response analysis error:", error);
     return NextResponse.json(
       { error: "Failed to analyze response" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

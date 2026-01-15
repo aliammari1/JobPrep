@@ -1,7 +1,7 @@
 /**
  * Calendar Sync API
  * Handles Google Calendar integration
- * 
+ *
  * Endpoints:
  * POST /api/calendar/sync/authorize - Get OAuth URL
  * POST /api/calendar/sync/callback - Exchange code for tokens
@@ -10,11 +10,11 @@
  * DELETE /api/calendar/sync/event - Remove event from Google Calendar
  */
 
-import { NextRequest, NextResponse } from 'next/server';
-import prisma from '@/lib/prisma';
-import { auth } from '@/lib/auth';
-import { headers } from 'next/headers';
-import { googleCalendarService } from '@/lib/google-calendar-service';
+import { NextRequest, NextResponse } from "next/server";
+import prisma from "@/lib/prisma";
+import { auth } from "@/lib/auth";
+import { headers } from "next/headers";
+import { googleCalendarService } from "@/lib/google-calendar-service";
 
 // GET /api/calendar/sync/authorize
 /**
@@ -25,7 +25,7 @@ import { googleCalendarService } from '@/lib/google-calendar-service';
  */
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
-  const action = searchParams.get('action');
+  const action = searchParams.get("action");
 
   try {
     const session = await auth.api.getSession({
@@ -33,20 +33,20 @@ export async function GET(req: NextRequest) {
     });
 
     if (!session?.user?.id) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    if (action === 'authorize') {
+    if (action === "authorize") {
       const authUrl = googleCalendarService.getAuthUrl();
       return NextResponse.json({ authUrl });
     }
 
-    return NextResponse.json({ error: 'Invalid action' }, { status: 400 });
+    return NextResponse.json({ error: "Invalid action" }, { status: 400 });
   } catch (error: any) {
-    console.error('Calendar auth error:', error);
+    console.error("Calendar auth error:", error);
     return NextResponse.json(
-      { error: 'Failed to get authorization URL', details: error.message },
-      { status: 500 }
+      { error: "Failed to get authorization URL", details: error.message },
+      { status: 500 },
     );
   }
 }
@@ -67,7 +67,7 @@ export async function GET(req: NextRequest) {
  */
 export async function POST(req: NextRequest) {
   const { searchParams } = new URL(req.url);
-  const action = searchParams.get('action');
+  const action = searchParams.get("action");
 
   try {
     const session = await auth.api.getSession({
@@ -75,15 +75,18 @@ export async function POST(req: NextRequest) {
     });
 
     if (!session?.user?.id) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     const body = await req.json();
 
-    if (action === 'callback') {
+    if (action === "callback") {
       const { code } = body;
       if (!code) {
-        return NextResponse.json({ error: 'Missing auth code' }, { status: 400 });
+        return NextResponse.json(
+          { error: "Missing auth code" },
+          { status: 400 },
+        );
       }
 
       // Exchange code for tokens
@@ -95,7 +98,7 @@ export async function POST(req: NextRequest) {
       });
 
       if (!user) {
-        return NextResponse.json({ error: 'User not found' }, { status: 404 });
+        return NextResponse.json({ error: "User not found" }, { status: 404 });
       }
 
       // Update user with calendar tokens
@@ -109,18 +112,18 @@ export async function POST(req: NextRequest) {
 
       return NextResponse.json({
         success: true,
-        message: 'Calendar connected successfully',
+        message: "Calendar connected successfully",
       });
     }
 
-    if (action === 'export') {
+    if (action === "export") {
       // Export interview to Google Calendar
       const { interviewId } = body;
 
       if (!interviewId) {
         return NextResponse.json(
-          { error: 'Missing interviewId' },
-          { status: 400 }
+          { error: "Missing interviewId" },
+          { status: 400 },
         );
       }
 
@@ -133,13 +136,13 @@ export async function POST(req: NextRequest) {
 
       if (!interview) {
         return NextResponse.json(
-          { error: 'Interview not found' },
-          { status: 404 }
+          { error: "Interview not found" },
+          { status: 404 },
         );
       }
 
       if (interview.interviewerId !== session.user.id) {
-        return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+        return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
       }
 
       // Get calendar tokens from user storage and export interview
@@ -147,15 +150,15 @@ export async function POST(req: NextRequest) {
         where: {
           userId_provider: {
             userId: session.user.id,
-            provider: 'google',
-          }
-        }
+            provider: "google",
+          },
+        },
       });
 
       if (!tokenRecord?.accessToken) {
         return NextResponse.json(
-          { error: 'Google Calendar not connected' },
-          { status: 401 }
+          { error: "Google Calendar not connected" },
+          { status: 401 },
         );
       }
 
@@ -164,32 +167,38 @@ export async function POST(req: NextRequest) {
       const eventData = {
         summary: interview.position || interview.candidateName || "Interview",
         startTime: interview.scheduledAt,
-        endTime: interview.duration ? new Date(interview.scheduledAt!.getTime() + interview.duration * 60000) : interview.scheduledAt,
-        attendees: [interview.interviewerId, interview.candidateId].filter(Boolean),
+        endTime: interview.duration
+          ? new Date(
+              interview.scheduledAt!.getTime() + interview.duration * 60000,
+            )
+          : interview.scheduledAt,
+        attendees: [interview.interviewerId, interview.candidateId].filter(
+          Boolean,
+        ),
       };
 
       return NextResponse.json({
         success: true,
-        message: 'Interview exported to calendar',
+        message: "Interview exported to calendar",
         eventData,
       });
     }
 
-    if (action === 'import') {
+    if (action === "import") {
       // Import events from Google Calendar
       const tokenRecord = await prisma.integrationToken.findUnique({
         where: {
           userId_provider: {
             userId: session.user.id,
-            provider: 'google',
-          }
-        }
+            provider: "google",
+          },
+        },
       });
 
       if (!tokenRecord?.accessToken) {
         return NextResponse.json(
-          { error: 'Google Calendar not connected' },
-          { status: 401 }
+          { error: "Google Calendar not connected" },
+          { status: 401 },
         );
       }
 
@@ -202,19 +211,19 @@ export async function POST(req: NextRequest) {
 
       return NextResponse.json({
         success: true,
-        message: 'Calendar events imported successfully',
+        message: "Calendar events imported successfully",
         eventsSynced: 0,
       });
     }
 
-    if (action === 'delete') {
+    if (action === "delete") {
       // Delete event from Google Calendar
       const { eventId, interviewId } = body;
 
       if (!eventId || !interviewId) {
         return NextResponse.json(
-          { error: 'Missing eventId or interviewId' },
-          { status: 400 }
+          { error: "Missing eventId or interviewId" },
+          { status: 400 },
         );
       }
 
@@ -224,13 +233,13 @@ export async function POST(req: NextRequest) {
 
       if (!interview) {
         return NextResponse.json(
-          { error: 'Interview not found' },
-          { status: 404 }
+          { error: "Interview not found" },
+          { status: 404 },
         );
       }
 
       if (interview.interviewerId !== session.user.id) {
-        return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+        return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
       }
 
       // Get calendar tokens from user storage and delete event
@@ -238,31 +247,31 @@ export async function POST(req: NextRequest) {
         where: {
           userId_provider: {
             userId: session.user.id,
-            provider: 'google',
-          }
-        }
+            provider: "google",
+          },
+        },
       });
 
       if (!tokenRecord?.accessToken) {
         return NextResponse.json(
-          { error: 'Google Calendar not connected' },
-          { status: 401 }
+          { error: "Google Calendar not connected" },
+          { status: 401 },
         );
       }
 
       // For full implementation, would delete event from calendar using oauth2Client
       return NextResponse.json({
         success: true,
-        message: 'Event removed from calendar',
+        message: "Event removed from calendar",
       });
     }
 
-    return NextResponse.json({ error: 'Invalid action' }, { status: 400 });
+    return NextResponse.json({ error: "Invalid action" }, { status: 400 });
   } catch (error: any) {
-    console.error('Calendar sync error:', error);
+    console.error("Calendar sync error:", error);
     return NextResponse.json(
-      { error: 'Calendar sync failed', details: error.message },
-      { status: 500 }
+      { error: "Calendar sync failed", details: error.message },
+      { status: 500 },
     );
   }
 }

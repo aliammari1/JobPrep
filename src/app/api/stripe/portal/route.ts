@@ -22,7 +22,7 @@ export async function POST(req: Request) {
     if (!user?.stripeCustomerId) {
       return NextResponse.json(
         { error: "No subscription found" },
-        { status: 404 }
+        { status: 404 },
       );
     }
 
@@ -37,7 +37,7 @@ export async function POST(req: Request) {
     console.error("Error creating portal session:", error);
     return NextResponse.json(
       { error: "Failed to create portal session" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

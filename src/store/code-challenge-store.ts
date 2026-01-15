@@ -1,5 +1,5 @@
-import { create } from 'zustand';
-import { devtools } from 'zustand/middleware';
+import { create } from "zustand";
+import { devtools } from "zustand/middleware";
 
 interface TestCase {
   id: string;
@@ -13,7 +13,7 @@ interface TestCase {
 interface Challenge {
   id: string;
   title: string;
-  difficulty: 'Easy' | 'Medium' | 'Hard';
+  difficulty: "Easy" | "Medium" | "Hard";
   description: string;
   constraints: string[];
   examples: Array<{ input: string; output: string; explanation: string }>;
@@ -56,20 +56,20 @@ interface CodeChallengeState {
   // User context
   cvText: string;
   jobDescriptionText: string;
-  selectedDifficulty: 'Easy' | 'Medium' | 'Hard';
+  selectedDifficulty: "Easy" | "Medium" | "Hard";
 
   // Actions
   setCurrentChallenge: (challenge: Challenge) => void;
   setGeneratedChallenges: (challenges: Challenge[]) => void;
   setCurrentChallengeIndex: (index: number) => void;
-  
+
   setCode: (language: string, code: string) => void;
   getCode: (language: string) => string;
   setSelectedLanguage: (language: string) => void;
-  
+
   setTestResults: (results: TestCase[]) => void;
   setExecutionMetrics: (metrics: ExecutionMetrics) => void;
-  
+
   setHasUnsavedChanges: (value: boolean) => void;
   setLastSaved: (date: Date | null) => void;
   setIsRunning: (value: boolean) => void;
@@ -80,11 +80,11 @@ interface CodeChallengeState {
   addConsoleOutput: (output: string) => void;
   clearConsoleOutput: () => void;
   setIsFullscreen: (value: boolean) => void;
-  
+
   setCvText: (text: string) => void;
   setJobDescriptionText: (text: string) => void;
-  setSelectedDifficulty: (difficulty: 'Easy' | 'Medium' | 'Hard') => void;
-  
+  setSelectedDifficulty: (difficulty: "Easy" | "Medium" | "Hard") => void;
+
   resetCode: (language: string, defaultCode: string) => void;
   reset: () => void;
 }
@@ -94,7 +94,7 @@ const initialState = {
   generatedChallenges: [],
   currentChallengeIndex: 0,
   code: {},
-  selectedLanguage: 'javascript',
+  selectedLanguage: "javascript",
   testResults: [],
   executionMetrics: {
     totalTime: 0,
@@ -110,9 +110,9 @@ const initialState = {
   showConsole: false,
   consoleOutput: [] as string[],
   isFullscreen: false,
-  cvText: '',
-  jobDescriptionText: '',
-  selectedDifficulty: 'Medium' as const,
+  cvText: "",
+  jobDescriptionText: "",
+  selectedDifficulty: "Medium" as const,
 };
 
 export const useCodeChallengeStore = create<CodeChallengeState>()(
@@ -121,15 +121,17 @@ export const useCodeChallengeStore = create<CodeChallengeState>()(
       ...initialState,
 
       setCurrentChallenge: (challenge) => set({ currentChallenge: challenge }),
-      setGeneratedChallenges: (challenges) => set({ generatedChallenges: challenges }),
-      setCurrentChallengeIndex: (index) => set({ currentChallengeIndex: index }),
+      setGeneratedChallenges: (challenges) =>
+        set({ generatedChallenges: challenges }),
+      setCurrentChallengeIndex: (index) =>
+        set({ currentChallengeIndex: index }),
 
       setCode: (language, code) =>
         set((state) => ({
           code: { ...state.code, [language]: code },
         })),
 
-      getCode: (language) => get().code[language] || '',
+      getCode: (language) => get().code[language] || "",
 
       setSelectedLanguage: (language) => set({ selectedLanguage: language }),
 
@@ -153,7 +155,8 @@ export const useCodeChallengeStore = create<CodeChallengeState>()(
 
       setCvText: (text) => set({ cvText: text }),
       setJobDescriptionText: (text) => set({ jobDescriptionText: text }),
-      setSelectedDifficulty: (difficulty) => set({ selectedDifficulty: difficulty }),
+      setSelectedDifficulty: (difficulty) =>
+        set({ selectedDifficulty: difficulty }),
 
       resetCode: (language, defaultCode) =>
         set((state) => ({
@@ -164,6 +167,6 @@ export const useCodeChallengeStore = create<CodeChallengeState>()(
 
       reset: () => set(initialState),
     }),
-    { name: 'CodeChallengeStore' }
-  )
+    { name: "CodeChallengeStore" },
+  ),
 );

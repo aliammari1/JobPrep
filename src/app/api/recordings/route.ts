@@ -67,13 +67,14 @@ export async function GET(req: NextRequest) {
       take: limit,
     });
 
-    console.log(`Found ${interviews.length} interviews for user ${session.user.id}:`, 
-      interviews.map(i => ({ 
-        id: i.id.slice(0, 8), 
-        status: i.status, 
+    console.log(
+      `Found ${interviews.length} interviews for user ${session.user.id}:`,
+      interviews.map((i) => ({
+        id: i.id.slice(0, 8),
+        status: i.status,
         hasUrl: !!i.videoRecordingUrl,
         createdAt: i.createdAt,
-      }))
+      })),
     );
 
     // Transform to recording format
@@ -82,12 +83,13 @@ export async function GET(req: NextRequest) {
       let roomCode = "";
       let recordingFileSize = 0;
       let recordingFileId = "";
-      
+
       try {
         if (interview.settings) {
-          const settings = typeof interview.settings === 'string'
-            ? JSON.parse(interview.settings)
-            : interview.settings;
+          const settings =
+            typeof interview.settings === "string"
+              ? JSON.parse(interview.settings)
+              : interview.settings;
           roomCode = settings.roomCode || "";
           recordingFileSize = settings.recordingFileSize || 0;
           recordingFileId = settings.recordingFileId || "";
@@ -107,10 +109,10 @@ export async function GET(req: NextRequest) {
         createdAt: interview.createdAt.toISOString(),
         candidateName: interview.candidate?.name || "Unknown",
         interviewerName: interview.interviewer?.name || "Unknown",
-        status: interview.videoRecordingUrl 
-          ? "completed" 
-          : interview.status === "completed" 
-            ? "no-recording" 
+        status: interview.videoRecordingUrl
+          ? "completed"
+          : interview.status === "completed"
+            ? "no-recording"
             : "in-progress",
       };
 
@@ -127,9 +129,11 @@ export async function GET(req: NextRequest) {
       return recording;
     });
 
-    console.log(`Returning ${recordings.length} recordings, ${recordings.filter(r => r.fileUrl).length} with URLs`);
+    console.log(
+      `Returning ${recordings.length} recordings, ${recordings.filter((r) => r.fileUrl).length} with URLs`,
+    );
 
-    return NextResponse.json({ 
+    return NextResponse.json({
       recordings,
       pagination: {
         total,
@@ -137,13 +141,13 @@ export async function GET(req: NextRequest) {
         limit,
         pages: Math.ceil(total / limit),
         hasMore: skip + limit < total,
-      }
+      },
     });
   } catch (error) {
     console.error("Error fetching recordings:", error);
     return NextResponse.json(
       { error: "Failed to fetch recordings" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

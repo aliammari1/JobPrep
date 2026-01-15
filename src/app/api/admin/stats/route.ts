@@ -53,10 +53,10 @@ export async function GET(req: NextRequest) {
 
     const totalInterviews = interviews.length;
     const scheduledInterviews = interviews.filter(
-      (i) => i.status === "scheduled"
+      (i) => i.status === "scheduled",
     ).length;
     const completedInterviews = interviews.filter(
-      (i) => i.status === "completed"
+      (i) => i.status === "completed",
     ).length;
 
     // Get template statistics
@@ -86,7 +86,7 @@ export async function GET(req: NextRequest) {
     console.error("Error fetching admin stats:", error);
     return NextResponse.json(
       { error: "Failed to fetch admin stats" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

@@ -41,13 +41,21 @@ export interface EmailOptions {
 
 export interface SendEmailOptions extends EmailOptions {}
 
-export async function sendEmail({ to, subject, html, text, replyTo, tags, scheduledAt }: EmailOptions) {
+export async function sendEmail({
+  to,
+  subject,
+  html,
+  text,
+  replyTo,
+  tags,
+  scheduledAt,
+}: EmailOptions) {
   // Development mode: Log to console
   if (process.env.NODE_ENV === "development" && !process.env.GMAIL_USER_EMAIL) {
     console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
     console.log("📧 Email Service (Development Mode - No Gmail Credentials)");
     console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
-    console.log(`To: ${Array.isArray(to) ? to.join(', ') : to}`);
+    console.log(`To: ${Array.isArray(to) ? to.join(", ") : to}`);
     console.log(`Subject: ${subject}`);
     console.log(`HTML: ${html.substring(0, 200)}...`);
     if (text) console.log(`Text: ${text}`);
@@ -55,24 +63,24 @@ export async function sendEmail({ to, subject, html, text, replyTo, tags, schedu
     if (tags) console.log(`Tags:`, tags);
     if (scheduledAt) console.log(`Scheduled At: ${scheduledAt}`);
     console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n");
-    return { success: true, emailId: 'dev-' + Date.now() };
+    return { success: true, emailId: "dev-" + Date.now() };
   }
 
   // Production mode: Use Google Gmail
   if (!process.env.GMAIL_USER_EMAIL) {
-    console.error('Gmail credentials not configured');
-    return { success: false, error: 'Email service not configured' };
+    console.error("Gmail credentials not configured");
+    return { success: false, error: "Email service not configured" };
   }
 
   try {
     const transporter = await getGmailTransporter();
     if (!transporter) {
-      return { success: false, error: 'Failed to initialize email service' };
+      return { success: false, error: "Failed to initialize email service" };
     }
 
     const mailOptions = {
       from: process.env.GMAIL_USER_EMAIL,
-      to: Array.isArray(to) ? to.join(', ') : to,
+      to: Array.isArray(to) ? to.join(", ") : to,
       subject,
       html,
       text: text || html,
@@ -83,8 +91,8 @@ export async function sendEmail({ to, subject, html, text, replyTo, tags, schedu
 
     return { success: true, emailId: info.messageId };
   } catch (error) {
-    console.error('Email sending error:', error);
-    return { success: false, error: 'Failed to send email' };
+    console.error("Email sending error:", error);
+    return { success: false, error: "Failed to send email" };
   }
 }
 
@@ -225,7 +233,7 @@ export const emailTemplates = {
   organizationInvite: (
     organizationName: string,
     invitationLink: string,
-    inviterName?: string
+    inviterName?: string,
   ) => ({
     subject: `You've been invited to join ${organizationName}`,
     html: `
@@ -418,8 +426,8 @@ export const emailTemplates = {
       type === "sign-in"
         ? "Your Sign-In Code"
         : type === "email-verification"
-        ? "Verify Your Email"
-        : "Your Verification Code",
+          ? "Verify Your Email"
+          : "Your Verification Code",
     html: `
       <!DOCTYPE html>
       <html>

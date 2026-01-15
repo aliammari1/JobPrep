@@ -34,7 +34,7 @@ function ResetPasswordForm() {
 
     if (errorFromUrl === "INVALID_TOKEN") {
       setError(
-        "This reset link is invalid or has expired. Please request a new one."
+        "This reset link is invalid or has expired. Please request a new one.",
       );
     } else if (tokenFromUrl) {
       setToken(tokenFromUrl);
@@ -88,7 +88,7 @@ function ResetPasswordForm() {
       }
     } catch (err) {
       setError(
-        err instanceof Error ? err.message : "An unexpected error occurred"
+        err instanceof Error ? err.message : "An unexpected error occurred",
       );
     } finally {
       setIsLoading(false);
@@ -97,7 +97,7 @@ function ResetPasswordForm() {
 
   if (success) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background via-background to-muted/20 p-4">
+      <div className="min-h-screen flex items-center justify-center bg-linear-to-br from-background via-background to-muted/20 p-4">
         <Card className="w-full max-w-md shadow-xl">
           <CardHeader className="space-y-1">
             <div className="flex justify-center mb-4">
@@ -130,7 +130,7 @@ function ResetPasswordForm() {
 
   if (error && !token) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background via-background to-muted/20 p-4">
+      <div className="min-h-screen flex items-center justify-center bg-linear-to-br from-background via-background to-muted/20 p-4">
         <Card className="w-full max-w-md shadow-xl">
           <CardHeader className="space-y-1">
             <div className="flex justify-center mb-4">
@@ -163,10 +163,10 @@ function ResetPasswordForm() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background via-background to-muted/20 p-4">
+    <div className="min-h-screen flex items-center justify-center bg-linear-to-br from-background via-background to-muted/20 p-4">
       <Card className="w-full max-w-md shadow-xl">
         <CardHeader className="space-y-1">
-          <CardTitle className="text-3xl font-bold text-center bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">
+          <CardTitle className="text-3xl font-bold text-center bg-linear-to-r from-primary to-primary/60 bg-clip-text text-transparent">
             Reset Password
           </CardTitle>
           <CardDescription className="text-center text-base">
@@ -242,7 +242,7 @@ export default function ResetPasswordPage() {
   return (
     <Suspense
       fallback={
-        <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background via-background to-muted/20 p-4">
+        <div className="min-h-screen flex items-center justify-center bg-linear-to-br from-background via-background to-muted/20 p-4">
           <Card className="w-full max-w-md shadow-xl">
             <CardContent className="py-12 text-center">
               <Icons.spinner className="h-8 w-8 animate-spin mx-auto" />

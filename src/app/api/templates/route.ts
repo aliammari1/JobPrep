@@ -87,13 +87,13 @@ export async function GET(req: NextRequest) {
         limit,
         pages: Math.ceil(total / limit),
         hasMore: skip + limit < total,
-      }
+      },
     });
   } catch (error) {
     console.error("Error fetching templates:", error);
     return NextResponse.json(
       { error: "Failed to fetch templates" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
@@ -125,7 +125,7 @@ export async function POST(req: NextRequest) {
     if (!title || !category || !difficulty || !duration) {
       return NextResponse.json(
         { error: "Missing required fields" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -176,7 +176,7 @@ export async function POST(req: NextRequest) {
     console.error("Error creating template:", error);
     return NextResponse.json(
       { error: "Failed to create template" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
