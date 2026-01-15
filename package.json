@@ -118,7 +118,7 @@
     "puppeteer-core": "^24.29.1",
     "qrcode": "^1.5.4",
     "quill": "^2.0.3",
-    "react": "19.1.0",
+    "react": "19.2.3",
     "react-big-calendar": "^1.19.4",
     "react-day-picker": "^9.11.0",
     "react-dom": "^19.1.0",
