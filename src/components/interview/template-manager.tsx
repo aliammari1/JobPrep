@@ -1,7 +1,13 @@
 "use client";
 
 import { useState } from "react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -20,37 +26,43 @@ const DEFAULT_TEMPLATES: Template[] = [
   {
     id: "1",
     title: "Interview Opening",
-    content: "Thank you for joining this interview. Let's get started! I'll be asking you some questions about your background and experience.",
+    content:
+      "Thank you for joining this interview. Let's get started! I'll be asking you some questions about your background and experience.",
     category: "greeting",
   },
   {
     id: "2",
     title: "Technical Question",
-    content: "Can you walk me through your approach to solving technical problems?",
+    content:
+      "Can you walk me through your approach to solving technical problems?",
     category: "question",
   },
   {
     id: "3",
     title: "Experience Question",
-    content: "Can you describe your most challenging project and how you handled it?",
+    content:
+      "Can you describe your most challenging project and how you handled it?",
     category: "question",
   },
   {
     id: "4",
     title: "Career Goals",
-    content: "Where do you see yourself in 5 years, and how does this role fit into your career path?",
+    content:
+      "Where do you see yourself in 5 years, and how does this role fit into your career path?",
     category: "question",
   },
   {
     id: "5",
     title: "Wrap Up",
-    content: "Thank you for your time today. Do you have any questions for me? We'll be in touch within 2-3 business days.",
+    content:
+      "Thank you for your time today. Do you have any questions for me? We'll be in touch within 2-3 business days.",
     category: "closing",
   },
   {
     id: "6",
     title: "Quick Feedback",
-    content: "You did a great job explaining your thought process. Let's move on to the next question.",
+    content:
+      "You did a great job explaining your thought process. Let's move on to the next question.",
     category: "feedback",
   },
 ];
@@ -60,7 +72,10 @@ interface TemplateManagerProps {
   onClose?: () => void;
 }
 
-export function TemplateManager({ onSelectTemplate, onClose }: TemplateManagerProps) {
+export function TemplateManager({
+  onSelectTemplate,
+  onClose,
+}: TemplateManagerProps) {
   const [templates, setTemplates] = useState<Template[]>(() => {
     if (typeof window !== "undefined") {
       const stored = localStorage.getItem("interviewTemplates");
@@ -74,7 +89,10 @@ export function TemplateManager({ onSelectTemplate, onClose }: TemplateManagerPr
 
   const saveTemplates = (updatedTemplates: Template[]) => {
     setTemplates(updatedTemplates);
-    localStorage.setItem("interviewTemplates", JSON.stringify(updatedTemplates));
+    localStorage.setItem(
+      "interviewTemplates",
+      JSON.stringify(updatedTemplates),
+    );
   };
 
   const handleAddTemplate = () => {
@@ -122,7 +140,9 @@ export function TemplateManager({ onSelectTemplate, onClose }: TemplateManagerPr
     <Card className="w-full">
       <CardHeader>
         <CardTitle>Message Templates</CardTitle>
-        <CardDescription>Quick access to common interview messages</CardDescription>
+        <CardDescription>
+          Quick access to common interview messages
+        </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
         {/* Create New Template Form */}
@@ -161,11 +181,7 @@ export function TemplateManager({ onSelectTemplate, onClose }: TemplateManagerPr
               >
                 Cancel
               </Button>
-              <Button
-                size="sm"
-                onClick={handleAddTemplate}
-                className="flex-1"
-              >
+              <Button size="sm" onClick={handleAddTemplate} className="flex-1">
                 Add Template
               </Button>
             </div>
@@ -184,7 +200,7 @@ export function TemplateManager({ onSelectTemplate, onClose }: TemplateManagerPr
                   <h4 className="font-medium text-sm">{template.title}</h4>
                   <span
                     className={`inline-block text-xs px-2 py-1 rounded mt-1 ${getCategoryColor(
-                      template.category
+                      template.category,
                     )}`}
                   >
                     {template.category}

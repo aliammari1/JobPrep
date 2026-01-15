@@ -272,7 +272,8 @@ export function Sidebar({ isOpen, onToggle, onClose }: SidebarProps) {
   const pathname = usePathname();
   const router = useRouter();
   const { data: session, isPending } = useSession();
-  const { data: subscription, isLoading: subscriptionLoading } = useSubscription();
+  const { data: subscription, isLoading: subscriptionLoading } =
+    useSubscription();
   const [expandedItems, setExpandedItems] = useState<string[]>([
     "interviews",
     "evaluation",
@@ -317,16 +318,18 @@ export function Sidebar({ isOpen, onToggle, onClose }: SidebarProps) {
               level > 0 && "ml-2",
               active
                 ? "bg-primary/10 text-primary dark:bg-primary/20"
-                : "text-foreground/80 hover:text-foreground"
+                : "text-foreground/80 hover:text-foreground",
             )}
           >
             <div className="flex items-center gap-3 flex-1 min-w-0">
-              <div className={cn(
-                "flex-shrink-0 rounded-md p-1.5 transition-colors",
-                active
-                  ? "bg-primary/15 text-primary"
-                  : "bg-muted/50 text-foreground/60 group-hover:bg-muted"
-              )}>
+              <div
+                className={cn(
+                  "shrink-0 rounded-md p-1.5 transition-colors",
+                  active
+                    ? "bg-primary/15 text-primary"
+                    : "bg-muted/50 text-foreground/60 group-hover:bg-muted",
+                )}
+              >
                 <item.icon className="w-4 h-4" />
               </div>
               <div className="flex-1 min-w-0">
@@ -340,13 +343,13 @@ export function Sidebar({ isOpen, onToggle, onClose }: SidebarProps) {
               {item.badge && (
                 <Badge
                   variant="secondary"
-                  className="text-xs px-2 py-0.5 ml-auto flex-shrink-0"
+                  className="text-xs px-2 py-0.5 ml-auto shrink-0"
                 >
                   {item.badge}
                 </Badge>
               )}
               {item.isNew && (
-                <Badge className="text-xs px-2 py-0.5 bg-emerald-500/20 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-400 ml-auto flex-shrink-0">
+                <Badge className="text-xs px-2 py-0.5 bg-emerald-500/20 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-400 ml-auto shrink-0">
                   New
                 </Badge>
               )}
@@ -354,7 +357,7 @@ export function Sidebar({ isOpen, onToggle, onClose }: SidebarProps) {
             <motion.div
               animate={{ rotate: isExpanded ? 180 : 0 }}
               transition={{ duration: 0.2 }}
-              className="flex-shrink-0"
+              className="shrink-0"
             >
               <ChevronDown className="w-4 h-4" />
             </motion.div>
@@ -376,15 +379,17 @@ export function Sidebar({ isOpen, onToggle, onClose }: SidebarProps) {
                 level > 0 && "ml-2",
                 active
                   ? "bg-primary/10 text-primary dark:bg-primary/20"
-                  : "text-foreground/80 hover:text-foreground"
+                  : "text-foreground/80 hover:text-foreground",
               )}
             >
-              <div className={cn(
-                "flex-shrink-0 rounded-md p-1.5 transition-colors",
-                active
-                  ? "bg-primary/15 text-primary"
-                  : "bg-muted/50 text-foreground/60 group-hover:bg-muted"
-              )}>
+              <div
+                className={cn(
+                  "shrink-0 rounded-md p-1.5 transition-colors",
+                  active
+                    ? "bg-primary/15 text-primary"
+                    : "bg-muted/50 text-foreground/60 group-hover:bg-muted",
+                )}
+              >
                 <item.icon className="w-4 h-4" />
               </div>
               <div className="flex-1 min-w-0 text-left">
@@ -395,12 +400,9 @@ export function Sidebar({ isOpen, onToggle, onClose }: SidebarProps) {
                   </span>
                 )}
               </div>
-              <div className="flex items-center gap-1 flex-shrink-0">
+              <div className="flex items-center gap-1 shrink-0">
                 {item.badge && (
-                  <Badge
-                    variant="secondary"
-                    className="text-xs px-2 py-0.5"
-                  >
+                  <Badge variant="secondary" className="text-xs px-2 py-0.5">
                     {item.badge}
                   </Badge>
                 )}
@@ -464,11 +466,11 @@ export function Sidebar({ isOpen, onToggle, onClose }: SidebarProps) {
         className={cn(
           "fixed left-0 top-0 z-50 h-full w-80 bg-background/95 backdrop-blur-sm border-r border-border flex flex-col shadow-xl",
           "lg:relative lg:translate-x-0 lg:z-auto lg:shadow-none lg:bg-background/99",
-          "lg:animate-none"
+          "lg:animate-none",
         )}
       >
         {/* Header */}
-        <div className="flex items-center justify-between p-4 border-b border-border shrink-0 bg-gradient-to-r from-background to-muted/30">
+        <div className="flex items-center justify-between p-4 border-b border-border shrink-0 bg-linear-to-r from-background to-muted/30">
           <div className="flex items-center gap-3 flex-1">
             <div className="w-8 h-8 flex items-center justify-center rounded-lg bg-primary/10">
               <Image
@@ -480,10 +482,12 @@ export function Sidebar({ isOpen, onToggle, onClose }: SidebarProps) {
               />
             </div>
             <div className="flex-1">
-              <h2 className="font-bold text-sm bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">
+              <h2 className="font-bold text-sm bg-linear-to-r from-primary to-primary/70 bg-clip-text text-transparent">
                 JobPrep
               </h2>
-              <p className="text-xs text-muted-foreground">Interview Platform</p>
+              <p className="text-xs text-muted-foreground">
+                Interview Platform
+              </p>
             </div>
           </div>
           <Button
@@ -498,7 +502,8 @@ export function Sidebar({ isOpen, onToggle, onClose }: SidebarProps) {
 
         {/* Quick Actions */}
         <div className="px-3 py-4 space-y-2 shrink-0 border-b border-border/50">
-          <Link href="/schedule-interview"
+          <Link
+            href="/schedule-interview"
             onClick={() => {
               if (typeof window !== "undefined" && window.innerWidth < 1024) {
                 onClose();
@@ -506,7 +511,10 @@ export function Sidebar({ isOpen, onToggle, onClose }: SidebarProps) {
             }}
             className="block"
           >
-            <Button className="w-full justify-center gap-2 h-10 rounded-lg shadow-sm hover:shadow-md transition-shadow" size="sm">
+            <Button
+              className="w-full justify-center gap-2 h-10 rounded-lg shadow-sm hover:shadow-md transition-shadow"
+              size="sm"
+            >
               <Plus className="w-4 h-4" />
               <span className="text-sm font-semibold">New Interview</span>
             </Button>
@@ -517,10 +525,10 @@ export function Sidebar({ isOpen, onToggle, onClose }: SidebarProps) {
               if (typeof window !== "undefined" && window.innerWidth < 1024) {
                 onClose();
               }
-              const isMac = navigator.platform.toUpperCase().includes('MAC');
-              const event = new KeyboardEvent('keydown', {
-                key: 'k',
-                code: 'KeyK',
+              const isMac = navigator.platform.toUpperCase().includes("MAC");
+              const event = new KeyboardEvent("keydown", {
+                key: "k",
+                code: "KeyK",
                 ctrlKey: !isMac,
                 metaKey: isMac,
                 bubbles: true,
@@ -529,10 +537,10 @@ export function Sidebar({ isOpen, onToggle, onClose }: SidebarProps) {
             }}
           >
             <div className="flex items-center gap-2 flex-1 min-w-0">
-              <Search className="w-4 h-4 flex-shrink-0" />
+              <Search className="w-4 h-4 shrink-0" />
               <span className="text-sm font-medium">Quick search...</span>
             </div>
-            <kbd className="pointer-events-none inline-flex h-6 select-none items-center gap-1 rounded border border-border bg-muted px-1.5 font-mono text-[10px] font-medium text-muted-foreground opacity-100 flex-shrink-0">
+            <kbd className="pointer-events-none inline-flex h-6 select-none items-center gap-1 rounded border border-border bg-muted px-1.5 font-mono text-[10px] font-medium text-muted-foreground opacity-100 shrink-0">
               <span className="text-xs">⌘</span>K
             </kbd>
           </div>
@@ -570,8 +578,8 @@ export function Sidebar({ isOpen, onToggle, onClose }: SidebarProps) {
                   {subscription.tier === "FREE"
                     ? "Upgrade to Pro"
                     : subscription.tier === "MONTHLY"
-                    ? "Pro Monthly"
-                    : "Pro Yearly"}
+                      ? "Pro Monthly"
+                      : "Pro Yearly"}
                 </p>
                 <Badge
                   variant="outline"
@@ -628,7 +636,10 @@ export function Sidebar({ isOpen, onToggle, onClose }: SidebarProps) {
                     size="sm"
                     className="w-full justify-center gap-2 rounded-lg h-9"
                     onClick={() => {
-                      if (typeof window !== "undefined" && window.innerWidth < 1024) {
+                      if (
+                        typeof window !== "undefined" &&
+                        window.innerWidth < 1024
+                      ) {
                         onClose();
                       }
                     }}
@@ -651,9 +662,13 @@ export function Sidebar({ isOpen, onToggle, onClose }: SidebarProps) {
           ) : (
             <div className="text-center py-2 space-y-3">
               <p className="text-sm text-muted-foreground">Not signed in</p>
-              <Link href="/sign-in"
+              <Link
+                href="/sign-in"
                 onClick={() => {
-                  if (typeof window !== "undefined" && window.innerWidth < 1024) {
+                  if (
+                    typeof window !== "undefined" &&
+                    window.innerWidth < 1024
+                  ) {
                     onClose();
                   }
                 }}

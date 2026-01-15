@@ -1,7 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-
-// Force this route to use Node.js runtime (not Edge)
-export const runtime = 'nodejs';
+import { extractText, getMeta } from "unpdf";
 
 export async function POST(request: NextRequest) {
   try {
@@ -9,57 +7,54 @@ export async function POST(request: NextRequest) {
     const file = formData.get("file") as File;
 
     if (!file) {
-      return NextResponse.json(
-        { error: "No file provided" },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: "No file provided" }, { status: 400 });
     }
 
-    console.log(`Processing PDF: ${file.name}, size: ${file.size} bytes`);
+    console.log(
+      `Processing PDF with unpdf: ${file.name}, size: ${file.size} bytes`,
+    );
 
-    // Convert file to buffer
+    // 1. Convert File directly to ArrayBuffer (Modern Web API)
     const arrayBuffer = await file.arrayBuffer();
-    const buffer = Buffer.from(arrayBuffer);
-
-    console.log("Buffer created, attempting to parse...");
+    const uint8Array = new Uint8Array(arrayBuffer);
 
     try {
-      // Import pdf-parse with dynamic import
-      const pdfParse = (await import("pdf-parse")).default;
+      // 2. Extract Text and Metadata using unpdf
+      const { text, totalPages } = await extractText(uint8Array, {
+        mergePages: true,
+      });
+      const { info } = await getMeta(uint8Array);
 
-      console.log("pdf-parse loaded, parsing PDF...");
+      console.log(`PDF parsed successfully. Total pages: ${totalPages}`);
 
-      // Parse PDF - v1.1.1 uses simple function call
-      const data = await pdfParse(buffer);
-
-      console.log(`PDF parsed successfully. Text length: ${data.text?.length || 0}`);
-
-      // Return extracted text
+      // 3. Return structured data
       return NextResponse.json({
-        text: data.text || "No text could be extracted from the PDF",
-        pages: data.numpages,
-        info: data.info,
+        text: text || "No text could be extracted from the PDF",
+        pages: totalPages,
+        info: info, // Metadata like Author, Creator, etc.
       });
     } catch (parseError) {
-      console.error("PDF parsing error:", parseError);
+      console.error("Unpdf parsing error:", parseError);
       return NextResponse.json(
-        { 
+        {
           error: "Failed to parse PDF",
-          details: parseError instanceof Error ? parseError.message : "Unknown parsing error",
-          text: `[PDF File: ${file.name}]\n\nCould not extract text from PDF. The file may be scanned images or encrypted.\n\nPlease enter the content manually.`
+          details:
+            parseError instanceof Error
+              ? parseError.message
+              : "Unknown parsing error",
+          text: `[PDF File: ${file.name}]\n\nCould not extract text. This file may be a scan or encrypted.`,
         },
-        { status: 500 }
+        { status: 500 },
       );
     }
   } catch (error) {
-    console.error("PDF extraction error:", error);
+    console.error("General extraction error:", error);
     return NextResponse.json(
-      { 
-        error: "Failed to process PDF file",
+      {
+        error: "Failed to process file",
         details: error instanceof Error ? error.message : "Unknown error",
-        text: "Error processing PDF. Please enter content manually."
       },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

@@ -1,7 +1,7 @@
-import { useMockInterviewStore } from '@/store/mock-interview-store';
-import { Card, CardContent } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
+import { useMockInterviewStore } from "@/store/mock-interview-store";
+import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import {
   Play,
   Pause,
@@ -11,8 +11,8 @@ import {
   Clock,
   Mic,
   MicOff,
-} from 'lucide-react';
-import { useState, useEffect } from 'react';
+} from "lucide-react";
+import { useState, useEffect } from "react";
 
 export function SessionControlsComponent() {
   const {
@@ -54,9 +54,9 @@ export function SessionControlsComponent() {
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
     const secs = seconds % 60;
-    return `${mins.toString().padStart(2, '0')}:${secs
+    return `${mins.toString().padStart(2, "0")}:${secs
       .toString()
-      .padStart(2, '0')}`;
+      .padStart(2, "0")}`;
   };
 
   const isTimeUp = timeLeft === 0;
@@ -69,17 +69,15 @@ export function SessionControlsComponent() {
           <div
             className={`text-3xl font-mono font-bold ${
               isTimeUp
-                ? 'text-red-600'
+                ? "text-red-600"
                 : timeLeft < 300
-                  ? 'text-yellow-600'
-                  : 'text-green-600'
+                  ? "text-yellow-600"
+                  : "text-green-600"
             }`}
           >
             {formatTime(timeLeft)}
           </div>
-          <p className="text-xs text-muted-foreground mt-1">
-            Time remaining
-          </p>
+          <p className="text-xs text-muted-foreground mt-1">Time remaining</p>
         </div>
 
         {/* Elapsed time */}
@@ -93,17 +91,17 @@ export function SessionControlsComponent() {
           <Badge
             variant={
               isActive && !isPaused
-                ? 'default'
+                ? "default"
                 : isPaused
-                  ? 'secondary'
-                  : 'outline'
+                  ? "secondary"
+                  : "outline"
             }
           >
             {isActive && !isPaused
-              ? 'Recording'
+              ? "Recording"
               : isPaused
-                ? 'Paused'
-                : 'Not Started'}
+                ? "Paused"
+                : "Not Started"}
           </Badge>
         </div>
 
@@ -133,11 +131,7 @@ export function SessionControlsComponent() {
                   </>
                 )}
               </Button>
-              <Button
-                onClick={endSession}
-                variant="destructive"
-                size="lg"
-              >
+              <Button onClick={endSession} variant="destructive" size="lg">
                 <StopCircle className="w-4 h-4 mr-2" />
                 End
               </Button>
@@ -173,7 +167,7 @@ export function SessionControlsComponent() {
         {/* Recording Button */}
         <Button
           onClick={toggleRecording}
-          variant={isRecording ? 'destructive' : 'outline'}
+          variant={isRecording ? "destructive" : "outline"}
           size="sm"
           className="w-full"
         >

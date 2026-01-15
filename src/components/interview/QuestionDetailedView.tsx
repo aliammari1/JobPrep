@@ -5,7 +5,11 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Download, Save, CheckCircle2, Eye } from "lucide-react";
 import { useState } from "react";
-import { generateInterviewPDF, downloadPDF, InterviewPDFData } from "@/lib/pdf-generator";
+import {
+  generateInterviewPDF,
+  downloadPDF,
+  InterviewPDFData,
+} from "@/lib/pdf-generator";
 import { toast } from "sonner";
 import { FullPageAnswersView } from "./FullPageAnswersView";
 
@@ -22,13 +26,13 @@ interface QuestionDetailedViewProps {
   companyName?: string;
 }
 
-export function QuestionDetailedView({ 
-  interviewResults, 
-  finalAssessment, 
+export function QuestionDetailedView({
+  interviewResults,
+  finalAssessment,
   statistics,
   candidateName = "Candidate",
   jobTitle = "Interview",
-  companyName = ""
+  companyName = "",
 }: QuestionDetailedViewProps) {
   const [isSaving, setIsSaving] = useState(false);
   const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
@@ -64,11 +68,15 @@ export function QuestionDetailedView({
       };
 
       const pdfBlob = await generateInterviewPDF(pdfData);
-      
+
       // Create personalized filename: CandidateName_JobTitle_CompanyName_Date.pdf
-      const sanitize = (str: string) => str.replace(/[^a-z0-9]/gi, '_').replace(/_+/g, '_').substring(0, 30);
-      const datePart = new Date().toISOString().split('T')[0];
-      
+      const sanitize = (str: string) =>
+        str
+          .replace(/[^a-z0-9]/gi, "_")
+          .replace(/_+/g, "_")
+          .substring(0, 30);
+      const datePart = new Date().toISOString().split("T")[0];
+
       let filename = sanitize(candidateName);
       if (jobTitle && jobTitle !== "Interview") {
         filename += `_${sanitize(jobTitle)}`;
@@ -77,7 +85,7 @@ export function QuestionDetailedView({
         filename += `_${sanitize(companyName)}`;
       }
       filename += `_${datePart}.pdf`;
-      
+
       downloadPDF(pdfBlob, filename);
 
       toast.success("PDF downloaded successfully!");
@@ -97,9 +105,13 @@ export function QuestionDetailedView({
 
       const payload = {
         sessionType: "mock-interview",
-        topics: jobTitle ? [jobTitle] : interviewResults.map((r) => r.question.type).filter((v, i, a) => a.indexOf(v) === i),
+        topics: jobTitle
+          ? [jobTitle]
+          : interviewResults
+              .map((r) => r.question.type)
+              .filter((v, i, a) => a.indexOf(v) === i),
         duration: Math.round(
-          interviewResults.reduce((sum, r) => sum + (r.timeSpent || 0), 0) / 60
+          interviewResults.reduce((sum, r) => sum + (r.timeSpent || 0), 0) / 60,
         ),
         conversationLog: interviewResults.map((r) => ({
           question: r.question,
@@ -135,7 +147,7 @@ export function QuestionDetailedView({
       });
 
       console.log("API response status:", response.status);
-      
+
       if (!response.ok) {
         const errorData = await response.json();
         console.error("API error response:", errorData);
@@ -148,7 +160,9 @@ export function QuestionDetailedView({
       console.log("Saved interview ID:", data.sessionId);
     } catch (error) {
       console.error("Error saving interview:", error);
-      toast.error(error instanceof Error ? error.message : "Failed to save interview");
+      toast.error(
+        error instanceof Error ? error.message : "Failed to save interview",
+      );
     } finally {
       setIsSaving(false);
     }
@@ -160,8 +174,8 @@ export function QuestionDetailedView({
       <Card>
         <CardContent className="pt-6">
           <div className="flex flex-wrap gap-4 justify-center">
-            <Button 
-              onClick={handleDownloadPDF} 
+            <Button
+              onClick={handleDownloadPDF}
               disabled={isGeneratingPDF}
               size="lg"
               className="bg-indigo-600 hover:bg-indigo-700"
@@ -169,7 +183,7 @@ export function QuestionDetailedView({
               <Download className="w-4 h-4 mr-2" />
               {isGeneratingPDF ? "Generating PDF..." : "Download PDF Report"}
             </Button>
-            <Button 
+            <Button
               onClick={() => setShowSwipeableCards(true)}
               size="lg"
               className="bg-blue-600 hover:bg-blue-700"
@@ -177,7 +191,7 @@ export function QuestionDetailedView({
               <Eye className="w-4 h-4 mr-2" />
               View Answers Swipeable
             </Button>
-            <Button 
+            <Button
               onClick={() => {
                 console.log("TEST CLICK - Button is working!");
                 toast.info("Button clicked!");
@@ -187,7 +201,7 @@ export function QuestionDetailedView({
             >
               Test Click
             </Button>
-            <Button 
+            <Button
               onClick={handleSaveInterview}
               disabled={isSaving}
               size="lg"
@@ -204,7 +218,8 @@ export function QuestionDetailedView({
       <div>
         <h2 className="text-2xl font-bold mb-2">Detailed Question Analysis</h2>
         <p className="text-sm text-muted-foreground mb-6">
-          Swipe through each question or use the arrows to review your answers, ideal responses, and feedback
+          Swipe through each question or use the arrows to review your answers,
+          ideal responses, and feedback
         </p>
       </div>
 

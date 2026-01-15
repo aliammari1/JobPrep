@@ -30,7 +30,9 @@ interface Challenge {
 
 export function useGenerateChallenges() {
   const [isGenerating, setIsGenerating] = useState(false);
-  const [generatedChallenges, setGeneratedChallenges] = useState<Challenge[]>([]);
+  const [generatedChallenges, setGeneratedChallenges] = useState<Challenge[]>(
+    [],
+  );
   const [error, setError] = useState<string | null>(null);
 
   const generateChallenges = async ({
@@ -42,9 +44,12 @@ export function useGenerateChallenges() {
     setIsGenerating(true);
     setError(null);
 
-    const loadingToast = toast.loading("🤖 AI is generating personalized challenges...", {
-      description: "This may take 10-15 seconds",
-    });
+    const loadingToast = toast.loading(
+      "🤖 AI is generating personalized challenges...",
+      {
+        description: "This may take 10-15 seconds",
+      },
+    );
 
     try {
       const response = await fetch("/api/challenges/generate", {
@@ -66,13 +71,13 @@ export function useGenerateChallenges() {
       }
 
       const data = await response.json();
-      
+
       if (!data.success || !data.challenges) {
         throw new Error("Invalid response from server");
       }
 
       setGeneratedChallenges(data.challenges);
-      
+
       toast.success("✨ Personalized challenges generated!", {
         id: loadingToast,
         description: `${data.challenges.length} challenges tailored to your profile`,
@@ -83,14 +88,15 @@ export function useGenerateChallenges() {
         metadata: data.metadata,
       };
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : "Failed to generate challenges";
+      const errorMessage =
+        err instanceof Error ? err.message : "Failed to generate challenges";
       setError(errorMessage);
-      
+
       toast.error("Failed to generate challenges", {
         id: loadingToast,
         description: errorMessage,
       });
-      
+
       throw err;
     } finally {
       setIsGenerating(false);

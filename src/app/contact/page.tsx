@@ -197,7 +197,7 @@ Reply to: ${formData.email}
     <div className="flex flex-col min-h-screen">
       {/* Hero Section */}
       <section className="relative pt-20 pb-16 px-4 sm:px-8 md:px-12 overflow-hidden">
-        <div className="absolute inset-0 -z-10 bg-gradient-to-br from-primary/10 via-primary/5 to-transparent" />
+        <div className="absolute inset-0 -z-10 bg-linear-to-br from-primary/10 via-primary/5 to-transparent" />
 
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -212,7 +212,7 @@ Reply to: ${formData.email}
             <MessageSquare className="h-3 w-3 mr-1" />
             Get in Touch
           </Badge>
-          <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold tracking-tight bg-gradient-to-b from-foreground via-foreground to-foreground/70 bg-clip-text text-transparent">
+          <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold tracking-tight bg-linear-to-b from-foreground via-foreground to-foreground/70 bg-clip-text text-transparent">
             Let's Start a Conversation
           </h1>
           <p className="mt-6 text-lg md:text-xl text-muted-foreground max-w-3xl mx-auto leading-relaxed">
@@ -236,7 +236,7 @@ Reply to: ${formData.email}
                 <Card className="h-full hover:shadow-xl transition-all duration-300 border-2 hover:border-primary/50 group">
                   <CardHeader className="text-center">
                     <div
-                      className={`mx-auto p-4 rounded-xl bg-gradient-to-br ${method.color} w-fit mb-4 group-hover:scale-110 transition-transform`}
+                      className={`mx-auto p-4 rounded-xl bg-linear-to-br ${method.color} w-fit mb-4 group-hover:scale-110 transition-transform`}
                     >
                       <method.icon className="h-6 w-6 text-white" />
                     </div>
@@ -444,7 +444,7 @@ Reply to: ${formData.email}
                 </CardContent>
               </Card>
 
-              <Card className="bg-gradient-to-br from-primary/10 to-primary/5 border-primary/20">
+              <Card className="bg-linear-to-br from-primary/10 to-primary/5 border-primary/20">
                 <CardHeader>
                   <Sparkles className="h-6 w-6 text-primary mb-2" />
                   <CardTitle>Need Immediate Help?</CardTitle>

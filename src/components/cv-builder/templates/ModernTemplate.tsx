@@ -33,7 +33,7 @@ export function ModernTemplate({ cvData, settings }: TemplateProps) {
       >
         {/* Profile Photo */}
         {personalInfo.photo && (
-          <div className="flex-shrink-0">
+          <div className="shrink-0">
             <div
               className="relative w-24 h-24 rounded-full overflow-hidden border-4"
               style={{ borderColor: settings.colorScheme }}

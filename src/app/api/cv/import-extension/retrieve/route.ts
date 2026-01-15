@@ -3,12 +3,12 @@ import prisma from "@/lib/prisma";
 
 // Allowed origins for CORS (whitelist approach)
 const ALLOWED_ORIGINS = [
-  'localhost:3000',
-  'localhost:3001',
-  'http://localhost:3000',
-  'http://localhost:3001',
-  'https://job-prep-fawn.vercel.app',
-  'chrome-extension://', // Chrome extension protocol
+  "localhost:3000",
+  "localhost:3001",
+  "http://localhost:3000",
+  "http://localhost:3001",
+  "https://job-prep-fawn.vercel.app",
+  "chrome-extension://", // Chrome extension protocol
 ];
 
 // Helper function to get CORS headers based on request origin
@@ -20,14 +20,14 @@ function getCorsHeaders(origin: string | null): Record<string, string> | null {
   // Check if origin matches any allowed origin
   const isAllowed = ALLOWED_ORIGINS.some((allowedOrigin) => {
     // For chrome-extension, just check the protocol prefix
-    if (allowedOrigin === 'chrome-extension://') {
-      return origin.startsWith('chrome-extension://');
+    if (allowedOrigin === "chrome-extension://") {
+      return origin.startsWith("chrome-extension://");
     }
     // For URLs, do exact or host:port match
     return (
       origin === allowedOrigin ||
-      origin.replace('http://', '') === allowedOrigin ||
-      origin.replace('https://', '') === allowedOrigin
+      origin.replace("http://", "") === allowedOrigin ||
+      origin.replace("https://", "") === allowedOrigin
     );
   });
 
@@ -37,14 +37,14 @@ function getCorsHeaders(origin: string | null): Record<string, string> | null {
 
   // Return CORS headers with the validated origin
   return {
-    'Access-Control-Allow-Origin': origin,
-    'Access-Control-Allow-Methods': 'POST, OPTIONS',
-    'Access-Control-Allow-Headers': 'Content-Type',
+    "Access-Control-Allow-Origin": origin,
+    "Access-Control-Allow-Methods": "POST, OPTIONS",
+    "Access-Control-Allow-Headers": "Content-Type",
   };
 }
 
 export async function OPTIONS(request: NextRequest) {
-  const origin = request.headers.get('origin');
+  const origin = request.headers.get("origin");
   const corsHeaders = getCorsHeaders(origin);
 
   if (!corsHeaders) {
@@ -58,13 +58,13 @@ export async function OPTIONS(request: NextRequest) {
 }
 
 export async function POST(request: NextRequest) {
-  const origin = request.headers.get('origin');
+  const origin = request.headers.get("origin");
   const corsHeaders = getCorsHeaders(origin);
 
   if (!corsHeaders) {
     return new NextResponse(
-      JSON.stringify({ error: 'CORS policy: origin not allowed' }),
-      { status: 403 }
+      JSON.stringify({ error: "CORS policy: origin not allowed" }),
+      { status: 403 },
     );
   }
 
@@ -72,10 +72,10 @@ export async function POST(request: NextRequest) {
     const { sessionId } = await request.json();
 
     // Validate sessionId presence
-    if (!sessionId || typeof sessionId !== 'string') {
+    if (!sessionId || typeof sessionId !== "string") {
       const response = NextResponse.json(
         { error: "Missing or invalid sessionId" },
-        { status: 400 }
+        { status: 400 },
       );
       Object.entries(corsHeaders).forEach(([key, value]) => {
         response.headers.set(key, value);
@@ -91,7 +91,7 @@ export async function POST(request: NextRequest) {
     if (!session) {
       const response = NextResponse.json(
         { error: "Session not found or expired" },
-        { status: 404 }
+        { status: 404 },
       );
       Object.entries(corsHeaders).forEach(([key, value]) => {
         response.headers.set(key, value);
@@ -105,10 +105,10 @@ export async function POST(request: NextRequest) {
       await prisma.linkedInImportSession.delete({
         where: { id: session.id },
       });
-      
+
       const response = NextResponse.json(
         { error: "Session expired" },
-        { status: 410 }
+        { status: 410 },
       );
       Object.entries(corsHeaders).forEach(([key, value]) => {
         response.headers.set(key, value);
@@ -118,7 +118,7 @@ export async function POST(request: NextRequest) {
 
     // Retrieve data and delete session (one-time use)
     const data = session.data;
-    
+
     // Update retrievedAt timestamp and delete session
     await prisma.linkedInImportSession.delete({
       where: { id: session.id },
@@ -141,7 +141,7 @@ export async function POST(request: NextRequest) {
         error: "Failed to retrieve session",
         details: error instanceof Error ? error.message : String(error),
       },
-      { status: 500 }
+      { status: 500 },
     );
     Object.entries(corsHeaders).forEach(([key, value]) => {
       response.headers.set(key, value);

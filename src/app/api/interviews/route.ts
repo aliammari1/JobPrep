@@ -93,7 +93,7 @@ export async function GET(req: NextRequest) {
       take: limit,
     });
 
-    return NextResponse.json({ 
+    return NextResponse.json({
       interviews,
       pagination: {
         total,
@@ -101,13 +101,13 @@ export async function GET(req: NextRequest) {
         limit,
         pages: Math.ceil(total / limit),
         hasMore: skip + limit < total,
-      }
+      },
     });
   } catch (error) {
     console.error("Error fetching interviews:", error);
     return NextResponse.json(
       { error: "Failed to fetch interviews" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
@@ -138,7 +138,7 @@ export async function POST(req: NextRequest) {
     if (!candidateId) {
       return NextResponse.json(
         { error: "candidateId is required" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -218,16 +218,18 @@ export async function POST(req: NextRequest) {
     try {
       if (scheduledAt) {
         const settingsData = settings ? JSON.parse(settings) : {};
-        const result = await createGoogleCalendarEvent(
-          session.user.id,
-          {
-            summary: `Interview: ${settingsData.position || "Position"} - ${settingsData.candidateName || "Candidate"}`,
-            description: `Interview Details:\n\nPosition: ${settingsData.position || "N/A"}\nCandidate: ${settingsData.candidateName || "N/A"}\nEmail: ${settingsData.candidateEmail || "N/A"}\nPhone: ${settingsData.candidatePhone || "N/A"}\nType: ${settingsData.type || "video"}\n\nNotes:\n${settingsData.notes || "No additional notes"}`,
-            startTime: new Date(scheduledAt),
-            endTime: new Date(new Date(scheduledAt).getTime() + (settingsData.duration || 60) * 60000),
-            attendees: settingsData.candidateEmail ? [settingsData.candidateEmail] : [],
-          }
-        );
+        const result = await createGoogleCalendarEvent(session.user.id, {
+          summary: `Interview: ${settingsData.position || "Position"} - ${settingsData.candidateName || "Candidate"}`,
+          description: `Interview Details:\n\nPosition: ${settingsData.position || "N/A"}\nCandidate: ${settingsData.candidateName || "N/A"}\nEmail: ${settingsData.candidateEmail || "N/A"}\nPhone: ${settingsData.candidatePhone || "N/A"}\nType: ${settingsData.type || "video"}\n\nNotes:\n${settingsData.notes || "No additional notes"}`,
+          startTime: new Date(scheduledAt),
+          endTime: new Date(
+            new Date(scheduledAt).getTime() +
+              (settingsData.duration || 60) * 60000,
+          ),
+          attendees: settingsData.candidateEmail
+            ? [settingsData.candidateEmail]
+            : [],
+        });
 
         if (result.success && result.eventId) {
           // Update interview with calendar event ID
@@ -252,7 +254,7 @@ export async function POST(req: NextRequest) {
     console.error("Error creating interview:", error);
     return NextResponse.json(
       { error: "Failed to create interview" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
@@ -288,7 +290,7 @@ export async function PATCH(req: NextRequest) {
     if (!interviewId) {
       return NextResponse.json(
         { error: "Interview ID required" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -300,7 +302,7 @@ export async function PATCH(req: NextRequest) {
     if (!existingInterview) {
       return NextResponse.json(
         { error: "Interview not found" },
-        { status: 404 }
+        { status: 404 },
       );
     }
 
@@ -308,10 +310,7 @@ export async function PATCH(req: NextRequest) {
       existingInterview.candidateId !== session.user.id &&
       existingInterview.interviewerId !== session.user.id
     ) {
-      return NextResponse.json(
-        { error: "Forbidden" },
-        { status: 403 }
-      );
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
     const interview = await prisma.interview.update({
@@ -359,7 +358,7 @@ export async function PATCH(req: NextRequest) {
     console.error("Error updating interview:", error);
     return NextResponse.json(
       { error: "Failed to update interview" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

@@ -5,7 +5,13 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Input } from "@/components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { UserPlus, Mail, Shield } from "lucide-react";
 
 export default function TeamSettingsPage() {
@@ -14,7 +20,9 @@ export default function TeamSettingsPage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold">Team Management</h1>
-          <p className="text-muted-foreground mt-1">Manage team members, roles, and permissions</p>
+          <p className="text-muted-foreground mt-1">
+            Manage team members, roles, and permissions
+          </p>
         </div>
         <Button>
           <UserPlus className="mr-2 h-4 w-4" />
@@ -54,28 +62,63 @@ export default function TeamSettingsPage() {
         <CardContent>
           <div className="space-y-3">
             {[
-              { name: "Alice Johnson", email: "alice@company.com", role: "Admin", status: "Active" },
-              { name: "Bob Smith", email: "bob@company.com", role: "Recruiter", status: "Active" },
-              { name: "Carol White", email: "carol@company.com", role: "Recruiter", status: "Active" },
-              { name: "David Lee", email: "david@company.com", role: "Member", status: "Pending" },
+              {
+                name: "Alice Johnson",
+                email: "alice@company.com",
+                role: "Admin",
+                status: "Active",
+              },
+              {
+                name: "Bob Smith",
+                email: "bob@company.com",
+                role: "Recruiter",
+                status: "Active",
+              },
+              {
+                name: "Carol White",
+                email: "carol@company.com",
+                role: "Recruiter",
+                status: "Active",
+              },
+              {
+                name: "David Lee",
+                email: "david@company.com",
+                role: "Member",
+                status: "Pending",
+              },
             ].map((member) => (
               <Card key={member.email}>
                 <CardContent className="p-4">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3">
                       <Avatar>
-                        <AvatarFallback>{member.name.split(" ").map(n => n[0]).join("")}</AvatarFallback>
+                        <AvatarFallback>
+                          {member.name
+                            .split(" ")
+                            .map((n) => n[0])
+                            .join("")}
+                        </AvatarFallback>
                       </Avatar>
                       <div>
                         <p className="font-medium">{member.name}</p>
-                        <p className="text-sm text-muted-foreground">{member.email}</p>
+                        <p className="text-sm text-muted-foreground">
+                          {member.email}
+                        </p>
                       </div>
                     </div>
                     <div className="flex items-center gap-2">
-                      <Badge variant={member.role === "Admin" ? "default" : "secondary"}>
+                      <Badge
+                        variant={
+                          member.role === "Admin" ? "default" : "secondary"
+                        }
+                      >
                         {member.role}
                       </Badge>
-                      <Badge variant={member.status === "Active" ? "default" : "outline"}>
+                      <Badge
+                        variant={
+                          member.status === "Active" ? "default" : "outline"
+                        }
+                      >
                         {member.status}
                       </Badge>
                       <Button size="sm" variant="outline">
@@ -97,18 +140,37 @@ export default function TeamSettingsPage() {
         <CardContent>
           <div className="space-y-3">
             {[
-              { role: "Admin", permissions: "Full access to all features", members: 2 },
-              { role: "Recruiter", permissions: "Can manage interviews and candidates", members: 6 },
-              { role: "Member", permissions: "View-only access to dashboards", members: 4 },
+              {
+                role: "Admin",
+                permissions: "Full access to all features",
+                members: 2,
+              },
+              {
+                role: "Recruiter",
+                permissions: "Can manage interviews and candidates",
+                members: 6,
+              },
+              {
+                role: "Member",
+                permissions: "View-only access to dashboards",
+                members: 4,
+              },
             ].map((role) => (
-              <div key={role.role} className="flex items-center justify-between p-4 border rounded-lg">
+              <div
+                key={role.role}
+                className="flex items-center justify-between p-4 border rounded-lg"
+              >
                 <div>
                   <p className="font-medium">{role.role}</p>
-                  <p className="text-sm text-muted-foreground">{role.permissions}</p>
+                  <p className="text-sm text-muted-foreground">
+                    {role.permissions}
+                  </p>
                 </div>
                 <div className="flex items-center gap-3">
                   <Badge variant="outline">{role.members} members</Badge>
-                  <Button size="sm" variant="ghost">Edit</Button>
+                  <Button size="sm" variant="ghost">
+                    Edit
+                  </Button>
                 </div>
               </div>
             ))}

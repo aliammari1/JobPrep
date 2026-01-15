@@ -1,23 +1,30 @@
 // Appwrite Storage Configuration
-import { Client, Storage, ID } from 'node-appwrite';
-import { Readable } from 'stream';
-import { InputFile } from 'node-appwrite/file';
+import { Client, Storage, ID } from "node-appwrite";
+import { Readable } from "stream";
+import { InputFile } from "node-appwrite/file";
 
-export const RECORDINGS_BUCKET_ID = 'recordings';
+export const RECORDINGS_BUCKET_ID = "recordings";
 
 export function createAppwriteClient() {
   // Server-side Appwrite client configuration
   const client = new Client()
-    .setEndpoint(process.env.NEXT_PUBLIC_APPWRITE_ENDPOINT || 'https://fra.cloud.appwrite.io/v1')
-    .setProject(process.env.NEXT_PUBLIC_APPWRITE_PROJECT_ID || '68dfd41f00191a47462f');
+    .setEndpoint(
+      process.env.NEXT_PUBLIC_APPWRITE_ENDPOINT ||
+        "https://fra.cloud.appwrite.io/v1",
+    )
+    .setProject(
+      process.env.NEXT_PUBLIC_APPWRITE_PROJECT_ID || "68dfd41f00191a47462f",
+    );
 
   // Set API key for server-side operations
   const apiKey = process.env.APPWRITE_API_KEY;
   if (apiKey) {
     client.setKey(apiKey);
-    console.log('Appwrite API key configured');
+    console.log("Appwrite API key configured");
   } else {
-    console.warn('APPWRITE_API_KEY not found in environment variables. Server-side operations may fail.');
+    console.warn(
+      "APPWRITE_API_KEY not found in environment variables. Server-side operations may fail.",
+    );
   }
 
   return client;
@@ -26,8 +33,11 @@ export function createAppwriteClient() {
 export function getAppwriteConfig() {
   // Client-side Appwrite configuration (no API key)
   return {
-    endpoint: process.env.NEXT_PUBLIC_APPWRITE_ENDPOINT || 'https://fra.cloud.appwrite.io/v1',
-    projectId: process.env.NEXT_PUBLIC_APPWRITE_PROJECT_ID || '68dfd41f00191a47462f',
+    endpoint:
+      process.env.NEXT_PUBLIC_APPWRITE_ENDPOINT ||
+      "https://fra.cloud.appwrite.io/v1",
+    projectId:
+      process.env.NEXT_PUBLIC_APPWRITE_PROJECT_ID || "68dfd41f00191a47462f",
   };
 }
 
@@ -41,7 +51,7 @@ export function getAppwriteConfig() {
 export async function uploadRecording(
   file: Buffer,
   fileName: string,
-  permissions: string[] = ['read("any")']
+  permissions: string[] = ['read("any")'],
 ) {
   const client = createAppwriteClient();
   const storage = new Storage(client);
@@ -49,21 +59,21 @@ export async function uploadRecording(
   try {
     // Create InputFile from Buffer
     const inputFile = InputFile.fromBuffer(file, fileName);
-    
-    console.log('Starting upload to Appwrite:', {
+
+    console.log("Starting upload to Appwrite:", {
       bucketId: RECORDINGS_BUCKET_ID,
       fileName,
       fileSize: file.length,
     });
-    
+
     const uploadedFile = await storage.createFile(
       RECORDINGS_BUCKET_ID,
       ID.unique(),
       inputFile,
-      permissions
+      permissions,
     );
 
-    console.log('File uploaded to Appwrite:', {
+    console.log("File uploaded to Appwrite:", {
       fileId: uploadedFile.$id,
       fileName: uploadedFile.name,
       size: uploadedFile.sizeOriginal,
@@ -73,7 +83,7 @@ export async function uploadRecording(
     const config = getAppwriteConfig();
     const fileUrl = `${config.endpoint}/storage/buckets/${RECORDINGS_BUCKET_ID}/files/${uploadedFile.$id}/view?project=${config.projectId}`;
 
-    console.log('Generated file URL:', fileUrl);
+    console.log("Generated file URL:", fileUrl);
 
     return {
       fileId: uploadedFile.$id,
@@ -83,7 +93,7 @@ export async function uploadRecording(
       mimeType: uploadedFile.mimeType,
     };
   } catch (error: any) {
-    console.error('Error uploading to Appwrite:', error);
+    console.error("Error uploading to Appwrite:", error);
     throw new Error(`Failed to upload recording: ${error.message}`);
   }
 }
@@ -100,7 +110,7 @@ export async function deleteRecording(fileId: string) {
     await storage.deleteFile(RECORDINGS_BUCKET_ID, fileId);
     return true;
   } catch (error: any) {
-    console.error('Error deleting from Appwrite:', error);
+    console.error("Error deleting from Appwrite:", error);
     throw new Error(`Failed to delete recording: ${error.message}`);
   }
 }
@@ -115,7 +125,7 @@ export async function getRecordingFile(fileId: string) {
 
   try {
     const file = await storage.getFile(RECORDINGS_BUCKET_ID, fileId);
-    
+
     const fileUrl = `${getAppwriteConfig().endpoint}/storage/buckets/${RECORDINGS_BUCKET_ID}/files/${file.$id}/view?project=${getAppwriteConfig().projectId}`;
 
     return {
@@ -127,7 +137,7 @@ export async function getRecordingFile(fileId: string) {
       createdAt: file.$createdAt,
     };
   } catch (error: any) {
-    console.error('Error getting file from Appwrite:', error);
+    console.error("Error getting file from Appwrite:", error);
     throw new Error(`Failed to get recording: ${error.message}`);
   }
 }
@@ -141,7 +151,7 @@ export async function listRecordings() {
 
   try {
     const files = await storage.listFiles(RECORDINGS_BUCKET_ID);
-    return files.files.map(file => ({
+    return files.files.map((file) => ({
       fileId: file.$id,
       fileName: file.name,
       fileSize: file.sizeOriginal,
@@ -150,8 +160,7 @@ export async function listRecordings() {
       createdAt: file.$createdAt,
     }));
   } catch (error: any) {
-    console.error('Error listing files from Appwrite:', error);
+    console.error("Error listing files from Appwrite:", error);
     throw new Error(`Failed to list recordings: ${error.message}`);
   }
 }
-

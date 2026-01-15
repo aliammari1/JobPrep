@@ -43,11 +43,11 @@ export function PreviewPanel() {
 
   const handleZoomIn = useCallback(
     () => setZoomLevel((p) => Math.min(p + 10, 200)),
-    []
+    [],
   );
   const handleZoomOut = useCallback(
     () => setZoomLevel((p) => Math.max(p - 10, 50)),
-    []
+    [],
   );
   const handleFitToPage = useCallback(() => setZoomLevel(100), []);
 

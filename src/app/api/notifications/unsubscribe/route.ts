@@ -18,10 +18,7 @@ export async function POST(request: NextRequest) {
     const { endpoint } = body;
 
     if (!endpoint) {
-      return NextResponse.json(
-        { error: "Invalid endpoint" },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: "Invalid endpoint" }, { status: 400 });
     }
 
     // Remove subscription from store
@@ -38,13 +35,13 @@ export async function POST(request: NextRequest) {
         success: true,
         message: "Successfully unsubscribed from notifications",
       },
-      { status: 200 }
+      { status: 200 },
     );
   } catch (error) {
     console.error("[API] Error handling unsubscription:", error);
     return NextResponse.json(
       { error: "Failed to unsubscribe from notifications" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

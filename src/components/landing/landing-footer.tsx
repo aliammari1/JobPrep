@@ -43,7 +43,7 @@ export function LandingFooter() {
           {/* Brand */}
           <div className="lg:col-span-1">
             <Link href="/" className="flex items-center space-x-2 mb-4">
-              <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-primary to-primary/60 flex items-center justify-center">
+              <div className="h-8 w-8 rounded-lg bg-linear-to-br from-primary to-primary/60 flex items-center justify-center">
                 <span className="text-white font-bold text-lg">J</span>
               </div>
               <span className="font-bold text-lg">JobPrep AI</span>

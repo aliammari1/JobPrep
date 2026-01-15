@@ -8,7 +8,13 @@
 import { useEffect, useState } from "react";
 import { usePushNotifications } from "@/hooks/use-push-notifications";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import {
   AlertCircle,
   Bell,
@@ -92,7 +98,7 @@ export function PushNotificationSettings({
             <p
               className={cn(
                 "flex items-center gap-2 text-sm",
-                isSubscribed ? "text-green-600" : "text-gray-500"
+                isSubscribed ? "text-green-600" : "text-gray-500",
               )}
             >
               {isSubscribed ? (
@@ -136,7 +142,7 @@ export function PushNotificationSettings({
         {/* Error Message */}
         {error && (
           <div className="flex items-start gap-3 rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-700">
-            <AlertCircle className="mt-0.5 h-5 w-5 flex-shrink-0" />
+            <AlertCircle className="mt-0.5 h-5 w-5 shrink-0" />
             <div>{error}</div>
           </div>
         )}
@@ -206,8 +212,9 @@ export function PushNotificationSettings({
         <div className="rounded-lg bg-blue-50 p-4 text-sm text-blue-700">
           <p className="font-medium">💡 Tip:</p>
           <p className="mt-1">
-            Push notifications work even when the app is closed or running in the
-            background. Make sure your browser allows notifications from JobPrep.
+            Push notifications work even when the app is closed or running in
+            the background. Make sure your browser allows notifications from
+            JobPrep.
           </p>
         </div>
       </CardContent>

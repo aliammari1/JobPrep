@@ -66,7 +66,9 @@ export function BrowserRecorder({
       toast.success("Recording started");
     } catch (error) {
       console.error("Error starting recording:", error);
-      toast.error("Failed to start recording. Please check camera/microphone permissions.");
+      toast.error(
+        "Failed to start recording. Please check camera/microphone permissions.",
+      );
     }
   }, []);
 
@@ -110,7 +112,13 @@ export function BrowserRecorder({
       setRecordedChunks([]);
       setRecordingDuration(0);
     }
-  }, [recordedChunks, interviewId, roomName, uploadRecording, onRecordingComplete]);
+  }, [
+    recordedChunks,
+    interviewId,
+    roomName,
+    uploadRecording,
+    onRecordingComplete,
+  ]);
 
   const formatDuration = (seconds: number) => {
     const hours = Math.floor(seconds / 3600);
@@ -150,7 +158,11 @@ export function BrowserRecorder({
         )}
 
         {isRecording && (
-          <Button onClick={stopRecording} variant="destructive" className="flex-1">
+          <Button
+            onClick={stopRecording}
+            variant="destructive"
+            className="flex-1"
+          >
             <Square className="w-4 h-4 mr-2" />
             Stop Recording
           </Button>

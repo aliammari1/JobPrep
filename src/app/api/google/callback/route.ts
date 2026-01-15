@@ -13,13 +13,13 @@ export async function GET(req: NextRequest) {
     if (error) {
       // User denied access or other OAuth error
       return NextResponse.redirect(
-        `${process.env.NEXT_PUBLIC_APP_URL}/interview-scheduler?error=oauth_denied`
+        `${process.env.NEXT_PUBLIC_APP_URL}/interview-scheduler?error=oauth_denied`,
       );
     }
 
     if (!code || !state) {
       return NextResponse.redirect(
-        `${process.env.NEXT_PUBLIC_APP_URL}/interview-scheduler?error=invalid_callback`
+        `${process.env.NEXT_PUBLIC_APP_URL}/interview-scheduler?error=invalid_callback`,
       );
     }
 
@@ -30,7 +30,7 @@ export async function GET(req: NextRequest) {
 
     if (!session || session.user.id !== state) {
       return NextResponse.redirect(
-        `${process.env.NEXT_PUBLIC_APP_URL}/interview-scheduler?error=unauthorized`
+        `${process.env.NEXT_PUBLIC_APP_URL}/interview-scheduler?error=unauthorized`,
       );
     }
 
@@ -53,7 +53,7 @@ export async function GET(req: NextRequest) {
       const errorData = await tokenResponse.text();
       console.error("Token exchange failed:", errorData);
       return NextResponse.redirect(
-        `${process.env.NEXT_PUBLIC_APP_URL}/interview-scheduler?error=token_exchange_failed`
+        `${process.env.NEXT_PUBLIC_APP_URL}/interview-scheduler?error=token_exchange_failed`,
       );
     }
 
@@ -74,9 +74,7 @@ export async function GET(req: NextRequest) {
         data: {
           accessToken: tokens.access_token,
           refreshToken: tokens.refresh_token || existingAccount.refreshToken,
-          accessTokenExpiresAt: new Date(
-            Date.now() + tokens.expires_in * 1000
-          ),
+          accessTokenExpiresAt: new Date(Date.now() + tokens.expires_in * 1000),
           scope: tokens.scope,
           updatedAt: new Date(),
         },
@@ -91,9 +89,7 @@ export async function GET(req: NextRequest) {
           userId: session.user.id,
           accessToken: tokens.access_token,
           refreshToken: tokens.refresh_token,
-          accessTokenExpiresAt: new Date(
-            Date.now() + tokens.expires_in * 1000
-          ),
+          accessTokenExpiresAt: new Date(Date.now() + tokens.expires_in * 1000),
           scope: tokens.scope,
         },
       });
@@ -101,12 +97,12 @@ export async function GET(req: NextRequest) {
 
     // Redirect back to scheduler with success message
     return NextResponse.redirect(
-      `${process.env.NEXT_PUBLIC_APP_URL}/interview-scheduler?success=calendar_connected`
+      `${process.env.NEXT_PUBLIC_APP_URL}/interview-scheduler?success=calendar_connected`,
     );
   } catch (error) {
     console.error("Error in Google OAuth callback:", error);
     return NextResponse.redirect(
-      `${process.env.NEXT_PUBLIC_APP_URL}/interview-scheduler?error=callback_failed`
+      `${process.env.NEXT_PUBLIC_APP_URL}/interview-scheduler?error=callback_failed`,
     );
   }
 }

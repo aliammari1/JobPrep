@@ -3,12 +3,12 @@ import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
 import prisma from "@/lib/prisma";
 
-export const runtime = 'nodejs';
+export const runtime = "nodejs";
 
 export async function POST(request: NextRequest) {
   try {
     console.log("=== SAVE-INTERVIEW API CALLED ===");
-    
+
     // Get authenticated user
     const session = await auth.api.getSession({
       headers: await headers(),
@@ -17,18 +17,15 @@ export async function POST(request: NextRequest) {
     console.log("Session check:", {
       hasSession: !!session,
       hasUser: !!session?.user,
-      userId: session?.user?.id
+      userId: session?.user?.id,
     });
 
     if (!session?.user) {
       console.error("No authenticated user found");
-      return NextResponse.json(
-        { error: "Unauthorized" },
-        { status: 401 }
-      );
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const { 
+    const {
       sessionType,
       topics,
       duration,
@@ -40,7 +37,7 @@ export async function POST(request: NextRequest) {
       questions, // NEW: Complete question data with answers and evaluations
       candidateName,
       jobTitle,
-      companyName
+      companyName,
     } = await request.json();
 
     console.log("Request body received:", {
@@ -53,38 +50,42 @@ export async function POST(request: NextRequest) {
       questionsCount: Array.isArray(questions) ? questions.length : 0,
       candidateName,
       jobTitle,
-      companyName
+      companyName,
     });
 
     // Ensure topics is an array
-    const topicsArray = Array.isArray(topics) ? topics : (topics ? [topics] : []);
+    const topicsArray = Array.isArray(topics) ? topics : topics ? [topics] : [];
 
     // Build detailed questions array with all information
-    const detailedQuestions = Array.isArray(questions) ? questions.map((q: any, index: number) => ({
-      order: index + 1,
-      questionText: q.question?.question || "",
-      questionType: q.question?.type || "",
-      idealAnswer: q.question?.idealAnswer || "",
-      userAnswer: q.userAnswer || "",
-      timeSpent: q.timeSpent || 0,
-      evaluation: {
-        score: q.evaluation?.score || 0,
-        feedback: q.evaluation?.feedback || "",
-        strengths: q.evaluation?.strengths || [],
-        weaknesses: q.evaluation?.weaknesses || [],
-        suggestions: q.evaluation?.suggestions || []
-      }
-    })) : [];
+    const detailedQuestions = Array.isArray(questions)
+      ? questions.map((q: any, index: number) => ({
+          order: index + 1,
+          questionText: q.question?.question || "",
+          questionType: q.question?.type || "",
+          idealAnswer: q.question?.idealAnswer || "",
+          userAnswer: q.userAnswer || "",
+          timeSpent: q.timeSpent || 0,
+          evaluation: {
+            score: q.evaluation?.score || 0,
+            feedback: q.evaluation?.feedback || "",
+            strengths: q.evaluation?.strengths || [],
+            weaknesses: q.evaluation?.weaknesses || [],
+            suggestions: q.evaluation?.suggestions || [],
+          },
+        }))
+      : [];
 
     console.log("Detailed questions prepared:", {
       count: detailedQuestions.length,
-      sampleQuestion: detailedQuestions[0] ? {
-        text: detailedQuestions[0].questionText?.substring(0, 50),
-        hasUserAnswer: !!detailedQuestions[0].userAnswer,
-        hasIdealAnswer: !!detailedQuestions[0].idealAnswer,
-        userAnswerLength: detailedQuestions[0].userAnswer?.length || 0,
-        idealAnswerLength: detailedQuestions[0].idealAnswer?.length || 0
-      } : null
+      sampleQuestion: detailedQuestions[0]
+        ? {
+            text: detailedQuestions[0].questionText?.substring(0, 50),
+            hasUserAnswer: !!detailedQuestions[0].userAnswer,
+            hasIdealAnswer: !!detailedQuestions[0].idealAnswer,
+            userAnswerLength: detailedQuestions[0].userAnswer?.length || 0,
+            idealAnswerLength: detailedQuestions[0].idealAnswer?.length || 0,
+          }
+        : null,
     });
 
     // Save session first
@@ -100,7 +101,7 @@ export async function POST(request: NextRequest) {
           candidateName,
           jobTitle,
           companyName,
-          questions: detailedQuestions // Store detailed question data with answers and evaluations
+          questions: detailedQuestions, // Store detailed question data with answers and evaluations
         }),
         feedback: JSON.stringify(feedback),
         improvementAreas: improvementAreas || [],
@@ -117,7 +118,7 @@ export async function POST(request: NextRequest) {
     try {
       console.log("Starting to save questions...", {
         count: detailedQuestions.length,
-        sessionId: mockSession.id
+        sessionId: mockSession.id,
       });
 
       if (detailedQuestions.length > 0) {
@@ -139,19 +140,21 @@ export async function POST(request: NextRequest) {
           })),
         });
       }
-      console.log("Questions saved successfully:", { count: detailedQuestions.length });
+      console.log("Questions saved successfully:", {
+        count: detailedQuestions.length,
+      });
     } catch (qError) {
       console.error("ERROR saving questions:", qError);
       console.error("Question error details:", {
-        name: qError instanceof Error ? qError.name : 'Unknown',
-        message: qError instanceof Error ? qError.message : 'Unknown error',
-        stack: qError instanceof Error ? qError.stack : 'No stack trace'
+        name: qError instanceof Error ? qError.name : "Unknown",
+        message: qError instanceof Error ? qError.message : "Unknown error",
+        stack: qError instanceof Error ? qError.stack : "No stack trace",
       });
     }
 
     console.log("Interview saved successfully:", {
       sessionId: mockSession.id,
-      userId: mockSession.userId
+      userId: mockSession.userId,
     });
 
     return NextResponse.json({
@@ -159,20 +162,19 @@ export async function POST(request: NextRequest) {
       sessionId: mockSession.id,
       message: "Interview saved successfully",
     });
-
   } catch (error) {
     console.error("Error saving interview:", error);
     console.error("Error details:", {
-      name: error instanceof Error ? error.name : 'Unknown',
-      message: error instanceof Error ? error.message : 'Unknown error',
-      stack: error instanceof Error ? error.stack : 'No stack trace'
+      name: error instanceof Error ? error.name : "Unknown",
+      message: error instanceof Error ? error.message : "Unknown error",
+      stack: error instanceof Error ? error.stack : "No stack trace",
     });
     return NextResponse.json(
-      { 
+      {
         error: "Failed to save interview",
-        details: error instanceof Error ? error.message : "Unknown error"
+        details: error instanceof Error ? error.message : "Unknown error",
       },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
@@ -185,10 +187,7 @@ export async function GET(request: NextRequest) {
     });
 
     if (!session?.user) {
-      return NextResponse.json(
-        { error: "Unauthorized" },
-        { status: 401 }
-      );
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     const interviews = await prisma.aIMockSession.findMany({
@@ -196,14 +195,14 @@ export async function GET(request: NextRequest) {
         userId: session.user.id,
       },
       orderBy: {
-        createdAt: 'desc',
+        createdAt: "desc",
       },
       include: {
         mockQuestions: {
           orderBy: {
-            order: 'asc',
-          }
-        }
+            order: "asc",
+          },
+        },
       },
     });
 
@@ -211,15 +210,14 @@ export async function GET(request: NextRequest) {
       success: true,
       interviews,
     });
-
   } catch (error) {
     console.error("Error fetching interviews:", error);
     return NextResponse.json(
-      { 
+      {
         error: "Failed to fetch interviews",
-        details: error instanceof Error ? error.message : "Unknown error"
+        details: error instanceof Error ? error.message : "Unknown error",
       },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

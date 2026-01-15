@@ -144,7 +144,7 @@ export default function SignUpPage() {
 
   if (success) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background via-background to-muted/20 p-4">
+      <div className="min-h-screen flex items-center justify-center bg-linear-to-br from-background via-background to-muted/20 p-4">
         <Card className="w-full max-w-md shadow-xl">
           <CardHeader className="space-y-1">
             <div className="flex justify-center mb-4">
@@ -172,10 +172,10 @@ export default function SignUpPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background via-background to-muted/20 p-4">
+    <div className="min-h-screen flex items-center justify-center bg-linear-to-br from-background via-background to-muted/20 p-4">
       <Card className="w-full max-w-md shadow-xl">
         <CardHeader className="space-y-1">
-          <CardTitle className="text-3xl font-bold text-center bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">
+          <CardTitle className="text-3xl font-bold text-center bg-linear-to-r from-primary to-primary/60 bg-clip-text text-transparent">
             Create Account
           </CardTitle>
           <CardDescription className="text-center text-base">

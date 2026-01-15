@@ -19,12 +19,13 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const { code, language, challengeId }: SaveCodeRequest = await request.json();
+    const { code, language, challengeId }: SaveCodeRequest =
+      await request.json();
 
     if (!code || !language || !challengeId) {
       return NextResponse.json(
         { error: "Missing required fields: code, language, challengeId" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -32,7 +33,7 @@ export async function POST(request: NextRequest) {
     if (code.length > 50000) {
       return NextResponse.json(
         { error: "Code exceeds maximum length of 50KB" },
-        { status: 413 }
+        { status: 413 },
       );
     }
 
@@ -64,7 +65,7 @@ export async function POST(request: NextRequest) {
         draftId: draft.id,
         savedAt: draft.lastSavedAt.toISOString(),
       },
-      { status: 200 }
+      { status: 200 },
     );
   } catch (error) {
     console.error("Error saving code draft:", error);
@@ -73,7 +74,7 @@ export async function POST(request: NextRequest) {
         error: "Failed to save code draft",
         details: error instanceof Error ? error.message : "Unknown error",
       },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
@@ -96,7 +97,7 @@ export async function GET(request: NextRequest) {
     if (!challengeId || !language) {
       return NextResponse.json(
         { error: "Missing required parameters: challengeId, language" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -127,7 +128,7 @@ export async function GET(request: NextRequest) {
     console.error("Error retrieving code draft:", error);
     return NextResponse.json(
       { error: "Failed to retrieve code draft" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

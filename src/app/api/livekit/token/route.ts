@@ -38,14 +38,14 @@ export async function GET(req: NextRequest) {
     if (!roomName) {
       return NextResponse.json(
         { error: "Missing roomName parameter" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
     if (!participantName) {
       return NextResponse.json(
         { error: "Missing participantName parameter" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -55,7 +55,7 @@ export async function GET(req: NextRequest) {
     console.error("Error generating LiveKit token:", error);
     return NextResponse.json(
       { error: "Failed to generate token" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
@@ -68,14 +68,14 @@ export async function POST(req: NextRequest) {
     if (!roomName) {
       return NextResponse.json(
         { error: "Missing roomName parameter" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
     if (!participantName) {
       return NextResponse.json(
         { error: "Missing participantName parameter" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -85,7 +85,7 @@ export async function POST(req: NextRequest) {
     console.error("Error generating LiveKit token:", error);
     return NextResponse.json(
       { error: "Failed to generate token" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

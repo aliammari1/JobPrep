@@ -36,19 +36,28 @@ interface TestResult {
 
 // You can use Judge0 CE (Community Edition) or other services
 // For production, consider: Judge0, Piston API, or custom sandboxed execution
-const JUDGE0_API_URL = process.env.JUDGE0_API_URL || "https://judge0-ce.p.rapidapi.com";
+const JUDGE0_API_URL =
+  process.env.JUDGE0_API_URL || "https://judge0-ce.p.rapidapi.com";
 const JUDGE0_API_KEY = process.env.JUDGE0_API_KEY || "";
 const USE_RAPID_API = process.env.USE_RAPID_API === "true";
 
 export async function POST(request: NextRequest) {
   try {
     const body: ExecutionRequest = await request.json();
-    const { code, language, testCases, timeLimit = 5, memoryLimit = 256000 } = body;
+    const {
+      code,
+      language,
+      testCases,
+      timeLimit = 5,
+      memoryLimit = 256000,
+    } = body;
 
     if (!code || !language || !testCases || testCases.length === 0) {
       return NextResponse.json(
-        { error: "Invalid request: code, language, and testCases are required" },
-        { status: 400 }
+        {
+          error: "Invalid request: code, language, and testCases are required",
+        },
+        { status: 400 },
       );
     }
 
@@ -56,7 +65,7 @@ export async function POST(request: NextRequest) {
     if (!languageId) {
       return NextResponse.json(
         { error: `Unsupported language: ${language}` },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -121,8 +130,11 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     console.error("Code execution error:", error);
     return NextResponse.json(
-      { error: "Failed to execute code", details: error instanceof Error ? error.message : "Unknown error" },
-      { status: 500 }
+      {
+        error: "Failed to execute code",
+        details: error instanceof Error ? error.message : "Unknown error",
+      },
+      { status: 500 },
     );
   }
 }
@@ -145,7 +157,7 @@ async function executeCode({
   // Require a configured execution backend
   if (!JUDGE0_API_KEY && !process.env.PISTON_API_URL) {
     throw new Error(
-      "Code execution is not configured. Set JUDGE0_API_KEY or PISTON_API_URL in environment variables."
+      "Code execution is not configured. Set JUDGE0_API_KEY or PISTON_API_URL in environment variables.",
     );
   }
 
@@ -167,7 +179,7 @@ async function executeCode({
       return await executeWithPiston({
         code,
         language: Object.keys(LANGUAGE_IDS).find(
-          (key) => LANGUAGE_IDS[key] === languageId
+          (key) => LANGUAGE_IDS[key] === languageId,
         )!,
         input,
         expectedOutput,
@@ -206,18 +218,21 @@ async function executeWithJudge0({
   }
 
   // Submit code
-  const submitResponse = await fetch(`${JUDGE0_API_URL}/submissions?base64_encoded=false&wait=true`, {
-    method: "POST",
-    headers,
-    body: JSON.stringify({
-      source_code: code,
-      language_id: languageId,
-      stdin: input,
-      expected_output: expectedOutput,
-      cpu_time_limit: timeLimit,
-      memory_limit: memoryLimit,
-    }),
-  });
+  const submitResponse = await fetch(
+    `${JUDGE0_API_URL}/submissions?base64_encoded=false&wait=true`,
+    {
+      method: "POST",
+      headers,
+      body: JSON.stringify({
+        source_code: code,
+        language_id: languageId,
+        stdin: input,
+        expected_output: expectedOutput,
+        cpu_time_limit: timeLimit,
+        memory_limit: memoryLimit,
+      }),
+    },
+  );
 
   if (!submitResponse.ok) {
     throw new Error(`Judge0 API error: ${submitResponse.statusText}`);
@@ -252,7 +267,8 @@ async function executeWithPiston({
   input: string;
   expectedOutput: string;
 }) {
-  const pistonUrl = process.env.PISTON_API_URL || "https://emkc.org/api/v2/piston";
+  const pistonUrl =
+    process.env.PISTON_API_URL || "https://emkc.org/api/v2/piston";
 
   const response = await fetch(`${pistonUrl}/execute`, {
     method: "POST",

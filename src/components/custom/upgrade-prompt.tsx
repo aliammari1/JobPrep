@@ -41,15 +41,10 @@ export function UpgradePrompt({
           </DialogDescription>
         </DialogHeader>
         <DialogFooter className="sm:justify-center">
-          <Button
-            variant="outline"
-            onClick={() => onOpenChange(false)}
-          >
+          <Button variant="outline" onClick={() => onOpenChange(false)}>
             Maybe Later
           </Button>
-          <Button onClick={() => router.push("/pricing")}>
-            View Plans
-          </Button>
+          <Button onClick={() => router.push("/pricing")}>View Plans</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

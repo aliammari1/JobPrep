@@ -37,7 +37,7 @@ interface UseChallengesReturn {
 export function useChallenges(): UseChallengesReturn {
   const [challenges, setChallenges] = useState<Challenge[]>([]);
   const [currentChallenge, setCurrentChallenge] = useState<Challenge | null>(
-    null
+    null,
   );
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);

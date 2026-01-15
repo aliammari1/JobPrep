@@ -19,7 +19,7 @@ const questionSchema = z.object({
       category: z.enum(["technical", "behavioral", "situational"]),
       difficulty: z.enum(["easy", "medium", "hard"]),
       expectedAnswer: z.string().optional(),
-    })
+    }),
   ),
 });
 
@@ -54,18 +54,20 @@ Difficulties: easy, medium, or hard`,
 
     // Aggressive JSON cleaning
     let cleanedText = text.trim();
-    
+
     // Remove markdown code blocks
-    cleanedText = cleanedText.replace(/```json\n?/gi, "").replace(/```\n?/g, "");
-    
+    cleanedText = cleanedText
+      .replace(/```json\n?/gi, "")
+      .replace(/```\n?/g, "");
+
     // Remove any leading/trailing non-JSON text
     const jsonStart = cleanedText.indexOf("{");
     const jsonEnd = cleanedText.lastIndexOf("}");
-    
+
     if (jsonStart !== -1 && jsonEnd !== -1) {
       cleanedText = cleanedText.substring(jsonStart, jsonEnd + 1);
     }
-    
+
     // Fix common JSON issues
     cleanedText = cleanedText
       .replace(/,(\s*[}\]])/g, "$1") // Remove trailing commas
@@ -80,7 +82,7 @@ Difficulties: easy, medium, or hard`,
       console.error("JSON Parse Error:", parseError);
       console.error("Cleaned text:", cleanedText);
       console.error("Original text:", text);
-      
+
       // Return a fallback response with default questions
       return NextResponse.json({
         questions: [
@@ -88,18 +90,20 @@ Difficulties: easy, medium, or hard`,
             text: `Tell me about your experience with ${role} roles.`,
             category: "behavioral",
             difficulty: "medium",
-            expectedAnswer: "Candidate should discuss relevant experience and achievements.",
+            expectedAnswer:
+              "Candidate should discuss relevant experience and achievements.",
           },
           {
             text: `What technical challenges have you faced and how did you solve them?`,
             category: "technical",
             difficulty: "medium",
-            expectedAnswer: "Candidate should demonstrate problem-solving skills.",
+            expectedAnswer:
+              "Candidate should demonstrate problem-solving skills.",
           },
         ],
       });
     }
-    
+
     return NextResponse.json(parsed);
   } catch (error) {
     console.error("Question generation error:", error);
@@ -108,7 +112,7 @@ Difficulties: easy, medium, or hard`,
         error: "Failed to generate questions",
         details: error instanceof Error ? error.message : "Unknown error",
       },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

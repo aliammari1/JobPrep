@@ -58,12 +58,12 @@ export function VideoCallInterface({
     <Card
       className={cn(
         "relative overflow-hidden bg-black/95 border-none",
-        className
+        className,
       )}
     >
       <CardContent className="p-0 relative h-full">
         {/* Video Background */}
-        <div className="absolute inset-0 bg-gradient-to-br from-blue-900/20 to-purple-900/20">
+        <div className="absolute inset-0 bg-linear-to-br from-blue-900/20 to-purple-900/20">
           {!isVideoEnabled && (
             <div className="flex items-center justify-center h-full">
               <div className="text-center text-white">
@@ -115,7 +115,7 @@ export function VideoCallInterface({
                     "rounded-full h-12 w-12 transition-colors",
                     isAudioEnabled
                       ? "bg-white/20 hover:bg-white/30 text-white"
-                      : "bg-red-500 hover:bg-red-600 text-white"
+                      : "bg-red-500 hover:bg-red-600 text-white",
                   )}
                 >
                   {isAudioEnabled ? (
@@ -133,7 +133,7 @@ export function VideoCallInterface({
                     "rounded-full h-12 w-12 transition-colors",
                     isVideoEnabled
                       ? "bg-white/20 hover:bg-white/30 text-white"
-                      : "bg-red-500 hover:bg-red-600 text-white"
+                      : "bg-red-500 hover:bg-red-600 text-white",
                   )}
                 >
                   {isVideoEnabled ? (

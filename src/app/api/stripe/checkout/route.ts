@@ -19,7 +19,7 @@ export async function POST(req: Request) {
     if (!priceId) {
       return NextResponse.json(
         { error: "Price ID is required" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -77,12 +77,15 @@ export async function POST(req: Request) {
       },
     });
 
-    return NextResponse.json({ sessionId: checkoutSession.id, url: checkoutSession.url });
+    return NextResponse.json({
+      sessionId: checkoutSession.id,
+      url: checkoutSession.url,
+    });
   } catch (error) {
     console.error("Error creating checkout session:", error);
     return NextResponse.json(
       { error: "Failed to create checkout session" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

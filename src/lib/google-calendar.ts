@@ -63,7 +63,7 @@ export async function getAccessToken(userId: string): Promise<string | null> {
             refresh_token: account.refreshToken,
             grant_type: "refresh_token",
           }),
-        }
+        },
       );
 
       if (!refreshResponse.ok) {
@@ -78,9 +78,7 @@ export async function getAccessToken(userId: string): Promise<string | null> {
         where: { id: account.id },
         data: {
           accessToken: tokens.access_token,
-          accessTokenExpiresAt: new Date(
-            Date.now() + tokens.expires_in * 1000
-          ),
+          accessTokenExpiresAt: new Date(Date.now() + tokens.expires_in * 1000),
         },
       });
 
@@ -96,7 +94,7 @@ export async function getAccessToken(userId: string): Promise<string | null> {
 
 export async function createGoogleCalendarEvent(
   userId: string,
-  event: GoogleCalendarEvent
+  event: GoogleCalendarEvent,
 ): Promise<{ success: boolean; eventId?: string; error?: string }> {
   try {
     const accessToken = await getAccessToken(userId);
@@ -108,14 +106,22 @@ export async function createGoogleCalendarEvent(
     // Convert startTime/endTime to Google Calendar format if provided
     const calendarEvent = {
       ...event,
-      start: event.start || (event.startTime ? {
-        dateTime: event.startTime.toISOString(),
-        timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-      } : undefined),
-      end: event.end || (event.endTime ? {
-        dateTime: event.endTime.toISOString(),
-        timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-      } : undefined),
+      start:
+        event.start ||
+        (event.startTime
+          ? {
+              dateTime: event.startTime.toISOString(),
+              timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+            }
+          : undefined),
+      end:
+        event.end ||
+        (event.endTime
+          ? {
+              dateTime: event.endTime.toISOString(),
+              timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+            }
+          : undefined),
     };
 
     // Remove the temporary properties
@@ -131,7 +137,7 @@ export async function createGoogleCalendarEvent(
           "Content-Type": "application/json",
         },
         body: JSON.stringify(calendarEvent),
-      }
+      },
     );
 
     if (!response.ok) {
@@ -150,7 +156,7 @@ export async function createGoogleCalendarEvent(
 
 export async function deleteGoogleCalendarEvent(
   userId: string,
-  eventId: string
+  eventId: string,
 ): Promise<{ success: boolean; error?: string }> {
   try {
     const accessToken = await getAccessToken(userId);
@@ -166,7 +172,7 @@ export async function deleteGoogleCalendarEvent(
         headers: {
           Authorization: `Bearer ${accessToken}`,
         },
-      }
+      },
     );
 
     if (!response.ok && response.status !== 404) {
@@ -200,7 +206,7 @@ export async function isCalendarConnected(userId: string): Promise<boolean> {
  * Fetch events from Google Calendar that aren't already synced to JobPrep
  */
 export async function fetchGoogleCalendarEvents(
-  userId: string
+  userId: string,
 ): Promise<any[]> {
   try {
     const accessToken = await getAccessToken(userId);
@@ -217,7 +223,7 @@ export async function fetchGoogleCalendarEvents(
         headers: {
           Authorization: `Bearer ${accessToken}`,
         },
-      }
+      },
     );
 
     if (!response.ok) {
@@ -239,7 +245,7 @@ export async function fetchGoogleCalendarEvents(
 export async function updateGoogleCalendarEvent(
   userId: string,
   eventId: string,
-  event: GoogleCalendarEvent
+  event: GoogleCalendarEvent,
 ): Promise<{ success: boolean; error?: string }> {
   try {
     const accessToken = await getAccessToken(userId);
@@ -251,14 +257,22 @@ export async function updateGoogleCalendarEvent(
     // Convert startTime/endTime to Google Calendar format if provided
     const calendarEvent = {
       ...event,
-      start: event.start || (event.startTime ? {
-        dateTime: event.startTime.toISOString(),
-        timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-      } : undefined),
-      end: event.end || (event.endTime ? {
-        dateTime: event.endTime.toISOString(),
-        timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-      } : undefined),
+      start:
+        event.start ||
+        (event.startTime
+          ? {
+              dateTime: event.startTime.toISOString(),
+              timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+            }
+          : undefined),
+      end:
+        event.end ||
+        (event.endTime
+          ? {
+              dateTime: event.endTime.toISOString(),
+              timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+            }
+          : undefined),
     };
 
     // Remove the temporary properties
@@ -274,7 +288,7 @@ export async function updateGoogleCalendarEvent(
           "Content-Type": "application/json",
         },
         body: JSON.stringify(calendarEvent),
-      }
+      },
     );
 
     if (!response.ok) {

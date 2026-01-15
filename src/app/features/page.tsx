@@ -309,7 +309,7 @@ export default function FeaturesPage() {
     <div className="flex flex-col min-h-screen">
       {/* Hero Section */}
       <section className="relative pt-20 pb-16 px-4 sm:px-8 md:px-12 overflow-hidden">
-        <div className="absolute inset-0 -z-10 bg-gradient-to-br from-primary/10 via-primary/5 to-transparent" />
+        <div className="absolute inset-0 -z-10 bg-linear-to-br from-primary/10 via-primary/5 to-transparent" />
         <div className="absolute inset-0 -z-10 bg-grid-white/10" />
 
         <motion.div
@@ -325,7 +325,7 @@ export default function FeaturesPage() {
             <Sparkles className="h-3 w-3 mr-1" />
             Complete Feature Set
           </Badge>
-          <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold tracking-tight bg-gradient-to-b from-foreground via-foreground to-foreground/70 bg-clip-text text-transparent">
+          <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold tracking-tight bg-linear-to-b from-foreground via-foreground to-foreground/70 bg-clip-text text-transparent">
             Everything You Need to Excel
           </h1>
           <p className="mt-6 text-lg md:text-xl text-muted-foreground max-w-3xl mx-auto leading-relaxed">
@@ -399,7 +399,7 @@ export default function FeaturesPage() {
                       <Card className="h-full hover:shadow-xl transition-all duration-300 border-2 hover:border-primary/50 group">
                         <CardHeader>
                           <div className="flex items-start justify-between mb-4">
-                            <div className="p-3 rounded-xl bg-gradient-to-br from-primary/10 to-primary/5 group-hover:from-primary/20 group-hover:to-primary/10 transition-all">
+                            <div className="p-3 rounded-xl bg-linear-to-br from-primary/10 to-primary/5 group-hover:from-primary/20 group-hover:to-primary/10 transition-all">
                               <feature.icon className="h-6 w-6 text-primary" />
                             </div>
                             <Badge
@@ -518,7 +518,7 @@ export default function FeaturesPage() {
       </section>
 
       {/* CTA Section */}
-      <section className="px-4 sm:px-8 md:px-12 py-20 bg-gradient-to-br from-primary/10 via-primary/5 to-transparent">
+      <section className="px-4 sm:px-8 md:px-12 py-20 bg-linear-to-br from-primary/10 via-primary/5 to-transparent">
         <div className="max-w-4xl mx-auto text-center">
           <motion.div
             initial={{ opacity: 0, scale: 0.95 }}

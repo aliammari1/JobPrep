@@ -21,7 +21,9 @@ export function useSubscription() {
       const data = await response.json();
       return {
         ...data,
-        currentPeriodEnd: data.currentPeriodEnd ? new Date(data.currentPeriodEnd) : null,
+        currentPeriodEnd: data.currentPeriodEnd
+          ? new Date(data.currentPeriodEnd)
+          : null,
       };
     },
     staleTime: 30 * 1000, // 30 seconds
@@ -127,7 +129,9 @@ export function useUpgradeSubscription() {
       }
     },
     onError: (error: any) => {
-      toast.error(error.message || "Failed to update subscription. Please try again.");
+      toast.error(
+        error.message || "Failed to update subscription. Please try again.",
+      );
     },
   });
 }
@@ -155,7 +159,9 @@ export function useDowngradeSubscription() {
       toast.success("Subscription downgraded successfully!");
     },
     onError: (error: any) => {
-      toast.error(error.message || "Failed to downgrade subscription. Please try again.");
+      toast.error(
+        error.message || "Failed to downgrade subscription. Please try again.",
+      );
     },
   });
 }

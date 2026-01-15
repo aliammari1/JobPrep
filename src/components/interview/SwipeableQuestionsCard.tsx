@@ -129,7 +129,9 @@ export function SwipeableQuestionsCard({
         {/* Header */}
         <div className="flex items-center justify-between bg-white dark:bg-slate-900 p-4 rounded-t-lg">
           <div>
-            <h2 className="text-2xl font-bold text-foreground">{templateName}</h2>
+            <h2 className="text-2xl font-bold text-foreground">
+              {templateName}
+            </h2>
             <p className="text-sm text-muted-foreground">
               Question {currentIndex + 1} of {questions.length}
             </p>
@@ -156,7 +158,7 @@ export function SwipeableQuestionsCard({
           </div>
           <div className="w-full h-2 bg-muted rounded-full overflow-hidden">
             <motion.div
-              className="h-full bg-gradient-to-r from-primary to-secondary rounded-full"
+              className="h-full bg-linear-to-r from-primary to-secondary rounded-full"
               layoutId="progress"
               animate={{ width: `${progress}%` }}
               transition={{ type: "spring", stiffness: 100, damping: 15 }}
@@ -193,12 +195,12 @@ export function SwipeableQuestionsCard({
               {/* Question Header */}
               <div className="space-y-3">
                 <div className="flex items-start gap-3">
-                  <Badge className={getDifficultyColor(currentQuestion?.difficulty)}>
+                  <Badge
+                    className={getDifficultyColor(currentQuestion?.difficulty)}
+                  >
                     {currentQuestion?.difficulty}
                   </Badge>
-                  <Badge variant="outline">
-                    {currentQuestion?.type}
-                  </Badge>
+                  <Badge variant="outline">{currentQuestion?.type}</Badge>
                   {currentQuestion?.category && (
                     <Badge variant="secondary">
                       {currentQuestion.category}
@@ -290,7 +292,7 @@ export function SwipeableQuestionsCard({
               onClick={() => goToQuestion(idx)}
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
-              className={`flex-shrink-0 py-2 px-3 rounded-lg font-medium text-sm transition-all ${
+              className={`shrink-0 py-2 px-3 rounded-lg font-medium text-sm transition-all ${
                 idx === currentIndex
                   ? "bg-primary text-primary-foreground shadow-lg"
                   : "bg-muted text-muted-foreground hover:bg-muted/80"

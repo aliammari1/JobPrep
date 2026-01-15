@@ -1,6 +1,6 @@
 "use client";
 
-import { create } from 'zustand';
+import { create } from "zustand";
 
 export interface ChatMessage {
   id: string;
@@ -8,12 +8,12 @@ export interface ChatMessage {
   senderName: string;
   message: string;
   timestamp: Date;
-  type: 'message' | 'note' | 'question';
+  type: "message" | "note" | "question";
 }
 
 export interface AIInsight {
-  type: 'positive' | 'neutral' | 'suggestion';
-  category: 'communication' | 'technical' | 'behavioral' | 'overall';
+  type: "positive" | "neutral" | "suggestion";
+  category: "communication" | "technical" | "behavioral" | "overall";
   message: string;
   timestamp: Date;
   confidence: number;
@@ -33,28 +33,28 @@ interface InterviewState {
   isRecording: boolean;
   recordingTime: number;
   recordingStartTime: number | null;
-  
+
   // Chat and notes
   chatMessages: ChatMessage[];
   notes: string[];
-  
+
   // AI features
   aiInsights: AIInsight[];
   transcripts: TranscriptEntry[];
   isAIAnalyzing: boolean;
-  
+
   // Actions
   startRecording: () => void;
   stopRecording: () => void;
   updateRecordingTime: (time: number) => void;
-  
+
   addChatMessage: (message: ChatMessage) => void;
   addNote: (note: string) => void;
-  
+
   addAIInsight: (insight: AIInsight) => void;
   addTranscript: (transcript: TranscriptEntry) => void;
   setAIAnalyzing: (analyzing: boolean) => void;
-  
+
   clearAll: () => void;
 }
 
@@ -68,50 +68,57 @@ export const useInterviewStore = create<InterviewState>((set) => ({
   aiInsights: [],
   transcripts: [],
   isAIAnalyzing: false,
-  
+
   // Recording actions
-  startRecording: () => set({ 
-    isRecording: true, 
-    recordingStartTime: Date.now(),
-    recordingTime: 0 
-  }),
-  
-  stopRecording: () => set({ 
-    isRecording: false,
-    recordingStartTime: null 
-  }),
-  
+  startRecording: () =>
+    set({
+      isRecording: true,
+      recordingStartTime: Date.now(),
+      recordingTime: 0,
+    }),
+
+  stopRecording: () =>
+    set({
+      isRecording: false,
+      recordingStartTime: null,
+    }),
+
   updateRecordingTime: (time) => set({ recordingTime: time }),
-  
+
   // Chat and notes actions
-  addChatMessage: (message) => set((state) => ({
-    chatMessages: [...state.chatMessages, message]
-  })),
-  
-  addNote: (note) => set((state) => ({
-    notes: [...state.notes, note]
-  })),
-  
+  addChatMessage: (message) =>
+    set((state) => ({
+      chatMessages: [...state.chatMessages, message],
+    })),
+
+  addNote: (note) =>
+    set((state) => ({
+      notes: [...state.notes, note],
+    })),
+
   // AI actions
-  addAIInsight: (insight) => set((state) => ({
-    aiInsights: [...state.aiInsights, insight]
-  })),
-  
-  addTranscript: (transcript) => set((state) => ({
-    transcripts: [...state.transcripts, transcript]
-  })),
-  
+  addAIInsight: (insight) =>
+    set((state) => ({
+      aiInsights: [...state.aiInsights, insight],
+    })),
+
+  addTranscript: (transcript) =>
+    set((state) => ({
+      transcripts: [...state.transcripts, transcript],
+    })),
+
   setAIAnalyzing: (analyzing) => set({ isAIAnalyzing: analyzing }),
-  
+
   // Clear all
-  clearAll: () => set({
-    chatMessages: [],
-    notes: [],
-    aiInsights: [],
-    transcripts: [],
-    isRecording: false,
-    recordingTime: 0,
-    recordingStartTime: null,
-    isAIAnalyzing: false,
-  }),
+  clearAll: () =>
+    set({
+      chatMessages: [],
+      notes: [],
+      aiInsights: [],
+      transcripts: [],
+      isRecording: false,
+      recordingTime: 0,
+      recordingStartTime: null,
+      isAIAnalyzing: false,
+    }),
 }));

@@ -20,7 +20,7 @@ const skillAnalysisSchema = z.object({
       proficiency: z.enum(["beginner", "intermediate", "advanced", "expert"]),
       required: z.boolean(),
       importance: z.enum(["critical", "high", "medium", "low"]),
-    })
+    }),
   ),
   matchingSkills: z.array(
     z.object({
@@ -28,7 +28,7 @@ const skillAnalysisSchema = z.object({
       proficiency: z.enum(["beginner", "intermediate", "advanced", "expert"]),
       required: z.boolean(),
       importance: z.enum(["critical", "high", "medium", "low"]),
-    })
+    }),
   ),
   learningPath: z.array(
     z.object({
@@ -39,7 +39,7 @@ const skillAnalysisSchema = z.object({
       url: z.string(),
       rating: z.number().min(0).max(5),
       price: z.enum(["free", "paid"]),
-    })
+    }),
   ),
 });
 
@@ -50,7 +50,7 @@ export async function POST(req: Request) {
     if (!jobDescription || !cvSkills || !Array.isArray(cvSkills)) {
       return NextResponse.json(
         { error: "Invalid input: jobDescription and cvSkills array required" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -177,7 +177,7 @@ CRITICAL: Return ONLY valid JSON. No markdown. No code blocks. No explanations.
         error: "Failed to analyze skill gap",
         details: error instanceof Error ? error.message : "Unknown error",
       },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

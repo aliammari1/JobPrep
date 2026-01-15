@@ -1,5 +1,5 @@
-import { useCallback, useRef, useEffect } from 'react';
-import { toast } from 'sonner';
+import { useCallback, useRef, useEffect } from "react";
+import { toast } from "sonner";
 
 interface LiveKitTokenCache {
   token: string;
@@ -26,15 +26,17 @@ export function useLiveKitToken(roomName: string) {
         // Check cache first
         const cached = TOKEN_CACHE.get(roomName);
         if (cached && cached.expiresAt > Date.now() + TOKEN_EXPIRY_BUFFER) {
-          console.log('✅ Using cached LiveKit token');
+          console.log("✅ Using cached LiveKit token");
           return cached.token;
         }
 
-        console.log(`🔄 Fetching LiveKit token (attempt ${attempt + 1}/${MAX_RETRIES})`);
+        console.log(
+          `🔄 Fetching LiveKit token (attempt ${attempt + 1}/${MAX_RETRIES})`,
+        );
 
-        const response = await fetch('/api/livekit/token', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+        const response = await fetch("/api/livekit/token", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ roomName }),
           signal: AbortSignal.timeout(10000), // 10s timeout
         });
@@ -42,7 +44,7 @@ export function useLiveKitToken(roomName: string) {
         if (!response.ok) {
           if (response.status === 429) {
             // Rate limited, retry with exponential backoff
-            throw new Error('Rate limited');
+            throw new Error("Rate limited");
           }
           throw new Error(`Token fetch failed: ${response.statusText}`);
         }
@@ -51,9 +53,9 @@ export function useLiveKitToken(roomName: string) {
         const { token, url } = data;
 
         // Decode JWT to get expiry
-        const parts = token.split('.');
-        if (parts.length !== 3) throw new Error('Invalid token format');
-        
+        const parts = token.split(".");
+        if (parts.length !== 3) throw new Error("Invalid token format");
+
         const decoded = JSON.parse(atob(parts[1]));
         const expiresAt = decoded.exp * 1000; // Convert to ms
 
@@ -64,31 +66,31 @@ export function useLiveKitToken(roomName: string) {
           roomUrl: url,
         });
 
-        console.log('✅ LiveKit token obtained and cached');
+        console.log("✅ LiveKit token obtained and cached");
         retryCountRef.current = 0; // Reset retry count on success
         return token;
       } catch (error) {
         if (attempt < MAX_RETRIES - 1) {
           console.warn(
-            `⚠️  Token fetch attempt ${attempt + 1} failed, retrying...`
+            `⚠️  Token fetch attempt ${attempt + 1} failed, retrying...`,
           );
           await new Promise((resolve) =>
-            setTimeout(resolve, TOKEN_RETRY_DELAY * (attempt + 1))
+            setTimeout(resolve, TOKEN_RETRY_DELAY * (attempt + 1)),
           );
           return fetchTokenWithRetry(attempt + 1);
         }
 
-        console.error('❌ Failed to fetch LiveKit token after retries');
+        console.error("❌ Failed to fetch LiveKit token after retries");
         throw error;
       }
     },
-    [roomName]
+    [roomName],
   );
 
   // Deduplicate concurrent requests
   const getToken = useCallback(async (): Promise<string> => {
     if (requestInFlightRef.current) {
-      console.log('⏳ Waiting for in-flight token request');
+      console.log("⏳ Waiting for in-flight token request");
       return requestInFlightRef.current;
     }
 
@@ -105,7 +107,7 @@ export function useLiveKitToken(roomName: string) {
   // Invalidate cache on unmount
   useEffect(() => {
     return () => {
-      console.log('🗑️  Cleaning up LiveKit token cache');
+      console.log("🗑️  Cleaning up LiveKit token cache");
       TOKEN_CACHE.delete(roomName);
     };
   }, [roomName]);
@@ -116,7 +118,10 @@ export function useLiveKitToken(roomName: string) {
 /**
  * Hook for LiveKit connection with timeout and recovery
  */
-export function useLiveKitConnection(roomName: string, participantName: string) {
+export function useLiveKitConnection(
+  roomName: string,
+  participantName: string,
+) {
   const { getToken } = useLiveKitToken(roomName);
   const connectionTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const reconnectAttemptsRef = useRef(0);
@@ -125,16 +130,18 @@ export function useLiveKitConnection(roomName: string, participantName: string) 
   const connectWithTimeout = useCallback(async () => {
     return new Promise<string>((resolve, reject) => {
       connectionTimeoutRef.current = setTimeout(() => {
-        reject(new Error('LiveKit connection timeout (15s)'));
+        reject(new Error("LiveKit connection timeout (15s)"));
       }, 15000);
 
       getToken()
         .then((token) => {
-          if (connectionTimeoutRef.current) clearTimeout(connectionTimeoutRef.current);
+          if (connectionTimeoutRef.current)
+            clearTimeout(connectionTimeoutRef.current);
           resolve(token);
         })
         .catch((error) => {
-          if (connectionTimeoutRef.current) clearTimeout(connectionTimeoutRef.current);
+          if (connectionTimeoutRef.current)
+            clearTimeout(connectionTimeoutRef.current);
           reject(error);
         });
     });
@@ -143,7 +150,7 @@ export function useLiveKitConnection(roomName: string, participantName: string) 
   const reconnectWithBackoff = useCallback(async (): Promise<string | null> => {
     if (reconnectAttemptsRef.current >= MAX_RECONNECT_ATTEMPTS) {
       toast.error(
-        'Failed to reconnect to LiveKit after multiple attempts. Please refresh the page.'
+        "Failed to reconnect to LiveKit after multiple attempts. Please refresh the page.",
       );
       return null;
     }
@@ -152,7 +159,7 @@ export function useLiveKitConnection(roomName: string, participantName: string) 
     const delayMs = Math.pow(2, reconnectAttemptsRef.current) * 1000; // Exponential backoff
 
     console.log(
-      `🔄 Reconnecting to LiveKit (attempt ${reconnectAttemptsRef.current}/${MAX_RECONNECT_ATTEMPTS}) in ${delayMs}ms`
+      `🔄 Reconnecting to LiveKit (attempt ${reconnectAttemptsRef.current}/${MAX_RECONNECT_ATTEMPTS}) in ${delayMs}ms`,
     );
 
     await new Promise((resolve) => setTimeout(resolve, delayMs));
@@ -160,7 +167,7 @@ export function useLiveKitConnection(roomName: string, participantName: string) 
     try {
       return await connectWithTimeout();
     } catch (error) {
-      console.error('Reconnection failed:', error);
+      console.error("Reconnection failed:", error);
       return reconnectWithBackoff(); // Recursive retry
     }
   }, [connectWithTimeout]);

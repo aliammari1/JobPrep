@@ -1,16 +1,20 @@
 import { NextRequest, NextResponse } from "next/server";
-import { generateWithOllamaRetry, cleanJsonResponse } from "@/lib/ollama-client";
+import {
+  generateWithOllamaRetry,
+  cleanJsonResponse,
+} from "@/lib/ollama-client";
 
-export const runtime = 'nodejs';
+export const runtime = "nodejs";
 
 export async function POST(request: NextRequest) {
   try {
-    const { question, userAnswer, idealAnswer, evaluationCriteria } = await request.json();
+    const { question, userAnswer, idealAnswer, evaluationCriteria } =
+      await request.json();
 
     if (!question || !userAnswer || !idealAnswer) {
       return NextResponse.json(
         { error: "Question, user answer, and ideal answer are required" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -22,7 +26,7 @@ IDEAL ANSWER: ${idealAnswer}
 
 CANDIDATE'S ANSWER: ${userAnswer}
 
-EVALUATION CRITERIA: ${evaluationCriteria ? evaluationCriteria.join(', ') : 'Accuracy, completeness, clarity'}
+EVALUATION CRITERIA: ${evaluationCriteria ? evaluationCriteria.join(", ") : "Accuracy, completeness, clarity"}
 
 STRICT SCORING RULES:
 - Score 0-2: Wrong answer, irrelevant, or minimal effort (e.g., just "yes", "no", single words)
@@ -65,7 +69,7 @@ Be STRICT and HONEST. If the answer is bad, give score 0-3. Don't be generous!`;
     } catch (parseError) {
       console.error("JSON Parse Error:", parseError);
       console.error("Full cleaned text:", cleanedText);
-      
+
       // Return a default evaluation on parse error
       evaluation = {
         score: 5,
@@ -74,19 +78,20 @@ Be STRICT and HONEST. If the answer is bad, give score 0-3. Don't be generous!`;
         suggestions: ["Please try answering again"],
         feedback: "Technical error occurred during evaluation",
         keyPointsCovered: [],
-        keyPointsMissed: []
+        keyPointsMissed: [],
       };
     }
 
     return NextResponse.json(evaluation);
-
   } catch (error: any) {
     console.error("Error evaluating answer:", error);
-    
+
     // Check if it's a service overload or rate limit
-    const isOverloadError = error?.status === 503 || error?.message?.includes('overloaded');
-    const isRateLimitError = error?.status === 429 || error?.message?.includes('quota');
-    
+    const isOverloadError =
+      error?.status === 503 || error?.message?.includes("overloaded");
+    const isRateLimitError =
+      error?.status === 429 || error?.message?.includes("quota");
+
     if (isOverloadError || isRateLimitError) {
       // Return a fallback evaluation instead of error
       return NextResponse.json({
@@ -94,20 +99,20 @@ Be STRICT and HONEST. If the answer is bad, give score 0-3. Don't be generous!`;
         strengths: ["Answer submitted"],
         weaknesses: ["Evaluation service temporarily unavailable"],
         suggestions: ["Your answer has been recorded"],
-        feedback: isOverloadError 
+        feedback: isOverloadError
           ? "AI evaluation service is currently overloaded. Your answer is saved and will be reviewed."
           : "Rate limit reached. Your answer is saved.",
         keyPointsCovered: [],
-        keyPointsMissed: []
+        keyPointsMissed: [],
       });
     }
-    
+
     return NextResponse.json(
-      { 
+      {
         error: "Failed to evaluate answer",
-        details: error instanceof Error ? error.message : "Unknown error"
+        details: error instanceof Error ? error.message : "Unknown error",
       },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

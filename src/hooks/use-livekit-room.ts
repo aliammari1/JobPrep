@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback } from "react";
 import {
   Room,
   RoomEvent,
@@ -11,7 +11,7 @@ import {
   RemoteTrackPublication,
   Participant,
   DataPacket_Kind,
-} from 'livekit-client';
+} from "livekit-client";
 
 interface UseLiveKitRoomOptions {
   roomName: string;
@@ -40,14 +40,15 @@ export function useLiveKitRoom({
   const [isConnected, setIsConnected] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [participants, setParticipants] = useState<ParticipantInfo[]>([]);
-  const [localParticipant, setLocalParticipant] = useState<LocalParticipant | null>(null);
+  const [localParticipant, setLocalParticipant] =
+    useState<LocalParticipant | null>(null);
 
   // Fetch token from API
   const fetchToken = useCallback(async () => {
     try {
-      const response = await fetch('/api/livekit/token', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+      const response = await fetch("/api/livekit/token", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           roomName,
           participantName,
@@ -56,51 +57,57 @@ export function useLiveKitRoom({
       });
 
       if (!response.ok) {
-        throw new Error('Failed to get access token');
+        throw new Error("Failed to get access token");
       }
 
       const data = await response.json();
       return data.token;
     } catch (err) {
-      throw new Error('Could not fetch access token');
+      throw new Error("Could not fetch access token");
     }
   }, [roomName, participantName, metadata]);
 
   // Convert Participant to ParticipantInfo
-  const participantToInfo = useCallback((participant: Participant, isLocal: boolean): ParticipantInfo => {
-    const videoTrack = Array.from(participant.videoTrackPublications.values()).find(
-      (pub) => pub.source === Track.Source.Camera
-    );
-    const audioTrack = Array.from(participant.audioTrackPublications.values()).find(
-      (pub) => pub.source === Track.Source.Microphone
-    );
-    const screenTrack = Array.from(participant.videoTrackPublications.values()).find(
-      (pub) => pub.source === Track.Source.ScreenShare
-    );
+  const participantToInfo = useCallback(
+    (participant: Participant, isLocal: boolean): ParticipantInfo => {
+      const videoTrack = Array.from(
+        participant.videoTrackPublications.values(),
+      ).find((pub) => pub.source === Track.Source.Camera);
+      const audioTrack = Array.from(
+        participant.audioTrackPublications.values(),
+      ).find((pub) => pub.source === Track.Source.Microphone);
+      const screenTrack = Array.from(
+        participant.videoTrackPublications.values(),
+      ).find((pub) => pub.source === Track.Source.ScreenShare);
 
-    return {
-      id: participant.sid,
-      name: participant.name || participant.identity,
-      isLocal,
-      isSpeaking: participant.isSpeaking,
-      isCameraEnabled: videoTrack?.isSubscribed ?? false,
-      isMicrophoneEnabled: audioTrack?.isSubscribed ?? false,
-      isScreenShareEnabled: screenTrack?.isSubscribed ?? false,
-      metadata: participant.metadata,
-    };
-  }, []);
+      return {
+        id: participant.sid,
+        name: participant.name || participant.identity,
+        isLocal,
+        isSpeaking: participant.isSpeaking,
+        isCameraEnabled: videoTrack?.isSubscribed ?? false,
+        isMicrophoneEnabled: audioTrack?.isSubscribed ?? false,
+        isScreenShareEnabled: screenTrack?.isSubscribed ?? false,
+        metadata: participant.metadata,
+      };
+    },
+    [],
+  );
 
   // Update participants list
-  const updateParticipants = useCallback((room: Room) => {
-    const remoteParticipants = Array.from(room.remoteParticipants.values()).map(
-      (p) => participantToInfo(p, false)
-    );
-    const local = room.localParticipant
-      ? [participantToInfo(room.localParticipant, true)]
-      : [];
-    
-    setParticipants([...local, ...remoteParticipants]);
-  }, [participantToInfo]);
+  const updateParticipants = useCallback(
+    (room: Room) => {
+      const remoteParticipants = Array.from(
+        room.remoteParticipants.values(),
+      ).map((p) => participantToInfo(p, false));
+      const local = room.localParticipant
+        ? [participantToInfo(room.localParticipant, true)]
+        : [];
+
+      setParticipants([...local, ...remoteParticipants]);
+    },
+    [participantToInfo],
+  );
 
   // Connect to room
   const connect = useCallback(async () => {
@@ -158,12 +165,13 @@ export function useLiveKitRoom({
         });
 
       // Connect to the room
-      const wsUrl = process.env.NEXT_PUBLIC_LIVEKIT_URL || 'ws://localhost:7880';
+      const wsUrl =
+        process.env.NEXT_PUBLIC_LIVEKIT_URL || "ws://localhost:7880";
       await newRoom.connect(wsUrl, token);
 
       setRoom(newRoom);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to connect');
+      setError(err instanceof Error ? err.message : "Failed to connect");
       setIsConnecting(false);
     }
   }, [isConnecting, isConnected, fetchToken, updateParticipants]);
@@ -209,9 +217,11 @@ export function useLiveKitRoom({
       if (!localParticipant) return;
       const encoder = new TextEncoder();
       const encodedData = encoder.encode(JSON.stringify(data));
-      await localParticipant.publishData(encodedData, { reliable: kind === DataPacket_Kind.RELIABLE });
+      await localParticipant.publishData(encodedData, {
+        reliable: kind === DataPacket_Kind.RELIABLE,
+      });
     },
-    [localParticipant]
+    [localParticipant],
   );
 
   // Listen for data messages
@@ -220,16 +230,18 @@ export function useLiveKitRoom({
 
     const handleDataReceived = (
       payload: Uint8Array,
-      participant?: RemoteParticipant
+      participant?: RemoteParticipant,
     ) => {
       const decoder = new TextDecoder();
       const message = decoder.decode(payload);
       try {
         const data = JSON.parse(message);
         // Emit custom event for data messages
-        window.dispatchEvent(new CustomEvent('livekit-data', { detail: { data, participant } }));
+        window.dispatchEvent(
+          new CustomEvent("livekit-data", { detail: { data, participant } }),
+        );
       } catch (e) {
-        console.error('Failed to parse data message', e);
+        console.error("Failed to parse data message", e);
       }
     };
 
