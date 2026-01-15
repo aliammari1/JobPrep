@@ -19,7 +19,7 @@ export async function GET(request: NextRequest) {
     console.error("Error checking calendar connection:", error);
     return NextResponse.json(
       { error: "Failed to check calendar connection" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

@@ -30,15 +30,15 @@ export function LandingNavbar() {
           {/* Logo */}
           <Link href="/" className="flex items-center space-x-2">
             <div className="h-8 w-8 rounded-lg flex items-center justify-center">
-              <Image 
-                src="/icons/one_logo.png" 
-                alt="JobPrep Logo" 
-                width={32} 
+              <Image
+                src="/icons/one_logo.png"
+                alt="JobPrep Logo"
+                width={32}
                 height={32}
                 className="object-contain"
               />
             </div>
-            <span className="font-bold text-xl bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">
+            <span className="font-bold text-xl bg-linear-to-r from-primary to-primary/60 bg-clip-text text-transparent">
               JobPrep AI
             </span>
           </Link>
@@ -53,7 +53,7 @@ export function LandingNavbar() {
                   "text-sm font-medium transition-colors hover:text-primary",
                   pathname === item.href
                     ? "text-foreground"
-                    : "text-muted-foreground"
+                    : "text-muted-foreground",
                 )}
               >
                 {item.label}
@@ -107,7 +107,7 @@ export function LandingNavbar() {
                     "text-sm font-medium transition-colors hover:text-primary px-2 py-1",
                     pathname === item.href
                       ? "text-foreground"
-                      : "text-muted-foreground"
+                      : "text-muted-foreground",
                   )}
                 >
                   {item.label}

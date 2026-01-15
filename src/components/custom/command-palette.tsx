@@ -12,11 +12,7 @@ import {
   CommandList,
   CommandSeparator,
 } from "@/components/ui/command";
-import {
-  Dialog,
-  DialogContent,
-  DialogTitle,
-} from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import {
   Home,
   Target,
@@ -336,7 +332,7 @@ export function CommandPalette() {
       acc[cmd.category].push(cmd);
       return acc;
     },
-    {} as Record<string, CommandItem[]>
+    {} as Record<string, CommandItem[]>,
   );
 
   if (!mounted) return null;

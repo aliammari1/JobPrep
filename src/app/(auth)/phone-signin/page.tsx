@@ -39,7 +39,7 @@ export default function PhoneSignInPage() {
       setStep("code");
     } catch (err) {
       setError(
-        err instanceof Error ? err.message : "Failed to send verification code"
+        err instanceof Error ? err.message : "Failed to send verification code",
       );
     } finally {
       setIsLoading(false);
@@ -56,7 +56,7 @@ export default function PhoneSignInPage() {
         phoneNumber,
         code,
       });
-      
+
       router.push("/dashboard");
       router.refresh();
     } catch (err) {
@@ -80,7 +80,7 @@ export default function PhoneSignInPage() {
       setError(
         err instanceof Error
           ? err.message
-          : "Failed to resend verification code"
+          : "Failed to resend verification code",
       );
     } finally {
       setIsLoading(false);
@@ -88,7 +88,7 @@ export default function PhoneSignInPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background via-background to-muted/20 p-4">
+    <div className="min-h-screen flex items-center justify-center bg-linear-to-br from-background via-background to-muted/20 p-4">
       <Card className="w-full max-w-md shadow-xl">
         <CardHeader className="space-y-1">
           <div className="flex justify-center mb-4">
@@ -96,7 +96,7 @@ export default function PhoneSignInPage() {
               <Icons.smartphone className="h-8 w-8 text-primary" />
             </div>
           </div>
-          <CardTitle className="text-3xl font-bold text-center bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">
+          <CardTitle className="text-3xl font-bold text-center bg-linear-to-r from-primary to-primary/60 bg-clip-text text-transparent">
             {step === "phone" ? "Sign In with Phone" : "Enter Code"}
           </CardTitle>
           <CardDescription className="text-center text-base">

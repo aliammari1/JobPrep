@@ -53,7 +53,8 @@ interface SkillAnalysis {
 export function SkillsGapAnalyzer() {
   const { cvData } = useCVStore();
   const [jobDescription, setJobDescription] = useState("");
-  const { analyzeSkillGap, analyzing, analysis, error, reset } = useSkillGapAnalysis();
+  const { analyzeSkillGap, analyzing, analysis, error, reset } =
+    useSkillGapAnalysis();
 
   const handleAnalyze = async () => {
     if (!jobDescription.trim()) {
@@ -62,7 +63,7 @@ export function SkillsGapAnalyzer() {
     }
 
     const allCVSkills = cvData.skills.flatMap((category) =>
-      category.items.map((skill) => skill.toLowerCase())
+      category.items.map((skill) => skill.toLowerCase()),
     );
 
     try {
@@ -79,7 +80,9 @@ export function SkillsGapAnalyzer() {
       const fullAnalysis = { ...result, estimatedTime };
 
       toast.dismiss();
-      toast.success(`Analysis complete! ${result.matchPercentage}% skills match`);
+      toast.success(
+        `Analysis complete! ${result.matchPercentage}% skills match`,
+      );
 
       // Since the hook sets analysis, we can use it directly
     } catch (err) {
@@ -118,7 +121,12 @@ export function SkillsGapAnalyzer() {
     }
   };
 
-  const fullAnalysis = analysis ? { ...analysis, estimatedTime: calculateEstimatedTime(analysis.learningPath) } : null;
+  const fullAnalysis = analysis
+    ? {
+        ...analysis,
+        estimatedTime: calculateEstimatedTime(analysis.learningPath),
+      }
+    : null;
 
   return (
     <div className="space-y-6">
@@ -186,8 +194,8 @@ export function SkillsGapAnalyzer() {
                       fullAnalysis.matchPercentage >= 80
                         ? "bg-green-500/10 text-green-700 border-green-500/20"
                         : fullAnalysis.matchPercentage >= 60
-                        ? "bg-yellow-500/10 text-yellow-700 border-yellow-500/20"
-                        : "bg-red-500/10 text-red-700 border-red-500/20"
+                          ? "bg-yellow-500/10 text-yellow-700 border-yellow-500/20"
+                          : "bg-red-500/10 text-red-700 border-red-500/20"
                     }
                   >
                     {fullAnalysis.matchPercentage}% Match
@@ -195,23 +203,38 @@ export function SkillsGapAnalyzer() {
                 </div>
 
                 <div>
-                  <Progress value={fullAnalysis.matchPercentage} className="h-3" />
+                  <Progress
+                    value={fullAnalysis.matchPercentage}
+                    className="h-3"
+                  />
                   <div className="flex justify-between mt-2 text-xs text-muted-foreground">
-                    <span>{fullAnalysis.matchingSkills.length} skills found</span>
-                    <span>{fullAnalysis.missingSkills.length} skills missing</span>
+                    <span>
+                      {fullAnalysis.matchingSkills.length} skills found
+                    </span>
+                    <span>
+                      {fullAnalysis.missingSkills.length} skills missing
+                    </span>
                   </div>
                 </div>
 
                 <div className="grid grid-cols-2 gap-4 pt-4 border-t">
                   <div className="text-center">
                     <CheckCircle2 className="h-8 w-8 text-green-600 mx-auto mb-2" />
-                    <div className="text-2xl font-bold">{fullAnalysis.matchingSkills.length}</div>
-                    <div className="text-sm text-muted-foreground">Matching Skills</div>
+                    <div className="text-2xl font-bold">
+                      {fullAnalysis.matchingSkills.length}
+                    </div>
+                    <div className="text-sm text-muted-foreground">
+                      Matching Skills
+                    </div>
                   </div>
                   <div className="text-center">
                     <AlertTriangle className="h-8 w-8 text-orange-600 mx-auto mb-2" />
-                    <div className="text-2xl font-bold">{fullAnalysis.missingSkills.length}</div>
-                    <div className="text-sm text-muted-foreground">Skills to Learn</div>
+                    <div className="text-2xl font-bold">
+                      {fullAnalysis.missingSkills.length}
+                    </div>
+                    <div className="text-sm text-muted-foreground">
+                      Skills to Learn
+                    </div>
                   </div>
                 </div>
               </div>
@@ -248,7 +271,9 @@ export function SkillsGapAnalyzer() {
                           )}
                         </div>
                       </div>
-                      <Badge className={`${getImportanceColor(skill.importance)} text-xs`}>
+                      <Badge
+                        className={`${getImportanceColor(skill.importance)} text-xs`}
+                      >
                         {skill.importance}
                       </Badge>
                     </motion.div>
@@ -285,7 +310,9 @@ export function SkillsGapAnalyzer() {
                             <div className="space-y-2">
                               <div className="flex items-start justify-between gap-3">
                                 <div className="flex-1">
-                                  <h5 className="font-medium text-sm">{resource.title}</h5>
+                                  <h5 className="font-medium text-sm">
+                                    {resource.title}
+                                  </h5>
                                   <p className="text-xs text-muted-foreground mt-1">
                                     {resource.provider} • {resource.duration}
                                   </p>
@@ -299,7 +326,9 @@ export function SkillsGapAnalyzer() {
                                 <div className="flex items-center gap-3">
                                   <div className="flex items-center gap-1">
                                     <span className="text-yellow-500">★</span>
-                                    <span className="text-xs font-medium">{resource.rating}</span>
+                                    <span className="text-xs font-medium">
+                                      {resource.rating}
+                                    </span>
                                   </div>
                                   <Badge
                                     variant="outline"
@@ -309,11 +338,17 @@ export function SkillsGapAnalyzer() {
                                         : "bg-blue-500/10 text-blue-600"
                                     }`}
                                   >
-                                    {resource.price === "free" ? "Free" : "Paid"}
+                                    {resource.price === "free"
+                                      ? "Free"
+                                      : "Paid"}
                                   </Badge>
                                 </div>
                                 <Button size="sm" variant="ghost" asChild>
-                                  <a href={resource.url} target="_blank" rel="noopener noreferrer">
+                                  <a
+                                    href={resource.url}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                  >
                                     <ExternalLink className="h-4 w-4" />
                                   </a>
                                 </Button>
@@ -355,7 +390,7 @@ export function SkillsGapAnalyzer() {
       {!fullAnalysis && (
         <Card className="p-4 bg-purple-500/5 border-purple-500/20">
           <div className="flex items-start gap-3">
-            <Sparkles className="h-5 w-5 text-purple-500 mt-0.5 flex-shrink-0" />
+            <Sparkles className="h-5 w-5 text-purple-500 mt-0.5 shrink-0" />
             <div className="flex-1 text-sm space-y-1">
               <p className="font-medium text-purple-700 dark:text-purple-400">
                 Pro Tip: Get the Best Analysis

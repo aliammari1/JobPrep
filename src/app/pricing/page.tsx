@@ -7,7 +7,7 @@ import { CheckCircle, Sparkles } from "lucide-react";
 
 export default function PricingPage() {
   return (
-    <div className="min-h-screen bg-gradient-to-b from-background to-muted/20">
+    <div className="min-h-screen bg-linear-to-b from-background to-muted/20">
       <div className="container mx-auto px-4 py-16 sm:px-6 lg:px-8">
         {/* Header */}
         <motion.div
@@ -24,8 +24,8 @@ export default function PricingPage() {
             Choose Your Perfect Plan
           </h1>
           <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-            Start free and upgrade as you grow. All plans include our core features
-            with no hidden fees.
+            Start free and upgrade as you grow. All plans include our core
+            features with no hidden fees.
           </p>
         </motion.div>
 

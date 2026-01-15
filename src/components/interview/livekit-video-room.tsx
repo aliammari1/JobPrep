@@ -35,8 +35,8 @@ export function LiveKitVideoRoom({
         setIsLoading(true);
         const response = await fetch(
           `/api/livekit/token?roomName=${encodeURIComponent(
-            roomName
-          )}&participantName=${encodeURIComponent(participantName)}`
+            roomName,
+          )}&participantName=${encodeURIComponent(participantName)}`,
         );
 
         if (!response.ok) {
@@ -48,7 +48,9 @@ export function LiveKitVideoRoom({
       } catch (err) {
         console.error("Error fetching LiveKit token:", err);
         setError(
-          err instanceof Error ? err.message : "Failed to connect to video room"
+          err instanceof Error
+            ? err.message
+            : "Failed to connect to video room",
         );
       } finally {
         setIsLoading(false);

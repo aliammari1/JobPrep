@@ -14,7 +14,7 @@ export function useFeatureAccess() {
 
   const checkFeatureLimit = (
     limitType: keyof SubscriptionPlan["limits"],
-    currentUsage: number
+    currentUsage: number,
   ) => {
     if (!subscription?.tier) {
       return { allowed: false, limit: 0, remaining: 0 };
@@ -22,7 +22,8 @@ export function useFeatureAccess() {
     return checkLimit(subscription.tier, limitType, currentUsage);
   };
 
-  const isPremium = subscription?.tier === "MONTHLY" || subscription?.tier === "YEARLY";
+  const isPremium =
+    subscription?.tier === "MONTHLY" || subscription?.tier === "YEARLY";
   const isFree = subscription?.tier === "FREE";
   const isYearly = subscription?.tier === "YEARLY";
 

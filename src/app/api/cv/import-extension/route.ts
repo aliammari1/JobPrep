@@ -4,9 +4,9 @@ import prisma from "@/lib/prisma";
 
 // Add CORS headers for Chrome extension
 const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
-  'Access-Control-Allow-Headers': 'Content-Type',
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+  "Access-Control-Allow-Headers": "Content-Type",
 };
 
 interface CVData {
@@ -86,7 +86,7 @@ const SESSION_ID_LENGTH = 32; // Cryptographically secure random ID
 
 // Generate cryptographically secure session ID
 function generateSessionId(): string {
-  return randomBytes(SESSION_ID_LENGTH).toString('hex');
+  return randomBytes(SESSION_ID_LENGTH).toString("hex");
 }
 
 // Validate payload size
@@ -98,8 +98,8 @@ function validatePayloadSize(cvData: CVData): boolean {
 // Store CV data in database and return session ID
 async function storeImportSession(cvData: CVData): Promise<string> {
   const sessionId = generateSessionId();
-  const expiresAt = new Date(Date.now() + (TTL_MINUTES * 60 * 1000));
-  
+  const expiresAt = new Date(Date.now() + TTL_MINUTES * 60 * 1000);
+
   try {
     await prisma.linkedInImportSession.create({
       data: {
@@ -108,15 +108,16 @@ async function storeImportSession(cvData: CVData): Promise<string> {
         expiresAt: expiresAt,
       },
     });
-    
-    console.log(`Created import session in database: ${sessionId} (expires in ${TTL_MINUTES} minutes)`);
+
+    console.log(
+      `Created import session in database: ${sessionId} (expires in ${TTL_MINUTES} minutes)`,
+    );
     return sessionId;
   } catch (error) {
-    console.error('Failed to store import session:', error);
+    console.error("Failed to store import session:", error);
     throw error;
   }
 }
-
 
 export async function POST(request: NextRequest) {
   try {
@@ -126,7 +127,7 @@ export async function POST(request: NextRequest) {
     if (!cvData?.personalInfo?.fullName) {
       const response = NextResponse.json(
         { error: "Missing required field: personalInfo.fullName" },
-        { status: 400 }
+        { status: 400 },
       );
       Object.entries(corsHeaders).forEach(([key, value]) => {
         response.headers.set(key, value);
@@ -138,7 +139,7 @@ export async function POST(request: NextRequest) {
     if (!validatePayloadSize(cvData)) {
       const response = NextResponse.json(
         { error: "Payload too large. Maximum 1MB allowed." },
-        { status: 413 }
+        { status: 413 },
       );
       Object.entries(corsHeaders).forEach(([key, value]) => {
         response.headers.set(key, value);
@@ -167,8 +168,10 @@ export async function POST(request: NextRequest) {
           experience: cvData.experience?.length || 0,
           education: cvData.education?.length || 0,
           skills:
-            cvData.skills?.reduce((sum, group) => sum + group.items.length, 0) ||
-            0,
+            cvData.skills?.reduce(
+              (sum, group) => sum + group.items.length,
+              0,
+            ) || 0,
           certifications: cvData.certifications?.length || 0,
           projects: cvData.projects?.length || 0,
           languages: cvData.languages?.length || 0,
@@ -186,7 +189,7 @@ export async function POST(request: NextRequest) {
         error: "Failed to process LinkedIn data",
         details: error instanceof Error ? error.message : String(error),
       },
-      { status: 500 }
+      { status: 500 },
     );
     Object.entries(corsHeaders).forEach(([key, value]) => {
       response.headers.set(key, value);
@@ -211,15 +214,15 @@ export async function GET(request: NextRequest) {
       usage: {
         step1: "POST /api/cv/import-extension with LinkedIn profile data",
         step2: "Receive sessionId in response",
-        step3: "POST /api/cv/import-extension/retrieve with { sessionId } to fetch data",
+        step3:
+          "POST /api/cv/import-extension/retrieve with { sessionId } to fetch data",
       },
       notes: "Data is stored securely server-side and expires after 15 minutes",
     },
-    { status: 200 }
+    { status: 200 },
   );
   Object.entries(corsHeaders).forEach(([key, value]) => {
     response.headers.set(key, value);
   });
   return response;
 }
-

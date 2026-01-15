@@ -177,7 +177,7 @@ export default function AboutPage() {
     <div className="flex flex-col min-h-screen">
       {/* Hero Section */}
       <section className="relative pt-20 pb-16 px-4 sm:px-8 md:px-12 overflow-hidden">
-        <div className="absolute inset-0 -z-10 bg-gradient-to-br from-primary/10 via-primary/5 to-transparent" />
+        <div className="absolute inset-0 -z-10 bg-linear-to-br from-primary/10 via-primary/5 to-transparent" />
 
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -192,7 +192,7 @@ export default function AboutPage() {
             <Sparkles className="h-3 w-3 mr-1" />
             About JobPrep AI
           </Badge>
-          <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold tracking-tight bg-gradient-to-b from-foreground via-foreground to-foreground/70 bg-clip-text text-transparent">
+          <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold tracking-tight bg-linear-to-b from-foreground via-foreground to-foreground/70 bg-clip-text text-transparent">
             Transforming Interview Preparation
           </h1>
           <p className="mt-6 text-lg md:text-xl text-muted-foreground max-w-3xl mx-auto leading-relaxed">
@@ -217,7 +217,7 @@ export default function AboutPage() {
               <motion.div key={stat.label} variants={itemVariants}>
                 <Card className="text-center hover:shadow-lg transition-shadow border-2 hover:border-primary/50">
                   <CardHeader>
-                    <CardTitle className="text-4xl md:text-5xl font-bold bg-gradient-to-br from-primary to-primary/60 bg-clip-text text-transparent">
+                    <CardTitle className="text-4xl md:text-5xl font-bold bg-linear-to-br from-primary to-primary/60 bg-clip-text text-transparent">
                       {stat.value}
                     </CardTitle>
                     <CardDescription className="text-lg font-semibold text-foreground mt-2">
@@ -248,7 +248,7 @@ export default function AboutPage() {
               >
                 <Card className="h-full hover:shadow-xl transition-all duration-300 border-2 hover:border-primary/50">
                   <CardHeader>
-                    <div className="p-4 rounded-full bg-gradient-to-br from-primary/10 to-primary/5 w-fit mb-4">
+                    <div className="p-4 rounded-full bg-linear-to-br from-primary/10 to-primary/5 w-fit mb-4">
                       <item.icon className="h-8 w-8 text-primary" />
                     </div>
                     <CardTitle className="text-2xl mb-4">{item.name}</CardTitle>
@@ -275,7 +275,7 @@ export default function AboutPage() {
 
           <div className="relative">
             {/* Timeline Line */}
-            <div className="absolute left-1/2 top-0 bottom-0 w-0.5 bg-gradient-to-b from-primary via-primary/50 to-primary/20 hidden md:block" />
+            <div className="absolute left-1/2 top-0 bottom-0 w-0.5 bg-linear-to-b from-primary via-primary/50 to-primary/20 hidden md:block" />
 
             <div className="space-y-12">
               {timeline.map((item, idx) => (
@@ -356,7 +356,7 @@ export default function AboutPage() {
                 <Card className="h-full hover:shadow-xl transition-all duration-300 border-2 hover:border-primary/50 group">
                   <CardHeader>
                     <div
-                      className={`mb-4 p-4 rounded-xl bg-gradient-to-br ${value.color} w-fit`}
+                      className={`mb-4 p-4 rounded-xl bg-linear-to-br ${value.color} w-fit`}
                     >
                       <value.icon className="h-6 w-6 text-white" />
                     </div>
@@ -408,7 +408,7 @@ export default function AboutPage() {
                   {[1, 2, 3, 4, 5].map((i) => (
                     <div
                       key={i}
-                      className="w-10 h-10 rounded-full bg-gradient-to-br from-primary to-primary/60 border-2 border-background flex items-center justify-center text-white font-semibold"
+                      className="w-10 h-10 rounded-full bg-linear-to-br from-primary to-primary/60 border-2 border-background flex items-center justify-center text-white font-semibold"
                     >
                       {String.fromCharCode(64 + i)}
                     </div>
@@ -427,7 +427,7 @@ export default function AboutPage() {
       </section>
 
       {/* CTA Section */}
-      <section className="px-4 sm:px-8 md:px-12 py-20 bg-gradient-to-br from-primary/10 via-primary/5 to-transparent">
+      <section className="px-4 sm:px-8 md:px-12 py-20 bg-linear-to-br from-primary/10 via-primary/5 to-transparent">
         <div className="max-w-4xl mx-auto text-center">
           <motion.div
             initial={{ opacity: 0, scale: 0.95 }}

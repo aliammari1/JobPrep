@@ -68,7 +68,7 @@ export async function GET(req: NextRequest) {
     console.error("Error fetching questions:", error);
     return NextResponse.json(
       { error: "Failed to fetch questions" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
@@ -100,7 +100,7 @@ export async function POST(req: NextRequest) {
     if (!templateId || !question || !questionType || !difficulty) {
       return NextResponse.json(
         { error: "Missing required fields" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -112,7 +112,7 @@ export async function POST(req: NextRequest) {
     if (!template) {
       return NextResponse.json(
         { error: "Template not found" },
-        { status: 404 }
+        { status: 404 },
       );
     }
 
@@ -148,7 +148,7 @@ export async function POST(req: NextRequest) {
     console.error("Error creating question:", error);
     return NextResponse.json(
       { error: "Failed to create question" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

@@ -28,16 +28,13 @@ export async function POST(req: NextRequest) {
     });
 
     if (!file) {
-      return NextResponse.json(
-        { error: "No file provided" },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: "No file provided" }, { status: 400 });
     }
 
     if (!interviewId) {
       return NextResponse.json(
         { error: "Interview ID is required" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -49,7 +46,7 @@ export async function POST(req: NextRequest) {
     if (!interview) {
       return NextResponse.json(
         { error: "Interview not found" },
-        { status: 404 }
+        { status: 404 },
       );
     }
 
@@ -57,10 +54,7 @@ export async function POST(req: NextRequest) {
       interview.candidateId !== session.user.id &&
       interview.interviewerId !== session.user.id
     ) {
-      return NextResponse.json(
-        { error: "Forbidden" },
-        { status: 403 }
-      );
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
     // Convert File to Buffer for Appwrite
@@ -79,15 +73,11 @@ export async function POST(req: NextRequest) {
     console.log("Uploading to Appwrite with filename:", fileName);
 
     // Upload to Appwrite with user-specific permissions
-    const uploadResult = await uploadRecording(
-      buffer,
-      fileName,
-      [
-        `read("user:${session.user.id}")`,
-        `write("user:${session.user.id}")`,
-        `delete("user:${session.user.id}")`,
-      ]
-    );
+    const uploadResult = await uploadRecording(buffer, fileName, [
+      `read("user:${session.user.id}")`,
+      `write("user:${session.user.id}")`,
+      `delete("user:${session.user.id}")`,
+    ]);
 
     console.log("Upload successful:", {
       fileId: uploadResult.fileId,
@@ -99,9 +89,10 @@ export async function POST(req: NextRequest) {
     let existingSettings: any = {};
     try {
       if (interview.settings) {
-        existingSettings = typeof interview.settings === 'string' 
-          ? JSON.parse(interview.settings) 
-          : interview.settings;
+        existingSettings =
+          typeof interview.settings === "string"
+            ? JSON.parse(interview.settings)
+            : interview.settings;
       }
     } catch (e) {
       console.error("Error parsing existing settings:", e);
@@ -146,7 +137,7 @@ export async function POST(req: NextRequest) {
     console.error("Error uploading recording:", error);
     return NextResponse.json(
       { error: error.message || "Failed to upload recording" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

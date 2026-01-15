@@ -153,7 +153,7 @@ function InterviewScheduler() {
     const avgDuration =
       total > 0
         ? Math.round(
-            interviews.reduce((sum, i) => sum + (i.duration || 0), 0) / total
+            interviews.reduce((sum, i) => sum + (i.duration || 0), 0) / total,
           )
         : 0;
 
@@ -165,10 +165,11 @@ function InterviewScheduler() {
     prevWeekStart.setDate(prevWeekStart.getDate() - 7);
 
     const thisWeekCount = interviews.filter(
-      (i) => getInterviewDate(i) >= weekStart && getInterviewDate(i) <= now
+      (i) => getInterviewDate(i) >= weekStart && getInterviewDate(i) <= now,
     ).length;
     const lastWeekCount = interviews.filter(
-      (i) => getInterviewDate(i) >= prevWeekStart && getInterviewDate(i) < weekStart
+      (i) =>
+        getInterviewDate(i) >= prevWeekStart && getInterviewDate(i) < weekStart,
     ).length;
 
     const weekGrowth =
@@ -219,12 +220,16 @@ function InterviewScheduler() {
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [calendarConnected, setCalendarConnected] = useState(false);
-  
+
   // New state for modals and functionality
   const [selectedDate, setSelectedDate] = useState(new Date());
-  const [editingInterview, setEditingInterview] = useState<Interview | null>(null);
+  const [editingInterview, setEditingInterview] = useState<Interview | null>(
+    null,
+  );
   const [showEditModal, setShowEditModal] = useState(false);
-  const [showDeleteConfirm, setShowDeleteConfirm] = useState<string | null>(null);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState<string | null>(
+    null,
+  );
   const [showFilterModal, setShowFilterModal] = useState(false);
   const [showNotesModal, setShowNotesModal] = useState<string | null>(null);
   const [notesContent, setNotesContent] = useState("");
@@ -260,12 +265,12 @@ function InterviewScheduler() {
         const time = `${hour.toString().padStart(2, "0")}:${minute
           .toString()
           .padStart(2, "0")}`;
-        const interview = interviews.find(
-          (i) => {
-            return getInterviewDate(i).toDateString() === selectedDate.toDateString() &&
-              i.time === time;
-          }
-        );
+        const interview = interviews.find((i) => {
+          return (
+            getInterviewDate(i).toDateString() ===
+              selectedDate.toDateString() && i.time === time
+          );
+        });
 
         slots.push({
           time,
@@ -316,7 +321,9 @@ function InterviewScheduler() {
       (interview.candidateName || "")
         .toLowerCase()
         .includes(searchQuery.toLowerCase()) ||
-      (interview.position || "").toLowerCase().includes(searchQuery.toLowerCase());
+      (interview.position || "")
+        .toLowerCase()
+        .includes(searchQuery.toLowerCase());
 
     return matchesStatus && matchesSearch;
   });
@@ -326,7 +333,9 @@ function InterviewScheduler() {
     return interviews
       .filter((interview) => {
         const interviewDateTime = getInterviewDate(interview);
-        const [hours, minutes] = (interview.time || "00:00").split(":").map(Number);
+        const [hours, minutes] = (interview.time || "00:00")
+          .split(":")
+          .map(Number);
         interviewDateTime.setHours(hours, minutes);
         return interviewDateTime > now;
       })
@@ -503,7 +512,9 @@ function InterviewScheduler() {
 
                       if (response.ok) {
                         const result = await response.json();
-                        const totalSynced = (result.jobPrepToGoogle || 0) + (result.googleToJobPrep || 0);
+                        const totalSynced =
+                          (result.jobPrepToGoogle || 0) +
+                          (result.googleToJobPrep || 0);
                         setSuccessMessage(
                           `Sync complete: ${result.jobPrepToGoogle || 0} to Google Calendar, ${result.googleToJobPrep || 0} from Google Calendar` +
                             (result.skipped > 0
@@ -528,7 +539,11 @@ function InterviewScheduler() {
                   Sync Both Ways
                 </Button>
               )}
-              <Button variant="outline" size="icon" onClick={() => setShowSettingsModal(true)}>
+              <Button
+                variant="outline"
+                size="icon"
+                onClick={() => setShowSettingsModal(true)}
+              >
                 <Settings className="w-4 h-4" />
               </Button>
             </div>
@@ -585,7 +600,8 @@ function InterviewScheduler() {
                   <div className="mt-4">
                     <div className="flex items-center text-xs text-muted-foreground">
                       <TrendingUp className="w-3 h-3 mr-1" />
-                      {stats.weekGrowth > 0 ? '+' : ''}{stats.weekGrowth}% from last week
+                      {stats.weekGrowth > 0 ? "+" : ""}
+                      {stats.weekGrowth}% from last week
                     </div>
                   </div>
                 </CardContent>
@@ -600,7 +616,9 @@ function InterviewScheduler() {
                       <p className="text-sm font-medium text-muted-foreground">
                         Success Rate
                       </p>
-                      <p className="text-3xl font-bold text-accent">{stats.successRate}%</p>
+                      <p className="text-3xl font-bold text-accent">
+                        {stats.successRate}%
+                      </p>
                     </div>
                     <div className="w-12 h-12 bg-accent/10 rounded-lg flex items-center justify-center">
                       <CheckCircle2 className="w-6 h-6 text-accent" />
@@ -706,11 +724,12 @@ function InterviewScheduler() {
                                     {slot.interview.candidateName}
                                   </div>
                                   <div className="text-sm text-muted-foreground">
-                                    {slot.interview.position} • {slot.interview.duration}min
+                                    {slot.interview.position} •{" "}
+                                    {slot.interview.duration}min
                                   </div>
                                 </div>
                               </div>
-                              <div className="flex items-center gap-3 flex-shrink-0 ml-4">
+                              <div className="flex items-center gap-3 shrink-0 ml-4">
                                 <Badge
                                   className={getStatusColor(
                                     slot.interview.status,
@@ -718,10 +737,15 @@ function InterviewScheduler() {
                                 >
                                   {slot.interview.status}
                                 </Badge>
-                                <Button variant="ghost" size="sm" className="hover:bg-primary/10" onClick={() => {
-                                  setEditingInterview(slot.interview!);
-                                  setShowEditModal(true);
-                                }}>
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  className="hover:bg-primary/10"
+                                  onClick={() => {
+                                    setEditingInterview(slot.interview!);
+                                    setShowEditModal(true);
+                                  }}
+                                >
                                   <Edit3 className="w-4 h-4" />
                                 </Button>
                               </div>
@@ -729,7 +753,9 @@ function InterviewScheduler() {
                           ) : (
                             <div className="flex items-center gap-3 px-4 py-4 text-muted-foreground hover:text-foreground">
                               <Plus className="w-5 h-5" />
-                              <span className="font-medium">Click to schedule</span>
+                              <span className="font-medium">
+                                Click to schedule
+                              </span>
                             </div>
                           )}
                         </motion.div>
@@ -742,7 +768,10 @@ function InterviewScheduler() {
                       <div className="grid grid-cols-7 gap-3 text-center">
                         {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map(
                           (day) => (
-                            <div key={day} className="p-3 font-semibold text-foreground text-sm">
+                            <div
+                              key={day}
+                              className="p-3 font-semibold text-foreground text-sm"
+                            >
                               {day}
                             </div>
                           ),
@@ -760,7 +789,8 @@ function InterviewScheduler() {
                               getInterviewDate(interview).toDateString() ===
                               date.toDateString(),
                           );
-                          const isToday = date.toDateString() === new Date().toDateString();
+                          const isToday =
+                            date.toDateString() === new Date().toDateString();
 
                           return (
                             <motion.div
@@ -775,10 +805,14 @@ function InterviewScheduler() {
                                   : "border-border bg-card hover:border-foreground/20",
                               )}
                             >
-                              <div className={cn(
-                                "text-lg font-bold mb-3 w-8 h-8 flex items-center justify-center rounded-lg",
-                                isToday ? "bg-primary text-white" : "text-foreground"
-                              )}>
+                              <div
+                                className={cn(
+                                  "text-lg font-bold mb-3 w-8 h-8 flex items-center justify-center rounded-lg",
+                                  isToday
+                                    ? "bg-primary text-white"
+                                    : "text-foreground",
+                                )}
+                              >
                                 {date.getDate()}
                               </div>
                               <div className="space-y-2">
@@ -787,8 +821,12 @@ function InterviewScheduler() {
                                     key={interview.id}
                                     className="text-xs p-2 rounded bg-primary/10 text-primary font-medium truncate hover:bg-primary/20 transition-colors"
                                   >
-                                    <div className="truncate">{interview.time}</div>
-                                    <div className="truncate text-primary/80">{interview.candidateName}</div>
+                                    <div className="truncate">
+                                      {interview.time}
+                                    </div>
+                                    <div className="truncate text-primary/80">
+                                      {interview.candidateName}
+                                    </div>
                                   </div>
                                 ))}
                                 {dayInterviews.length > 3 && (
@@ -848,7 +886,7 @@ function InterviewScheduler() {
                             >
                               {day}
                             </div>
-                          )
+                          ),
                         )}
                       </div>
 
@@ -857,20 +895,24 @@ function InterviewScheduler() {
                           const firstDay = new Date(
                             selectedDate.getFullYear(),
                             selectedDate.getMonth(),
-                            1
+                            1,
                           );
                           const startDate = new Date(firstDay);
-                          startDate.setDate(startDate.getDate() - firstDay.getDay());
+                          startDate.setDate(
+                            startDate.getDate() - firstDay.getDay(),
+                          );
 
                           const date = new Date(startDate);
                           date.setDate(startDate.getDate() + i);
 
                           const dayInterviews = interviews.filter(
                             (interview) =>
-                              getInterviewDate(interview).toDateString() === date.toDateString()
+                              getInterviewDate(interview).toDateString() ===
+                              date.toDateString(),
                           );
 
-                          const isToday = date.toDateString() === new Date().toDateString();
+                          const isToday =
+                            date.toDateString() === new Date().toDateString();
                           const isCurrentMonth =
                             date.getMonth() === selectedDate.getMonth();
 
@@ -886,7 +928,7 @@ function InterviewScheduler() {
                                     ? "border-primary bg-primary/5"
                                     : "border-border bg-card hover:border-foreground/20"
                                   : "border-border/30 bg-muted/20 opacity-50",
-                                dayInterviews.length > 0 && "border-primary/50"
+                                dayInterviews.length > 0 && "border-primary/50",
                               )}
                               onClick={() => {
                                 setSelectedDate(date);
@@ -899,7 +941,7 @@ function InterviewScheduler() {
                                   isToday
                                     ? "text-primary"
                                     : "text-foreground/60",
-                                  !isCurrentMonth && "opacity-40"
+                                  !isCurrentMonth && "opacity-40",
                                 )}
                               >
                                 {date.getDate()}
@@ -948,7 +990,11 @@ function InterviewScheduler() {
                           className="pl-8 w-48"
                         />
                       </div>
-                      <Button variant="outline" size="sm" onClick={() => setShowFilterModal(true)}>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setShowFilterModal(true)}
+                      >
                         <Filter className="w-4 h-4" />
                       </Button>
                     </div>
@@ -1317,9 +1363,8 @@ function InterviewScheduler() {
                                     await fetch("/api/interviews");
                                   if (refetchResponse.ok) {
                                     const data = await refetchResponse.json();
-                                    const fetchedInterviews = (
-                                      data.interviews || []
-                                    ) as Interview[];
+                                    const fetchedInterviews =
+                                      (data.interviews || []) as Interview[];
                                     setInterviews(fetchedInterviews);
                                   }
 
@@ -1336,7 +1381,9 @@ function InterviewScheduler() {
                                   setNewInterviewForm({
                                     candidateName: "",
                                     position: "",
-                                    scheduledAt: new Date().toISOString().slice(0, 10),
+                                    scheduledAt: new Date()
+                                      .toISOString()
+                                      .slice(0, 10),
                                     time: "09:00",
                                     duration: 60,
                                     type: "video",
@@ -1401,7 +1448,9 @@ function InterviewScheduler() {
                             <div className="flex items-center gap-3 mt-1 text-xs text-muted-foreground">
                               <span className="flex items-center gap-1">
                                 <Calendar className="w-3 h-3" />
-                                {getInterviewDate(interview).toLocaleDateString()}
+                                {getInterviewDate(
+                                  interview,
+                                ).toLocaleDateString()}
                               </span>
                               <span className="flex items-center gap-1">
                                 <Clock className="w-3 h-3" />
@@ -1419,11 +1468,12 @@ function InterviewScheduler() {
                                   ✓ Email sent
                                 </span>
                               )}
-                              {calendarConnected && interview.isCalendarSynced && (
-                                <span className="text-xs px-2 py-0.5 rounded-full bg-blue-500/20 text-blue-700 font-medium">
-                                  ✓ Calendar synced
-                                </span>
-                              )}
+                              {calendarConnected &&
+                                interview.isCalendarSynced && (
+                                  <span className="text-xs px-2 py-0.5 rounded-full bg-blue-500/20 text-blue-700 font-medium">
+                                    ✓ Calendar synced
+                                  </span>
+                                )}
                             </div>
                           </div>
                         </div>
@@ -1434,19 +1484,31 @@ function InterviewScheduler() {
                           </Badge>
 
                           <div className="flex items-center gap-1">
-                            <Button variant="ghost" size="sm" onClick={() => {
-                              setShowNotesModal(interview.id);
-                              setNotesContent(interview.notes || "");
-                            }}>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => {
+                                setShowNotesModal(interview.id);
+                                setNotesContent(interview.notes || "");
+                              }}
+                            >
                               <MessageSquare className="w-4 h-4" />
                             </Button>
-                            <Button variant="ghost" size="sm" onClick={() => {
-                              setEditingInterview(interview);
-                              setShowEditModal(true);
-                            }}>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => {
+                                setEditingInterview(interview);
+                                setShowEditModal(true);
+                              }}
+                            >
                               <Edit3 className="w-4 h-4" />
                             </Button>
-                            <Button variant="ghost" size="sm" onClick={() => setShowDeleteConfirm(interview.id)}>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => setShowDeleteConfirm(interview.id)}
+                            >
                               <Trash2 className="w-4 h-4" />
                             </Button>
                           </div>
@@ -1500,8 +1562,10 @@ function InterviewScheduler() {
                                 {interview.candidateName || "Anonymous"}
                               </div>
                               <div className="text-xs text-muted-foreground">
-                                {getInterviewDate(interview).toLocaleDateString()} at{" "}
-                                {interview.time}
+                                {getInterviewDate(
+                                  interview,
+                                ).toLocaleDateString()}{" "}
+                                at {interview.time}
                               </div>
                               <div className="flex items-center gap-2 mt-1">
                                 {getTypeIcon(interview.type)}
@@ -1530,84 +1594,113 @@ function InterviewScheduler() {
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-3">
-                  <Button variant="outline" className="w-full justify-start" onClick={() => {
-                    // Navigate to candidate creation
-                    window.location.href = "/candidate-profiles";
-                  }}>
+                  <Button
+                    variant="outline"
+                    className="w-full justify-start"
+                    onClick={() => {
+                      // Navigate to candidate creation
+                      window.location.href = "/candidate-profiles";
+                    }}
+                  >
                     <UserPlus className="w-4 h-4 mr-2" />
                     Add Candidate
                   </Button>
-                  <Button variant="outline" className="w-full justify-start" onClick={async () => {
-                    const toRemind = interviews.filter(i => !i.reminderSent && i.status !== "completed");
-                    if (toRemind.length === 0) {
-                      setErrorMessage("No interviews need reminders");
-                      setTimeout(() => setErrorMessage(null), 5000);
-                      return;
-                    }
-
-                    try {
-                      const response = await fetch("/api/interviews/send-reminders", {
-                        method: "POST",
-                        headers: { "Content-Type": "application/json" },
-                        body: JSON.stringify({ interviewIds: toRemind.map(i => i.id) }),
-                      });
-
-                      if (response.ok) {
-                        const result = await response.json();
-                        setSuccessMessage(`Reminders sent to ${result.sent} candidate(s)!`);
-                        // Refresh interviews
-                        const refreshResponse = await fetch("/api/interviews");
-                        if (refreshResponse.ok) {
-                          const data = await refreshResponse.json();
-                          const transformed = (data.interviews || []) as Interview[];
-                          setInterviews(transformed);
-                        }
-                      } else {
-                        throw new Error("Failed to send reminders");
+                  <Button
+                    variant="outline"
+                    className="w-full justify-start"
+                    onClick={async () => {
+                      const toRemind = interviews.filter(
+                        (i) => !i.reminderSent && i.status !== "completed",
+                      );
+                      if (toRemind.length === 0) {
+                        setErrorMessage("No interviews need reminders");
+                        setTimeout(() => setErrorMessage(null), 5000);
+                        return;
                       }
-                      setTimeout(() => setSuccessMessage(null), 5000);
-                    } catch (error) {
-                      setErrorMessage("Failed to send reminders");
-                      setTimeout(() => setErrorMessage(null), 5000);
-                    }
-                  }}>
+
+                      try {
+                        const response = await fetch(
+                          "/api/interviews/send-reminders",
+                          {
+                            method: "POST",
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify({
+                              interviewIds: toRemind.map((i) => i.id),
+                            }),
+                          },
+                        );
+
+                        if (response.ok) {
+                          const result = await response.json();
+                          setSuccessMessage(
+                            `Reminders sent to ${result.sent} candidate(s)!`,
+                          );
+                          // Refresh interviews
+                          const refreshResponse =
+                            await fetch("/api/interviews");
+                          if (refreshResponse.ok) {
+                            const data = await refreshResponse.json();
+                            const transformed = (data.interviews ||
+                              []) as Interview[];
+                            setInterviews(transformed);
+                          }
+                        } else {
+                          throw new Error("Failed to send reminders");
+                        }
+                        setTimeout(() => setSuccessMessage(null), 5000);
+                      } catch (error) {
+                        setErrorMessage("Failed to send reminders");
+                        setTimeout(() => setErrorMessage(null), 5000);
+                      }
+                    }}
+                  >
                     <Bell className="w-4 h-4 mr-2" />
                     Send Reminders
                   </Button>
-                  <Button variant="outline" className="w-full justify-start" onClick={async () => {
-                    try {
-                      const response = await fetch("/api/interviews/export", {
-                        method: "POST",
-                        headers: { "Content-Type": "application/json" },
-                        body: JSON.stringify({ format: "csv" }),
-                      });
+                  <Button
+                    variant="outline"
+                    className="w-full justify-start"
+                    onClick={async () => {
+                      try {
+                        const response = await fetch("/api/interviews/export", {
+                          method: "POST",
+                          headers: { "Content-Type": "application/json" },
+                          body: JSON.stringify({ format: "csv" }),
+                        });
 
-                      if (response.ok) {
-                        const blob = await response.blob();
-                        const url = window.URL.createObjectURL(blob);
-                        const a = document.createElement("a");
-                        a.href = url;
-                        a.download = `interviews-${new Date().toISOString().split('T')[0]}.csv`;
-                        document.body.appendChild(a);
-                        a.click();
-                        window.URL.revokeObjectURL(url);
-                        document.body.removeChild(a);
-                        setSuccessMessage("Interviews exported successfully!");
-                        setTimeout(() => setSuccessMessage(null), 5000);
-                      } else {
-                        throw new Error("Failed to export");
+                        if (response.ok) {
+                          const blob = await response.blob();
+                          const url = window.URL.createObjectURL(blob);
+                          const a = document.createElement("a");
+                          a.href = url;
+                          a.download = `interviews-${new Date().toISOString().split("T")[0]}.csv`;
+                          document.body.appendChild(a);
+                          a.click();
+                          window.URL.revokeObjectURL(url);
+                          document.body.removeChild(a);
+                          setSuccessMessage(
+                            "Interviews exported successfully!",
+                          );
+                          setTimeout(() => setSuccessMessage(null), 5000);
+                        } else {
+                          throw new Error("Failed to export");
+                        }
+                      } catch (error) {
+                        setErrorMessage("Failed to export interviews");
+                        setTimeout(() => setErrorMessage(null), 5000);
                       }
-                    } catch (error) {
-                      setErrorMessage("Failed to export interviews");
-                      setTimeout(() => setErrorMessage(null), 5000);
-                    }
-                  }}>
+                    }}
+                  >
                     <Download className="w-4 h-4 mr-2" />
                     Export Schedule
                   </Button>
-                  <Button variant="outline" className="w-full justify-start" onClick={() => {
-                    fileInputRef.current?.click();
-                  }}>
+                  <Button
+                    variant="outline"
+                    className="w-full justify-start"
+                    onClick={() => {
+                      fileInputRef.current?.click();
+                    }}
+                  >
                     <Upload className="w-4 h-4 mr-2" />
                     Import Calendar
                   </Button>
@@ -1631,13 +1724,17 @@ function InterviewScheduler() {
 
                         if (response.ok) {
                           const result = await response.json();
-                          setSuccessMessage(`Imported ${result.imported} interview(s)!${result.failed > 0 ? ` (${result.failed} failed)` : ""}`);
-                          
+                          setSuccessMessage(
+                            `Imported ${result.imported} interview(s)!${result.failed > 0 ? ` (${result.failed} failed)` : ""}`,
+                          );
+
                           // Refresh interviews
-                          const refreshResponse = await fetch("/api/interviews");
+                          const refreshResponse =
+                            await fetch("/api/interviews");
                           if (refreshResponse.ok) {
                             const data = await refreshResponse.json();
-                            const transformed = (data.interviews || []) as Interview[];
+                            const transformed = (data.interviews ||
+                              []) as Interview[];
                             setInterviews(transformed);
                           }
                         } else {
@@ -1674,13 +1771,21 @@ function InterviewScheduler() {
                       const getNotificationIcon = () => {
                         switch (notif.type) {
                           case "reminder":
-                            return <AlertCircle className="w-4 h-4 text-primary mt-0.5" />;
+                            return (
+                              <AlertCircle className="w-4 h-4 text-primary mt-0.5" />
+                            );
                           case "confirmation":
-                            return <CheckCircle2 className="w-4 h-4 text-secondary mt-0.5" />;
+                            return (
+                              <CheckCircle2 className="w-4 h-4 text-secondary mt-0.5" />
+                            );
                           case "completion":
-                            return <CheckCircle2 className="w-4 h-4 text-accent mt-0.5" />;
+                            return (
+                              <CheckCircle2 className="w-4 h-4 text-accent mt-0.5" />
+                            );
                           default:
-                            return <Bell className="w-4 h-4 text-foreground mt-0.5" />;
+                            return (
+                              <Bell className="w-4 h-4 text-foreground mt-0.5" />
+                            );
                         }
                       };
 
@@ -1709,7 +1814,9 @@ function InterviewScheduler() {
                           {getNotificationIcon()}
                           <div className="text-sm flex-1">
                             <div className="font-medium">{notif.title}</div>
-                            <div className="text-muted-foreground text-xs">{notif.message}</div>
+                            <div className="text-muted-foreground text-xs">
+                              {notif.message}
+                            </div>
                           </div>
                         </motion.div>
                       );
@@ -1794,7 +1901,9 @@ function InterviewScheduler() {
                     <Label>Date</Label>
                     <Input
                       type="date"
-                      value={getInterviewDate(editingInterview!).toISOString().slice(0, 10)}
+                      value={getInterviewDate(editingInterview!)
+                        .toISOString()
+                        .slice(0, 10)}
                       onChange={(e) =>
                         setEditingInterview({
                           ...editingInterview!,
@@ -1925,10 +2034,14 @@ function InterviewScheduler() {
                   <Button
                     onClick={async () => {
                       try {
-                        const [hours, minutes] = (editingInterview?.time || "00:00")
+                        const [hours, minutes] = (
+                          editingInterview?.time || "00:00"
+                        )
                           .split(":")
                           .map(Number);
-                        const scheduledDate = new Date(editingInterview?.scheduledAt || new Date());
+                        const scheduledDate = new Date(
+                          editingInterview?.scheduledAt || new Date(),
+                        );
                         scheduledDate.setHours(hours, minutes);
 
                         const response = await fetch(
@@ -1947,7 +2060,7 @@ function InterviewScheduler() {
                                 notes: editingInterview.notes,
                               },
                             }),
-                          }
+                          },
                         );
 
                         if (!response.ok) {
@@ -1962,7 +2075,8 @@ function InterviewScheduler() {
                         const refreshResponse = await fetch("/api/interviews");
                         if (refreshResponse.ok) {
                           const data = await refreshResponse.json();
-                          const transformed = (data.interviews || []) as Interview[];
+                          const transformed = (data.interviews ||
+                            []) as Interview[];
                           setInterviews(transformed);
                         }
 
@@ -2002,7 +2116,9 @@ function InterviewScheduler() {
                 exit={{ y: 20, opacity: 0 }}
                 className="relative w-full max-w-sm bg-background rounded-lg p-6 shadow-lg border border-border"
               >
-                <h3 className="text-lg font-semibold mb-2">Delete Interview?</h3>
+                <h3 className="text-lg font-semibold mb-2">
+                  Delete Interview?
+                </h3>
                 <p className="text-sm text-muted-foreground mb-6">
                   Are you sure you want to delete this interview? This action
                   cannot be undone.
@@ -2021,7 +2137,7 @@ function InterviewScheduler() {
                       try {
                         const response = await fetch(
                           `/api/interviews/${showDeleteConfirm}`,
-                          { method: "DELETE" }
+                          { method: "DELETE" },
                         );
 
                         if (!response.ok) {
@@ -2035,7 +2151,8 @@ function InterviewScheduler() {
                         const refreshResponse = await fetch("/api/interviews");
                         if (refreshResponse.ok) {
                           const data = await refreshResponse.json();
-                          const transformed = (data.interviews || []) as Interview[];
+                          const transformed = (data.interviews ||
+                            []) as Interview[];
                           setInterviews(transformed);
                         }
 
@@ -2167,7 +2284,7 @@ function InterviewScheduler() {
                     onClick={async () => {
                       try {
                         const interview = interviews.find(
-                          (i) => i.id === showNotesModal
+                          (i) => i.id === showNotesModal,
                         );
                         if (!interview) return;
 
@@ -2182,7 +2299,7 @@ function InterviewScheduler() {
                                 notes: notesContent,
                               },
                             }),
-                          }
+                          },
                         );
 
                         if (!response.ok) {
@@ -2196,7 +2313,8 @@ function InterviewScheduler() {
                         const refreshResponse = await fetch("/api/interviews");
                         if (refreshResponse.ok) {
                           const data = await refreshResponse.json();
-                          const transformed = (data.interviews || []) as Interview[];
+                          const transformed = (data.interviews ||
+                            []) as Interview[];
                           setInterviews(transformed);
                         }
 
@@ -2249,29 +2367,45 @@ function InterviewScheduler() {
 
                 <div className="space-y-4">
                   <div className="space-y-3">
-                    <div className="text-sm font-semibold text-muted-foreground">Notifications</div>
+                    <div className="text-sm font-semibold text-muted-foreground">
+                      Notifications
+                    </div>
                     <div className="flex items-center justify-between">
                       <Label>Auto-send reminders</Label>
                       <input type="checkbox" className="w-4 h-4" />
                     </div>
                     <div className="flex items-center justify-between">
                       <Label>Send confirmations</Label>
-                      <input type="checkbox" className="w-4 h-4" defaultChecked />
+                      <input
+                        type="checkbox"
+                        className="w-4 h-4"
+                        defaultChecked
+                      />
                     </div>
                     <div className="flex items-center justify-between">
                       <Label>Show in-app notifications</Label>
-                      <input type="checkbox" className="w-4 h-4" defaultChecked />
+                      <input
+                        type="checkbox"
+                        className="w-4 h-4"
+                        defaultChecked
+                      />
                     </div>
                   </div>
 
                   <div className="border-t pt-4">
-                    <div className="text-sm font-semibold text-muted-foreground mb-3">Calendar Integration</div>
+                    <div className="text-sm font-semibold text-muted-foreground mb-3">
+                      Calendar Integration
+                    </div>
                     <div className="space-y-3">
                       <div className="flex items-center justify-between p-3 border rounded-lg hover:bg-muted/50">
                         <div>
-                          <div className="text-sm font-medium">Google Calendar</div>
+                          <div className="text-sm font-medium">
+                            Google Calendar
+                          </div>
                           <div className="text-xs text-muted-foreground">
-                            {calendarConnected ? '✓ Connected' : 'Not connected'}
+                            {calendarConnected
+                              ? "✓ Connected"
+                              : "Not connected"}
                           </div>
                         </div>
                         <Button
@@ -2282,36 +2416,54 @@ function InterviewScheduler() {
                               if (calendarConnected) {
                                 // Disconnect
                                 setCalendarConnected(false);
-                                setSuccessMessage("Google Calendar disconnected");
+                                setSuccessMessage(
+                                  "Google Calendar disconnected",
+                                );
                               } else {
                                 // Connect
-                                const response = await fetch('/api/calendar/sync?action=authorize');
+                                const response = await fetch(
+                                  "/api/calendar/sync?action=authorize",
+                                );
                                 const { authUrl } = await response.json();
                                 window.location.href = authUrl;
                               }
                               setTimeout(() => setSuccessMessage(null), 5000);
                             } catch (error) {
-                              setErrorMessage("Failed to manage calendar connection");
+                              setErrorMessage(
+                                "Failed to manage calendar connection",
+                              );
                               setTimeout(() => setErrorMessage(null), 5000);
                             }
                           }}
                         >
-                          {calendarConnected ? 'Disconnect' : 'Connect'}
+                          {calendarConnected ? "Disconnect" : "Connect"}
                         </Button>
                       </div>
                       <div className="flex items-center justify-between">
                         <Label>Auto-sync interviews to calendar</Label>
-                        <input type="checkbox" className="w-4 h-4" defaultChecked={calendarConnected} disabled={!calendarConnected} />
+                        <input
+                          type="checkbox"
+                          className="w-4 h-4"
+                          defaultChecked={calendarConnected}
+                          disabled={!calendarConnected}
+                        />
                       </div>
                     </div>
                   </div>
 
                   <div className="border-t pt-4">
-                    <div className="text-sm font-semibold text-muted-foreground mb-3">Email Service</div>
+                    <div className="text-sm font-semibold text-muted-foreground mb-3">
+                      Email Service
+                    </div>
                     <div className="space-y-2 text-xs text-muted-foreground">
-                      <p>📧 Email reminders and confirmations will be sent via:</p>
+                      <p>
+                        📧 Email reminders and confirmations will be sent via:
+                      </p>
                       <p className="font-medium text-foreground">Gmail API</p>
-                      <p>Ensure your Gmail credentials are configured in settings.</p>
+                      <p>
+                        Ensure your Gmail credentials are configured in
+                        settings.
+                      </p>
                     </div>
                   </div>
                 </div>
@@ -2323,11 +2475,13 @@ function InterviewScheduler() {
                   >
                     Close
                   </Button>
-                  <Button onClick={() => {
-                    setSuccessMessage("Settings saved!");
-                    setTimeout(() => setSuccessMessage(null), 5000);
-                    setShowSettingsModal(false);
-                  }}>
+                  <Button
+                    onClick={() => {
+                      setSuccessMessage("Settings saved!");
+                      setTimeout(() => setSuccessMessage(null), 5000);
+                      setShowSettingsModal(false);
+                    }}
+                  >
                     Save Settings
                   </Button>
                 </div>

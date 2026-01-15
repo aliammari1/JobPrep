@@ -21,7 +21,7 @@ export function useAiQuestions() {
   const [error, setError] = useState<string | null>(null);
 
   const generateQuestions = async (
-    params: GenerateQuestionsParams
+    params: GenerateQuestionsParams,
   ): Promise<Question[]> => {
     setLoading(true);
     setError(null);

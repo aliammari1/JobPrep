@@ -54,7 +54,7 @@ function TwoFactorChallengeContent() {
       setError(
         err instanceof Error
           ? err.message
-          : "Invalid verification code. Please try again."
+          : "Invalid verification code. Please try again.",
       );
     } finally {
       setIsLoading(false);
@@ -66,7 +66,7 @@ function TwoFactorChallengeContent() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background via-background to-muted/20 p-4">
+    <div className="min-h-screen flex items-center justify-center bg-linear-to-br from-background via-background to-muted/20 p-4">
       <Card className="w-full max-w-md shadow-xl">
         <CardHeader className="space-y-1">
           <div className="flex justify-center mb-4">
@@ -74,7 +74,7 @@ function TwoFactorChallengeContent() {
               <Icons.shield className="h-8 w-8 text-primary" />
             </div>
           </div>
-          <CardTitle className="text-3xl font-bold text-center bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">
+          <CardTitle className="text-3xl font-bold text-center bg-linear-to-r from-primary to-primary/60 bg-clip-text text-transparent">
             Two-Factor Authentication
           </CardTitle>
           <CardDescription className="text-center text-base">

@@ -165,7 +165,10 @@ export const useInterviewRoomStore = create<InterviewRoomState>()(
         setRecentRooms: (rooms) => set({ recentRooms: rooms }),
         addRecentRoom: (room) =>
           set((state) => ({
-            recentRooms: [room, ...state.recentRooms.filter((r) => r !== room)].slice(0, 10),
+            recentRooms: [
+              room,
+              ...state.recentRooms.filter((r) => r !== room),
+            ].slice(0, 10),
           })),
 
         // UI setters
@@ -188,7 +191,8 @@ export const useInterviewRoomStore = create<InterviewRoomState>()(
         // Media state
         setTestingSetup: (testing) => set({ testingSetup: testing }),
         setHasMediaPermissions: (has) => set({ hasMediaPermissions: has }),
-        setMediaPermissionsChecked: (checked) => set({ mediaPermissionsChecked: checked }),
+        setMediaPermissionsChecked: (checked) =>
+          set({ mediaPermissionsChecked: checked }),
 
         // Email state
         setEmailRecipient: (email) => set({ emailRecipient: email }),
@@ -197,7 +201,8 @@ export const useInterviewRoomStore = create<InterviewRoomState>()(
 
         // Recording state
         setRecordingUrl: (url) => set({ recordingUrl: url }),
-        setIsProcessingRecording: (processing) => set({ isProcessingRecording: processing }),
+        setIsProcessingRecording: (processing) =>
+          set({ isProcessingRecording: processing }),
         setUploadedFiles: (files) => set({ uploadedFiles: files }),
         addUploadedFile: (file) =>
           set((state) => ({ uploadedFiles: [...state.uploadedFiles, file] })),
@@ -233,7 +238,7 @@ export const useInterviewRoomStore = create<InterviewRoomState>()(
         partialize: (state) => ({
           recentRooms: state.recentRooms,
         }),
-      }
-    )
-  )
+      },
+    ),
+  ),
 );

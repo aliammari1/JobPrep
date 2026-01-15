@@ -22,20 +22,24 @@ export async function POST(request: NextRequest) {
     if (!existingSubscription) {
       return NextResponse.json(
         { message: "No active subscription found" },
-        { status: 404 }
+        { status: 404 },
       );
     }
 
     // Cancel Stripe subscription if it exists
     if (existingSubscription.stripeSubscriptionId) {
       try {
-        await stripe.subscriptions.cancel(existingSubscription.stripeSubscriptionId);
+        await stripe.subscriptions.cancel(
+          existingSubscription.stripeSubscriptionId,
+        );
       } catch (stripeError: any) {
         // Log but don't fail if Stripe subscription doesn't exist
         if (stripeError.code !== "resource_missing") {
           throw stripeError;
         }
-        console.warn("Stripe subscription not found, proceeding with downgrade");
+        console.warn(
+          "Stripe subscription not found, proceeding with downgrade",
+        );
       }
     }
 
@@ -54,7 +58,7 @@ export async function POST(request: NextRequest) {
     console.error("Downgrade subscription error:", error);
     return NextResponse.json(
       { message: "Failed to downgrade subscription" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

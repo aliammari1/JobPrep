@@ -2,7 +2,13 @@
 
 import { SubscriptionManager } from "@/components/custom/subscription-manager";
 import { BillingPageWrapper } from "@/components/custom/billing-page-wrapper";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { AlertCircle } from "lucide-react";
 import Link from "next/link";
@@ -14,7 +20,8 @@ export default function BillingPage() {
         <div>
           <h1 className="text-3xl font-bold">Billing & Subscription</h1>
           <p className="text-muted-foreground mt-2">
-            Manage your subscription, track your usage, and view your billing information
+            Manage your subscription, track your usage, and view your billing
+            information
           </p>
         </div>
 
@@ -32,10 +39,12 @@ export default function BillingPage() {
               • <strong>Usage resets</strong> monthly on your billing cycle date
             </p>
             <p>
-              • <strong>Unlimited features</strong> on Pro Yearly plan never reset
+              • <strong>Unlimited features</strong> on Pro Yearly plan never
+              reset
             </p>
             <p>
-              • <strong>Free plan</strong> includes limited features perfect for getting started
+              • <strong>Free plan</strong> includes limited features perfect for
+              getting started
             </p>
             <p>
               • Contact support if you need higher limits for your organization

@@ -1,6 +1,12 @@
 "use client";
 
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
@@ -14,19 +20,42 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { useSubscription, useManageBilling, useUsageStats, useUpgradeSubscription, useDowngradeSubscription } from "@/hooks/use-subscription";
-import { getPlanByTier, checkLimit, SUBSCRIPTION_PLANS } from "@/lib/subscription-plans";
-import { Loader2, CreditCard, ArrowUpRight, ArrowDownLeft, Check, Zap, Crown } from "lucide-react";
+import {
+  useSubscription,
+  useManageBilling,
+  useUsageStats,
+  useUpgradeSubscription,
+  useDowngradeSubscription,
+} from "@/hooks/use-subscription";
+import {
+  getPlanByTier,
+  checkLimit,
+  SUBSCRIPTION_PLANS,
+} from "@/lib/subscription-plans";
+import {
+  Loader2,
+  CreditCard,
+  ArrowUpRight,
+  ArrowDownLeft,
+  Check,
+  Zap,
+  Crown,
+} from "lucide-react";
 import { formatDate } from "date-fns";
 import { useState } from "react";
 
 export function SubscriptionManager() {
   const { data: subscription, isLoading } = useSubscription();
   const { data: usage } = useUsageStats();
-  const { mutate: openBillingPortal, isPending: billingPending } = useManageBilling();
-  const { mutate: upgradeSubscription, isPending: upgradePending } = useUpgradeSubscription();
-  const { mutate: downgradeSubscription, isPending: downgradePending } = useDowngradeSubscription();
-  const [showUpgradeDialog, setShowUpgradeDialog] = useState<"MONTHLY" | "YEARLY" | null>(null);
+  const { mutate: openBillingPortal, isPending: billingPending } =
+    useManageBilling();
+  const { mutate: upgradeSubscription, isPending: upgradePending } =
+    useUpgradeSubscription();
+  const { mutate: downgradeSubscription, isPending: downgradePending } =
+    useDowngradeSubscription();
+  const [showUpgradeDialog, setShowUpgradeDialog] = useState<
+    "MONTHLY" | "YEARLY" | null
+  >(null);
   const [showDowngradeDialog, setShowDowngradeDialog] = useState(false);
 
   if (isLoading) {
@@ -44,7 +73,8 @@ export function SubscriptionManager() {
   }
 
   const plan = getPlanByTier(subscription.tier);
-  const isActive = subscription.status === "ACTIVE" || subscription.status === "TRIALING";
+  const isActive =
+    subscription.status === "ACTIVE" || subscription.status === "TRIALING";
   const isPastDue = subscription.status === "PAST_DUE";
 
   const getStatusColor = (status: string) => {
@@ -136,16 +166,20 @@ export function SubscriptionManager() {
             </div>
 
             <div>
-              <p className="text-sm text-muted-foreground mb-1">Billing Period</p>
+              <p className="text-sm text-muted-foreground mb-1">
+                Billing Period
+              </p>
               {isActive && subscription.currentPeriodEnd ? (
                 <div>
                   {subscription.cancelAtPeriodEnd ? (
                     <p className="text-sm font-medium text-orange-600 dark:text-orange-400">
-                      Ends {formatDate(subscription.currentPeriodEnd, "MMM d, yyyy")}
+                      Ends{" "}
+                      {formatDate(subscription.currentPeriodEnd, "MMM d, yyyy")}
                     </p>
                   ) : (
                     <p className="text-sm font-medium">
-                      Next billing: {formatDate(subscription.currentPeriodEnd, "MMM d, yyyy")}
+                      Next billing:{" "}
+                      {formatDate(subscription.currentPeriodEnd, "MMM d, yyyy")}
                     </p>
                   )}
                 </div>
@@ -157,7 +191,8 @@ export function SubscriptionManager() {
 
           {isPastDue && (
             <div className="rounded-lg bg-yellow-500/10 p-4 text-sm text-yellow-600 dark:text-yellow-400 border border-yellow-500/20">
-              ⚠️ Your payment is past due. Please update your payment method to continue using premium features.
+              ⚠️ Your payment is past due. Please update your payment method to
+              continue using premium features.
             </div>
           )}
 
@@ -200,7 +235,9 @@ export function SubscriptionManager() {
         <CardContent className="space-y-6">
           {usageItems.map((item) => {
             const isUnlimited = item.limit === -1;
-            const percentage = isUnlimited ? 0 : (item.current / item.limit) * 100;
+            const percentage = isUnlimited
+              ? 0
+              : (item.current / item.limit) * 100;
             const isNearLimit = percentage >= 80 && !isUnlimited;
             const isExceeded = item.current > item.limit && !isUnlimited;
 
@@ -211,13 +248,15 @@ export function SubscriptionManager() {
                     <span className="text-lg">{item.icon}</span>
                     <span className="font-medium">{item.label}</span>
                   </div>
-                  <span className={`font-semibold ${isExceeded ? "text-red-600 dark:text-red-400" : isNearLimit ? "text-orange-600 dark:text-orange-400" : ""}`}>
+                  <span
+                    className={`font-semibold ${isExceeded ? "text-red-600 dark:text-red-400" : isNearLimit ? "text-orange-600 dark:text-orange-400" : ""}`}
+                  >
                     {item.current} / {isUnlimited ? "∞" : item.limit}
                   </span>
                 </div>
                 {!isUnlimited && (
                   <div className="space-y-1">
-                    <Progress 
+                    <Progress
                       value={Math.min(percentage, 100)}
                       className={isExceeded || isNearLimit ? "h-2" : "h-2"}
                     />
@@ -243,10 +282,15 @@ export function SubscriptionManager() {
       <Card>
         <CardHeader>
           <CardTitle>Upgrade Your Plan</CardTitle>
-          <CardDescription>Choose the plan that works best for you</CardDescription>
+          <CardDescription>
+            Choose the plan that works best for you
+          </CardDescription>
         </CardHeader>
         <CardContent>
-          <Tabs defaultValue={subscription.tier === "FREE" ? "monthly" : "current"} className="w-full">
+          <Tabs
+            defaultValue={subscription.tier === "FREE" ? "monthly" : "current"}
+            className="w-full"
+          >
             <TabsList className="grid w-full grid-cols-3">
               <TabsTrigger value="free">Free</TabsTrigger>
               <TabsTrigger value="monthly">Pro Monthly</TabsTrigger>
@@ -292,13 +336,19 @@ export function SubscriptionManager() {
       </Card>
 
       {/* Upgrade Confirmation Dialog */}
-      <AlertDialog open={showUpgradeDialog !== null} onOpenChange={(open) => !open && setShowUpgradeDialog(null)}>
+      <AlertDialog
+        open={showUpgradeDialog !== null}
+        onOpenChange={(open) => !open && setShowUpgradeDialog(null)}
+      >
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Upgrade Your Subscription</AlertDialogTitle>
             <AlertDialogDescription>
-              You're upgrading to {showUpgradeDialog === "MONTHLY" ? "Pro Monthly ($29.99/month)" : "Pro Yearly ($299.99/year)"}. 
-              Your plan will be activated immediately.
+              You're upgrading to{" "}
+              {showUpgradeDialog === "MONTHLY"
+                ? "Pro Monthly ($29.99/month)"
+                : "Pro Yearly ($299.99/year)"}
+              . Your plan will be activated immediately.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <div className="py-2">
@@ -328,12 +378,16 @@ export function SubscriptionManager() {
       </AlertDialog>
 
       {/* Downgrade Confirmation Dialog */}
-      <AlertDialog open={showDowngradeDialog} onOpenChange={setShowDowngradeDialog}>
+      <AlertDialog
+        open={showDowngradeDialog}
+        onOpenChange={setShowDowngradeDialog}
+      >
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Downgrade to Free Plan</AlertDialogTitle>
             <AlertDialogDescription>
-              You'll lose access to premium features at the end of your current billing period.
+              You'll lose access to premium features at the end of your current
+              billing period.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <div className="py-2 bg-orange-500/10 rounded-lg p-3 border border-orange-500/20">
@@ -347,7 +401,11 @@ export function SubscriptionManager() {
             </ul>
           </div>
           <AlertDialogCancel>Keep Current Plan</AlertDialogCancel>
-          <AlertDialogAction onClick={confirmDowngrade} disabled={downgradePending} className="bg-destructive hover:bg-destructive/90">
+          <AlertDialogAction
+            onClick={confirmDowngrade}
+            disabled={downgradePending}
+            className="bg-destructive hover:bg-destructive/90"
+          >
             {downgradePending ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -374,11 +432,20 @@ interface PlanCardProps {
   savings?: string;
 }
 
-function PlanCard({ plan, isCurrentPlan, onSelect, isPending, savings }: PlanCardProps) {
-  const Icon = plan.tier === "FREE" ? Check : plan.tier === "YEARLY" ? Crown : Zap;
+function PlanCard({
+  plan,
+  isCurrentPlan,
+  onSelect,
+  isPending,
+  savings,
+}: PlanCardProps) {
+  const Icon =
+    plan.tier === "FREE" ? Check : plan.tier === "YEARLY" ? Crown : Zap;
 
   return (
-    <div className={`rounded-lg border-2 p-6 ${isCurrentPlan ? "border-primary bg-primary/5" : "border-border"}`}>
+    <div
+      className={`rounded-lg border-2 p-6 ${isCurrentPlan ? "border-primary bg-primary/5" : "border-border"}`}
+    >
       <div className="flex items-start justify-between mb-4">
         <div className="flex items-center gap-2">
           <Icon className="h-6 w-6" />
@@ -399,11 +466,15 @@ function PlanCard({ plan, isCurrentPlan, onSelect, isPending, savings }: PlanCar
       <ul className="space-y-2 mb-6">
         <li className="text-sm flex items-center gap-2">
           <Check className="h-4 w-4 text-green-500" />
-          {plan.limits.interviews === -1 ? "Unlimited interviews" : `${plan.limits.interviews} interviews/month`}
+          {plan.limits.interviews === -1
+            ? "Unlimited interviews"
+            : `${plan.limits.interviews} interviews/month`}
         </li>
         <li className="text-sm flex items-center gap-2">
           <Check className="h-4 w-4 text-green-500" />
-          {plan.limits.aiMockSessions === -1 ? "Unlimited AI sessions" : `${plan.limits.aiMockSessions} AI sessions/month`}
+          {plan.limits.aiMockSessions === -1
+            ? "Unlimited AI sessions"
+            : `${plan.limits.aiMockSessions} AI sessions/month`}
         </li>
         <li className="text-sm flex items-center gap-2">
           <Check className="h-4 w-4 text-green-500" />

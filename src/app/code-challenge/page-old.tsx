@@ -164,10 +164,14 @@ public:
  */
 export default function CodeChallengeArena() {
   const { executeCode, isExecuting } = useCodeExecution();
-  const { currentChallenge, fetchChallenge, isLoading: isChallengeLoading } =
-    useChallenges();
+  const {
+    currentChallenge,
+    fetchChallenge,
+    isLoading: isChallengeLoading,
+  } = useChallenges();
   const { submitSolution, isSubmitting } = useSubmissions();
-  const { generateChallenges, isGenerating, generatedChallenges } = useGenerateChallenges();
+  const { generateChallenges, isGenerating, generatedChallenges } =
+    useGenerateChallenges();
   const { theme } = useTheme();
   const autoSaveTimerRef = useRef<NodeJS.Timeout | null>(null);
 
@@ -180,7 +184,8 @@ export default function CodeChallengeArena() {
   const [showHints, setShowHints] = useState(false);
   const [currentTab, setCurrentTab] = useState("description");
   const [showResetDialog, setShowResetDialog] = useState(false);
-  const [showLanguageChangeDialog, setShowLanguageChangeDialog] = useState(false);
+  const [showLanguageChangeDialog, setShowLanguageChangeDialog] =
+    useState(false);
   const [pendingLanguage, setPendingLanguage] = useState<string | null>(null);
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
@@ -191,7 +196,9 @@ export default function CodeChallengeArena() {
   const [showGenerateDialog, setShowGenerateDialog] = useState(false);
   const [cvText, setCvText] = useState("");
   const [jobDescriptionText, setJobDescriptionText] = useState("");
-  const [selectedDifficulty, setSelectedDifficulty] = useState<"Easy" | "Medium" | "Hard">("Medium");
+  const [selectedDifficulty, setSelectedDifficulty] = useState<
+    "Easy" | "Medium" | "Hard"
+  >("Medium");
   const [currentChallengeIndex, setCurrentChallengeIndex] = useState(0);
   const [executionMetrics, setExecutionMetrics] = useState({
     totalTime: 0,
@@ -204,7 +211,7 @@ export default function CodeChallengeArena() {
   useEffect(() => {
     const onboardingCompleted = sessionStorage.getItem("onboarding_completed");
     const hasVisited = localStorage.getItem("code_challenge_visited");
-    
+
     // Only redirect if never visited before and no onboarding data
     if (!hasVisited && !onboardingCompleted) {
       window.location.href = "/code-challenge/onboarding";
@@ -217,13 +224,17 @@ export default function CodeChallengeArena() {
     // Load onboarding data if available
     const onboardingCv = sessionStorage.getItem("onboarding_cv");
     const onboardingJob = sessionStorage.getItem("onboarding_job");
-    const onboardingDifficulty = sessionStorage.getItem("onboarding_difficulty");
+    const onboardingDifficulty = sessionStorage.getItem(
+      "onboarding_difficulty",
+    );
 
     if (onboardingCv && onboardingJob) {
       setCvText(onboardingCv);
       setJobDescriptionText(onboardingJob);
       if (onboardingDifficulty) {
-        setSelectedDifficulty(onboardingDifficulty as "Easy" | "Medium" | "Hard");
+        setSelectedDifficulty(
+          onboardingDifficulty as "Easy" | "Medium" | "Hard",
+        );
       }
 
       // Auto-generate challenges
@@ -234,22 +245,25 @@ export default function CodeChallengeArena() {
       generateChallenges({
         cvData: onboardingCv,
         jobDescription: onboardingJob,
-        difficulty: (onboardingDifficulty as "Easy" | "Medium" | "Hard") || "Medium",
+        difficulty:
+          (onboardingDifficulty as "Easy" | "Medium" | "Hard") || "Medium",
         count: 3,
-      }).then(() => {
-        toast.success("✨ Challenges ready!", { id: "auto-generate" });
-        // Clear onboarding data after generating
-        sessionStorage.removeItem("onboarding_cv");
-        sessionStorage.removeItem("onboarding_job");
-        sessionStorage.removeItem("onboarding_difficulty");
-      }).catch(() => {
-        toast.error("Failed to generate challenges", { id: "auto-generate" });
-        fetchChallenge("1"); // Fallback to default challenge
-      });
+      })
+        .then(() => {
+          toast.success("✨ Challenges ready!", { id: "auto-generate" });
+          // Clear onboarding data after generating
+          sessionStorage.removeItem("onboarding_cv");
+          sessionStorage.removeItem("onboarding_job");
+          sessionStorage.removeItem("onboarding_difficulty");
+        })
+        .catch(() => {
+          toast.error("Failed to generate challenges", { id: "auto-generate" });
+          fetchChallenge("1"); // Fallback to default challenge
+        });
     } else {
       fetchChallenge("1"); // Load default challenge
     }
-    
+
     // Show welcome tip
     setTimeout(() => {
       toast.info("Pro tip: Press Ctrl+Enter to run code", {
@@ -292,7 +306,10 @@ export default function CodeChallengeArena() {
   const autoSaveCode = useCallback(() => {
     if (code && code.trim().length > 0) {
       localStorage.setItem(`code_${selectedLanguage}_1`, code);
-      localStorage.setItem(`lastSaved_${selectedLanguage}_1`, new Date().toISOString());
+      localStorage.setItem(
+        `lastSaved_${selectedLanguage}_1`,
+        new Date().toISOString(),
+      );
       setLastSaved(new Date());
       setHasUnsavedChanges(false);
     }
@@ -407,7 +424,7 @@ export default function CodeChallengeArena() {
       const { results, metrics } = await executeCode(
         code,
         selectedLanguage,
-        currentChallenge.testCases
+        currentChallenge.testCases,
       );
 
       setTestResults(results);
@@ -431,9 +448,12 @@ export default function CodeChallengeArena() {
           description: "Great job! Your solution is correct.",
         });
       } else {
-        toast.warning(`${metrics.passedTests}/${metrics.totalTests} tests passed`, {
-          description: "Some test cases failed. Check the results below.",
-        });
+        toast.warning(
+          `${metrics.passedTests}/${metrics.totalTests} tests passed`,
+          {
+            description: "Some test cases failed. Check the results below.",
+          },
+        );
       }
     } catch (error) {
       setConsoleOutput([
@@ -539,15 +559,16 @@ export default function CodeChallengeArena() {
       if (result && result.challenges.length > 0) {
         setCurrentChallengeIndex(0);
         setShowGenerateDialog(false);
-        
+
         // Load first generated challenge
         const firstChallenge = result.challenges[0];
-        const starterCodeForLang = firstChallenge.starterCode?.[selectedLanguage] ||
+        const starterCodeForLang =
+          firstChallenge.starterCode?.[selectedLanguage] ||
           defaultCode[selectedLanguage as keyof typeof defaultCode];
         setCode(starterCodeForLang);
         setTestResults([]);
         setHasUnsavedChanges(false);
-        
+
         toast.success(`Loaded: ${firstChallenge.title}`, {
           description: `${result.challenges.length} personalized challenges ready!`,
         });
@@ -564,7 +585,8 @@ export default function CodeChallengeArena() {
       const nextIndex = currentChallengeIndex + 1;
       setCurrentChallengeIndex(nextIndex);
       const nextChallenge = generatedChallenges[nextIndex];
-      const starterCodeForLang = nextChallenge.starterCode?.[selectedLanguage] ||
+      const starterCodeForLang =
+        nextChallenge.starterCode?.[selectedLanguage] ||
         defaultCode[selectedLanguage as keyof typeof defaultCode];
       setCode(starterCodeForLang);
       setTestResults([]);
@@ -581,7 +603,8 @@ export default function CodeChallengeArena() {
       const prevIndex = currentChallengeIndex - 1;
       setCurrentChallengeIndex(prevIndex);
       const prevChallenge = generatedChallenges[prevIndex];
-      const starterCodeForLang = prevChallenge.starterCode?.[selectedLanguage] ||
+      const starterCodeForLang =
+        prevChallenge.starterCode?.[selectedLanguage] ||
         defaultCode[selectedLanguage as keyof typeof defaultCode];
       setCode(starterCodeForLang);
       setTestResults([]);
@@ -594,19 +617,22 @@ export default function CodeChallengeArena() {
   };
 
   // Use current challenge or fallback to sample
-  const challenge = generatedChallenges.length > 0 
-    ? generatedChallenges[currentChallengeIndex]
-    : currentChallenge;
+  const challenge =
+    generatedChallenges.length > 0
+      ? generatedChallenges[currentChallengeIndex]
+      : currentChallenge;
 
   // Show loading state if:
   // 1. First time visiting (checking onboarding)
   // 2. Generating challenges
   // 3. No challenges available
-  const isWaitingForChallenges = isGenerating || (!generatedChallenges.length && !currentChallenge && !isChallengeLoading);
+  const isWaitingForChallenges =
+    isGenerating ||
+    (!generatedChallenges.length && !currentChallenge && !isChallengeLoading);
 
   if (isChallengeLoading || isWaitingForChallenges) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background via-primary/5 to-muted/10">
+      <div className="min-h-screen flex items-center justify-center bg-linear-to-br from-background via-primary/5 to-muted/10">
         <div className="text-center space-y-4">
           <motion.div
             animate={{ rotate: 360 }}
@@ -615,10 +641,12 @@ export default function CodeChallengeArena() {
           />
           <div>
             <h2 className="text-2xl font-bold mb-2">
-              {isGenerating ? "🤖 Generating Your Challenges" : "Preparing Your Session"}
+              {isGenerating
+                ? "🤖 Generating Your Challenges"
+                : "Preparing Your Session"}
             </h2>
             <p className="text-muted-foreground max-w-md">
-              {isGenerating 
+              {isGenerating
                 ? "Our AI is creating personalized coding challenges based on your CV and job description..."
                 : "Please complete the onboarding to get started"}
             </p>
@@ -637,7 +665,7 @@ export default function CodeChallengeArena() {
 
   if (!challenge) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background via-primary/5 to-muted/10">
+      <div className="min-h-screen flex items-center justify-center bg-linear-to-br from-background via-primary/5 to-muted/10">
         <div className="text-center space-y-4">
           <AlertCircle className="w-16 h-16 text-muted-foreground/50 mx-auto" />
           <div>
@@ -656,19 +684,19 @@ export default function CodeChallengeArena() {
 
   return (
     <>
-      <div className="min-h-screen bg-gradient-to-br from-background via-primary/5 to-muted/10 relative overflow-hidden">
-        <div className="absolute inset-0 -z-10 bg-gradient-to-br from-primary/5 via-primary/10 to-transparent" />
+      <div className="min-h-screen bg-linear-to-br from-background via-primary/5 to-muted/10 relative overflow-hidden">
+        <div className="absolute inset-0 -z-10 bg-linear-to-br from-primary/5 via-primary/10 to-transparent" />
         <div className="container mx-auto p-6 space-y-8">
           {/* Header */}
           <AnimatedContainer>
             <div className="flex items-center justify-between">
               <div>
-                <h1 className="text-4xl font-bold bg-gradient-to-b from-foreground to-muted-foreground/70 bg-clip-text text-transparent">
+                <h1 className="text-4xl font-bold bg-linear-to-b from-foreground to-muted-foreground/70 bg-clip-text text-transparent">
                   Code Challenge Arena
                 </h1>
                 <p className="text-muted-foreground mt-2">
-                  {generatedChallenges.length > 0 
-                    ? `AI-Generated • Challenge ${currentChallengeIndex + 1}/${generatedChallenges.length}` 
+                  {generatedChallenges.length > 0
+                    ? `AI-Generated • Challenge ${currentChallengeIndex + 1}/${generatedChallenges.length}`
                     : "Real-time coding challenges with instant feedback"}
                 </p>
               </div>
@@ -677,7 +705,7 @@ export default function CodeChallengeArena() {
                   variant="default"
                   size="sm"
                   onClick={() => setShowGenerateDialog(true)}
-                  className="hidden md:flex items-center gap-2 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700"
+                  className="hidden md:flex items-center gap-2 bg-linear-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700"
                   disabled={isGenerating}
                 >
                   {isGenerating ? (
@@ -715,7 +743,9 @@ export default function CodeChallengeArena() {
                       variant="outline"
                       size="sm"
                       onClick={handleNextChallenge}
-                      disabled={currentChallengeIndex === generatedChallenges.length - 1}
+                      disabled={
+                        currentChallengeIndex === generatedChallenges.length - 1
+                      }
                     >
                       Next
                     </Button>
@@ -748,168 +778,172 @@ export default function CodeChallengeArena() {
             </div>
           </AnimatedContainer>
 
-        <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
-          {/* Problem Description - Left Column (30%) */}
-          <div className="space-y-6 xl:col-span-1">
-            {/* Challenge Info */}
-            <AnimatedContainer delay={0.1}>
-              <ProblemPanel
-                challenge={challenge}
-                isLoading={false}
-                currentIndex={currentChallengeIndex}
-                totalChallenges={generatedChallenges.length > 0 ? generatedChallenges.length : 1}
-              />
-            </AnimatedContainer>
-
-            {/* Test Results */}
-            <AnimatedContainer delay={0.2}>
-              <TestResultsPanel
-                testResults={testResults}
-                metrics={executionMetrics}
-                isRunning={isRunning}
-              />
-            </AnimatedContainer>
-          </div>
-
-          {/* Code Editor - Center/Right Column (70%) */}
-          <div className="space-y-6 xl:col-span-2">
-            {/* Editor Controls */}
-            <AnimatedContainer delay={0.3}>
-              <CodeEditorEnhanced
-                code={code}
-                onCodeChange={(newCode) => {
-                  setCode(newCode);
-                  setHasUnsavedChanges(true);
-                }}
-                selectedLanguage={selectedLanguage}
-                onLanguageChange={handleLanguageChange}
-                onRun={runCode}
-                onReset={resetCode}
-                isRunning={isRunning || isExecuting}
-                lastSaved={lastSaved}
-                hasUnsavedChanges={hasUnsavedChanges}
-                showConsole={showConsole}
-                onToggleConsole={setShowConsole}
-                consoleOutput={consoleOutput}
-                executionMetrics={executionMetrics}
-                timeElapsed={timeElapsed}
-                successRate={getSuccessRate()}
-              />
-            </AnimatedContainer>
-
-            {/* Performance Metrics */}
-            {testResults.length > 0 && (
-              <AnimatedContainer delay={0.4}>
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                      <Trophy className="w-5 h-5" />
-                      Performance Metrics
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="space-y-2">
-                        <div className="flex items-center justify-between text-sm">
-                          <span>Success Rate</span>
-                          <span className="font-medium">
-                            {getSuccessRate().toFixed(1)}%
-                          </span>
-                        </div>
-                        <Progress value={getSuccessRate()} className="h-2" />
-                      </div>
-
-                      <div className="space-y-2">
-                        <div className="flex items-center justify-between text-sm">
-                          <span>Avg. Execution Time</span>
-                          <span className="font-medium">
-                            {executionMetrics.totalTime.toFixed(1)}ms
-                          </span>
-                        </div>
-                        <Progress
-                          value={
-                            (executionMetrics.totalTime /
-                              challenge.timeLimit) *
-                            100
-                          }
-                          className="h-2"
-                        />
-                      </div>
-
-                      <div className="space-y-2">
-                        <div className="flex items-center justify-between text-sm">
-                          <span>Memory Usage</span>
-                          <span className="font-medium">
-                            {executionMetrics.memoryUsed.toFixed(1)}MB
-                          </span>
-                        </div>
-                        <Progress
-                          value={
-                            (executionMetrics.memoryUsed /
-                              challenge.memoryLimit) *
-                            100
-                          }
-                          className="h-2"
-                        />
-                      </div>
-
-                      <div className="space-y-2">
-                        <div className="flex items-center justify-between text-sm">
-                          <span>Time Efficiency</span>
-                          <span className="font-medium">
-                            {executionMetrics.totalTime <
-                            challenge.timeLimit * 0.5
-                              ? "Excellent"
-                              : executionMetrics.totalTime <
-                                challenge.timeLimit * 0.8
-                              ? "Good"
-                              : "Needs Improvement"}
-                          </span>
-                        </div>
-                        <div className="flex gap-1">
-                          {[1, 2, 3, 4, 5].map((star) => (
-                            <div
-                              key={star}
-                              className={cn(
-                                "w-3 h-3 rounded-full",
-                                star <=
-                                  (executionMetrics.totalTime <
-                                  challenge.timeLimit * 0.5
-                                    ? 5
-                                    : executionMetrics.totalTime <
-                                      challenge.timeLimit * 0.8
-                                    ? 3
-                                    : 1)
-                                  ? "bg-yellow-400"
-                                  : "bg-gray-200 dark:bg-gray-700"
-                              )}
-                            />
-                          ))}
-                        </div>
-                      </div>
-                    </div>
-
-                    {getSuccessRate() === 100 && (
-                      <motion.div
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        className="mt-4 p-3 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg"
-                      >
-                        <div className="flex items-center gap-2 text-green-700 dark:text-green-300">
-                          <Trophy className="w-5 h-5" />
-                          <span className="font-medium">
-                            Congratulations! All tests passed!
-                          </span>
-                        </div>
-                      </motion.div>
-                    )}
-                  </CardContent>
-                </Card>
+          <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
+            {/* Problem Description - Left Column (30%) */}
+            <div className="space-y-6 xl:col-span-1">
+              {/* Challenge Info */}
+              <AnimatedContainer delay={0.1}>
+                <ProblemPanel
+                  challenge={challenge}
+                  isLoading={false}
+                  currentIndex={currentChallengeIndex}
+                  totalChallenges={
+                    generatedChallenges.length > 0
+                      ? generatedChallenges.length
+                      : 1
+                  }
+                />
               </AnimatedContainer>
-            )}
+
+              {/* Test Results */}
+              <AnimatedContainer delay={0.2}>
+                <TestResultsPanel
+                  testResults={testResults}
+                  metrics={executionMetrics}
+                  isRunning={isRunning}
+                />
+              </AnimatedContainer>
+            </div>
+
+            {/* Code Editor - Center/Right Column (70%) */}
+            <div className="space-y-6 xl:col-span-2">
+              {/* Editor Controls */}
+              <AnimatedContainer delay={0.3}>
+                <CodeEditorEnhanced
+                  code={code}
+                  onCodeChange={(newCode) => {
+                    setCode(newCode);
+                    setHasUnsavedChanges(true);
+                  }}
+                  selectedLanguage={selectedLanguage}
+                  onLanguageChange={handleLanguageChange}
+                  onRun={runCode}
+                  onReset={resetCode}
+                  isRunning={isRunning || isExecuting}
+                  lastSaved={lastSaved}
+                  hasUnsavedChanges={hasUnsavedChanges}
+                  showConsole={showConsole}
+                  onToggleConsole={setShowConsole}
+                  consoleOutput={consoleOutput}
+                  executionMetrics={executionMetrics}
+                  timeElapsed={timeElapsed}
+                  successRate={getSuccessRate()}
+                />
+              </AnimatedContainer>
+
+              {/* Performance Metrics */}
+              {testResults.length > 0 && (
+                <AnimatedContainer delay={0.4}>
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="flex items-center gap-2">
+                        <Trophy className="w-5 h-5" />
+                        Performance Metrics
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="grid grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                          <div className="flex items-center justify-between text-sm">
+                            <span>Success Rate</span>
+                            <span className="font-medium">
+                              {getSuccessRate().toFixed(1)}%
+                            </span>
+                          </div>
+                          <Progress value={getSuccessRate()} className="h-2" />
+                        </div>
+
+                        <div className="space-y-2">
+                          <div className="flex items-center justify-between text-sm">
+                            <span>Avg. Execution Time</span>
+                            <span className="font-medium">
+                              {executionMetrics.totalTime.toFixed(1)}ms
+                            </span>
+                          </div>
+                          <Progress
+                            value={
+                              (executionMetrics.totalTime /
+                                challenge.timeLimit) *
+                              100
+                            }
+                            className="h-2"
+                          />
+                        </div>
+
+                        <div className="space-y-2">
+                          <div className="flex items-center justify-between text-sm">
+                            <span>Memory Usage</span>
+                            <span className="font-medium">
+                              {executionMetrics.memoryUsed.toFixed(1)}MB
+                            </span>
+                          </div>
+                          <Progress
+                            value={
+                              (executionMetrics.memoryUsed /
+                                challenge.memoryLimit) *
+                              100
+                            }
+                            className="h-2"
+                          />
+                        </div>
+
+                        <div className="space-y-2">
+                          <div className="flex items-center justify-between text-sm">
+                            <span>Time Efficiency</span>
+                            <span className="font-medium">
+                              {executionMetrics.totalTime <
+                              challenge.timeLimit * 0.5
+                                ? "Excellent"
+                                : executionMetrics.totalTime <
+                                    challenge.timeLimit * 0.8
+                                  ? "Good"
+                                  : "Needs Improvement"}
+                            </span>
+                          </div>
+                          <div className="flex gap-1">
+                            {[1, 2, 3, 4, 5].map((star) => (
+                              <div
+                                key={star}
+                                className={cn(
+                                  "w-3 h-3 rounded-full",
+                                  star <=
+                                    (executionMetrics.totalTime <
+                                    challenge.timeLimit * 0.5
+                                      ? 5
+                                      : executionMetrics.totalTime <
+                                          challenge.timeLimit * 0.8
+                                        ? 3
+                                        : 1)
+                                    ? "bg-yellow-400"
+                                    : "bg-gray-200 dark:bg-gray-700",
+                                )}
+                              />
+                            ))}
+                          </div>
+                        </div>
+                      </div>
+
+                      {getSuccessRate() === 100 && (
+                        <motion.div
+                          initial={{ opacity: 0, y: 20 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          className="mt-4 p-3 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg"
+                        >
+                          <div className="flex items-center gap-2 text-green-700 dark:text-green-300">
+                            <Trophy className="w-5 h-5" />
+                            <span className="font-medium">
+                              Congratulations! All tests passed!
+                            </span>
+                          </div>
+                        </motion.div>
+                      )}
+                    </CardContent>
+                  </Card>
+                </AnimatedContainer>
+              )}
+            </div>
           </div>
         </div>
-      </div>
       </div>
 
       {/* Confirmation Dialogs */}
@@ -959,7 +993,10 @@ export default function CodeChallengeArena() {
       </AlertDialog>
 
       {/* Keyboard Shortcuts Dialog */}
-      <AlertDialog open={showKeyboardShortcuts} onOpenChange={setShowKeyboardShortcuts}>
+      <AlertDialog
+        open={showKeyboardShortcuts}
+        onOpenChange={setShowKeyboardShortcuts}
+      >
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle className="flex items-center gap-2">
@@ -971,31 +1008,69 @@ export default function CodeChallengeArena() {
                 <div className="grid grid-cols-2 gap-2">
                   <div className="font-medium">Run Code</div>
                   <div className="text-right">
-                    <kbd className="px-2 py-1 bg-muted rounded text-xs">Ctrl</kbd> + <kbd className="px-2 py-1 bg-muted rounded text-xs">Enter</kbd>
+                    <kbd className="px-2 py-1 bg-muted rounded text-xs">
+                      Ctrl
+                    </kbd>{" "}
+                    +{" "}
+                    <kbd className="px-2 py-1 bg-muted rounded text-xs">
+                      Enter
+                    </kbd>
                   </div>
-                  
+
                   <div className="font-medium">Save Code</div>
                   <div className="text-right">
-                    <kbd className="px-2 py-1 bg-muted rounded text-xs">Ctrl</kbd> + <kbd className="px-2 py-1 bg-muted rounded text-xs">S</kbd>
+                    <kbd className="px-2 py-1 bg-muted rounded text-xs">
+                      Ctrl
+                    </kbd>{" "}
+                    +{" "}
+                    <kbd className="px-2 py-1 bg-muted rounded text-xs">S</kbd>
                   </div>
-                  
+
                   <div className="font-medium">Toggle Fullscreen</div>
                   <div className="text-right">
-                    <kbd className="px-2 py-1 bg-muted rounded text-xs">Ctrl</kbd> + <kbd className="px-2 py-1 bg-muted rounded text-xs">Shift</kbd> + <kbd className="px-2 py-1 bg-muted rounded text-xs">F</kbd>
+                    <kbd className="px-2 py-1 bg-muted rounded text-xs">
+                      Ctrl
+                    </kbd>{" "}
+                    +{" "}
+                    <kbd className="px-2 py-1 bg-muted rounded text-xs">
+                      Shift
+                    </kbd>{" "}
+                    +{" "}
+                    <kbd className="px-2 py-1 bg-muted rounded text-xs">F</kbd>
                   </div>
-                  
+
                   <div className="font-medium">Format Code</div>
                   <div className="text-right">
-                    <kbd className="px-2 py-1 bg-muted rounded text-xs">Shift</kbd> + <kbd className="px-2 py-1 bg-muted rounded text-xs">Alt</kbd> + <kbd className="px-2 py-1 bg-muted rounded text-xs">F</kbd>
+                    <kbd className="px-2 py-1 bg-muted rounded text-xs">
+                      Shift
+                    </kbd>{" "}
+                    +{" "}
+                    <kbd className="px-2 py-1 bg-muted rounded text-xs">
+                      Alt
+                    </kbd>{" "}
+                    +{" "}
+                    <kbd className="px-2 py-1 bg-muted rounded text-xs">F</kbd>
                   </div>
-                  
+
                   <div className="font-medium">Comment Line</div>
                   <div className="text-right">
-                    <kbd className="px-2 py-1 bg-muted rounded text-xs">Ctrl</kbd> + <kbd className="px-2 py-1 bg-muted rounded text-xs">/</kbd>
+                    <kbd className="px-2 py-1 bg-muted rounded text-xs">
+                      Ctrl
+                    </kbd>{" "}
+                    +{" "}
+                    <kbd className="px-2 py-1 bg-muted rounded text-xs">/</kbd>
                   </div>
                 </div>
                 <div className="text-xs text-muted-foreground pt-2 border-t">
-                  Use <kbd className="px-1 py-0.5 bg-muted rounded text-xs">Cmd</kbd> instead of <kbd className="px-1 py-0.5 bg-muted rounded text-xs">Ctrl</kbd> on Mac
+                  Use{" "}
+                  <kbd className="px-1 py-0.5 bg-muted rounded text-xs">
+                    Cmd
+                  </kbd>{" "}
+                  instead of{" "}
+                  <kbd className="px-1 py-0.5 bg-muted rounded text-xs">
+                    Ctrl
+                  </kbd>{" "}
+                  on Mac
                 </div>
               </div>
             </AlertDialogDescription>
@@ -1009,7 +1084,10 @@ export default function CodeChallengeArena() {
       </AlertDialog>
 
       {/* AI Generate Challenges Dialog */}
-      <AlertDialog open={showGenerateDialog} onOpenChange={setShowGenerateDialog}>
+      <AlertDialog
+        open={showGenerateDialog}
+        onOpenChange={setShowGenerateDialog}
+      >
         <AlertDialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
           <AlertDialogHeader>
             <AlertDialogTitle className="flex items-center gap-2 text-2xl">
@@ -1017,11 +1095,12 @@ export default function CodeChallengeArena() {
               Generate AI-Powered Challenges
             </AlertDialogTitle>
             <AlertDialogDescription className="text-base">
-              Our AI will analyze your CV and job description to create personalized coding challenges
-              that match your skills and the position requirements.
+              Our AI will analyze your CV and job description to create
+              personalized coding challenges that match your skills and the
+              position requirements.
             </AlertDialogDescription>
           </AlertDialogHeader>
-          
+
           <div className="space-y-6 py-4">
             {/* CV Input */}
             <div className="space-y-3">
@@ -1036,7 +1115,8 @@ export default function CodeChallengeArena() {
                 className="w-full h-40 px-4 py-3 border rounded-lg resize-none focus:outline-none focus:ring-2 focus:ring-purple-500 text-sm"
               />
               <p className="text-xs text-muted-foreground">
-                💡 Tip: Include technical skills, programming languages, frameworks, and key achievements
+                💡 Tip: Include technical skills, programming languages,
+                frameworks, and key achievements
               </p>
             </div>
 
@@ -1053,7 +1133,8 @@ export default function CodeChallengeArena() {
                 className="w-full h-40 px-4 py-3 border rounded-lg resize-none focus:outline-none focus:ring-2 focus:ring-purple-500 text-sm"
               />
               <p className="text-xs text-muted-foreground">
-                💡 Tip: The more detailed the job description, the more relevant the challenges
+                💡 Tip: The more detailed the job description, the more relevant
+                the challenges
               </p>
             </div>
 
@@ -1065,30 +1146,42 @@ export default function CodeChallengeArena() {
               </label>
               <Select
                 value={selectedDifficulty}
-                onValueChange={(value: "Easy" | "Medium" | "Hard") => setSelectedDifficulty(value)}
+                onValueChange={(value: "Easy" | "Medium" | "Hard") =>
+                  setSelectedDifficulty(value)
+                }
               >
                 <SelectTrigger className="w-full">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="Easy">Easy - Fundamental concepts</SelectItem>
-                  <SelectItem value="Medium">Medium - Practical problems</SelectItem>
-                  <SelectItem value="Hard">Hard - Advanced algorithms</SelectItem>
+                  <SelectItem value="Easy">
+                    Easy - Fundamental concepts
+                  </SelectItem>
+                  <SelectItem value="Medium">
+                    Medium - Practical problems
+                  </SelectItem>
+                  <SelectItem value="Hard">
+                    Hard - Advanced algorithms
+                  </SelectItem>
                 </SelectContent>
               </Select>
             </div>
 
             {/* Info Box */}
-            <div className="bg-gradient-to-r from-purple-50 to-blue-50 dark:from-purple-950/20 dark:to-blue-950/20 border border-purple-200 dark:border-purple-800 rounded-lg p-4">
+            <div className="bg-linear-to-r from-purple-50 to-blue-50 dark:from-purple-950/20 dark:to-blue-950/20 border border-purple-200 dark:border-purple-800 rounded-lg p-4">
               <div className="flex items-start gap-3">
                 <Sparkles className="w-5 h-5 text-purple-600 mt-0.5" />
                 <div className="space-y-2">
                   <h4 className="font-semibold text-sm">What you'll get:</h4>
                   <ul className="text-xs space-y-1 text-muted-foreground">
                     <li>✅ 3 personalized coding challenges</li>
-                    <li>✅ Tailored to your skill level and job requirements</li>
+                    <li>
+                      ✅ Tailored to your skill level and job requirements
+                    </li>
                     <li>✅ Real-world scenarios relevant to the position</li>
-                    <li>✅ Complete with test cases, hints, and starter code</li>
+                    <li>
+                      ✅ Complete with test cases, hints, and starter code
+                    </li>
                     <li>✅ Support for 6 programming languages</li>
                   </ul>
                 </div>
@@ -1097,13 +1190,18 @@ export default function CodeChallengeArena() {
           </div>
 
           <AlertDialogFooter>
-            <AlertDialogCancel onClick={() => setShowGenerateDialog(false)} disabled={isGenerating}>
+            <AlertDialogCancel
+              onClick={() => setShowGenerateDialog(false)}
+              disabled={isGenerating}
+            >
               Cancel
             </AlertDialogCancel>
             <Button
               onClick={handleGenerateChallenges}
-              disabled={isGenerating || !cvText.trim() || !jobDescriptionText.trim()}
-              className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700"
+              disabled={
+                isGenerating || !cvText.trim() || !jobDescriptionText.trim()
+              }
+              className="bg-linear-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700"
             >
               {isGenerating ? (
                 <>

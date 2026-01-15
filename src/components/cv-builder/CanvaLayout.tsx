@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Panel, PanelGroup, PanelResizeHandle } from "react-resizable-panels";
+import { Panel, Group, Separator } from "react-resizable-panels";
 import { EditorPanel } from "./EditorPanel";
 import { PreviewPanel } from "./PreviewPanel";
 import { Button } from "@/components/ui/button";
@@ -57,30 +57,30 @@ export function CanvaLayout() {
       const toastId = toast.loading("Waiting for LinkedIn data...");
       let timeoutId: NodeJS.Timeout | null = null;
       let isHandled = false;
-      
+
       // Listen for message from extension
       const handleMessage = async (event: MessageEvent) => {
         // Security: Verify origin if needed
-        if (event.data?.type !== 'LINKEDIN_IMPORT_SESSION') return;
-        
+        if (event.data?.type !== "LINKEDIN_IMPORT_SESSION") return;
+
         if (isHandled) return; // Prevent duplicate processing
         isHandled = true;
-        
+
         // Clear timeout immediately when message received
         if (timeoutId) clearTimeout(timeoutId);
-        
+
         const sessionId = event.data?.sessionId;
         if (!sessionId) {
           toast.error("No session ID received from extension", { id: toastId });
-          window.removeEventListener('message', handleMessage);
+          window.removeEventListener("message", handleMessage);
           return;
         }
 
         try {
           // Retrieve data via POST (secure, no PII in URLs)
-          const res = await fetch('/api/cv/import-extension/retrieve', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+          const res = await fetch("/api/cv/import-extension/retrieve", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ sessionId }),
           });
 
@@ -88,33 +88,39 @@ export function CanvaLayout() {
 
           if (result.success && result.data) {
             useCVStore.getState().importData(result.data);
-            toast.success("LinkedIn data imported successfully!", { id: toastId });
+            toast.success("LinkedIn data imported successfully!", {
+              id: toastId,
+            });
           } else {
-            toast.error(result.error || "Failed to import LinkedIn data", { id: toastId });
+            toast.error(result.error || "Failed to import LinkedIn data", {
+              id: toastId,
+            });
           }
         } catch (error) {
           console.error("Import error:", error);
           toast.error("Failed to import LinkedIn data", { id: toastId });
         } finally {
-          window.removeEventListener('message', handleMessage);
+          window.removeEventListener("message", handleMessage);
         }
       };
 
-      window.addEventListener('message', handleMessage);
+      window.addEventListener("message", handleMessage);
 
       // Request session ID from extension content script
-      window.postMessage({ type: 'REQUEST_LINKEDIN_SESSION' }, '*');
+      window.postMessage({ type: "REQUEST_LINKEDIN_SESSION" }, "*");
 
       // Timeout after 10 seconds
       timeoutId = setTimeout(() => {
         if (!isHandled) {
-          window.removeEventListener('message', handleMessage);
-          toast.error("Import timeout - no data received from extension", { id: toastId });
+          window.removeEventListener("message", handleMessage);
+          toast.error("Import timeout - no data received from extension", {
+            id: toastId,
+          });
         }
       }, 10000);
 
       return () => {
-        window.removeEventListener('message', handleMessage);
+        window.removeEventListener("message", handleMessage);
         if (timeoutId) clearTimeout(timeoutId);
       };
     }
@@ -147,7 +153,6 @@ export function CanvaLayout() {
     }
   };
 
-
   function normalizeCV(data: any) {
     return {
       personalInfo: {
@@ -174,17 +179,19 @@ export function CanvaLayout() {
         description: typeof e.description === "string" ? e.description : "",
         highlights: Array.isArray(e.highlights) ? e.highlights : [],
       })),
-      experiences: (data.experience || data.experiences || []).map((e: any) => ({
-        id: e.id,
-        title: e.title || "",
-        company: e.company || "",
-        location: e.location || "",
-        startDate: e.startDate || "",
-        endDate: e.endDate || "",
-        current: !!e.current,
-        description: typeof e.description === "string" ? e.description : "",
-        highlights: Array.isArray(e.highlights) ? e.highlights : [],
-      })),
+      experiences: (data.experience || data.experiences || []).map(
+        (e: any) => ({
+          id: e.id,
+          title: e.title || "",
+          company: e.company || "",
+          location: e.location || "",
+          startDate: e.startDate || "",
+          endDate: e.endDate || "",
+          current: !!e.current,
+          description: typeof e.description === "string" ? e.description : "",
+          highlights: Array.isArray(e.highlights) ? e.highlights : [],
+        }),
+      ),
       education: (data.education || []).map((ed: any) => ({
         id: ed.id,
         degree: ed.degree || "",
@@ -199,7 +206,9 @@ export function CanvaLayout() {
         items: Array.isArray(s.items) ? s.items : [],
       })),
       languages: (data.languages || []).map((l: any) =>
-        typeof l === "string" ? l : `${l.language || ""}${l.proficiency ? " - " + l.proficiency : ""}`
+        typeof l === "string"
+          ? l
+          : `${l.language || ""}${l.proficiency ? " - " + l.proficiency : ""}`,
       ),
       projects: (data.projects || []).map((p: any) => ({
         id: p.id,
@@ -234,7 +243,10 @@ export function CanvaLayout() {
       let binary = "";
       const chunk = 0x8000;
       for (let i = 0; i < bytes.length; i += chunk) {
-        binary += String.fromCharCode.apply(null, Array.prototype.slice.call(bytes, i, i + chunk));
+        binary += String.fromCharCode.apply(
+          null,
+          Array.prototype.slice.call(bytes, i, i + chunk),
+        );
       }
       const base64 = btoa(binary);
       const mime = blob.type || "image/png";
@@ -251,8 +263,14 @@ export function CanvaLayout() {
       const normalized = normalizeCV(cvData);
 
       // embed photo as data URL (if available and not already embedded)
-      if (normalized.personalInfo.photo && typeof normalized.personalInfo.photo === "string" && !normalized.personalInfo.photo.startsWith("data:")) {
-        const dataUrl = await fetchImageAsDataURL(normalized.personalInfo.photo);
+      if (
+        normalized.personalInfo.photo &&
+        typeof normalized.personalInfo.photo === "string" &&
+        !normalized.personalInfo.photo.startsWith("data:")
+      ) {
+        const dataUrl = await fetchImageAsDataURL(
+          normalized.personalInfo.photo,
+        );
         if (dataUrl) normalized.personalInfo.photo = dataUrl;
       }
 
@@ -277,7 +295,10 @@ export function CanvaLayout() {
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
-      a.download = `${(cvData.personalInfo?.fullName || "CV").replace(/\s+/g, "_")}_Resume.pdf`;
+      a.download = `${(cvData.personalInfo?.fullName || "CV").replace(
+        /\s+/g,
+        "_",
+      )}_Resume.pdf`;
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
@@ -286,11 +307,11 @@ export function CanvaLayout() {
       toast.success("PDF downloaded!");
     } catch (error: unknown) {
       toast.dismiss(loadingToast);
-      const message = error instanceof Error ? error.message : "Failed to download PDF";
+      const message =
+        error instanceof Error ? error.message : "Failed to download PDF";
       toast.error(message);
     }
   };
-
 
   const handleSave = () => {
     localStorage.setItem(
@@ -299,7 +320,6 @@ export function CanvaLayout() {
     );
     toast.success("CV saved successfully!");
   };
-
 
   return (
     <TooltipProvider>
@@ -373,7 +393,7 @@ export function CanvaLayout() {
         </div>
 
         {/* Main Content - 2 Panel Layout */}
-        <PanelGroup direction="horizontal" className="flex-1">
+        <Group orientation="horizontal" className="flex-1">
           {/* Left Panel - Vertical Tabs + Content */}
           <Panel defaultSize={45} minSize={30} maxSize={70}>
             <Tabs
@@ -412,7 +432,6 @@ export function CanvaLayout() {
                     </p>
                   </TooltipContent>
                 </Tooltip>
-
 
                 <Tooltip>
                   <TooltipTrigger asChild>
@@ -459,23 +478,22 @@ export function CanvaLayout() {
                   </div>
                 </ScrollArea>
               </TabsContent>
-
             </Tabs>
           </Panel>
 
           {/* Resizer Handle */}
-          <PanelResizeHandle className="group relative w-1 cursor-col-resize bg-border hover:bg-primary/50 transition-colors data-[resize-handle-active]:bg-primary">
+          <Separator className="group relative w-1 cursor-col-resize bg-border hover:bg-primary/50 transition-colors data-resize-handle-active:bg-primary">
             <div className="absolute inset-y-0 -left-2 -right-2" />
             <GripVertical className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
-          </PanelResizeHandle>
+          </Separator>
 
           {/* Preview Panel - Right Side */}
           <Panel defaultSize={55} minSize={30}>
-            <div className="h-full overflow-auto bg-gradient-to-br from-muted/5 to-muted/20">
+            <div className="h-full overflow-auto bg-linear-to-br from-muted/5 to-muted/20">
               <PreviewPanel />
             </div>
           </Panel>
-        </PanelGroup>
+        </Group>
       </div>
     </TooltipProvider>
   );

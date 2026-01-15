@@ -30,7 +30,7 @@ export async function GET(request: NextRequest) {
       if (!challenge) {
         return NextResponse.json(
           { error: "Challenge not found" },
-          { status: 404 }
+          { status: 404 },
         );
       }
 
@@ -67,7 +67,7 @@ export async function GET(request: NextRequest) {
     console.error("Error fetching challenges:", error);
     return NextResponse.json(
       { error: "Failed to fetch challenges" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
@@ -103,7 +103,7 @@ export async function POST(request: NextRequest) {
     if (!title || !difficulty || !description || !testCases) {
       return NextResponse.json(
         { error: "Missing required fields" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -135,7 +135,7 @@ export async function POST(request: NextRequest) {
     console.error("Error creating challenge:", error);
     return NextResponse.json(
       { error: "Failed to create challenge" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

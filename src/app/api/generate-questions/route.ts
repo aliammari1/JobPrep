@@ -1,57 +1,63 @@
 import { NextRequest, NextResponse } from "next/server";
-import { generateWithOllamaRetry, cleanJsonResponse } from "@/lib/ollama-client";
+import {
+  generateWithOllamaRetry,
+  cleanJsonResponse,
+} from "@/lib/ollama-client";
 
-export const runtime = 'nodejs';
+export const runtime = "nodejs";
 
 // Retry helper function for API calls
 async function retryWithBackoff<T>(
   fn: () => Promise<T>,
   maxRetries: number = 3,
-  initialDelay: number = 1000
+  initialDelay: number = 1000,
 ): Promise<T> {
   let lastError: Error | null = null;
-  
+
   for (let attempt = 0; attempt < maxRetries; attempt++) {
     try {
       return await fn();
     } catch (error: any) {
       lastError = error;
-      
+
       // Check if it's a 503 overload error
-      const is503Error = error?.message?.includes("503") || 
-                         error?.message?.includes("overloaded") ||
-                         error?.status === 503;
-      
+      const is503Error =
+        error?.message?.includes("503") ||
+        error?.message?.includes("overloaded") ||
+        error?.status === 503;
+
       // If it's the last attempt or not a retryable error, throw
       if (attempt === maxRetries - 1 || !is503Error) {
         throw error;
       }
-      
+
       // Calculate exponential backoff delay
       const delay = initialDelay * Math.pow(2, attempt);
-      console.log(`Attempt ${attempt + 1} failed with 503. Retrying in ${delay}ms...`);
-      
+      console.log(
+        `Attempt ${attempt + 1} failed with 503. Retrying in ${delay}ms...`,
+      );
+
       // Wait before retrying
-      await new Promise(resolve => setTimeout(resolve, delay));
+      await new Promise((resolve) => setTimeout(resolve, delay));
     }
   }
-  
+
   throw lastError || new Error("Max retries reached");
 }
 
 export async function POST(request: NextRequest) {
   try {
-    const { 
-      jobDescription, 
-      employeeSkills, 
-      technicalQuestions = 12, 
-      behavioralQuestions = 8 
+    const {
+      jobDescription,
+      employeeSkills,
+      technicalQuestions = 12,
+      behavioralQuestions = 8,
     } = await request.json();
 
     if (!jobDescription || !employeeSkills) {
       return NextResponse.json(
         { error: "Job description and employee skills are required" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -63,15 +69,15 @@ export async function POST(request: NextRequest) {
     if (totalQuestions < 5 || totalQuestions > 50) {
       return NextResponse.json(
         { error: "Total questions must be between 5 and 50" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
     // Strategy: Generate questions ONE AT A TIME for true streaming
     // This way the first question arrives in ~2-3 seconds instead of waiting for all 20
-    
+
     console.log("⏱️ Starting REAL streaming generation...");
-    
+
     // Create a streaming response that generates questions on-the-fly
     const encoder = new TextEncoder();
     const stream = new ReadableStream({
@@ -98,25 +104,29 @@ CANDIDATE SKILLS: ${employeeSkills}
 Return ONLY valid JSON (no markdown):
 {"id": ${generatedCount + 1}, "type": "technical", "question": "...", "idealAnswer": "brief 1-2 sentence answer", "evaluationCriteria": ["criterion 1", "criterion 2", "criterion 3"]}`;
 
-            console.log(`🔄 Generating technical question ${i + 1}/${numTechnical}...`);
+            console.log(
+              `🔄 Generating technical question ${i + 1}/${numTechnical}...`,
+            );
             const startTime = Date.now();
-            
+
             try {
               const text = await generateWithOllamaRetry(questionPrompt);
               const cleanedText = cleanJsonResponse(text);
-              
+
               // Log the cleaned text for debugging
-              console.log(`📝 Cleaned response (first 200 chars): ${cleanedText.substring(0, 200)}`);
-              
+              console.log(
+                `📝 Cleaned response (first 200 chars): ${cleanedText.substring(0, 200)}`,
+              );
+
               const questionData = JSON.parse(cleanedText);
-              
+
               const genTime = Date.now() - startTime;
               console.log(`✅ Technical Q${i + 1} generated in ${genTime}ms`);
-              
+
               // Ensure correct ID and type
               questionData.id = generatedCount + 1;
               questionData.type = "technical";
-              
+
               // Send the question immediately
               const questionMessage = JSON.stringify({
                 type: "question",
@@ -126,15 +136,20 @@ Return ONLY valid JSON (no markdown):
                 total: totalQuestions,
               });
               controller.enqueue(encoder.encode(questionMessage + "\n"));
-              
+
               if (generatedCount === 0) {
                 console.log("🎯 FIRST question sent - interview can start!");
               }
-              
+
               generatedCount++;
             } catch (error) {
-              console.error(`❌ Error generating technical question ${i + 1}:`, error);
-              console.error(`Raw text: ${error instanceof Error ? error.message : 'Unknown'}`);
+              console.error(
+                `❌ Error generating technical question ${i + 1}:`,
+                error,
+              );
+              console.error(
+                `Raw text: ${error instanceof Error ? error.message : "Unknown"}`,
+              );
               // Continue with next question on error
               continue;
             }
@@ -151,21 +166,23 @@ CANDIDATE EXPERIENCE: ${employeeSkills}
 Return ONLY valid JSON (no markdown):
 {"id": ${generatedCount + 1}, "type": "behavioral", "question": "Tell me about a time when...", "idealAnswer": "brief 1-2 sentence STAR answer", "evaluationCriteria": ["criterion 1", "criterion 2", "criterion 3"]}`;
 
-            console.log(`🔄 Generating behavioral question ${i + 1}/${numBehavioral}...`);
+            console.log(
+              `🔄 Generating behavioral question ${i + 1}/${numBehavioral}...`,
+            );
             const startTime = Date.now();
-            
+
             try {
               const text = await generateWithOllamaRetry(questionPrompt);
               const cleanedText = cleanJsonResponse(text);
               const questionData = JSON.parse(cleanedText);
-              
+
               const genTime = Date.now() - startTime;
               console.log(`✅ Behavioral Q${i + 1} generated in ${genTime}ms`);
-              
+
               // Ensure correct ID and type
               questionData.id = generatedCount + 1;
               questionData.type = "behavioral";
-              
+
               // Send the question immediately
               const questionMessage = JSON.stringify({
                 type: "question",
@@ -175,10 +192,13 @@ Return ONLY valid JSON (no markdown):
                 total: totalQuestions,
               });
               controller.enqueue(encoder.encode(questionMessage + "\n"));
-              
+
               generatedCount++;
             } catch (error) {
-              console.error(`Error generating behavioral question ${i + 1}:`, error);
+              console.error(
+                `Error generating behavioral question ${i + 1}:`,
+                error,
+              );
               // Continue with next question on error
             }
           }
@@ -189,7 +209,9 @@ Return ONLY valid JSON (no markdown):
             totalQuestions: generatedCount,
           });
           controller.enqueue(encoder.encode(completeMessage + "\n"));
-          console.log(`✅ Stream complete - ${generatedCount} questions generated`);
+          console.log(
+            `✅ Stream complete - ${generatedCount} questions generated`,
+          );
 
           controller.close();
         } catch (error) {
@@ -203,20 +225,23 @@ Return ONLY valid JSON (no markdown):
       headers: {
         "Content-Type": "application/x-ndjson",
         "Cache-Control": "no-cache",
-        "Connection": "keep-alive",
+        Connection: "keep-alive",
       },
     });
-
   } catch (error) {
     console.error("Error generating questions:", error);
-    
+
     // Provide more helpful error messages
     let errorMessage = "Failed to generate interview questions";
     let statusCode = 500;
-    
+
     if (error instanceof Error) {
-      if (error.message.includes("503") || error.message.includes("overloaded")) {
-        errorMessage = "The AI service is currently overloaded. Please try again in a few moments.";
+      if (
+        error.message.includes("503") ||
+        error.message.includes("overloaded")
+      ) {
+        errorMessage =
+          "The AI service is currently overloaded. Please try again in a few moments.";
         statusCode = 503;
       } else if (error.message.includes("API key")) {
         errorMessage = "API configuration error. Please contact support.";
@@ -226,14 +251,14 @@ Return ONLY valid JSON (no markdown):
         statusCode = 500;
       }
     }
-    
+
     return NextResponse.json(
-      { 
+      {
         error: errorMessage,
         details: error instanceof Error ? error.message : "Unknown error",
-        retryable: errorMessage.includes("overloaded")
+        retryable: errorMessage.includes("overloaded"),
       },
-      { status: statusCode }
+      { status: statusCode },
     );
   }
 }

@@ -1,7 +1,13 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
@@ -60,8 +66,12 @@ export default function RecordingsPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [sortBy, setSortBy] = useState<"date" | "name" | "duration">("date");
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
-  const [filterStatus, setFilterStatus] = useState<"all" | "completed" | "in-progress" | "no-recording">("all");
-  const [selectedRecording, setSelectedRecording] = useState<Recording | null>(null);
+  const [filterStatus, setFilterStatus] = useState<
+    "all" | "completed" | "in-progress" | "no-recording"
+  >("all");
+  const [selectedRecording, setSelectedRecording] = useState<Recording | null>(
+    null,
+  );
   const [isVideoDialogOpen, setIsVideoDialogOpen] = useState(false);
 
   useEffect(() => {
@@ -111,7 +121,11 @@ export default function RecordingsPage() {
   };
 
   const handleDelete = async (recordingId: string) => {
-    if (!confirm("Are you sure you want to delete this recording? This action cannot be undone.")) {
+    if (
+      !confirm(
+        "Are you sure you want to delete this recording? This action cannot be undone.",
+      )
+    ) {
       return;
     }
 
@@ -137,14 +151,14 @@ export default function RecordingsPage() {
     const k = 1024;
     const sizes = ["Bytes", "KB", "MB", "GB"];
     const i = Math.floor(Math.log(bytes) / Math.log(k));
-    return Math.round(bytes / Math.pow(k, i) * 100) / 100 + " " + sizes[i];
+    return Math.round((bytes / Math.pow(k, i)) * 100) / 100 + " " + sizes[i];
   };
 
   const formatDuration = (seconds: number) => {
     const hours = Math.floor(seconds / 3600);
     const minutes = Math.floor((seconds % 3600) / 60);
     const secs = seconds % 60;
-    
+
     if (hours > 0) {
       return `${hours}:${minutes.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
     }
@@ -153,25 +167,32 @@ export default function RecordingsPage() {
 
   const filteredRecordings = recordings
     .filter((recording) => {
-      const matchesSearch = recording.roomName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        recording.candidateName?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        recording.interviewerName?.toLowerCase().includes(searchQuery.toLowerCase());
-      
-      const matchesFilter = filterStatus === "all" || recording.status === filterStatus;
-      
+      const matchesSearch =
+        recording.roomName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        recording.candidateName
+          ?.toLowerCase()
+          .includes(searchQuery.toLowerCase()) ||
+        recording.interviewerName
+          ?.toLowerCase()
+          .includes(searchQuery.toLowerCase());
+
+      const matchesFilter =
+        filterStatus === "all" || recording.status === filterStatus;
+
       return matchesSearch && matchesFilter;
     })
     .sort((a, b) => {
       let comparison = 0;
-      
+
       if (sortBy === "date") {
-        comparison = new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
+        comparison =
+          new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
       } else if (sortBy === "name") {
         comparison = a.roomName.localeCompare(b.roomName);
       } else if (sortBy === "duration") {
         comparison = a.duration - b.duration;
       }
-      
+
       return sortOrder === "asc" ? comparison : -comparison;
     });
 
@@ -199,7 +220,9 @@ export default function RecordingsPage() {
         {/* Header */}
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold text-foreground">Interview Recordings</h1>
+            <h1 className="text-3xl font-bold text-foreground">
+              Interview Recordings
+            </h1>
             <p className="text-muted-foreground mt-1">
               View and manage your interview recordings
             </p>
@@ -211,12 +234,14 @@ export default function RecordingsPage() {
         </div>
 
         {/* Info Alert about Recording Storage */}
-        {recordings.some(r => r.status === "no-recording") && (
+        {recordings.some((r) => r.status === "no-recording") && (
           <Alert>
             <Info className="h-4 w-4" />
             <AlertDescription>
-              Some interviews don't have cloud recordings available. To enable permanent cloud recording storage, 
-              configure S3 or Google Cloud Storage in your LiveKit settings. Currently using client-side recording only.
+              Some interviews don't have cloud recordings available. To enable
+              permanent cloud recording storage, configure S3 or Google Cloud
+              Storage in your LiveKit settings. Currently using client-side
+              recording only.
             </AlertDescription>
           </Alert>
         )}
@@ -237,7 +262,10 @@ export default function RecordingsPage() {
                 </div>
               </div>
 
-              <Select value={sortBy} onValueChange={(value: any) => setSortBy(value)}>
+              <Select
+                value={sortBy}
+                onValueChange={(value: any) => setSortBy(value)}
+              >
                 <SelectTrigger>
                   <SelectValue placeholder="Sort by" />
                 </SelectTrigger>
@@ -249,7 +277,10 @@ export default function RecordingsPage() {
               </Select>
 
               <div className="flex gap-2">
-                <Select value={filterStatus} onValueChange={(value: any) => setFilterStatus(value)}>
+                <Select
+                  value={filterStatus}
+                  onValueChange={(value: any) => setFilterStatus(value)}
+                >
                   <SelectTrigger className="flex-1">
                     <SelectValue placeholder="Filter" />
                   </SelectTrigger>
@@ -264,10 +295,16 @@ export default function RecordingsPage() {
                 <Button
                   variant="outline"
                   size="icon"
-                  onClick={() => setSortOrder(sortOrder === "asc" ? "desc" : "asc")}
+                  onClick={() =>
+                    setSortOrder(sortOrder === "asc" ? "desc" : "asc")
+                  }
                   title={`Sort ${sortOrder === "asc" ? "descending" : "ascending"}`}
                 >
-                  {sortOrder === "asc" ? <SortAsc className="w-4 h-4" /> : <SortDesc className="w-4 h-4" />}
+                  {sortOrder === "asc" ? (
+                    <SortAsc className="w-4 h-4" />
+                  ) : (
+                    <SortDesc className="w-4 h-4" />
+                  )}
                 </Button>
               </div>
             </div>
@@ -283,7 +320,9 @@ export default function RecordingsPage() {
                   <FileVideo className="w-8 h-8 text-muted-foreground" />
                 </div>
                 <div>
-                  <h3 className="text-lg font-semibold text-foreground">No recordings found</h3>
+                  <h3 className="text-lg font-semibold text-foreground">
+                    No recordings found
+                  </h3>
                   <p className="text-muted-foreground mt-1">
                     {searchQuery || filterStatus !== "all"
                       ? "Try adjusting your filters"
@@ -296,7 +335,10 @@ export default function RecordingsPage() {
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {filteredRecordings.map((recording) => (
-              <Card key={recording.id} className="hover:border-primary/50 transition-all">
+              <Card
+                key={recording.id}
+                className="hover:border-primary/50 transition-all"
+              >
                 <CardHeader>
                   <div className="flex items-start justify-between">
                     <div className="space-y-1">
@@ -309,12 +351,18 @@ export default function RecordingsPage() {
                         {new Date(recording.createdAt).toLocaleDateString()}
                       </CardDescription>
                     </div>
-                    <Badge variant={
-                      recording.status === "completed" ? "default" : 
-                      recording.status === "in-progress" ? "secondary" :
-                      "outline"
-                    }>
-                      {recording.status === "no-recording" ? "No Recording" : recording.status}
+                    <Badge
+                      variant={
+                        recording.status === "completed"
+                          ? "default"
+                          : recording.status === "in-progress"
+                            ? "secondary"
+                            : "outline"
+                      }
+                    >
+                      {recording.status === "no-recording"
+                        ? "No Recording"
+                        : recording.status}
                     </Badge>
                   </div>
                 </CardHeader>
@@ -364,8 +412,8 @@ export default function RecordingsPage() {
                       </>
                     ) : (
                       <div className="flex-1 text-center py-2 text-sm text-muted-foreground">
-                        {recording.status === "in-progress" 
-                          ? "Interview in progress..." 
+                        {recording.status === "in-progress"
+                          ? "Interview in progress..."
                           : "No recording available"}
                       </div>
                     )}
@@ -434,7 +482,9 @@ export default function RecordingsPage() {
             <div className="flex gap-2 justify-end">
               <Button
                 variant="outline"
-                onClick={() => selectedRecording && handleDownload(selectedRecording)}
+                onClick={() =>
+                  selectedRecording && handleDownload(selectedRecording)
+                }
               >
                 <Download className="w-4 h-4 mr-2" />
                 Download

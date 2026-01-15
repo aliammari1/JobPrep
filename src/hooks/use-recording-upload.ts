@@ -35,13 +35,13 @@ export function useRecordingUpload() {
 
     try {
       const formData = new FormData();
-      
+
       // Convert Blob to File if needed
       if (file instanceof Blob && !(file instanceof File)) {
         const fileName = `recording-${Date.now()}.webm`;
         file = new File([file], fileName, { type: file.type || "video/webm" });
       }
-      
+
       formData.append("file", file);
       formData.append("interviewId", interviewId);
       if (roomName) {

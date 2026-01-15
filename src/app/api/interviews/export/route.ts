@@ -106,7 +106,9 @@ export async function POST(req: NextRequest) {
 
       // Build CSV string
       let csvContent = headers.join(",") + "\n";
-      csvContent += rows.map((row) => row.map((cell) => `"${cell}"`).join(",")).join("\n");
+      csvContent += rows
+        .map((row) => row.map((cell) => `"${cell}"`).join(","))
+        .join("\n");
 
       return new NextResponse(csvContent, {
         headers: {
@@ -128,7 +130,7 @@ export async function POST(req: NextRequest) {
     console.error("Error exporting interviews:", error);
     return NextResponse.json(
       { error: "Failed to export interviews" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

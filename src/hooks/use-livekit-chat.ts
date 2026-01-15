@@ -20,67 +20,64 @@ interface FileShare {
   timestamp: Date;
 }
 
-export function useLiveKitChat(onMessageReceived: (message: ChatMessage) => void, onFileShared: (file: FileShare) => void) {
+export function useLiveKitChat(
+  onMessageReceived: (message: ChatMessage) => void,
+  onFileShared: (file: FileShare) => void,
+) {
   const dataChannelRef = useRef<RTCDataChannel | null>(null);
 
   // Send message through LiveKit data channel
-  const broadcastMessage = useCallback(
-    (message: ChatMessage) => {
-      try {
-        const payload = {
-          type: "chat_message",
-          data: {
-            id: message.id,
-            senderId: message.senderId,
-            senderName: message.senderName,
-            message: message.message,
-            timestamp: message.timestamp.toISOString(),
-            messageType: message.type,
-          },
-        };
+  const broadcastMessage = useCallback((message: ChatMessage) => {
+    try {
+      const payload = {
+        type: "chat_message",
+        data: {
+          id: message.id,
+          senderId: message.senderId,
+          senderName: message.senderName,
+          message: message.message,
+          timestamp: message.timestamp.toISOString(),
+          messageType: message.type,
+        },
+      };
 
-        // Send via window message event (custom event system)
-        window.dispatchEvent(
-          new CustomEvent("livekit-message", {
-            detail: payload,
-          })
-        );
-      } catch (error) {
-        console.error("Failed to broadcast message:", error);
-      }
-    },
-    []
-  );
+      // Send via window message event (custom event system)
+      window.dispatchEvent(
+        new CustomEvent("livekit-message", {
+          detail: payload,
+        }),
+      );
+    } catch (error) {
+      console.error("Failed to broadcast message:", error);
+    }
+  }, []);
 
   // Send file through LiveKit data channel
-  const broadcastFile = useCallback(
-    (file: FileShare) => {
-      try {
-        const payload = {
-          type: "file_share",
-          data: {
-            id: file.id,
-            name: file.name,
-            size: file.size,
-            url: file.url,
-            senderId: file.senderId,
-            senderName: file.senderName,
-            timestamp: file.timestamp.toISOString(),
-          },
-        };
+  const broadcastFile = useCallback((file: FileShare) => {
+    try {
+      const payload = {
+        type: "file_share",
+        data: {
+          id: file.id,
+          name: file.name,
+          size: file.size,
+          url: file.url,
+          senderId: file.senderId,
+          senderName: file.senderName,
+          timestamp: file.timestamp.toISOString(),
+        },
+      };
 
-        // Send via window message event (local simulation for now)
-        window.dispatchEvent(
-          new CustomEvent("livekit-message", {
-            detail: payload,
-          })
-        );
-      } catch (error) {
-        console.error("Failed to broadcast file:", error);
-      }
-    },
-    []
-  );
+      // Send via window message event (local simulation for now)
+      window.dispatchEvent(
+        new CustomEvent("livekit-message", {
+          detail: payload,
+        }),
+      );
+    } catch (error) {
+      console.error("Failed to broadcast file:", error);
+    }
+  }, []);
 
   // Listen for incoming messages from other participants
   useEffect(() => {

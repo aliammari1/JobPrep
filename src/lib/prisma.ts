@@ -8,16 +8,17 @@ const globalForPrisma = global as unknown as {
 if (!process.env.POSTGRES_PRISMA_URL && !process.env.DATABASE_URL) {
   console.warn(
     "⚠️  Warning: Neither POSTGRES_PRISMA_URL nor DATABASE_URL is set. " +
-    "Database operations will fail. Please set one of these environment variables."
+      "Database operations will fail. Please set one of these environment variables.",
   );
 }
 
 const prisma =
   globalForPrisma.prisma ||
   new PrismaClient({
-    log: process.env.NODE_ENV === "development" 
-      ? ["query", "error", "warn"]
-      : ["error"],
+    log:
+      process.env.NODE_ENV === "development"
+        ? ["query", "error", "warn"]
+        : ["error"],
   });
 
 if (process.env.NODE_ENV !== "production") {

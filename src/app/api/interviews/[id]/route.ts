@@ -6,7 +6,7 @@ import { headers } from "next/headers";
 // GET /api/interviews/[id] - Get a specific interview
 export async function GET(
   req: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ id: string }> },
 ) {
   try {
     const session = await auth.api.getSession({
@@ -73,7 +73,7 @@ export async function GET(
     if (!interview) {
       return NextResponse.json(
         { error: "Interview not found" },
-        { status: 404 }
+        { status: 404 },
       );
     }
 
@@ -82,7 +82,7 @@ export async function GET(
     console.error("Error fetching interview:", error);
     return NextResponse.json(
       { error: "Failed to fetch interview" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
@@ -90,7 +90,7 @@ export async function GET(
 // PATCH /api/interviews/[id] - Update an interview
 export async function PATCH(
   req: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ id: string }> },
 ) {
   try {
     const session = await auth.api.getSession({
@@ -180,7 +180,7 @@ export async function PATCH(
     console.error("Error updating interview:", error);
     return NextResponse.json(
       { error: "Failed to update interview" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
@@ -188,7 +188,7 @@ export async function PATCH(
 // DELETE /api/interviews/[id] - Delete an interview
 export async function DELETE(
   req: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ id: string }> },
 ) {
   try {
     const session = await auth.api.getSession({
@@ -210,7 +210,7 @@ export async function DELETE(
     console.error("Error deleting interview:", error);
     return NextResponse.json(
       { error: "Failed to delete interview" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

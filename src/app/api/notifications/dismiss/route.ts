@@ -24,13 +24,13 @@ export async function POST(request: NextRequest) {
     if (!notificationTag) {
       return NextResponse.json(
         { error: "Invalid notification tag" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
     // Log dismissal for analytics
     console.log(
-      `[API] Notification dismissed: ${notificationTag} (ID: ${notificationId})`
+      `[API] Notification dismissed: ${notificationTag} (ID: ${notificationId})`,
     );
 
     // In production, you would:
@@ -43,13 +43,13 @@ export async function POST(request: NextRequest) {
         success: true,
         message: "Dismissal tracked",
       },
-      { status: 200 }
+      { status: 200 },
     );
   } catch (error) {
     console.error("[API] Error tracking dismissal:", error);
     return NextResponse.json(
       { error: "Failed to track dismissal" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

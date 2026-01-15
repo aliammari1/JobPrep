@@ -81,7 +81,7 @@ export default function SessionsPage() {
 
     if (
       !confirm(
-        "Are you sure you want to revoke all other sessions? You will be logged out from all other devices."
+        "Are you sure you want to revoke all other sessions? You will be logged out from all other devices.",
       )
     ) {
       return;
@@ -117,30 +117,30 @@ export default function SessionsPage() {
     const browser = ua.includes("Chrome")
       ? "Chrome"
       : ua.includes("Firefox")
-      ? "Firefox"
-      : ua.includes("Safari")
-      ? "Safari"
-      : ua.includes("Edge")
-      ? "Edge"
-      : "Unknown";
+        ? "Firefox"
+        : ua.includes("Safari")
+          ? "Safari"
+          : ua.includes("Edge")
+            ? "Edge"
+            : "Unknown";
 
     const os = ua.includes("Windows")
       ? "Windows"
       : ua.includes("Mac")
-      ? "macOS"
-      : ua.includes("Linux")
-      ? "Linux"
-      : ua.includes("Android")
-      ? "Android"
-      : ua.includes("iOS")
-      ? "iOS"
-      : "Unknown";
+        ? "macOS"
+        : ua.includes("Linux")
+          ? "Linux"
+          : ua.includes("Android")
+            ? "Android"
+            : ua.includes("iOS")
+              ? "iOS"
+              : "Unknown";
 
     return { browser, os };
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20">
+    <div className="min-h-screen bg-linear-to-br from-background via-background to-muted/20">
       <div className="container mx-auto p-4 md:p-8 max-w-4xl">
         {/* Header */}
         <div className="mb-8">
