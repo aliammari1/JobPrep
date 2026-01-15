@@ -10,7 +10,7 @@ const LINKEDIN_REDIRECT_URI =
 export async function GET(request: NextRequest) {
   try {
     // Generate state for CSRF protection
-    const state = Math.random().toString(36).substring(7);
+    const state = crypto.randomUUID();
 
     // Store state in session for verification (state is passed back by LinkedIn and checked in callback)
     // For security, state should be stored server-side and verified in callback
