@@ -1,948 +1,930 @@
 {
-    "projectId": "68dfd41f00191a47462f",
-    "endpoint": "https://fra.cloud.appwrite.io/v1",
-    "projectName": "job-prep",
-    "settings": {
-        "services": {
-            "account": true,
-            "avatars": true,
-            "databases": true,
-            "locale": true,
-            "health": true,
-            "storage": true,
-            "teams": true,
-            "users": true,
-            "sites": true,
-            "functions": true,
-            "graphql": true,
-            "messaging": true
-        },
-        "auth": {
-            "methods": {
-                "jwt": true,
-                "phone": true,
-                "invites": true,
-                "anonymous": true,
-                "email-otp": true,
-                "magic-url": true,
-                "email-password": true
-            },
-            "security": {
-                "duration": 31536000,
-                "limit": 0,
-                "sessionsLimit": 10,
-                "passwordHistory": 0,
-                "passwordDictionary": false,
-                "personalDataCheck": false,
-                "sessionAlerts": false,
-                "mockNumbers": []
-            }
-        }
+  "projectId": "68dfd41f00191a47462f",
+  "endpoint": "https://fra.cloud.appwrite.io/v1",
+  "projectName": "job-prep",
+  "settings": {
+    "services": {
+      "account": true,
+      "avatars": true,
+      "databases": true,
+      "locale": true,
+      "health": true,
+      "storage": true,
+      "teams": true,
+      "users": true,
+      "sites": true,
+      "functions": true,
+      "graphql": true,
+      "messaging": true
     },
-    "functions": [
+    "auth": {
+      "methods": {
+        "jwt": true,
+        "phone": true,
+        "invites": true,
+        "anonymous": true,
+        "email-otp": true,
+        "magic-url": true,
+        "email-password": true
+      },
+      "security": {
+        "duration": 31536000,
+        "limit": 0,
+        "sessionsLimit": 10,
+        "passwordHistory": 0,
+        "passwordDictionary": false,
+        "personalDataCheck": false,
+        "sessionAlerts": false,
+        "mockNumbers": []
+      }
+    }
+  },
+  "functions": [
+    {
+      "$id": "jobprep-avatar",
+      "execute": ["any"],
+      "name": "LiveKit Avatar Agent",
+      "enabled": true,
+      "logging": true,
+      "runtime": "python-ml-3.11",
+      "scopes": [],
+      "events": [],
+      "schedule": "",
+      "timeout": 900,
+      "entrypoint": "src/main.py",
+      "commands": "pip install -r requirements.txt",
+      "specification": "s-1vcpu-512mb",
+      "path": "functions/LiveKit Avatar Agent"
+    }
+  ],
+  "tablesDB": [
+    {
+      "$id": "68dffcef002559fd0827",
+      "name": "main_db",
+      "enabled": true
+    }
+  ],
+  "tables": [
+    {
+      "$id": "interviews",
+      "$permissions": [
+        "create(\"users\")",
+        "read(\"users\")",
+        "update(\"users\")",
+        "delete(\"users\")"
+      ],
+      "databaseId": "68dffcef002559fd0827",
+      "name": "interviews",
+      "enabled": true,
+      "rowSecurity": false,
+      "columns": [
         {
-            "$id": "jobprep-avatar",
-            "execute": [
-                "any"
-            ],
-            "name": "LiveKit Avatar Agent",
-            "enabled": true,
-            "logging": true,
-            "runtime": "python-ml-3.11",
-            "scopes": [],
-            "events": [],
-            "schedule": "",
-            "timeout": 900,
-            "entrypoint": "src/main.py",
-            "commands": "pip install -r requirements.txt",
-            "specification": "s-1vcpu-512mb",
-            "path": "functions/LiveKit Avatar Agent"
+          "key": "duration",
+          "type": "integer",
+          "required": true,
+          "array": false,
+          "min": -9223372036854775808,
+          "max": 9223372036854775807,
+          "default": null
+        },
+        {
+          "key": "scheduledAt",
+          "type": "datetime",
+          "required": false,
+          "array": false,
+          "format": "",
+          "default": null
+        },
+        {
+          "key": "startedAt",
+          "type": "datetime",
+          "required": false,
+          "array": false,
+          "format": "",
+          "default": null
+        },
+        {
+          "key": "completedAt",
+          "type": "datetime",
+          "required": false,
+          "array": false,
+          "format": "",
+          "default": null
+        },
+        {
+          "key": "userId",
+          "type": "string",
+          "required": true,
+          "array": false,
+          "size": 255,
+          "default": null,
+          "encrypt": false
+        },
+        {
+          "key": "jobId",
+          "type": "string",
+          "required": false,
+          "array": false,
+          "size": 255,
+          "default": null,
+          "encrypt": false
+        },
+        {
+          "key": "jobTitle",
+          "type": "string",
+          "required": true,
+          "array": false,
+          "size": 500,
+          "default": null,
+          "encrypt": false
+        },
+        {
+          "key": "interviewType",
+          "type": "string",
+          "required": true,
+          "array": false,
+          "size": 50,
+          "default": null,
+          "encrypt": false
+        },
+        {
+          "key": "mode",
+          "type": "string",
+          "required": true,
+          "array": false,
+          "size": 50,
+          "default": null,
+          "encrypt": false
+        },
+        {
+          "key": "status",
+          "type": "string",
+          "required": true,
+          "array": false,
+          "size": 50,
+          "default": null,
+          "encrypt": false
+        },
+        {
+          "key": "avatarId",
+          "type": "string",
+          "required": false,
+          "array": false,
+          "size": 255,
+          "default": null,
+          "encrypt": false
+        },
+        {
+          "key": "avatarName",
+          "type": "string",
+          "required": false,
+          "array": false,
+          "size": 255,
+          "default": null,
+          "encrypt": false
+        },
+        {
+          "key": "questions",
+          "type": "string",
+          "required": true,
+          "array": false,
+          "size": 1000000,
+          "default": null,
+          "encrypt": false
+        },
+        {
+          "key": "recordingId",
+          "type": "string",
+          "required": false,
+          "array": false,
+          "size": 255,
+          "default": null,
+          "encrypt": false
+        },
+        {
+          "key": "recordingUrl",
+          "type": "string",
+          "required": false,
+          "array": false,
+          "size": 1000,
+          "default": null,
+          "encrypt": false
+        },
+        {
+          "key": "transcriptionId",
+          "type": "string",
+          "required": false,
+          "array": false,
+          "size": 255,
+          "default": null,
+          "encrypt": false
+        },
+        {
+          "key": "scoreId",
+          "type": "string",
+          "required": false,
+          "array": false,
+          "size": 255,
+          "default": null,
+          "encrypt": false
         }
-    ],
-    "tablesDB": [
+      ],
+      "indexes": []
+    },
+    {
+      "$id": "cvs",
+      "$permissions": [
+        "create(\"users\")",
+        "read(\"users\")",
+        "update(\"users\")",
+        "delete(\"users\")"
+      ],
+      "databaseId": "68dffcef002559fd0827",
+      "name": "cvs",
+      "enabled": true,
+      "rowSecurity": false,
+      "columns": [
         {
-            "$id": "68dffcef002559fd0827",
-            "name": "main_db",
-            "enabled": true
+          "key": "userId",
+          "type": "string",
+          "required": true,
+          "array": false,
+          "size": 255,
+          "default": null,
+          "encrypt": false
+        },
+        {
+          "key": "title",
+          "type": "string",
+          "required": true,
+          "array": false,
+          "size": 500,
+          "default": null,
+          "encrypt": false
+        },
+        {
+          "key": "content",
+          "type": "string",
+          "required": true,
+          "array": false,
+          "size": 1000000,
+          "default": null,
+          "encrypt": false
+        },
+        {
+          "key": "source",
+          "type": "string",
+          "required": false,
+          "array": false,
+          "size": 50,
+          "default": null,
+          "encrypt": false
+        },
+        {
+          "key": "fileId",
+          "type": "string",
+          "required": false,
+          "array": false,
+          "size": 255,
+          "default": null,
+          "encrypt": false
+        },
+        {
+          "key": "isActive",
+          "type": "boolean",
+          "required": false,
+          "array": false,
+          "default": null
         }
-    ],
-    "tables": [
+      ],
+      "indexes": []
+    },
+    {
+      "$id": "users",
+      "$permissions": [
+        "create(\"any\")",
+        "read(\"users\")",
+        "update(\"users\")",
+        "delete(\"users\")"
+      ],
+      "databaseId": "68dffcef002559fd0827",
+      "name": "users",
+      "enabled": true,
+      "rowSecurity": false,
+      "columns": [
         {
-            "$id": "interviews",
-            "$permissions": [
-                "create(\"users\")",
-                "read(\"users\")",
-                "update(\"users\")",
-                "delete(\"users\")"
-            ],
-            "databaseId": "68dffcef002559fd0827",
-            "name": "interviews",
-            "enabled": true,
-            "rowSecurity": false,
-            "columns": [
-                {
-                    "key": "duration",
-                    "type": "integer",
-                    "required": true,
-                    "array": false,
-                    "min": -9223372036854775808,
-                    "max": 9223372036854775807,
-                    "default": null
-                },
-                {
-                    "key": "scheduledAt",
-                    "type": "datetime",
-                    "required": false,
-                    "array": false,
-                    "format": "",
-                    "default": null
-                },
-                {
-                    "key": "startedAt",
-                    "type": "datetime",
-                    "required": false,
-                    "array": false,
-                    "format": "",
-                    "default": null
-                },
-                {
-                    "key": "completedAt",
-                    "type": "datetime",
-                    "required": false,
-                    "array": false,
-                    "format": "",
-                    "default": null
-                },
-                {
-                    "key": "userId",
-                    "type": "string",
-                    "required": true,
-                    "array": false,
-                    "size": 255,
-                    "default": null,
-                    "encrypt": false
-                },
-                {
-                    "key": "jobId",
-                    "type": "string",
-                    "required": false,
-                    "array": false,
-                    "size": 255,
-                    "default": null,
-                    "encrypt": false
-                },
-                {
-                    "key": "jobTitle",
-                    "type": "string",
-                    "required": true,
-                    "array": false,
-                    "size": 500,
-                    "default": null,
-                    "encrypt": false
-                },
-                {
-                    "key": "interviewType",
-                    "type": "string",
-                    "required": true,
-                    "array": false,
-                    "size": 50,
-                    "default": null,
-                    "encrypt": false
-                },
-                {
-                    "key": "mode",
-                    "type": "string",
-                    "required": true,
-                    "array": false,
-                    "size": 50,
-                    "default": null,
-                    "encrypt": false
-                },
-                {
-                    "key": "status",
-                    "type": "string",
-                    "required": true,
-                    "array": false,
-                    "size": 50,
-                    "default": null,
-                    "encrypt": false
-                },
-                {
-                    "key": "avatarId",
-                    "type": "string",
-                    "required": false,
-                    "array": false,
-                    "size": 255,
-                    "default": null,
-                    "encrypt": false
-                },
-                {
-                    "key": "avatarName",
-                    "type": "string",
-                    "required": false,
-                    "array": false,
-                    "size": 255,
-                    "default": null,
-                    "encrypt": false
-                },
-                {
-                    "key": "questions",
-                    "type": "string",
-                    "required": true,
-                    "array": false,
-                    "size": 1000000,
-                    "default": null,
-                    "encrypt": false
-                },
-                {
-                    "key": "recordingId",
-                    "type": "string",
-                    "required": false,
-                    "array": false,
-                    "size": 255,
-                    "default": null,
-                    "encrypt": false
-                },
-                {
-                    "key": "recordingUrl",
-                    "type": "string",
-                    "required": false,
-                    "array": false,
-                    "size": 1000,
-                    "default": null,
-                    "encrypt": false
-                },
-                {
-                    "key": "transcriptionId",
-                    "type": "string",
-                    "required": false,
-                    "array": false,
-                    "size": 255,
-                    "default": null,
-                    "encrypt": false
-                },
-                {
-                    "key": "scoreId",
-                    "type": "string",
-                    "required": false,
-                    "array": false,
-                    "size": 255,
-                    "default": null,
-                    "encrypt": false
-                }
-            ],
-            "indexes": []
+          "key": "email",
+          "type": "string",
+          "required": true,
+          "array": false,
+          "size": 255,
+          "default": null,
+          "encrypt": false
         },
         {
-            "$id": "cvs",
-            "$permissions": [
-                "create(\"users\")",
-                "read(\"users\")",
-                "update(\"users\")",
-                "delete(\"users\")"
-            ],
-            "databaseId": "68dffcef002559fd0827",
-            "name": "cvs",
-            "enabled": true,
-            "rowSecurity": false,
-            "columns": [
-                {
-                    "key": "userId",
-                    "type": "string",
-                    "required": true,
-                    "array": false,
-                    "size": 255,
-                    "default": null,
-                    "encrypt": false
-                },
-                {
-                    "key": "title",
-                    "type": "string",
-                    "required": true,
-                    "array": false,
-                    "size": 500,
-                    "default": null,
-                    "encrypt": false
-                },
-                {
-                    "key": "content",
-                    "type": "string",
-                    "required": true,
-                    "array": false,
-                    "size": 1000000,
-                    "default": null,
-                    "encrypt": false
-                },
-                {
-                    "key": "source",
-                    "type": "string",
-                    "required": false,
-                    "array": false,
-                    "size": 50,
-                    "default": null,
-                    "encrypt": false
-                },
-                {
-                    "key": "fileId",
-                    "type": "string",
-                    "required": false,
-                    "array": false,
-                    "size": 255,
-                    "default": null,
-                    "encrypt": false
-                },
-                {
-                    "key": "isActive",
-                    "type": "boolean",
-                    "required": false,
-                    "array": false,
-                    "default": null
-                }
-            ],
-            "indexes": []
+          "key": "name",
+          "type": "string",
+          "required": true,
+          "array": false,
+          "size": 255,
+          "default": null,
+          "encrypt": false
         },
         {
-            "$id": "users",
-            "$permissions": [
-                "create(\"any\")",
-                "read(\"users\")",
-                "update(\"users\")",
-                "delete(\"users\")"
-            ],
-            "databaseId": "68dffcef002559fd0827",
-            "name": "users",
-            "enabled": true,
-            "rowSecurity": false,
-            "columns": [
-                {
-                    "key": "email",
-                    "type": "string",
-                    "required": true,
-                    "array": false,
-                    "size": 255,
-                    "default": null,
-                    "encrypt": false
-                },
-                {
-                    "key": "name",
-                    "type": "string",
-                    "required": true,
-                    "array": false,
-                    "size": 255,
-                    "default": null,
-                    "encrypt": false
-                },
-                {
-                    "key": "avatar",
-                    "type": "string",
-                    "required": false,
-                    "array": false,
-                    "size": 1000,
-                    "default": null,
-                    "encrypt": false
-                },
-                {
-                    "key": "role",
-                    "type": "string",
-                    "required": false,
-                    "array": false,
-                    "size": 50,
-                    "default": null,
-                    "encrypt": false
-                },
-                {
-                    "key": "preferences",
-                    "type": "string",
-                    "required": false,
-                    "array": false,
-                    "size": 10000,
-                    "default": null,
-                    "encrypt": false
-                }
-            ],
-            "indexes": []
+          "key": "avatar",
+          "type": "string",
+          "required": false,
+          "array": false,
+          "size": 1000,
+          "default": null,
+          "encrypt": false
         },
         {
-            "$id": "cover_letters",
-            "$permissions": [
-                "create(\"users\")",
-                "read(\"users\")",
-                "update(\"users\")",
-                "delete(\"users\")"
-            ],
-            "databaseId": "68dffcef002559fd0827",
-            "name": "cover_letters",
-            "enabled": true,
-            "rowSecurity": false,
-            "columns": [
-                {
-                    "key": "userId",
-                    "type": "string",
-                    "required": true,
-                    "array": false,
-                    "size": 255,
-                    "default": null,
-                    "encrypt": false
-                },
-                {
-                    "key": "jobId",
-                    "type": "string",
-                    "required": false,
-                    "array": false,
-                    "size": 255,
-                    "default": null,
-                    "encrypt": false
-                },
-                {
-                    "key": "cvId",
-                    "type": "string",
-                    "required": false,
-                    "array": false,
-                    "size": 255,
-                    "default": null,
-                    "encrypt": false
-                },
-                {
-                    "key": "content",
-                    "type": "string",
-                    "required": true,
-                    "array": false,
-                    "size": 1000000,
-                    "default": null,
-                    "encrypt": false
-                },
-                {
-                    "key": "companyName",
-                    "type": "string",
-                    "required": false,
-                    "array": false,
-                    "size": 500,
-                    "default": null,
-                    "encrypt": false
-                },
-                {
-                    "key": "position",
-                    "type": "string",
-                    "required": false,
-                    "array": false,
-                    "size": 500,
-                    "default": null,
-                    "encrypt": false
-                }
-            ],
-            "indexes": []
+          "key": "role",
+          "type": "string",
+          "required": false,
+          "array": false,
+          "size": 50,
+          "default": null,
+          "encrypt": false
         },
         {
-            "$id": "questions",
-            "$permissions": [
-                "create(\"users\")",
-                "read(\"any\")",
-                "update(\"users\")",
-                "delete(\"users\")"
-            ],
-            "databaseId": "68dffcef002559fd0827",
-            "name": "questions",
-            "enabled": true,
-            "rowSecurity": false,
-            "columns": [
-                {
-                    "key": "question",
-                    "type": "string",
-                    "required": true,
-                    "array": false,
-                    "size": 2000,
-                    "default": null,
-                    "encrypt": false
-                },
-                {
-                    "key": "category",
-                    "type": "string",
-                    "required": true,
-                    "array": false,
-                    "size": 100,
-                    "default": null,
-                    "encrypt": false
-                },
-                {
-                    "key": "difficulty",
-                    "type": "string",
-                    "required": true,
-                    "array": false,
-                    "size": 50,
-                    "default": null,
-                    "encrypt": false
-                },
-                {
-                    "key": "expectedAnswer",
-                    "type": "string",
-                    "required": false,
-                    "array": false,
-                    "size": 10000,
-                    "default": null,
-                    "encrypt": false
-                },
-                {
-                    "key": "tags",
-                    "type": "string",
-                    "required": false,
-                    "array": true,
-                    "size": 100,
-                    "default": null,
-                    "encrypt": false
-                }
-            ],
-            "indexes": []
-        },
-        {
-            "$id": "subscriptions",
-            "$permissions": [
-                "create(\"users\")",
-                "read(\"users\")",
-                "update(\"users\")",
-                "delete(\"users\")"
-            ],
-            "databaseId": "68dffcef002559fd0827",
-            "name": "subscriptions",
-            "enabled": true,
-            "rowSecurity": false,
-            "columns": [
-                {
-                    "key": "userId",
-                    "type": "string",
-                    "required": true,
-                    "array": false,
-                    "size": 255,
-                    "default": null,
-                    "encrypt": false
-                },
-                {
-                    "key": "plan",
-                    "type": "string",
-                    "required": true,
-                    "array": false,
-                    "size": 50,
-                    "default": null,
-                    "encrypt": false
-                },
-                {
-                    "key": "status",
-                    "type": "string",
-                    "required": true,
-                    "array": false,
-                    "size": 50,
-                    "default": null,
-                    "encrypt": false
-                },
-                {
-                    "key": "startDate",
-                    "type": "datetime",
-                    "required": true,
-                    "array": false,
-                    "format": "",
-                    "default": null
-                },
-                {
-                    "key": "endDate",
-                    "type": "datetime",
-                    "required": false,
-                    "array": false,
-                    "format": "",
-                    "default": null
-                },
-                {
-                    "key": "stripeCustomerId",
-                    "type": "string",
-                    "required": false,
-                    "array": false,
-                    "size": 255,
-                    "default": null,
-                    "encrypt": false
-                },
-                {
-                    "key": "stripeSubscriptionId",
-                    "type": "string",
-                    "required": false,
-                    "array": false,
-                    "size": 255,
-                    "default": null,
-                    "encrypt": false
-                }
-            ],
-            "indexes": []
-        },
-        {
-            "$id": "jobs",
-            "$permissions": [
-                "create(\"users\")",
-                "read(\"any\")",
-                "update(\"users\")",
-                "delete(\"users\")"
-            ],
-            "databaseId": "68dffcef002559fd0827",
-            "name": "jobs",
-            "enabled": true,
-            "rowSecurity": false,
-            "columns": [
-                {
-                    "key": "title",
-                    "type": "string",
-                    "required": true,
-                    "array": false,
-                    "size": 500,
-                    "default": null,
-                    "encrypt": false
-                },
-                {
-                    "key": "company",
-                    "type": "string",
-                    "required": true,
-                    "array": false,
-                    "size": 500,
-                    "default": null,
-                    "encrypt": false
-                },
-                {
-                    "key": "description",
-                    "type": "string",
-                    "required": true,
-                    "array": false,
-                    "size": 100000,
-                    "default": null,
-                    "encrypt": false
-                },
-                {
-                    "key": "location",
-                    "type": "string",
-                    "required": false,
-                    "array": false,
-                    "size": 255,
-                    "default": null,
-                    "encrypt": false
-                },
-                {
-                    "key": "salary",
-                    "type": "string",
-                    "required": false,
-                    "array": false,
-                    "size": 100,
-                    "default": null,
-                    "encrypt": false
-                },
-                {
-                    "key": "type",
-                    "type": "string",
-                    "required": false,
-                    "array": false,
-                    "size": 50,
-                    "default": null,
-                    "encrypt": false
-                },
-                {
-                    "key": "url",
-                    "type": "string",
-                    "required": false,
-                    "array": false,
-                    "size": 1000,
-                    "default": null,
-                    "encrypt": false
-                },
-                {
-                    "key": "postedDate",
-                    "type": "datetime",
-                    "required": false,
-                    "array": false,
-                    "format": "",
-                    "default": null
-                }
-            ],
-            "indexes": []
-        },
-        {
-            "$id": "transcriptions",
-            "$permissions": [
-                "create(\"users\")",
-                "read(\"users\")",
-                "update(\"users\")",
-                "delete(\"users\")"
-            ],
-            "databaseId": "68dffcef002559fd0827",
-            "name": "transcriptions",
-            "enabled": true,
-            "rowSecurity": false,
-            "columns": [
-                {
-                    "key": "interviewId",
-                    "type": "string",
-                    "required": true,
-                    "array": false,
-                    "size": 255,
-                    "default": null,
-                    "encrypt": false
-                },
-                {
-                    "key": "questionId",
-                    "type": "string",
-                    "required": true,
-                    "array": false,
-                    "size": 255,
-                    "default": null,
-                    "encrypt": false
-                },
-                {
-                    "key": "text",
-                    "type": "string",
-                    "required": true,
-                    "array": false,
-                    "size": 1000000,
-                    "default": null,
-                    "encrypt": false
-                },
-                {
-                    "key": "confidence",
-                    "type": "double",
-                    "required": false,
-                    "array": false,
-                    "min": -1.7976931348623157e+308,
-                    "max": 1.7976931348623157e+308,
-                    "default": null
-                },
-                {
-                    "key": "timestamp",
-                    "type": "datetime",
-                    "required": false,
-                    "array": false,
-                    "format": "",
-                    "default": null
-                }
-            ],
-            "indexes": []
-        },
-        {
-            "$id": "answers",
-            "$permissions": [
-                "create(\"users\")",
-                "read(\"users\")",
-                "update(\"users\")",
-                "delete(\"users\")"
-            ],
-            "databaseId": "68dffcef002559fd0827",
-            "name": "answers",
-            "enabled": true,
-            "rowSecurity": false,
-            "columns": [
-                {
-                    "key": "interviewId",
-                    "type": "string",
-                    "required": true,
-                    "array": false,
-                    "size": 255,
-                    "default": null,
-                    "encrypt": false
-                },
-                {
-                    "key": "questionId",
-                    "type": "string",
-                    "required": true,
-                    "array": false,
-                    "size": 255,
-                    "default": null,
-                    "encrypt": false
-                },
-                {
-                    "key": "answer",
-                    "type": "string",
-                    "required": true,
-                    "array": false,
-                    "size": 100000,
-                    "default": null,
-                    "encrypt": false
-                },
-                {
-                    "key": "duration",
-                    "type": "integer",
-                    "required": false,
-                    "array": false,
-                    "min": -9223372036854775808,
-                    "max": 9223372036854775807,
-                    "default": null
-                },
-                {
-                    "key": "score",
-                    "type": "double",
-                    "required": false,
-                    "array": false,
-                    "min": -1.7976931348623157e+308,
-                    "max": 1.7976931348623157e+308,
-                    "default": null
-                },
-                {
-                    "key": "feedback",
-                    "type": "string",
-                    "required": false,
-                    "array": false,
-                    "size": 10000,
-                    "default": null,
-                    "encrypt": false
-                }
-            ],
-            "indexes": []
-        },
-        {
-            "$id": "scores",
-            "$permissions": [
-                "create(\"users\")",
-                "read(\"users\")",
-                "update(\"users\")",
-                "delete(\"users\")"
-            ],
-            "databaseId": "68dffcef002559fd0827",
-            "name": "scores",
-            "enabled": true,
-            "rowSecurity": false,
-            "columns": [
-                {
-                    "key": "interviewId",
-                    "type": "string",
-                    "required": true,
-                    "array": false,
-                    "size": 255,
-                    "default": null,
-                    "encrypt": false
-                },
-                {
-                    "key": "userId",
-                    "type": "string",
-                    "required": true,
-                    "array": false,
-                    "size": 255,
-                    "default": null,
-                    "encrypt": false
-                },
-                {
-                    "key": "overallScore",
-                    "type": "double",
-                    "required": true,
-                    "array": false,
-                    "min": -1.7976931348623157e+308,
-                    "max": 1.7976931348623157e+308,
-                    "default": null
-                },
-                {
-                    "key": "technicalScore",
-                    "type": "double",
-                    "required": false,
-                    "array": false,
-                    "min": -1.7976931348623157e+308,
-                    "max": 1.7976931348623157e+308,
-                    "default": null
-                },
-                {
-                    "key": "behavioralScore",
-                    "type": "double",
-                    "required": false,
-                    "array": false,
-                    "min": -1.7976931348623157e+308,
-                    "max": 1.7976931348623157e+308,
-                    "default": null
-                },
-                {
-                    "key": "communicationScore",
-                    "type": "double",
-                    "required": false,
-                    "array": false,
-                    "min": -1.7976931348623157e+308,
-                    "max": 1.7976931348623157e+308,
-                    "default": null
-                },
-                {
-                    "key": "sentimentScore",
-                    "type": "double",
-                    "required": false,
-                    "array": false,
-                    "min": -1.7976931348623157e+308,
-                    "max": 1.7976931348623157e+308,
-                    "default": null
-                },
-                {
-                    "key": "feedback",
-                    "type": "string",
-                    "required": false,
-                    "array": false,
-                    "size": 10000,
-                    "default": null,
-                    "encrypt": false
-                }
-            ],
-            "indexes": []
+          "key": "preferences",
+          "type": "string",
+          "required": false,
+          "array": false,
+          "size": 10000,
+          "default": null,
+          "encrypt": false
         }
-    ],
-    "buckets": [
+      ],
+      "indexes": []
+    },
+    {
+      "$id": "cover_letters",
+      "$permissions": [
+        "create(\"users\")",
+        "read(\"users\")",
+        "update(\"users\")",
+        "delete(\"users\")"
+      ],
+      "databaseId": "68dffcef002559fd0827",
+      "name": "cover_letters",
+      "enabled": true,
+      "rowSecurity": false,
+      "columns": [
         {
-            "$id": "recordings",
-            "$permissions": [
-                "create(\"users\")",
-                "read(\"users\")",
-                "update(\"users\")",
-                "delete(\"users\")"
-            ],
-            "name": "Interview Recordings",
-            "enabled": true,
-            "maximumFileSize": 524288000,
-            "allowedFileExtensions": [
-                "webm",
-                "mp4",
-                "mkv",
-                "avi",
-                "mov"
-            ],
-            "compression": "none",
-            "encryption": true,
-            "antivirus": true,
-            "fileSecurity": false
+          "key": "userId",
+          "type": "string",
+          "required": true,
+          "array": false,
+          "size": 255,
+          "default": null,
+          "encrypt": false
         },
         {
-            "$id": "cvs",
-            "$permissions": [
-                "create(\"users\")",
-                "read(\"users\")",
-                "update(\"users\")",
-                "delete(\"users\")"
-            ],
-            "name": "CVs",
-            "enabled": true,
-            "maximumFileSize": 10485760,
-            "allowedFileExtensions": [
-                "pdf",
-                "doc",
-                "docx"
-            ],
-            "compression": "gzip",
-            "encryption": true,
-            "antivirus": true,
-            "fileSecurity": false
+          "key": "jobId",
+          "type": "string",
+          "required": false,
+          "array": false,
+          "size": 255,
+          "default": null,
+          "encrypt": false
         },
         {
-            "$id": "avatars",
-            "$permissions": [
-                "create(\"users\")",
-                "read(\"any\")",
-                "update(\"users\")",
-                "delete(\"users\")"
-            ],
-            "name": "Avatars",
-            "enabled": true,
-            "maximumFileSize": 5242880,
-            "allowedFileExtensions": [
-                "jpg",
-                "jpeg",
-                "png",
-                "gif",
-                "webp"
-            ],
-            "compression": "gzip",
-            "encryption": false,
-            "antivirus": true,
-            "fileSecurity": false
+          "key": "cvId",
+          "type": "string",
+          "required": false,
+          "array": false,
+          "size": 255,
+          "default": null,
+          "encrypt": false
+        },
+        {
+          "key": "content",
+          "type": "string",
+          "required": true,
+          "array": false,
+          "size": 1000000,
+          "default": null,
+          "encrypt": false
+        },
+        {
+          "key": "companyName",
+          "type": "string",
+          "required": false,
+          "array": false,
+          "size": 500,
+          "default": null,
+          "encrypt": false
+        },
+        {
+          "key": "position",
+          "type": "string",
+          "required": false,
+          "array": false,
+          "size": 500,
+          "default": null,
+          "encrypt": false
         }
-    ]
+      ],
+      "indexes": []
+    },
+    {
+      "$id": "questions",
+      "$permissions": [
+        "create(\"users\")",
+        "read(\"any\")",
+        "update(\"users\")",
+        "delete(\"users\")"
+      ],
+      "databaseId": "68dffcef002559fd0827",
+      "name": "questions",
+      "enabled": true,
+      "rowSecurity": false,
+      "columns": [
+        {
+          "key": "question",
+          "type": "string",
+          "required": true,
+          "array": false,
+          "size": 2000,
+          "default": null,
+          "encrypt": false
+        },
+        {
+          "key": "category",
+          "type": "string",
+          "required": true,
+          "array": false,
+          "size": 100,
+          "default": null,
+          "encrypt": false
+        },
+        {
+          "key": "difficulty",
+          "type": "string",
+          "required": true,
+          "array": false,
+          "size": 50,
+          "default": null,
+          "encrypt": false
+        },
+        {
+          "key": "expectedAnswer",
+          "type": "string",
+          "required": false,
+          "array": false,
+          "size": 10000,
+          "default": null,
+          "encrypt": false
+        },
+        {
+          "key": "tags",
+          "type": "string",
+          "required": false,
+          "array": true,
+          "size": 100,
+          "default": null,
+          "encrypt": false
+        }
+      ],
+      "indexes": []
+    },
+    {
+      "$id": "subscriptions",
+      "$permissions": [
+        "create(\"users\")",
+        "read(\"users\")",
+        "update(\"users\")",
+        "delete(\"users\")"
+      ],
+      "databaseId": "68dffcef002559fd0827",
+      "name": "subscriptions",
+      "enabled": true,
+      "rowSecurity": false,
+      "columns": [
+        {
+          "key": "userId",
+          "type": "string",
+          "required": true,
+          "array": false,
+          "size": 255,
+          "default": null,
+          "encrypt": false
+        },
+        {
+          "key": "plan",
+          "type": "string",
+          "required": true,
+          "array": false,
+          "size": 50,
+          "default": null,
+          "encrypt": false
+        },
+        {
+          "key": "status",
+          "type": "string",
+          "required": true,
+          "array": false,
+          "size": 50,
+          "default": null,
+          "encrypt": false
+        },
+        {
+          "key": "startDate",
+          "type": "datetime",
+          "required": true,
+          "array": false,
+          "format": "",
+          "default": null
+        },
+        {
+          "key": "endDate",
+          "type": "datetime",
+          "required": false,
+          "array": false,
+          "format": "",
+          "default": null
+        },
+        {
+          "key": "stripeCustomerId",
+          "type": "string",
+          "required": false,
+          "array": false,
+          "size": 255,
+          "default": null,
+          "encrypt": false
+        },
+        {
+          "key": "stripeSubscriptionId",
+          "type": "string",
+          "required": false,
+          "array": false,
+          "size": 255,
+          "default": null,
+          "encrypt": false
+        }
+      ],
+      "indexes": []
+    },
+    {
+      "$id": "jobs",
+      "$permissions": [
+        "create(\"users\")",
+        "read(\"any\")",
+        "update(\"users\")",
+        "delete(\"users\")"
+      ],
+      "databaseId": "68dffcef002559fd0827",
+      "name": "jobs",
+      "enabled": true,
+      "rowSecurity": false,
+      "columns": [
+        {
+          "key": "title",
+          "type": "string",
+          "required": true,
+          "array": false,
+          "size": 500,
+          "default": null,
+          "encrypt": false
+        },
+        {
+          "key": "company",
+          "type": "string",
+          "required": true,
+          "array": false,
+          "size": 500,
+          "default": null,
+          "encrypt": false
+        },
+        {
+          "key": "description",
+          "type": "string",
+          "required": true,
+          "array": false,
+          "size": 100000,
+          "default": null,
+          "encrypt": false
+        },
+        {
+          "key": "location",
+          "type": "string",
+          "required": false,
+          "array": false,
+          "size": 255,
+          "default": null,
+          "encrypt": false
+        },
+        {
+          "key": "salary",
+          "type": "string",
+          "required": false,
+          "array": false,
+          "size": 100,
+          "default": null,
+          "encrypt": false
+        },
+        {
+          "key": "type",
+          "type": "string",
+          "required": false,
+          "array": false,
+          "size": 50,
+          "default": null,
+          "encrypt": false
+        },
+        {
+          "key": "url",
+          "type": "string",
+          "required": false,
+          "array": false,
+          "size": 1000,
+          "default": null,
+          "encrypt": false
+        },
+        {
+          "key": "postedDate",
+          "type": "datetime",
+          "required": false,
+          "array": false,
+          "format": "",
+          "default": null
+        }
+      ],
+      "indexes": []
+    },
+    {
+      "$id": "transcriptions",
+      "$permissions": [
+        "create(\"users\")",
+        "read(\"users\")",
+        "update(\"users\")",
+        "delete(\"users\")"
+      ],
+      "databaseId": "68dffcef002559fd0827",
+      "name": "transcriptions",
+      "enabled": true,
+      "rowSecurity": false,
+      "columns": [
+        {
+          "key": "interviewId",
+          "type": "string",
+          "required": true,
+          "array": false,
+          "size": 255,
+          "default": null,
+          "encrypt": false
+        },
+        {
+          "key": "questionId",
+          "type": "string",
+          "required": true,
+          "array": false,
+          "size": 255,
+          "default": null,
+          "encrypt": false
+        },
+        {
+          "key": "text",
+          "type": "string",
+          "required": true,
+          "array": false,
+          "size": 1000000,
+          "default": null,
+          "encrypt": false
+        },
+        {
+          "key": "confidence",
+          "type": "double",
+          "required": false,
+          "array": false,
+          "min": -1.7976931348623157e308,
+          "max": 1.7976931348623157e308,
+          "default": null
+        },
+        {
+          "key": "timestamp",
+          "type": "datetime",
+          "required": false,
+          "array": false,
+          "format": "",
+          "default": null
+        }
+      ],
+      "indexes": []
+    },
+    {
+      "$id": "answers",
+      "$permissions": [
+        "create(\"users\")",
+        "read(\"users\")",
+        "update(\"users\")",
+        "delete(\"users\")"
+      ],
+      "databaseId": "68dffcef002559fd0827",
+      "name": "answers",
+      "enabled": true,
+      "rowSecurity": false,
+      "columns": [
+        {
+          "key": "interviewId",
+          "type": "string",
+          "required": true,
+          "array": false,
+          "size": 255,
+          "default": null,
+          "encrypt": false
+        },
+        {
+          "key": "questionId",
+          "type": "string",
+          "required": true,
+          "array": false,
+          "size": 255,
+          "default": null,
+          "encrypt": false
+        },
+        {
+          "key": "answer",
+          "type": "string",
+          "required": true,
+          "array": false,
+          "size": 100000,
+          "default": null,
+          "encrypt": false
+        },
+        {
+          "key": "duration",
+          "type": "integer",
+          "required": false,
+          "array": false,
+          "min": -9223372036854775808,
+          "max": 9223372036854775807,
+          "default": null
+        },
+        {
+          "key": "score",
+          "type": "double",
+          "required": false,
+          "array": false,
+          "min": -1.7976931348623157e308,
+          "max": 1.7976931348623157e308,
+          "default": null
+        },
+        {
+          "key": "feedback",
+          "type": "string",
+          "required": false,
+          "array": false,
+          "size": 10000,
+          "default": null,
+          "encrypt": false
+        }
+      ],
+      "indexes": []
+    },
+    {
+      "$id": "scores",
+      "$permissions": [
+        "create(\"users\")",
+        "read(\"users\")",
+        "update(\"users\")",
+        "delete(\"users\")"
+      ],
+      "databaseId": "68dffcef002559fd0827",
+      "name": "scores",
+      "enabled": true,
+      "rowSecurity": false,
+      "columns": [
+        {
+          "key": "interviewId",
+          "type": "string",
+          "required": true,
+          "array": false,
+          "size": 255,
+          "default": null,
+          "encrypt": false
+        },
+        {
+          "key": "userId",
+          "type": "string",
+          "required": true,
+          "array": false,
+          "size": 255,
+          "default": null,
+          "encrypt": false
+        },
+        {
+          "key": "overallScore",
+          "type": "double",
+          "required": true,
+          "array": false,
+          "min": -1.7976931348623157e308,
+          "max": 1.7976931348623157e308,
+          "default": null
+        },
+        {
+          "key": "technicalScore",
+          "type": "double",
+          "required": false,
+          "array": false,
+          "min": -1.7976931348623157e308,
+          "max": 1.7976931348623157e308,
+          "default": null
+        },
+        {
+          "key": "behavioralScore",
+          "type": "double",
+          "required": false,
+          "array": false,
+          "min": -1.7976931348623157e308,
+          "max": 1.7976931348623157e308,
+          "default": null
+        },
+        {
+          "key": "communicationScore",
+          "type": "double",
+          "required": false,
+          "array": false,
+          "min": -1.7976931348623157e308,
+          "max": 1.7976931348623157e308,
+          "default": null
+        },
+        {
+          "key": "sentimentScore",
+          "type": "double",
+          "required": false,
+          "array": false,
+          "min": -1.7976931348623157e308,
+          "max": 1.7976931348623157e308,
+          "default": null
+        },
+        {
+          "key": "feedback",
+          "type": "string",
+          "required": false,
+          "array": false,
+          "size": 10000,
+          "default": null,
+          "encrypt": false
+        }
+      ],
+      "indexes": []
+    }
+  ],
+  "buckets": [
+    {
+      "$id": "recordings",
+      "$permissions": [
+        "create(\"users\")",
+        "read(\"users\")",
+        "update(\"users\")",
+        "delete(\"users\")"
+      ],
+      "name": "Interview Recordings",
+      "enabled": true,
+      "maximumFileSize": 524288000,
+      "allowedFileExtensions": ["webm", "mp4", "mkv", "avi", "mov"],
+      "compression": "none",
+      "encryption": true,
+      "antivirus": true,
+      "fileSecurity": false
+    },
+    {
+      "$id": "cvs",
+      "$permissions": [
+        "create(\"users\")",
+        "read(\"users\")",
+        "update(\"users\")",
+        "delete(\"users\")"
+      ],
+      "name": "CVs",
+      "enabled": true,
+      "maximumFileSize": 10485760,
+      "allowedFileExtensions": ["pdf", "doc", "docx"],
+      "compression": "gzip",
+      "encryption": true,
+      "antivirus": true,
+      "fileSecurity": false
+    },
+    {
+      "$id": "avatars",
+      "$permissions": [
+        "create(\"users\")",
+        "read(\"any\")",
+        "update(\"users\")",
+        "delete(\"users\")"
+      ],
+      "name": "Avatars",
+      "enabled": true,
+      "maximumFileSize": 5242880,
+      "allowedFileExtensions": ["jpg", "jpeg", "png", "gif", "webp"],
+      "compression": "gzip",
+      "encryption": false,
+      "antivirus": true,
+      "fileSecurity": false
+    }
+  ]
 }

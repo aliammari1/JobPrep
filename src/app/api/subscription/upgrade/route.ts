@@ -20,7 +20,7 @@ export async function POST(request: NextRequest) {
     if (!tier || !["MONTHLY", "YEARLY"].includes(tier)) {
       return NextResponse.json(
         { message: "Invalid tier specified" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -29,7 +29,7 @@ export async function POST(request: NextRequest) {
     if (!plan) {
       return NextResponse.json(
         { message: "Invalid plan tier" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -44,7 +44,7 @@ export async function POST(request: NextRequest) {
 
     // Get or create Stripe customer
     let stripeCustomerId = user.stripeCustomerId;
-    
+
     if (!stripeCustomerId) {
       const customer = await stripe.customers.create({
         email: session.user.email || undefined,
@@ -53,9 +53,9 @@ export async function POST(request: NextRequest) {
           userId: session.user.id,
         },
       });
-      
+
       stripeCustomerId = customer.id;
-      
+
       // Save customer ID to database
       await prisma.user.update({
         where: { id: session.user.id },
@@ -64,14 +64,15 @@ export async function POST(request: NextRequest) {
     }
 
     // Get the price ID from env
-    const priceId = tier === "MONTHLY" 
-      ? process.env.NEXT_PUBLIC_STRIPE_PRICE_MONTHLY
-      : process.env.NEXT_PUBLIC_STRIPE_PRICE_YEARLY;
+    const priceId =
+      tier === "MONTHLY"
+        ? process.env.NEXT_PUBLIC_STRIPE_PRICE_MONTHLY
+        : process.env.NEXT_PUBLIC_STRIPE_PRICE_YEARLY;
 
     if (!priceId) {
       return NextResponse.json(
         { message: "Subscription plan not configured" },
-        { status: 500 }
+        { status: 500 },
       );
     }
 
@@ -100,8 +101,13 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     console.error("Upgrade subscription error:", error);
     return NextResponse.json(
-      { message: error instanceof Error ? error.message : "Failed to upgrade subscription" },
-      { status: 500 }
+      {
+        message:
+          error instanceof Error
+            ? error.message
+            : "Failed to upgrade subscription",
+      },
+      { status: 500 },
     );
   }
 }

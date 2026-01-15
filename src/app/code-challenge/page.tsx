@@ -123,8 +123,11 @@ const LANGUAGES = [
  */
 export default function CodeChallengeArena() {
   const { executeCode, isExecuting } = useCodeExecution();
-  const { currentChallenge, fetchChallenge, isLoading: isChallengeLoading } =
-    useChallenges();
+  const {
+    currentChallenge,
+    fetchChallenge,
+    isLoading: isChallengeLoading,
+  } = useChallenges();
   const { submitSolution, isSubmitting } = useSubmissions();
   const { generateChallenges, isGenerating, generatedChallenges } =
     useGenerateChallenges();
@@ -159,7 +162,7 @@ export default function CodeChallengeArena() {
 
       return response.json();
     }, [store.code, store.selectedLanguage, store.currentChallenge?.id]),
-    { ttl: 60000, deduplicate: true } // Cache for 1 minute
+    { ttl: 60000, deduplicate: true }, // Cache for 1 minute
   );
 
   // Auto-save hook (debounced every 10 seconds)
@@ -174,7 +177,7 @@ export default function CodeChallengeArena() {
       onError: (error) => {
         console.error("Auto-save failed:", error);
       },
-    }
+    },
   );
 
   // Keyboard shortcuts with proper cleanup
@@ -225,12 +228,17 @@ export default function CodeChallengeArena() {
     // Load onboarding data
     const onboardingCv = sessionStorage.getItem("onboarding_cv");
     const onboardingJob = sessionStorage.getItem("onboarding_job");
-    const onboardingDifficulty = sessionStorage.getItem("onboarding_difficulty");
+    const onboardingDifficulty = sessionStorage.getItem(
+      "onboarding_difficulty",
+    );
 
     if (onboardingCv && onboardingJob) {
       store.setCvText(onboardingCv);
       store.setJobDescriptionText(onboardingJob);
-      const difficulty = (onboardingDifficulty || "Medium") as "Easy" | "Medium" | "Hard";
+      const difficulty = (onboardingDifficulty || "Medium") as
+        | "Easy"
+        | "Medium"
+        | "Hard";
       if (onboardingDifficulty) {
         store.setSelectedDifficulty(difficulty);
       }
@@ -244,7 +252,7 @@ export default function CodeChallengeArena() {
   const generateChallengesWithRetry = async (
     cv: string,
     job: string,
-    difficulty: string
+    difficulty: string,
   ) => {
     const maxRetries = 2;
     let retries = 0;
@@ -267,17 +275,19 @@ export default function CodeChallengeArena() {
           store.setGeneratedChallenges(result.challenges);
           store.setCurrentChallenge(result.challenges[0]);
           store.setCurrentChallengeIndex(0);
-          
+
           // Initialize code for all languages with starter code
           const firstChallenge = result.challenges[0];
           if (firstChallenge.starterCode) {
-            Object.entries(firstChallenge.starterCode).forEach(([lang, code]) => {
-              if (code) {
-                store.setCode(lang, code as string);
-              }
-            });
+            Object.entries(firstChallenge.starterCode).forEach(
+              ([lang, code]) => {
+                if (code) {
+                  store.setCode(lang, code as string);
+                }
+              },
+            );
           }
-          
+
           toast.success("✨ Challenges ready!", { id: "auto-generate" });
           // Clean up all onboarding data from sessionStorage
           sessionStorage.removeItem("onboarding_cv");
@@ -321,7 +331,7 @@ export default function CodeChallengeArena() {
       const { results, metrics } = await executeCode(
         store.code[store.selectedLanguage],
         store.selectedLanguage,
-        store.currentChallenge.testCases
+        store.currentChallenge.testCases,
       );
 
       store.setTestResults(results);
@@ -334,23 +344,25 @@ export default function CodeChallengeArena() {
 
       store.clearConsoleOutput();
       store.addConsoleOutput(
-        `✓ Execution completed in ${metrics.totalTime.toFixed(2)}ms`
+        `✓ Execution completed in ${metrics.totalTime.toFixed(2)}ms`,
       );
-      store.addConsoleOutput(`✓ Memory used: ${metrics.memoryUsed.toFixed(2)}KB`);
       store.addConsoleOutput(
-        `✓ Tests passed: ${metrics.passedTests}/${metrics.totalTests}`
+        `✓ Memory used: ${metrics.memoryUsed.toFixed(2)}KB`,
+      );
+      store.addConsoleOutput(
+        `✓ Tests passed: ${metrics.passedTests}/${metrics.totalTests}`,
       );
 
       if (metrics.passedTests === metrics.totalTests) {
         toast.success("All tests passed! 🎉");
       } else {
         toast.warning(
-          `${metrics.passedTests}/${metrics.totalTests} tests passed`
+          `${metrics.passedTests}/${metrics.totalTests} tests passed`,
         );
       }
     } catch (error) {
       store.addConsoleOutput(
-        `✗ Error: ${error instanceof Error ? error.message : "Unknown error"}`
+        `✗ Error: ${error instanceof Error ? error.message : "Unknown error"}`,
       );
       toast.error("Execution failed");
     } finally {
@@ -394,8 +406,11 @@ export default function CodeChallengeArena() {
           label: "Switch",
           onClick: () => {
             store.setSelectedLanguage(language);
-            store.setCode(language, store.getCode(language) ||
-              DEFAULT_CODE[language as keyof typeof DEFAULT_CODE] || ""
+            store.setCode(
+              language,
+              store.getCode(language) ||
+                DEFAULT_CODE[language as keyof typeof DEFAULT_CODE] ||
+                "",
             );
             invalidateAPICache(`code-save-${language}`);
           },
@@ -403,8 +418,11 @@ export default function CodeChallengeArena() {
       });
     } else {
       store.setSelectedLanguage(language);
-      store.setCode(language, store.getCode(language) ||
-        DEFAULT_CODE[language as keyof typeof DEFAULT_CODE] || ""
+      store.setCode(
+        language,
+        store.getCode(language) ||
+          DEFAULT_CODE[language as keyof typeof DEFAULT_CODE] ||
+          "",
       );
     }
   };
@@ -418,14 +436,14 @@ export default function CodeChallengeArena() {
       store.generatedChallenges,
       store.currentChallengeIndex,
       store.currentChallenge,
-    ]
+    ],
   );
 
   const isLoading = isChallengeLoading || isGenerating;
 
   if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background via-primary/5 to-muted/10">
+      <div className="min-h-screen flex items-center justify-center bg-linear-to-br from-background via-primary/5 to-muted/10">
         <div className="text-center space-y-4">
           <motion.div
             animate={{ rotate: 360 }}
@@ -488,7 +506,10 @@ export default function CodeChallengeArena() {
                 <CardTitle>Code Editor</CardTitle>
               </CardHeader>
               <CardContent>
-                <Select value={store.selectedLanguage} onValueChange={handleLanguageChange}>
+                <Select
+                  value={store.selectedLanguage}
+                  onValueChange={handleLanguageChange}
+                >
                   <SelectTrigger className="mb-4">
                     <SelectValue />
                   </SelectTrigger>
@@ -515,10 +536,19 @@ export default function CodeChallengeArena() {
                 />
 
                 <div className="mt-4 space-y-2">
-                  <Button onClick={runCode} disabled={isExecuting} className="w-full">
+                  <Button
+                    onClick={runCode}
+                    disabled={isExecuting}
+                    className="w-full"
+                  >
                     {isExecuting ? "Running..." : "Run Code (Ctrl+Enter)"}
                   </Button>
-                  <Button onClick={handleSubmit} disabled={isSubmitting} variant="default" className="w-full">
+                  <Button
+                    onClick={handleSubmit}
+                    disabled={isSubmitting}
+                    variant="default"
+                    className="w-full"
+                  >
                     {isSubmitting ? "Submitting..." : "Submit Solution"}
                   </Button>
                 </div>

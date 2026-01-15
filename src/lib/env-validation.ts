@@ -164,22 +164,22 @@ export function printEnvStatus() {
 
   console.log("\n📊 Feature Status:");
   console.log(
-    `  • AI Features: ${status.aiEnabled ? "✅ Enabled" : "❌ Disabled"}`
+    `  • AI Features: ${status.aiEnabled ? "✅ Enabled" : "❌ Disabled"}`,
   );
   console.log(
     `  • Video Interviews: ${
       status.videoEnabled ? "✅ Enabled" : "❌ Disabled"
-    }`
+    }`,
   );
   console.log(
     `  • Database: ${
       status.databaseConnected ? "✅ Connected" : "❌ Not Connected"
-    }`
+    }`,
   );
   console.log(
     `  • Authentication: ${
       status.authConfigured ? "✅ Configured" : "❌ Not Configured"
-    }`
+    }`,
   );
 
   console.log("\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n");

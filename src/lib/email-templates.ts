@@ -9,7 +9,7 @@ export interface InterviewEmailData {
   date: string; // YYYY-MM-DD
   time: string; // HH:MM
   duration: number; // minutes
-  interviewType: 'video' | 'phone' | 'in-person';
+  interviewType: "video" | "phone" | "in-person";
   interviewerName?: string;
   meetingLink?: string;
   location?: string;
@@ -26,9 +26,9 @@ export function getReminderEmailTemplate(data: InterviewEmailData): {
   html: string;
 } {
   const meetingDetails = getMeetingDetails(data);
-  const calendarEmoji = '📅';
-  const clockEmoji = '🕐';
-  const videoEmoji = data.interviewType === 'video' ? '📹' : '📞';
+  const calendarEmoji = "📅";
+  const clockEmoji = "🕐";
+  const videoEmoji = data.interviewType === "video" ? "📹" : "📞";
 
   return {
     subject: `Reminder: ${data.position} Interview with ${data.position} - ${data.date} at ${data.time}`,
@@ -82,7 +82,7 @@ export function getReminderEmailTemplate(data: InterviewEmailData): {
                 <div class="detail-row">
                   <div class="detail-icon">${videoEmoji}</div>
                   <div class="detail-text">
-                    <strong>Type:</strong> ${data.interviewType === 'video' ? 'Video Interview' : data.interviewType === 'phone' ? 'Phone Interview' : 'In-Person Interview'}
+                    <strong>Type:</strong> ${data.interviewType === "video" ? "Video Interview" : data.interviewType === "phone" ? "Phone Interview" : "In-Person Interview"}
                   </div>
                 </div>
 
@@ -93,16 +93,22 @@ export function getReminderEmailTemplate(data: InterviewEmailData): {
                   </div>
                 </div>
 
-                ${data.interviewerName ? `
+                ${
+                  data.interviewerName
+                    ? `
                 <div class="detail-row">
                   <div class="detail-icon">👨‍💼</div>
                   <div class="detail-text">
                     <strong>Interviewer:</strong> ${data.interviewerName}
                   </div>
                 </div>
-                ` : ''}
+                `
+                    : ""
+                }
 
-                ${meetingDetails ? `
+                ${
+                  meetingDetails
+                    ? `
                 <div class="detail-row">
                   <div class="detail-icon">🔗</div>
                   <div class="detail-text">
@@ -110,32 +116,50 @@ export function getReminderEmailTemplate(data: InterviewEmailData): {
                     <a href="${meetingDetails}" style="color: #667eea;">Join Meeting</a>
                   </div>
                 </div>
-                ` : ''}
+                `
+                    : ""
+                }
 
-                ${data.location ? `
+                ${
+                  data.location
+                    ? `
                 <div class="detail-row">
                   <div class="detail-icon">📍</div>
                   <div class="detail-text">
                     <strong>Location:</strong> ${data.location}
                   </div>
                 </div>
-                ` : ''}
+                `
+                    : ""
+                }
               </div>
 
-              ${data.notes ? `
+              ${
+                data.notes
+                  ? `
               <div class="details">
                 <h4 style="margin-top: 0;">Additional Notes</h4>
                 <p>${data.notes}</p>
               </div>
-              ` : ''}
+              `
+                  : ""
+              }
 
               <div style="text-align: center; margin-top: 30px;">
-                ${data.googleCalendarLink ? `
+                ${
+                  data.googleCalendarLink
+                    ? `
                 <a href="${data.googleCalendarLink}" class="button" style="margin-right: 10px;">Add to Calendar</a>
-                ` : ''}
-                ${data.reschedulingLink ? `
+                `
+                    : ""
+                }
+                ${
+                  data.reschedulingLink
+                    ? `
                 <a href="${data.reschedulingLink}" class="button" style="background: #f0f0f0; color: #333;">Reschedule</a>
-                ` : ''}
+                `
+                    : ""
+                }
               </div>
 
               <p style="margin-top: 30px; color: #666; font-size: 14px;">
@@ -196,17 +220,21 @@ export function getConfirmationEmailTemplate(data: InterviewEmailData): {
                 <p><strong>📅 Date:</strong> ${formatDate(data.date)}</p>
                 <p><strong>🕐 Time:</strong> ${data.time}</p>
                 <p><strong>⏱️ Duration:</strong> ${data.duration} minutes</p>
-                <p><strong>📹 Type:</strong> ${data.interviewType === 'video' ? 'Video' : data.interviewType === 'phone' ? 'Phone' : 'In-Person'}</p>
-                ${data.interviewerName ? `<p><strong>👔 Interviewer:</strong> ${data.interviewerName}</p>` : ''}
+                <p><strong>📹 Type:</strong> ${data.interviewType === "video" ? "Video" : data.interviewType === "phone" ? "Phone" : "In-Person"}</p>
+                ${data.interviewerName ? `<p><strong>👔 Interviewer:</strong> ${data.interviewerName}</p>` : ""}
               </p>
               </div>
 
-              ${meetingDetails ? `
+              ${
+                meetingDetails
+                  ? `
               <div class="details">
                 <h4>📞 How to Join</h4>
                 <p><a href="${meetingDetails}" style="color: #10b981; font-weight: bold;">Click here to join the meeting</a></p>
               </div>
-              ` : ''}
+              `
+                  : ""
+              }
 
               <div style="background: #fef3c7; padding: 15px; border-radius: 6px; margin: 20px 0; border-left: 4px solid #f59e0b;">
                 <p><strong>💡 Tips for Success:</strong></p>
@@ -219,7 +247,7 @@ export function getConfirmationEmailTemplate(data: InterviewEmailData): {
               </div>
 
               <div style="text-align: center;">
-                <a href="${data.googleCalendarLink || '#'}" class="button">Add to Calendar</a>
+                <a href="${data.googleCalendarLink || "#"}" class="button">Add to Calendar</a>
               </div>
 
               <p style="margin-top: 30px; color: #666;">
@@ -240,7 +268,9 @@ export function getConfirmationEmailTemplate(data: InterviewEmailData): {
 /**
  * Rescheduling Email - Sent when interview is rescheduled
  */
-export function getRescheduleEmailTemplate(data: InterviewEmailData & { oldDate: string; oldTime: string }): {
+export function getRescheduleEmailTemplate(
+  data: InterviewEmailData & { oldDate: string; oldTime: string },
+): {
   subject: string;
   html: string;
 } {
@@ -281,7 +311,7 @@ export function getRescheduleEmailTemplate(data: InterviewEmailData & { oldDate:
               </div>
 
               <div style="text-align: center; margin: 30px 0;">
-                <a href="${data.googleCalendarLink || '#'}" class="button">Update Calendar</a>
+                <a href="${data.googleCalendarLink || "#"}" class="button">Update Calendar</a>
               </div>
 
               <p>If this new time doesn't work for you, please reach out immediately to discuss alternatives.</p>
@@ -344,11 +374,11 @@ export function getCancellationEmailTemplate(data: InterviewEmailData): {
 function formatDate(dateStr: string): string {
   try {
     const date = new Date(dateStr);
-    return date.toLocaleDateString('en-US', {
-      weekday: 'long',
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
+    return date.toLocaleDateString("en-US", {
+      weekday: "long",
+      year: "numeric",
+      month: "long",
+      day: "numeric",
     });
   } catch {
     return dateStr;

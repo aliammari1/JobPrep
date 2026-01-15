@@ -3,12 +3,7 @@
   "name": "JobPrep LinkedIn CV Importer",
   "version": "1.0.0",
   "description": "Extract LinkedIn profile data and import it directly into JobPrep CV Builder",
-  "permissions": [
-    "activeTab",
-    "scripting",
-    "storage",
-    "tabs"
-  ],
+  "permissions": ["activeTab", "scripting", "storage", "tabs"],
   "host_permissions": [
     "https://www.linkedin.com/*",
     "https://*.linkedin.com/*",

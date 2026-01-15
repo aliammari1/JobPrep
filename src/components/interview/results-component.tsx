@@ -1,22 +1,12 @@
-import { useMockInterviewStore } from '@/store/mock-interview-store';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Progress } from '@/components/ui/progress';
-import {
-  CheckCircle2,
-  AlertCircle,
-  TrendingUp,
-  Lightbulb,
-} from 'lucide-react';
+import { useMockInterviewStore } from "@/store/mock-interview-store";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Progress } from "@/components/ui/progress";
+import { CheckCircle2, AlertCircle, TrendingUp, Lightbulb } from "lucide-react";
 
 export function ResultsComponent() {
-  const {
-    isCompleted,
-    overallScore,
-    strengths,
-    improvements,
-    scores,
-  } = useMockInterviewStore();
+  const { isCompleted, overallScore, strengths, improvements, scores } =
+    useMockInterviewStore();
 
   if (!isCompleted) {
     return null;

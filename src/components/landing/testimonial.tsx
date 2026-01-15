@@ -18,7 +18,7 @@ export function Testimonial({
   avatar,
 }: TestimonialProps) {
   return (
-    <Card className="p-6 h-full flex flex-col justify-between bg-gradient-to-br from-background via-muted/40 to-muted/70">
+    <Card className="p-6 h-full flex flex-col justify-between bg-linear-to-br from-background via-muted/40 to-muted/70">
       <p className="text-sm leading-relaxed mb-4 italic">“{quote}”</p>
       <div className="flex items-center gap-3 mt-auto">
         {avatar || (

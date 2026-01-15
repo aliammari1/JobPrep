@@ -14,10 +14,10 @@ export async function POST(req: NextRequest) {
       const egressId = egress_info.egress_id;
       const status = egress_info.status;
       const fileInfo = egress_info.file;
-      
+
       if (status === "EGRESS_COMPLETE" && fileInfo) {
         const recordingUrl = fileInfo.location || fileInfo.filename;
-        
+
         // Find interview by egress ID stored in localStorage
         // Since we can't access localStorage here, you might want to store the mapping in the database
         // For now, we'll just log it
@@ -42,7 +42,7 @@ export async function POST(req: NextRequest) {
     console.error("Webhook processing error:", error);
     return NextResponse.json(
       { error: "Webhook processing failed" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

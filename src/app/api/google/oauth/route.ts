@@ -20,7 +20,7 @@ export async function GET(req: NextRequest) {
     if (!clientId) {
       return NextResponse.json(
         { error: "Google OAuth not configured" },
-        { status: 500 }
+        { status: 500 },
       );
     }
 
@@ -48,7 +48,7 @@ export async function GET(req: NextRequest) {
     console.error("Error initiating Google OAuth:", error);
     return NextResponse.json(
       { error: "Failed to initiate OAuth" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

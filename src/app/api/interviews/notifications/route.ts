@@ -135,7 +135,9 @@ export async function GET(req: NextRequest) {
 
     // Sort by timestamp (newest first)
     notifications.sort(
-      (a, b) => new Date(b.timestamp || 0).getTime() - new Date(a.timestamp || 0).getTime()
+      (a, b) =>
+        new Date(b.timestamp || 0).getTime() -
+        new Date(a.timestamp || 0).getTime(),
     );
 
     return NextResponse.json({
@@ -146,7 +148,7 @@ export async function GET(req: NextRequest) {
     console.error("Error fetching notifications:", error);
     return NextResponse.json(
       { error: "Failed to fetch notifications" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

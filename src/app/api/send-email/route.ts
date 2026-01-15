@@ -19,7 +19,7 @@ export async function POST(req: NextRequest) {
     if (!to || !subject || !html) {
       return NextResponse.json(
         { error: "Missing required fields: to, subject, html" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -34,19 +34,19 @@ export async function POST(req: NextRequest) {
     if (result.success) {
       return NextResponse.json(
         { success: true, emailId: result.emailId },
-        { status: 200 }
+        { status: 200 },
       );
     } else {
       return NextResponse.json(
         { error: result.error || "Failed to send email" },
-        { status: 500 }
+        { status: 500 },
       );
     }
   } catch (error) {
     console.error("Error sending email:", error);
     return NextResponse.json(
       { error: "Failed to send email" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

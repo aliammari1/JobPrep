@@ -17,7 +17,7 @@ export function WorkflowStep({
   return (
     <div
       className={cn(
-        "relative flex flex-col gap-3 p-6 rounded-xl border bg-card/50 backdrop-blur-sm shadow-sm hover:shadow-md transition"
+        "relative flex flex-col gap-3 p-6 rounded-xl border bg-card/50 backdrop-blur-sm shadow-sm hover:shadow-md transition",
       )}
     >
       <div className="flex items-center gap-3">

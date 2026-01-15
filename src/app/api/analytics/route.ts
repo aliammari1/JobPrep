@@ -30,7 +30,7 @@ export async function GET(req: NextRequest) {
     // Calculate aggregate statistics
     const totalInterviews = interviews.length;
     const completedInterviews = interviews.filter(
-      (i) => i.status === "completed"
+      (i) => i.status === "completed",
     ).length;
     const averageScore =
       interviews.reduce((sum, i) => sum + (i.overallScore || 0), 0) /
@@ -119,7 +119,7 @@ export async function GET(req: NextRequest) {
     console.error("Error fetching analytics:", error);
     return NextResponse.json(
       { error: "Failed to fetch analytics" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
@@ -156,7 +156,7 @@ export async function POST(req: NextRequest) {
     if (!interviewId) {
       return NextResponse.json(
         { error: "interviewId is required" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -199,7 +199,7 @@ export async function POST(req: NextRequest) {
     console.error("Error creating analytics:", error);
     return NextResponse.json(
       { error: "Failed to create analytics" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

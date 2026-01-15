@@ -35,13 +35,13 @@ export async function POST(request: NextRequest) {
         success: true,
         notifications: pendingNotifications,
       },
-      { status: 200 }
+      { status: 200 },
     );
   } catch (error) {
     console.error("[API] Error syncing notifications:", error);
     return NextResponse.json(
       { error: "Failed to sync notifications" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

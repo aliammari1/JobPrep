@@ -69,7 +69,7 @@ function SortableExperienceItem({
 
   const handleRemoveBullet = (bulletIndex: number) => {
     const newBullets = (exp.description || []).filter(
-      (_: string, idx: number) => idx !== bulletIndex
+      (_: string, idx: number) => idx !== bulletIndex,
     );
     updateExperience(exp.id, { description: newBullets });
   };
@@ -238,7 +238,7 @@ export function ExperienceSection() {
     useSensor(PointerSensor),
     useSensor(KeyboardSensor, {
       coordinateGetter: sortableKeyboardCoordinates,
-    })
+    }),
   );
 
   const handleAdd = () => {

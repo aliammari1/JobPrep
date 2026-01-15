@@ -35,7 +35,7 @@ export async function POST(req: NextRequest) {
     if (lines.length < 2) {
       return NextResponse.json(
         { error: "Invalid file format" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -50,7 +50,7 @@ export async function POST(req: NextRequest) {
       "status",
     ];
     const missingHeaders = requiredHeaders.filter(
-      (h) => !headers_arr.some((header) => header.includes(h))
+      (h) => !headers_arr.some((header) => header.includes(h)),
     );
 
     if (missingHeaders.length > 0) {
@@ -58,7 +58,7 @@ export async function POST(req: NextRequest) {
         {
           error: `Missing required columns: ${missingHeaders.join(", ")}`,
         },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -70,10 +70,12 @@ export async function POST(req: NextRequest) {
       try {
         if (!lines[i].trim()) continue;
 
-        const values = lines[i].split(",").map((v) => v.trim().replace(/^"|"$/g, ""));
-        
+        const values = lines[i]
+          .split(",")
+          .map((v) => v.trim().replace(/^"|"$/g, ""));
+
         const candidateNameIdx = headers_arr.findIndex((h) =>
-          h.includes("candidate name")
+          h.includes("candidate name"),
         );
         const emailIdx = headers_arr.findIndex((h) => h.includes("email"));
         const dateIdx = headers_arr.findIndex((h) => h === "date");
@@ -81,10 +83,10 @@ export async function POST(req: NextRequest) {
         const statusIdx = headers_arr.findIndex((h) => h === "status");
         const phoneIdx = headers_arr.findIndex((h) => h.includes("phone"));
         const positionIdx = headers_arr.findIndex((h) =>
-          h.includes("position")
+          h.includes("position"),
         );
         const durationIdx = headers_arr.findIndex((h) =>
-          h.includes("duration")
+          h.includes("duration"),
         );
         const typeIdx = headers_arr.findIndex((h) => h === "type");
 
@@ -120,7 +122,7 @@ export async function POST(req: NextRequest) {
           parseInt(month) - 1,
           parseInt(day),
           parseInt(hours),
-          parseInt(minutes)
+          parseInt(minutes),
         );
 
         if (isNaN(scheduledAt.getTime())) {
@@ -193,7 +195,7 @@ export async function POST(req: NextRequest) {
     console.error("Error importing interviews:", error);
     return NextResponse.json(
       { error: "Failed to import interviews" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

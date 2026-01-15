@@ -17,7 +17,7 @@ interface BetterAuthSession {
   user: SessionUser;
 }
 
-export const runtime = 'nodejs';
+export const runtime = "nodejs";
 export const maxDuration = 30;
 
 export async function POST(request: NextRequest) {
@@ -30,7 +30,7 @@ export async function POST(request: NextRequest) {
         headers: {
           cookie: request.headers.get("cookie") || "",
         },
-      }
+      },
     );
 
     if (!session?.user) {
@@ -40,17 +40,14 @@ export async function POST(request: NextRequest) {
     const { url } = await request.json();
 
     if (!url) {
-      return NextResponse.json(
-        { error: "No URL provided" },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: "No URL provided" }, { status: 400 });
     }
 
     // Validate LinkedIn URL
     if (!url.includes("linkedin.com/jobs")) {
       return NextResponse.json(
         { error: "Invalid LinkedIn job URL" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -61,7 +58,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({
         jobDescription: formatJobData(jobData),
         success: true,
-        source: 'og-metadata'
+        source: "og-metadata",
       });
     }
 
@@ -69,19 +66,19 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({
       jobDescription: generateExtractionGuide(url),
       success: false,
-      source: 'fallback',
-      message: "Please copy the job details from LinkedIn and paste below. We've provided a guide to help."
+      source: "fallback",
+      message:
+        "Please copy the job details from LinkedIn and paste below. We've provided a guide to help.",
     });
-
   } catch (error) {
     console.error("LinkedIn data extraction error:", error);
     return NextResponse.json(
-      { 
+      {
         error: "Failed to process LinkedIn job",
         details: error instanceof Error ? error.message : "Unknown error",
-        fallback: true
+        fallback: true,
       },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
@@ -93,12 +90,14 @@ async function extractJobDataFromHTML(url: string): Promise<any> {
     const timeoutId = setTimeout(() => controller.abort(), 5000);
 
     const response = await fetch(url, {
-      method: 'GET',
+      method: "GET",
       headers: {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
-        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
-        'Accept-Language': 'en-US,en;q=0.5',
-        'Cache-Control': 'no-cache',
+        "User-Agent":
+          "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
+        Accept:
+          "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+        "Accept-Language": "en-US,en;q=0.5",
+        "Cache-Control": "no-cache",
       },
       signal: controller.signal,
     });
@@ -115,13 +114,16 @@ async function extractJobDataFromHTML(url: string): Promise<any> {
     if (jobData.title || jobData.description) {
       return {
         success: true,
-        ...jobData
+        ...jobData,
       };
     }
 
     return { success: false };
   } catch (error) {
-    console.log("HTML extraction failed:", error instanceof Error ? error.message : 'Unknown error');
+    console.log(
+      "HTML extraction failed:",
+      error instanceof Error ? error.message : "Unknown error",
+    );
     return { success: false };
   }
 }
@@ -129,12 +131,20 @@ async function extractJobDataFromHTML(url: string): Promise<any> {
 function parseHTMLMetadata(html: string, url: string): any {
   try {
     // Extract Open Graph metadata
-    const ogTitleMatch = html.match(/<meta\s+property="og:title"\s+content="([^"]*)"/);
-    const ogDescMatch = html.match(/<meta\s+property="og:description"\s+content="([^"]*)"/);
-    const ogImageMatch = html.match(/<meta\s+property="og:image"\s+content="([^"]*)"/);
+    const ogTitleMatch = html.match(
+      /<meta\s+property="og:title"\s+content="([^"]*)"/,
+    );
+    const ogDescMatch = html.match(
+      /<meta\s+property="og:description"\s+content="([^"]*)"/,
+    );
+    const ogImageMatch = html.match(
+      /<meta\s+property="og:image"\s+content="([^"]*)"/,
+    );
 
     // Extract structured data (JSON-LD)
-    const jsonLdMatch = html.match(/<script\s+type="application\/ld\+json">([\s\S]*?)<\/script>/);
+    const jsonLdMatch = html.match(
+      /<script\s+type="application\/ld\+json">([\s\S]*?)<\/script>/,
+    );
     let jsonLdData = null;
 
     if (jsonLdMatch) {
@@ -146,12 +156,16 @@ function parseHTMLMetadata(html: string, url: string): any {
     }
 
     // Extract job-related metadata from various sources
-    const title = ogTitleMatch ? decodeHTML(ogTitleMatch[1]) : extractTitleFromHTML(html);
-    const description = ogDescMatch ? decodeHTML(ogDescMatch[1]) : extractDescriptionFromHTML(html);
-    
+    const title = ogTitleMatch
+      ? decodeHTML(ogTitleMatch[1])
+      : extractTitleFromHTML(html);
+    const description = ogDescMatch
+      ? decodeHTML(ogDescMatch[1])
+      : extractDescriptionFromHTML(html);
+
     // Try to extract company and location from JSON-LD
-    let company = '';
-    let location = '';
+    let company = "";
+    let location = "";
 
     if (jsonLdData) {
       if (jsonLdData.hiringOrganization?.name) {
@@ -160,16 +174,16 @@ function parseHTMLMetadata(html: string, url: string): any {
       if (jsonLdData.jobLocation?.address?.addressLocality) {
         location = jsonLdData.jobLocation.address.addressLocality;
         if (jsonLdData.jobLocation.address.addressCountry) {
-          location += ', ' + jsonLdData.jobLocation.address.addressCountry;
+          location += ", " + jsonLdData.jobLocation.address.addressCountry;
         }
       }
     }
 
     return {
       title: title.substring(0, 200),
-      company: company || 'Not specified',
-      location: location || 'Remote',
-      description: description.substring(0, 2000)
+      company: company || "Not specified",
+      location: location || "Remote",
+      description: description.substring(0, 2000),
     };
   } catch (error) {
     console.log("HTML parsing error:", error);
@@ -192,7 +206,7 @@ function extractTitleFromHTML(html: string): string {
     }
   }
 
-  return 'Job Position';
+  return "Job Position";
 }
 
 function extractDescriptionFromHTML(html: string): string {
@@ -213,43 +227,43 @@ function extractDescriptionFromHTML(html: string): string {
     }
   }
 
-  return 'Job description content';
+  return "Job description content";
 }
 
 function stripHTML(html: string): string {
   return html
-    .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '')
-    .replace(/<style\b[^<]*(?:(?!<\/style>)<[^<]*)*<\/style>/gi, '')
-    .replace(/<[^>]+>/g, ' ')
-    .replace(/&nbsp;/g, ' ')
-    .replace(/&lt;/g, '<')
-    .replace(/&gt;/g, '>')
+    .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, "")
+    .replace(/<style\b[^<]*(?:(?!<\/style>)<[^<]*)*<\/style>/gi, "")
+    .replace(/<[^>]+>/g, " ")
+    .replace(/&nbsp;/g, " ")
+    .replace(/&lt;/g, "<")
+    .replace(/&gt;/g, ">")
     .replace(/&quot;/g, '"')
-    .replace(/&amp;/g, '&')
-    .replace(/\s+/g, ' ')
+    .replace(/&amp;/g, "&")
+    .replace(/\s+/g, " ")
     .trim();
 }
 
 function decodeHTML(text: string): string {
   const entities: { [key: string]: string } = {
-    '&amp;': '&',
-    '&lt;': '<',
-    '&gt;': '>',
-    '&quot;': '"',
-    '&#39;': "'",
-    '&nbsp;': ' ',
+    "&amp;": "&",
+    "&lt;": "<",
+    "&gt;": ">",
+    "&quot;": '"',
+    "&#39;": "'",
+    "&nbsp;": " ",
   };
-  
-  return text.replace(/&[a-z]+;/gi, match => entities[match] || match);
+
+  return text.replace(/&[a-z]+;/gi, (match) => entities[match] || match);
 }
 
 function formatJobData(data: any): string {
-  return `Job Title: ${data.title || 'N/A'}
-Company: ${data.company || 'N/A'}
-Location: ${data.location || 'N/A'}
+  return `Job Title: ${data.title || "N/A"}
+Company: ${data.company || "N/A"}
+Location: ${data.location || "N/A"}
 
 Job Description:
-${data.description || 'Description not available'}`;
+${data.description || "Description not available"}`;
 }
 
 function generateExtractionGuide(url: string): string {
@@ -279,5 +293,3 @@ function generateExtractionGuide(url: string): string {
 
 This manual approach ensures 100% accuracy while respecting LinkedIn's Terms of Service.`;
 }
-
-

@@ -12,7 +12,7 @@ import {
   phoneNumber,
   multiSession,
 } from "better-auth/plugins";
-import { passkey } from "better-auth/plugins/passkey";
+import { passkey } from "@better-auth/passkey";
 import { sendEmail, emailTemplates } from "./email";
 
 export const auth = betterAuth({
@@ -202,7 +202,7 @@ export const auth = betterAuth({
         const template = emailTemplates.organizationInvite(
           data.organization.name,
           inviteLink,
-          data.inviter.user.name
+          data.inviter.user.name,
         );
         await sendEmail({
           to: data.email,

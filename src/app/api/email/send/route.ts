@@ -12,7 +12,7 @@ const emailSchema = z.object({
       z.object({
         name: z.string(),
         value: z.string(),
-      })
+      }),
     )
     .optional(),
 });
@@ -36,13 +36,13 @@ export async function POST(req: NextRequest) {
     if (error instanceof z.ZodError) {
       return NextResponse.json(
         { error: "Invalid email data", details: error.issues },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
     return NextResponse.json(
       { error: "Failed to send email" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

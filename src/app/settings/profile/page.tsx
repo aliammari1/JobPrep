@@ -20,7 +20,15 @@ import { Separator } from "@/components/ui/separator";
 import Link from "next/link";
 import { UserNav } from "@/components/custom/user-nav";
 import { Badge } from "@/components/ui/badge";
-import { FileText, Download, Calendar, Clock, TrendingUp, Eye, Trash2 } from "lucide-react";
+import {
+  FileText,
+  Download,
+  Calendar,
+  Clock,
+  TrendingUp,
+  Eye,
+  Trash2,
+} from "lucide-react";
 import { generateInterviewPDF, downloadPDF } from "@/lib/pdf-generator";
 import { toast } from "sonner";
 import {
@@ -67,7 +75,7 @@ export default function ProfileSettingsPage() {
   useEffect(() => {
     const fetchSavedInterviews = async () => {
       if (!session?.user) return;
-      
+
       setIsLoadingInterviews(true);
       try {
         const response = await fetch("/api/save-interview");
@@ -95,7 +103,9 @@ export default function ProfileSettingsPage() {
       if (response.ok) {
         toast.success("Interview deleted successfully");
         // Remove the deleted interview from the list
-        setSavedInterviews(prev => prev.filter(interview => interview.id !== interviewId));
+        setSavedInterviews((prev) =>
+          prev.filter((interview) => interview.id !== interviewId),
+        );
       } else {
         toast.error("Failed to delete interview");
       }
@@ -114,22 +124,25 @@ export default function ProfileSettingsPage() {
   const handleDownloadInterview = async (interview: SavedInterview) => {
     try {
       toast.loading("Generating PDF...");
-      
+
       // Parse the interview data
-      const conversationLog = typeof interview.conversationLog === 'string' 
-        ? JSON.parse(interview.conversationLog) 
-        : interview.conversationLog;
-      
-      const feedback = typeof interview.feedback === 'string'
-        ? JSON.parse(interview.feedback)
-        : interview.feedback;
-      
-      const scores = typeof interview.specificScores === 'string'
-        ? JSON.parse(interview.specificScores)
-        : interview.specificScores;
+      const conversationLog =
+        typeof interview.conversationLog === "string"
+          ? JSON.parse(interview.conversationLog)
+          : interview.conversationLog;
+
+      const feedback =
+        typeof interview.feedback === "string"
+          ? JSON.parse(interview.feedback)
+          : interview.feedback;
+
+      const scores =
+        typeof interview.specificScores === "string"
+          ? JSON.parse(interview.specificScores)
+          : interview.specificScores;
 
       // Get job title from topics array
-      const jobTitle = Array.isArray(interview.topics) 
+      const jobTitle = Array.isArray(interview.topics)
         ? interview.topics[0] || "Interview"
         : interview.topics || "Interview";
 
@@ -145,23 +158,27 @@ export default function ProfileSettingsPage() {
           userAnswer: item.userAnswer || "",
           idealAnswer: item.question?.idealAnswer || "",
           score: item.evaluation?.score || 0,
-          feedback: item.evaluation?.feedback || ""
+          feedback: item.evaluation?.feedback || "",
         })),
         finalAssessment: feedback,
         statistics: {
           totalQuestions: conversationLog.length,
           averageScore: scores.totalScore || 0,
-          percentage: scores.percentage || 0
-        }
+          percentage: scores.percentage || 0,
+        },
       };
 
       // Generate PDF with personalized filename
       const blob = await generateInterviewPDF(pdfData);
-      
+
       // Create filename: CandidateName_JobTitle_Date.pdf
-      const sanitize = (str: string) => str.replace(/[^a-z0-9]/gi, '_').replace(/_+/g, '_').substring(0, 30);
-      const fileName = `${sanitize(session?.user?.name || 'Candidate')}_${sanitize(jobTitle)}_${new Date(interview.createdAt).toISOString().split('T')[0]}.pdf`;
-      
+      const sanitize = (str: string) =>
+        str
+          .replace(/[^a-z0-9]/gi, "_")
+          .replace(/_+/g, "_")
+          .substring(0, 30);
+      const fileName = `${sanitize(session?.user?.name || "Candidate")}_${sanitize(jobTitle)}_${new Date(interview.createdAt).toISOString().split("T")[0]}.pdf`;
+
       downloadPDF(blob, fileName);
       toast.dismiss();
       toast.success("PDF downloaded successfully!");
@@ -214,7 +231,7 @@ export default function ProfileSettingsPage() {
       }
     } catch (err) {
       setError(
-        err instanceof Error ? err.message : "An unexpected error occurred"
+        err instanceof Error ? err.message : "An unexpected error occurred",
       );
     } finally {
       setIsLoading(false);
@@ -231,7 +248,7 @@ export default function ProfileSettingsPage() {
     "U";
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20">
+    <div className="min-h-screen bg-linear-to-br from-background via-background to-muted/20">
       <div className="container mx-auto p-4 md:p-8 max-w-4xl">
         {/* Header */}
         <div className="mb-8">
@@ -300,7 +317,7 @@ export default function ProfileSettingsPage() {
                   src={formData.image || undefined}
                   alt={formData.name || "User"}
                 />
-                <AvatarFallback className="text-2xl font-bold bg-gradient-to-br from-primary to-primary/60">
+                <AvatarFallback className="text-2xl font-bold bg-linear-to-br from-primary to-primary/60">
                   {initials}
                 </AvatarFallback>
               </Avatar>
@@ -457,7 +474,8 @@ export default function ProfileSettingsPage() {
                 </CardDescription>
               </div>
               <Badge variant="secondary">
-                {savedInterviews.length} {savedInterviews.length === 1 ? 'Interview' : 'Interviews'}
+                {savedInterviews.length}{" "}
+                {savedInterviews.length === 1 ? "Interview" : "Interviews"}
               </Badge>
             </div>
           </CardHeader>
@@ -469,26 +487,28 @@ export default function ProfileSettingsPage() {
             ) : savedInterviews.length === 0 ? (
               <div className="text-center py-12 border-2 border-dashed rounded-lg">
                 <FileText className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-                <h3 className="text-lg font-semibold mb-2">No saved interviews yet</h3>
+                <h3 className="text-lg font-semibold mb-2">
+                  No saved interviews yet
+                </h3>
                 <p className="text-muted-foreground mb-4">
                   Complete a mock interview and save your report to see it here
                 </p>
                 <Link href="/mock-interview">
-                  <Button>
-                    Start Mock Interview
-                  </Button>
+                  <Button>Start Mock Interview</Button>
                 </Link>
               </div>
             ) : (
               <div className="space-y-4">
                 {savedInterviews.map((interview) => {
-                  const scores = typeof interview.specificScores === 'string'
-                    ? JSON.parse(interview.specificScores)
-                    : interview.specificScores;
-                  
-                  const feedback = typeof interview.feedback === 'string'
-                    ? JSON.parse(interview.feedback)
-                    : interview.feedback;
+                  const scores =
+                    typeof interview.specificScores === "string"
+                      ? JSON.parse(interview.specificScores)
+                      : interview.specificScores;
+
+                  const feedback =
+                    typeof interview.feedback === "string"
+                      ? JSON.parse(interview.feedback)
+                      : interview.feedback;
 
                   return (
                     <div
@@ -498,44 +518,50 @@ export default function ProfileSettingsPage() {
                       <div className="flex-1">
                         <div className="flex items-center gap-3 mb-2">
                           <h4 className="font-semibold text-lg">
-                            {Array.isArray(interview.topics) 
+                            {Array.isArray(interview.topics)
                               ? interview.topics.join(", ") || "Mock Interview"
                               : interview.topics || "Mock Interview"}
                           </h4>
-                          <Badge 
+                          <Badge
                             variant={
-                              scores?.percentage >= 80 ? "default" :
-                              scores?.percentage >= 60 ? "secondary" :
-                              "outline"
+                              scores?.percentage >= 80
+                                ? "default"
+                                : scores?.percentage >= 60
+                                  ? "secondary"
+                                  : "outline"
                             }
                           >
                             {scores?.percentage || 0}% Score
                           </Badge>
                         </div>
-                        
+
                         <div className="flex items-center gap-4 text-sm text-muted-foreground">
                           <div className="flex items-center gap-1">
                             <Calendar className="h-4 w-4" />
-                            {new Date(interview.createdAt).toLocaleDateString('en-US', {
-                              year: 'numeric',
-                              month: 'short',
-                              day: 'numeric'
-                            })}
+                            {new Date(interview.createdAt).toLocaleDateString(
+                              "en-US",
+                              {
+                                year: "numeric",
+                                month: "short",
+                                day: "numeric",
+                              },
+                            )}
                           </div>
-                          
+
                           <div className="flex items-center gap-1">
                             <Clock className="h-4 w-4" />
                             {interview.duration} min
                           </div>
-                          
+
                           <div className="flex items-center gap-1">
                             <TrendingUp className="h-4 w-4" />
-                            {feedback?.overallRating || 'Assessed'}
+                            {feedback?.overallRating || "Assessed"}
                           </div>
                         </div>
 
                         <p className="text-sm text-muted-foreground mt-2 line-clamp-1">
-                          {feedback?.summary || 'Interview assessment completed'}
+                          {feedback?.summary ||
+                            "Interview assessment completed"}
                         </p>
                       </div>
 
@@ -575,15 +601,20 @@ export default function ProfileSettingsPage() {
                           </AlertDialogTrigger>
                           <AlertDialogContent>
                             <AlertDialogHeader>
-                              <AlertDialogTitle>Delete Interview?</AlertDialogTitle>
+                              <AlertDialogTitle>
+                                Delete Interview?
+                              </AlertDialogTitle>
                               <AlertDialogDescription>
-                                Are you sure you want to delete this interview report? This action cannot be undone.
+                                Are you sure you want to delete this interview
+                                report? This action cannot be undone.
                               </AlertDialogDescription>
                             </AlertDialogHeader>
                             <AlertDialogFooter>
                               <AlertDialogCancel>Cancel</AlertDialogCancel>
                               <AlertDialogAction
-                                onClick={() => handleDeleteInterview(interview.id)}
+                                onClick={() =>
+                                  handleDeleteInterview(interview.id)
+                                }
                                 className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
                               >
                                 Delete

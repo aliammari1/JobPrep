@@ -72,7 +72,10 @@ export function SwipeableResultsCard({
 
     if (dragOffset > threshold && currentIndex > 0) {
       setCurrentIndex(currentIndex - 1);
-    } else if (dragOffset < -threshold && currentIndex < interviewResults.length - 1) {
+    } else if (
+      dragOffset < -threshold &&
+      currentIndex < interviewResults.length - 1
+    ) {
       setCurrentIndex(currentIndex + 1);
     }
 
@@ -99,7 +102,10 @@ export function SwipeableResultsCard({
 
     if (dragOffset > threshold && currentIndex > 0) {
       setCurrentIndex(currentIndex - 1);
-    } else if (dragOffset < -threshold && currentIndex < interviewResults.length - 1) {
+    } else if (
+      dragOffset < -threshold &&
+      currentIndex < interviewResults.length - 1
+    ) {
       setCurrentIndex(currentIndex + 1);
     }
 
@@ -112,7 +118,8 @@ export function SwipeableResultsCard({
   };
 
   const goToNext = () => {
-    if (currentIndex < interviewResults.length - 1) setCurrentIndex(currentIndex + 1);
+    if (currentIndex < interviewResults.length - 1)
+      setCurrentIndex(currentIndex + 1);
   };
 
   const goToQuestion = (index: number) => {
@@ -125,7 +132,9 @@ export function SwipeableResultsCard({
         {/* Header */}
         <div className="flex items-center justify-between bg-white dark:bg-slate-900 p-4 rounded-t-lg">
           <div>
-            <h2 className="text-2xl font-bold text-foreground">Answer Review</h2>
+            <h2 className="text-2xl font-bold text-foreground">
+              Answer Review
+            </h2>
             <p className="text-sm text-muted-foreground">
               Question {currentIndex + 1} of {interviewResults.length}
             </p>
@@ -152,7 +161,7 @@ export function SwipeableResultsCard({
           </div>
           <div className="w-full h-2 bg-muted rounded-full overflow-hidden">
             <motion.div
-              className="h-full bg-gradient-to-r from-primary to-secondary rounded-full"
+              className="h-full bg-linear-to-r from-primary to-secondary rounded-full"
               layoutId="progress"
               animate={{ width: `${progress}%` }}
               transition={{ type: "spring", stiffness: 100, damping: 15 }}
@@ -189,10 +198,20 @@ export function SwipeableResultsCard({
               {/* Score Badge */}
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <Badge className={((currentResult?.evaluation?.score || 0) >= 7) ? "bg-green-500" : ((currentResult?.evaluation?.score || 0) >= 5) ? "bg-yellow-500" : "bg-red-500"}>
+                  <Badge
+                    className={
+                      (currentResult?.evaluation?.score || 0) >= 7
+                        ? "bg-green-500"
+                        : (currentResult?.evaluation?.score || 0) >= 5
+                          ? "bg-yellow-500"
+                          : "bg-red-500"
+                    }
+                  >
                     {currentResult?.question?.type}
                   </Badge>
-                  <span className="text-sm text-muted-foreground">⏱️ {currentResult?.timeSpent || 0}s</span>
+                  <span className="text-sm text-muted-foreground">
+                    ⏱️ {currentResult?.timeSpent || 0}s
+                  </span>
                 </div>
                 <div className="text-right">
                   <div className="text-4xl font-bold text-primary">
@@ -224,10 +243,13 @@ export function SwipeableResultsCard({
 
               {/* Ideal Answer */}
               <div className="space-y-3">
-                <h3 className="font-semibold text-foreground">✅ Ideal Answer</h3>
+                <h3 className="font-semibold text-foreground">
+                  ✅ Ideal Answer
+                </h3>
                 <div className="p-4 bg-green-50 dark:bg-green-950/30 rounded-lg border-l-4 border-green-600">
                   <p className="text-foreground leading-relaxed whitespace-pre-wrap text-sm line-clamp-6">
-                    {currentResult?.question?.idealAnswer || "Sample answer not available"}
+                    {currentResult?.question?.idealAnswer ||
+                      "Sample answer not available"}
                   </p>
                 </div>
               </div>
@@ -236,7 +258,9 @@ export function SwipeableResultsCard({
               {currentResult?.evaluation && (
                 <div className="space-y-4 pt-4 border-t border-muted">
                   <div>
-                    <h4 className="font-semibold text-foreground mb-2">💬 Feedback</h4>
+                    <h4 className="font-semibold text-foreground mb-2">
+                      💬 Feedback
+                    </h4>
                     <p className="text-sm text-foreground/80 italic">
                       {currentResult.evaluation.feedback}
                     </p>
@@ -249,12 +273,17 @@ export function SwipeableResultsCard({
                         Strengths
                       </h4>
                       <ul className="space-y-1 text-sm">
-                        {currentResult.evaluation.strengths.map((strength, idx) => (
-                          <li key={idx} className="flex items-start gap-2 text-foreground/80">
-                            <span className="text-green-600 mt-1">✓</span>
-                            <span>{strength}</span>
-                          </li>
-                        ))}
+                        {currentResult.evaluation.strengths.map(
+                          (strength, idx) => (
+                            <li
+                              key={idx}
+                              className="flex items-start gap-2 text-foreground/80"
+                            >
+                              <span className="text-green-600 mt-1">✓</span>
+                              <span>{strength}</span>
+                            </li>
+                          ),
+                        )}
                       </ul>
                     </div>
                   )}
@@ -266,12 +295,17 @@ export function SwipeableResultsCard({
                         Suggestions
                       </h4>
                       <ul className="space-y-1 text-sm">
-                        {currentResult.evaluation.suggestions.map((suggestion, idx) => (
-                          <li key={idx} className="flex items-start gap-2 text-foreground/80">
-                            <span className="text-amber-600 mt-1">💡</span>
-                            <span>{suggestion}</span>
-                          </li>
-                        ))}
+                        {currentResult.evaluation.suggestions.map(
+                          (suggestion, idx) => (
+                            <li
+                              key={idx}
+                              className="flex items-start gap-2 text-foreground/80"
+                            >
+                              <span className="text-amber-600 mt-1">💡</span>
+                              <span>{suggestion}</span>
+                            </li>
+                          ),
+                        )}
                       </ul>
                     </div>
                   )}
@@ -310,7 +344,7 @@ export function SwipeableResultsCard({
               onClick={() => goToQuestion(idx)}
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
-              className={`flex-shrink-0 py-2 px-3 rounded-lg font-medium text-sm transition-all ${
+              className={`shrink-0 py-2 px-3 rounded-lg font-medium text-sm transition-all ${
                 idx === currentIndex
                   ? "bg-primary text-primary-foreground shadow-lg"
                   : "bg-muted text-muted-foreground hover:bg-muted/80"
@@ -333,19 +367,34 @@ export function SwipeableResultsCard({
         <div className="grid grid-cols-3 gap-3 bg-white dark:bg-slate-900 p-4 rounded-lg">
           <div className="text-center">
             <div className="text-2xl font-bold text-green-600">
-              {interviewResults.filter((r) => r.evaluation && r.evaluation.score >= 7).length}
+              {
+                interviewResults.filter(
+                  (r) => r.evaluation && r.evaluation.score >= 7,
+                ).length
+              }
             </div>
             <div className="text-xs text-muted-foreground">Strong</div>
           </div>
           <div className="text-center">
             <div className="text-2xl font-bold text-yellow-600">
-              {interviewResults.filter((r) => r.evaluation && r.evaluation.score >= 5 && r.evaluation.score < 7).length}
+              {
+                interviewResults.filter(
+                  (r) =>
+                    r.evaluation &&
+                    r.evaluation.score >= 5 &&
+                    r.evaluation.score < 7,
+                ).length
+              }
             </div>
             <div className="text-xs text-muted-foreground">Average</div>
           </div>
           <div className="text-center">
             <div className="text-2xl font-bold text-red-600">
-              {interviewResults.filter((r) => r.evaluation && r.evaluation.score < 5).length}
+              {
+                interviewResults.filter(
+                  (r) => r.evaluation && r.evaluation.score < 5,
+                ).length
+              }
             </div>
             <div className="text-xs text-muted-foreground">Needs Work</div>
           </div>

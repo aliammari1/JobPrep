@@ -11,19 +11,21 @@ export interface TextSelectionPosition {
 }
 
 export function useTextSelection(containerRef: RefObject<HTMLElement | null>) {
-  const [selection, setSelection] = useState<TextSelectionPosition | null>(null);
+  const [selection, setSelection] = useState<TextSelectionPosition | null>(
+    null,
+  );
 
   useEffect(() => {
     const handleSelection = () => {
       const sel = window.getSelection();
-      
+
       if (!sel || sel.rangeCount === 0 || !containerRef.current) {
         setSelection(null);
         return;
       }
 
       const selectedText = sel.toString().trim();
-      
+
       if (!selectedText || selectedText.length === 0) {
         setSelection(null);
         return;
@@ -32,8 +34,9 @@ export function useTextSelection(containerRef: RefObject<HTMLElement | null>) {
       // Check if selection is within our container
       const range = sel.getRangeAt(0);
       const commonAncestor = range.commonAncestorContainer;
-      const isWithinContainer = 
-        containerRef.current.contains(commonAncestor as Node);
+      const isWithinContainer = containerRef.current.contains(
+        commonAncestor as Node,
+      );
 
       if (!isWithinContainer) {
         setSelection(null);

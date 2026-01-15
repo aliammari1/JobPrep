@@ -122,7 +122,7 @@ export default function PasskeysPage() {
 
   if (isPending || isLoading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20">
+      <div className="min-h-screen bg-linear-to-br from-background via-background to-muted/20">
         <div className="container mx-auto p-4 md:p-8 max-w-4xl">
           <Skeleton className="h-12 w-full mb-4" />
           <Skeleton className="h-64 w-full" />
@@ -136,7 +136,7 @@ export default function PasskeysPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20">
+    <div className="min-h-screen bg-linear-to-br from-background via-background to-muted/20">
       <div className="container mx-auto p-4 md:p-8 max-w-4xl">
         <div className="mb-8">
           <div className="flex items-center justify-between mb-4">

@@ -41,7 +41,7 @@ export async function middleware(request: NextRequest) {
 
   // Check if the current path is a public route
   const isPublicRoute = publicRoutes.some(
-    (route) => pathname === route || pathname.startsWith(`${route}/`)
+    (route) => pathname === route || pathname.startsWith(`${route}/`),
   );
 
   // Protected routes that require authentication
@@ -57,7 +57,7 @@ export async function middleware(request: NextRequest) {
   ];
 
   const isProtectedRoute = protectedRoutes.some((route) =>
-    pathname.startsWith(route)
+    pathname.startsWith(route),
   );
 
   // Get session from Better Auth
@@ -68,7 +68,7 @@ export async function middleware(request: NextRequest) {
       headers: {
         cookie: request.headers.get("cookie") || "",
       },
-    }
+    },
   );
 
   // Redirect authenticated users away from auth pages

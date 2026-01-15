@@ -71,10 +71,10 @@ export async function GET(req: NextRequest) {
 
     // Get questions created by user (if applicable)
     const questionsCount = await prisma.interviewQuestion.count({
-      where: { 
+      where: {
         template: {
-          createdBy: user.id
-        }
+          createdBy: user.id,
+        },
       },
     });
 
@@ -99,7 +99,7 @@ export async function GET(req: NextRequest) {
     console.error("Error fetching user stats:", error);
     return NextResponse.json(
       { error: "Failed to fetch user statistics" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

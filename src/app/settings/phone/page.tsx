@@ -95,7 +95,7 @@ export default function PhoneNumberPage() {
       setNewPhoneNumber("");
     } catch (err) {
       setError(
-        err instanceof Error ? err.message : "Failed to send verification code"
+        err instanceof Error ? err.message : "Failed to send verification code",
       );
     } finally {
       setIsLoading(false);
@@ -116,7 +116,7 @@ export default function PhoneNumberPage() {
       setShowVerifyDialog(true);
     } catch (err) {
       setError(
-        err instanceof Error ? err.message : "Failed to send verification code"
+        err instanceof Error ? err.message : "Failed to send verification code",
       );
     } finally {
       setIsLoading(false);
@@ -146,7 +146,7 @@ export default function PhoneNumberPage() {
       loadPhoneNumbers();
     } catch (err) {
       setError(
-        err instanceof Error ? err.message : "Failed to verify phone number"
+        err instanceof Error ? err.message : "Failed to verify phone number",
       );
     } finally {
       setIsLoading(false);
@@ -165,7 +165,7 @@ export default function PhoneNumberPage() {
       setError(
         err instanceof Error
           ? err.message
-          : "Failed to set primary phone number"
+          : "Failed to set primary phone number",
       );
     } finally {
       setIsLoading(false);
@@ -186,7 +186,7 @@ export default function PhoneNumberPage() {
       setError("Removing phone numbers is not yet implemented");
     } catch (err) {
       setError(
-        err instanceof Error ? err.message : "Failed to remove phone number"
+        err instanceof Error ? err.message : "Failed to remove phone number",
       );
     } finally {
       setIsLoading(false);
@@ -194,7 +194,7 @@ export default function PhoneNumberPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20">
+    <div className="min-h-screen bg-linear-to-br from-background via-background to-muted/20">
       <div className="container max-w-5xl mx-auto p-6 space-y-8">
         {/* Header */}
         <div className="flex items-center justify-between">

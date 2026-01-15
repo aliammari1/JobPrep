@@ -45,10 +45,9 @@ export function showOfflineToast(featureName?: string) {
  * Higher-order function to wrap async functions with offline detection
  * Shows toast if offline and prevents execution
  */
-export function withOfflineCheck<T extends (...args: unknown[]) => Promise<unknown>>(
-  fn: T,
-  featureName?: string
-): T {
+export function withOfflineCheck<
+  T extends (...args: unknown[]) => Promise<unknown>,
+>(fn: T, featureName?: string): T {
   return (async (...args: Parameters<T>) => {
     if (!navigator.onLine) {
       showOfflineToast(featureName);

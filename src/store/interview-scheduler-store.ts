@@ -171,7 +171,7 @@ export const useInterviewSchedulerStore = create<InterviewSchedulerState>()(
         updateInterview: (id, updates) =>
           set((state) => ({
             interviews: state.interviews.map((i) =>
-              i.id === id ? { ...i, ...updates } : i
+              i.id === id ? { ...i, ...updates } : i,
             ),
           })),
         deleteInterview: (id) =>
@@ -181,7 +181,8 @@ export const useInterviewSchedulerStore = create<InterviewSchedulerState>()(
         setLoading: (loading) => set({ loading }),
 
         // UI state
-        setShowNewInterviewModal: (show) => set({ showNewInterviewModal: show }),
+        setShowNewInterviewModal: (show) =>
+          set({ showNewInterviewModal: show }),
         setShowEditModal: (show) => set({ showEditModal: show }),
         setShowDeleteConfirm: (id) => set({ showDeleteConfirm: id }),
         setShowFilterModal: (show) => set({ showFilterModal: show }),
@@ -206,11 +207,13 @@ export const useInterviewSchedulerStore = create<InterviewSchedulerState>()(
 
         // Date and editing
         setSelectedDate: (date) => set({ selectedDate: date }),
-        setEditingInterview: (interview) => set({ editingInterview: interview }),
+        setEditingInterview: (interview) =>
+          set({ editingInterview: interview }),
         setNotesContent: (content) => set({ notesContent: content }),
 
         // Integration
-        setCalendarConnected: (connected) => set({ calendarConnected: connected }),
+        setCalendarConnected: (connected) =>
+          set({ calendarConnected: connected }),
 
         // Stats and notifications
         setNotifications: (notifications) => set({ notifications }),
@@ -245,7 +248,7 @@ export const useInterviewSchedulerStore = create<InterviewSchedulerState>()(
           searchQuery: state.searchQuery,
           selectedView: state.selectedView,
         }),
-      }
-    )
-  )
+      },
+    ),
+  ),
 );

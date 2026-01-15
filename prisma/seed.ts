@@ -49,7 +49,7 @@ async function main() {
   });
 
   console.log(
-    `Created users: ${adminUser.id}, ${candidateUser.id}, ${interviewerUser.id}`
+    `Created users: ${adminUser.id}, ${candidateUser.id}, ${interviewerUser.id}`,
   );
 
   // Create interview templates
@@ -192,7 +192,7 @@ async function main() {
   });
 
   console.log(
-    `Created templates: ${technicalTemplate.id}, ${behavioralTemplate.id}, ${systemDesignTemplate.id}`
+    `Created templates: ${technicalTemplate.id}, ${behavioralTemplate.id}, ${systemDesignTemplate.id}`,
   );
 
   // Create sample interviews

@@ -42,7 +42,7 @@ export function TestResultsPanel({
   isRunning = false,
 }: TestResultsPanelProps) {
   const [expandedTestIds, setExpandedTestIds] = useState<Set<string>>(
-    new Set(testResults.slice(0, 1).map((t) => t.id)) // Expand first test by default
+    new Set(testResults.slice(0, 1).map((t) => t.id)), // Expand first test by default
   );
 
   if (isRunning) {
@@ -101,8 +101,8 @@ export function TestResultsPanel({
                 successPercentage === 100
                   ? "bg-green-100 text-green-700 dark:bg-green-950 dark:text-green-400"
                   : successPercentage > 0
-                  ? "bg-yellow-100 text-yellow-700 dark:bg-yellow-950 dark:text-yellow-400"
-                  : "bg-red-100 text-red-700 dark:bg-red-950 dark:text-red-400"
+                    ? "bg-yellow-100 text-yellow-700 dark:bg-yellow-950 dark:text-yellow-400"
+                    : "bg-red-100 text-red-700 dark:bg-red-950 dark:text-red-400",
               )}
             >
               {passedTests}/{totalTests} Passed
@@ -115,12 +115,11 @@ export function TestResultsPanel({
           <div className="space-y-2">
             <div className="flex items-center justify-between text-sm">
               <span className="text-muted-foreground">Overall Progress</span>
-              <span className="font-semibold">{Math.round(successPercentage)}%</span>
+              <span className="font-semibold">
+                {Math.round(successPercentage)}%
+              </span>
             </div>
-            <Progress
-              value={successPercentage}
-              className="h-3"
-            />
+            <Progress value={successPercentage} className="h-3" />
           </div>
 
           {/* Metrics */}
@@ -139,7 +138,9 @@ export function TestResultsPanel({
                 </div>
               </div>
               <div className="text-center">
-                <div className="text-xs text-muted-foreground mb-1">Success</div>
+                <div className="text-xs text-muted-foreground mb-1">
+                  Success
+                </div>
                 <div className="font-mono font-bold text-sm text-green-600">
                   {Math.round(successPercentage)}%
                 </div>
@@ -167,7 +168,7 @@ export function TestResultsPanel({
                   "cursor-pointer transition-colors hover:bg-muted/50",
                   test.passed
                     ? "border-green-200 dark:border-green-900/30 bg-green-50/30 dark:bg-green-950/10"
-                    : "border-red-200 dark:border-red-900/30 bg-red-50/30 dark:bg-red-950/10"
+                    : "border-red-200 dark:border-red-900/30 bg-red-50/30 dark:bg-red-950/10",
                 )}
                 onClick={() => {
                   const newExpanded = new Set(expandedTestIds);
@@ -183,9 +184,9 @@ export function TestResultsPanel({
                   <div className="flex items-center justify-between gap-3">
                     <div className="flex items-center gap-3 flex-1">
                       {test.passed ? (
-                        <CheckCircle2 className="w-5 h-5 text-green-600 flex-shrink-0" />
+                        <CheckCircle2 className="w-5 h-5 text-green-600 shrink-0" />
                       ) : (
-                        <XCircle className="w-5 h-5 text-red-600 flex-shrink-0" />
+                        <XCircle className="w-5 h-5 text-red-600 shrink-0" />
                       )}
                       <div className="flex-1 min-w-0">
                         <h4 className="font-medium text-sm">
@@ -203,11 +204,7 @@ export function TestResultsPanel({
                           {test.executionTime.toFixed(1)}ms
                         </Badge>
                       )}
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className="h-6 w-6 p-0"
-                      >
+                      <Button variant="ghost" size="sm" className="h-6 w-6 p-0">
                         {expandedTestIds.has(test.id) ? (
                           <ChevronUp className="w-4 h-4" />
                         ) : (
@@ -256,7 +253,7 @@ export function TestResultsPanel({
                                 "text-xs font-semibold uppercase tracking-wide",
                                 test.passed
                                   ? "text-green-600 dark:text-green-400"
-                                  : "text-red-600 dark:text-red-400"
+                                  : "text-red-600 dark:text-red-400",
                               )}
                             >
                               Actual Output
@@ -266,7 +263,7 @@ export function TestResultsPanel({
                                 "block mt-2 p-3 rounded text-sm font-mono overflow-auto max-h-24",
                                 test.passed
                                   ? "bg-green-50 dark:bg-green-950/20 border border-green-200 dark:border-green-900/30"
-                                  : "bg-red-50 dark:bg-red-950/20 border border-red-200 dark:border-red-900/30"
+                                  : "bg-red-50 dark:bg-red-950/20 border border-red-200 dark:border-red-900/30",
                               )}
                             >
                               {test.actualOutput}
@@ -281,8 +278,8 @@ export function TestResultsPanel({
                               ⚠️ Mismatch
                             </p>
                             <p className="text-xs text-yellow-700 dark:text-yellow-300">
-                              Your output doesn't match the expected result. Check your logic
-                              and try again.
+                              Your output doesn't match the expected result.
+                              Check your logic and try again.
                             </p>
                           </div>
                         )}

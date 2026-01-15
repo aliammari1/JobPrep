@@ -21,7 +21,7 @@ interface UseCodeExecutionReturn {
   executeCode: (
     code: string,
     language: string,
-    testCases: TestCase[]
+    testCases: TestCase[],
   ) => Promise<{
     results: TestCase[];
     metrics: ExecutionMetrics;
@@ -37,7 +37,7 @@ export function useCodeExecution(): UseCodeExecutionReturn {
   const executeCode = async (
     code: string,
     language: string,
-    testCases: TestCase[]
+    testCases: TestCase[],
   ) => {
     setIsExecuting(true);
     setError(null);

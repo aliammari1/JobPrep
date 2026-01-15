@@ -107,7 +107,7 @@ export function AIInterviewBot({
       <CardHeader className="pb-4">
         <div className="flex items-center justify-between">
           <CardTitle className="flex items-center gap-2">
-            <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
+            <div className="w-10 h-10 bg-linear-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
               <Brain className="w-5 h-5 text-white" />
             </div>
             AI Interviewer
@@ -136,7 +136,7 @@ export function AIInterviewBot({
                 <Badge
                   className={cn(
                     "text-white capitalize",
-                    getDifficultyColor(currentQuestion.difficulty)
+                    getDifficultyColor(currentQuestion.difficulty),
                   )}
                 >
                   {currentQuestion.difficulty}
@@ -162,7 +162,7 @@ export function AIInterviewBot({
                   repeat: isListening ? Infinity : 0,
                   ease: "easeInOut",
                 }}
-                className="w-16 h-16 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center mx-auto"
+                className="w-16 h-16 bg-linear-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center mx-auto"
               >
                 <Brain className="w-8 h-8 text-white" />
               </motion.div>
@@ -268,7 +268,7 @@ export function AIInterviewBot({
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: -20 }}
-                  className="bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-950/10 dark:to-purple-950/10 rounded-lg p-4 border border-blue-200 dark:border-blue-800"
+                  className="bg-linear-to-r from-blue-50 to-purple-50 dark:from-blue-950/10 dark:to-purple-950/10 rounded-lg p-4 border border-blue-200 dark:border-blue-800"
                 >
                   <div className="flex items-center gap-3">
                     <motion.div

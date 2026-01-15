@@ -1,5 +1,5 @@
-import { useCallback, useEffect, useRef } from 'react';
-import { toast } from 'sonner';
+import { useCallback, useEffect, useRef } from "react";
+import { toast } from "sonner";
 
 interface SaveOptions {
   debounceMs?: number; // Debounce interval in milliseconds (default: 10000 = 10 seconds)
@@ -20,7 +20,7 @@ interface SaveOptions {
 export function useAutoSave<T>(
   data: T,
   identifier: string,
-  options: SaveOptions = {}
+  options: SaveOptions = {},
 ) {
   const {
     debounceMs = 10000, // 10 seconds
@@ -58,7 +58,10 @@ export function useAutoSave<T>(
       if (persistToLocalStorage) {
         try {
           localStorage.setItem(localStorageKey, JSON.stringify(data));
-          localStorage.setItem(`${localStorageKey}_timestamp`, new Date().toISOString());
+          localStorage.setItem(
+            `${localStorageKey}_timestamp`,
+            new Date().toISOString(),
+          );
           console.log(`✓ Saved to localStorage: ${localStorageKey}`);
         } catch (error) {
           console.warn(`Failed to save to localStorage:`, error);
@@ -77,8 +80,8 @@ export function useAutoSave<T>(
           if (onError) {
             onError(err);
           }
-          toast.error('Failed to save changes to server', {
-            description: 'Changes saved locally. Will retry when online.',
+          toast.error("Failed to save changes to server", {
+            description: "Changes saved locally. Will retry when online.",
           });
         }
       }
@@ -87,7 +90,15 @@ export function useAutoSave<T>(
     } finally {
       isSavingRef.current = false;
     }
-  }, [data, identifier, localStorageKey, persistToServer, persistToLocalStorage, onSave, onError]);
+  }, [
+    data,
+    identifier,
+    localStorageKey,
+    persistToServer,
+    persistToLocalStorage,
+    onSave,
+    onError,
+  ]);
 
   // Debounced auto-save on data change
   useEffect(() => {
@@ -163,7 +174,8 @@ export function useAutoSave<T>(
   return {
     saveNow,
     clearAutoSave,
-    hasUnsavedChanges: JSON.stringify(lastSavedRef.current) !== JSON.stringify(data),
+    hasUnsavedChanges:
+      JSON.stringify(lastSavedRef.current) !== JSON.stringify(data),
   };
 }
 

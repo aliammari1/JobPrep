@@ -75,7 +75,7 @@ export default function TwoFactorPage() {
           setSecret(secretMatch[1]);
         }
       }
-      
+
       if (backupCodes) {
         setBackupCodes(backupCodes);
       }
@@ -115,7 +115,7 @@ export default function TwoFactorPage() {
   const handleDisable2FA = async () => {
     if (
       !confirm(
-        "Are you sure you want to disable 2FA? This will make your account less secure."
+        "Are you sure you want to disable 2FA? This will make your account less secure.",
       )
     ) {
       return;
@@ -152,7 +152,7 @@ export default function TwoFactorPage() {
 
   if (isPending || isCheckingStatus) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20">
+      <div className="min-h-screen bg-linear-to-br from-background via-background to-muted/20">
         <div className="container mx-auto p-4 md:p-8 max-w-4xl">
           <Skeleton className="h-12 w-full mb-4" />
           <Skeleton className="h-64 w-full" />
@@ -166,7 +166,7 @@ export default function TwoFactorPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20">
+    <div className="min-h-screen bg-linear-to-br from-background via-background to-muted/20">
       <div className="container mx-auto p-4 md:p-8 max-w-4xl">
         <div className="mb-8">
           <div className="flex items-center justify-between mb-4">

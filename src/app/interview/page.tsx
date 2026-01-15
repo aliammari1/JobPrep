@@ -66,9 +66,8 @@ export default function InterviewPage() {
   const [step, setStep] = useState<1 | 2 | 3 | 4>(1);
   const [mode, setMode] = useState<InterviewMode>(null);
   const [type, setType] = useState<InterviewType>(null);
-  const [technicalSubtype, setTechnicalSubtype] = useState<TechnicalSubtype>(
-    null,
-  );
+  const [technicalSubtype, setTechnicalSubtype] =
+    useState<TechnicalSubtype>(null);
 
   const handleModeSelect = (selectedMode: InterviewMode) => {
     setMode(selectedMode);
@@ -141,7 +140,7 @@ export default function InterviewPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-background to-muted/20">
+    <div className="min-h-screen bg-linear-to-b from-background to-muted/20">
       <div className="container max-w-4xl mx-auto py-12 px-4">
         {/* Header */}
         <motion.div
@@ -427,9 +426,7 @@ export default function InterviewPage() {
                         </div>
                         <div className="flex items-start gap-2">
                           <span className="text-purple-600 mt-1">✓</span>
-                          <span className="text-sm">
-                            Real-world scenarios
-                          </span>
+                          <span className="text-sm">Real-world scenarios</span>
                         </div>
                         <div className="flex items-start gap-2">
                           <span className="text-purple-600 mt-1">✓</span>
@@ -461,7 +458,9 @@ export default function InterviewPage() {
                 {/* Code Challenge */}
                 <motion.div variants={itemVariants}>
                   <button
-                    onClick={() => handleTechnicalSubtypeSelect("code-challenge")}
+                    onClick={() =>
+                      handleTechnicalSubtypeSelect("code-challenge")
+                    }
                     className="w-full h-full focus:outline-none"
                   >
                     <Card className="cursor-pointer transition-all hover:shadow-lg hover:border-primary h-full border-2">
@@ -708,10 +707,7 @@ export default function InterviewPage() {
                 </Card>
 
                 {/* Action Buttons */}
-                <motion.div
-                  variants={itemVariants}
-                  className="flex gap-4 mt-8"
-                >
+                <motion.div variants={itemVariants} className="flex gap-4 mt-8">
                   <Button
                     variant="outline"
                     size="lg"
@@ -721,11 +717,7 @@ export default function InterviewPage() {
                     <ChevronLeft className="w-4 h-4 mr-2" />
                     Go Back
                   </Button>
-                  <Button
-                    size="lg"
-                    onClick={handleNavigate}
-                    className="flex-1"
-                  >
+                  <Button size="lg" onClick={handleNavigate} className="flex-1">
                     Start Interview
                     <ArrowRight className="w-4 h-4 ml-2" />
                   </Button>

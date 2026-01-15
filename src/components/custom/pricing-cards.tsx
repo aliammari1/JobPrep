@@ -12,7 +12,10 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Check, Zap, Crown } from "lucide-react";
 import { SUBSCRIPTION_PLANS } from "@/lib/subscription-plans";
-import { useCreateCheckoutSession, useSubscription } from "@/hooks/use-subscription";
+import {
+  useCreateCheckoutSession,
+  useSubscription,
+} from "@/hooks/use-subscription";
 import { cn } from "@/lib/utils";
 
 export function PricingCards() {
@@ -58,7 +61,7 @@ export function PricingCards() {
             key={plan.tier}
             className={cn(
               "relative flex flex-col",
-              plan.popular && "border-primary shadow-lg scale-105"
+              plan.popular && "border-primary shadow-lg scale-105",
             )}
           >
             {plan.popular && (
@@ -67,10 +70,7 @@ export function PricingCards() {
               </Badge>
             )}
             {plan.savings && (
-              <Badge
-                variant="secondary"
-                className="absolute -top-3 right-4"
-              >
+              <Badge variant="secondary" className="absolute -top-3 right-4">
                 {plan.savings}
               </Badge>
             )}
@@ -85,7 +85,9 @@ export function PricingCards() {
                     ${displayPrice}
                   </span>
                   {displayPrice > 0 && (
-                    <span className="text-muted-foreground">/{billingPeriod}</span>
+                    <span className="text-muted-foreground">
+                      /{billingPeriod}
+                    </span>
                   )}
                 </div>
               </CardDescription>
@@ -193,12 +195,11 @@ export function PricingCards() {
                 className="w-full"
                 variant={plan.popular ? "default" : "outline"}
                 disabled={
-                  isCurrentPlan ||
-                  isPending ||
-                  (plan.tier === "FREE" && true)
+                  isCurrentPlan || isPending || (plan.tier === "FREE" && true)
                 }
                 onClick={() => {
-                  const priceId = plan.stripePriceId.monthly || plan.stripePriceId.yearly;
+                  const priceId =
+                    plan.stripePriceId.monthly || plan.stripePriceId.yearly;
                   handleSubscribe(priceId);
                 }}
               >

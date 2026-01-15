@@ -10,26 +10,20 @@ export async function POST(request: NextRequest) {
     const session = await auth.api.getSession({
       headers: await headers(),
     });
-    
+
     if (!session?.user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     const body = await request.json();
-    const {
-      challengeId,
-      language,
-      code,
-      testResults,
-      metrics,
-      timeElapsed,
-    } = body;
+    const { challengeId, language, code, testResults, metrics, timeElapsed } =
+      body;
 
     // Validate required fields
     if (!challengeId || !language || !code) {
       return NextResponse.json(
         { error: "Missing required fields" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -43,26 +37,33 @@ export async function POST(request: NextRequest) {
         code,
         testsPassed: metrics.passedTests,
         totalTests: metrics.totalTests,
-        status: metrics.passedTests === metrics.totalTests ? "passed" : "failed",
+        status:
+          metrics.passedTests === metrics.totalTests ? "passed" : "failed",
       },
     });
 
-    return NextResponse.json({
-      id: submission.id,
-      challengeId,
-      userId: session.user.id,
-      language,
-      testResults,
-      metrics,
-      timeElapsed,
-      status: metrics.passedTests === metrics.totalTests ? "ACCEPTED" : "WRONG_ANSWER",
-      submittedAt: submission.createdAt.toISOString(),
-    }, { status: 201 });
+    return NextResponse.json(
+      {
+        id: submission.id,
+        challengeId,
+        userId: session.user.id,
+        language,
+        testResults,
+        metrics,
+        timeElapsed,
+        status:
+          metrics.passedTests === metrics.totalTests
+            ? "ACCEPTED"
+            : "WRONG_ANSWER",
+        submittedAt: submission.createdAt.toISOString(),
+      },
+      { status: 201 },
+    );
   } catch (error) {
     console.error("Error submitting solution:", error);
     return NextResponse.json(
       { error: "Failed to submit solution" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
@@ -74,7 +75,7 @@ export async function GET(request: NextRequest) {
     const session = await auth.api.getSession({
       headers: await headers(),
     });
-    
+
     if (!session?.user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
@@ -99,7 +100,7 @@ export async function GET(request: NextRequest) {
     ]);
 
     return NextResponse.json({
-      submissions: submissions.map(s => ({
+      submissions: submissions.map((s) => ({
         id: s.id,
         title: s.title,
         language: s.language,
@@ -116,7 +117,7 @@ export async function GET(request: NextRequest) {
     console.error("Error fetching submissions:", error);
     return NextResponse.json(
       { error: "Failed to fetch submissions" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

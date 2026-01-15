@@ -1,11 +1,11 @@
-import { create } from 'zustand';
-import { devtools, persist } from 'zustand/middleware';
+import { create } from "zustand";
+import { devtools, persist } from "zustand/middleware";
 
 export interface Question {
   id: string;
   text: string;
-  category: 'technical' | 'behavioral' | 'situational';
-  difficulty: 'easy' | 'medium' | 'hard';
+  category: "technical" | "behavioral" | "situational";
+  difficulty: "easy" | "medium" | "hard";
   timeLimit?: number;
   answer?: string;
   feedback?: string;
@@ -16,8 +16,8 @@ export interface MockSessionState {
   // Session Info
   sessionId: string;
   title: string;
-  type: 'behavioral' | 'technical' | 'leadership' | 'case-study';
-  difficulty: 'beginner' | 'intermediate' | 'advanced';
+  type: "behavioral" | "technical" | "leadership" | "case-study";
+  difficulty: "beginner" | "intermediate" | "advanced";
   totalDuration: number; // in minutes
 
   // Timing
@@ -62,7 +62,11 @@ export interface MockSessionState {
   setCurrentQuestionTime: (time: number) => void;
   incrementSessionTime: () => void;
   recordTranscript: (text: string) => void;
-  setFeedback: (feedback: { scores: Record<string, number>; strengths: string[]; improvements: string[] }) => void;
+  setFeedback: (feedback: {
+    scores: Record<string, number>;
+    strengths: string[];
+    improvements: string[];
+  }) => void;
   toggleRecording: () => void;
   toggleTranscript: () => void;
   setLoading: (loading: boolean) => void;
@@ -71,10 +75,10 @@ export interface MockSessionState {
 }
 
 const initialState = {
-  sessionId: '',
-  title: '',
-  type: 'technical' as const,
-  difficulty: 'beginner' as const,
+  sessionId: "",
+  title: "",
+  type: "technical" as const,
+  difficulty: "beginner" as const,
   totalDuration: 30,
   startedAt: null,
   sessionTime: 0,
@@ -94,7 +98,7 @@ const initialState = {
   overallScore: 0,
   strengths: [],
   improvements: [],
-  transcript: '',
+  transcript: "",
 };
 
 export const useMockInterviewStore = create<MockSessionState>()(
@@ -174,9 +178,9 @@ export const useMockInterviewStore = create<MockSessionState>()(
             }));
 
             // Call evaluation API
-            const response = await fetch('/api/evaluate-answer', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
+            const response = await fetch("/api/evaluate-answer", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
               body: JSON.stringify({
                 questionId,
                 answer,
@@ -184,7 +188,7 @@ export const useMockInterviewStore = create<MockSessionState>()(
               }),
             });
 
-            if (!response.ok) throw new Error('Failed to evaluate answer');
+            if (!response.ok) throw new Error("Failed to evaluate answer");
 
             const { score, feedback } = await response.json();
             set((state) => ({
@@ -195,7 +199,8 @@ export const useMockInterviewStore = create<MockSessionState>()(
             }));
           } catch (error) {
             set({
-              error: error instanceof Error ? error.message : 'Evaluation failed',
+              error:
+                error instanceof Error ? error.message : "Evaluation failed",
             });
           } finally {
             set({ isLoading: false });
@@ -214,7 +219,7 @@ export const useMockInterviewStore = create<MockSessionState>()(
 
         recordTranscript: (text) => {
           set((state) => ({
-            transcript: state.transcript + ' ' + text,
+            transcript: state.transcript + " " + text,
           }));
         },
 
@@ -259,8 +264,8 @@ export const useMockInterviewStore = create<MockSessionState>()(
         },
       }),
       {
-        name: 'mock-interview-storage',
-      }
-    )
-  )
+        name: "mock-interview-storage",
+      },
+    ),
+  ),
 );

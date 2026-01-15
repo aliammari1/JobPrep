@@ -25,8 +25,8 @@ export function FeatureCard({
     <Link href={href} className="group" prefetch>
       <Card
         className={cn(
-          "h-full p-5 transition border-muted hover:border-primary/60 hover:shadow-lg bg-gradient-to-br from-background to-muted/40",
-          className
+          "h-full p-5 transition border-muted hover:border-primary/60 hover:shadow-lg bg-linear-to-br from-background to-muted/40",
+          className,
         )}
       >
         <div className="flex items-start gap-4">

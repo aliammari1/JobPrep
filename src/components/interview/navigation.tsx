@@ -163,14 +163,14 @@ export function InterviewNavigation() {
         transition={{ type: "spring", damping: 25, stiffness: 300 }}
         className={cn(
           "fixed left-0 top-0 z-40 h-full w-80 bg-white dark:bg-gray-900 border-r shadow-lg lg:shadow-none",
-          "lg:translate-x-0 lg:static lg:z-auto"
+          "lg:translate-x-0 lg:static lg:z-auto",
         )}
       >
         <div className="flex flex-col h-full">
           {/* Header */}
           <div className="p-6 border-b">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-gradient-to-br from-blue-600 to-purple-600 rounded-lg flex items-center justify-center">
+              <div className="w-10 h-10 bg-linear-to-br from-blue-600 to-purple-600 rounded-lg flex items-center justify-center">
                 <Brain className="w-6 h-6 text-white" />
               </div>
               <div>
@@ -211,7 +211,7 @@ export function InterviewNavigation() {
                               "flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-all duration-200 group",
                               active
                                 ? "bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300 shadow-sm"
-                                : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
+                                : "text-muted-foreground hover:text-foreground hover:bg-muted/50",
                             )}
                           >
                             <Icon
@@ -219,14 +219,14 @@ export function InterviewNavigation() {
                                 "w-4 h-4 transition-colors",
                                 active
                                   ? "text-blue-600"
-                                  : "text-muted-foreground group-hover:text-foreground"
+                                  : "text-muted-foreground group-hover:text-foreground",
                               )}
                             />
                             <div className="flex-1">
                               <div
                                 className={cn(
                                   "font-medium",
-                                  active && "text-blue-700 dark:text-blue-300"
+                                  active && "text-blue-700 dark:text-blue-300",
                                 )}
                               >
                                 {item.name}
@@ -258,7 +258,7 @@ export function InterviewNavigation() {
 
           {/* Status Cards */}
           <div className="p-4 border-t space-y-3">
-            <div className="p-3 bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 border border-green-200 dark:border-green-800 rounded-lg">
+            <div className="p-3 bg-linear-to-r from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 border border-green-200 dark:border-green-800 rounded-lg">
               <div className="flex items-center gap-2 mb-1">
                 <Zap className="w-4 h-4 text-green-600" />
                 <span className="text-sm font-medium text-green-700 dark:text-green-300">
@@ -270,7 +270,7 @@ export function InterviewNavigation() {
               </div>
             </div>
 
-            <div className="p-3 bg-gradient-to-r from-blue-50 to-cyan-50 dark:from-blue-900/20 dark:to-cyan-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
+            <div className="p-3 bg-linear-to-r from-blue-50 to-cyan-50 dark:from-blue-900/20 dark:to-cyan-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
               <div className="flex items-center gap-2 mb-1">
                 <Star className="w-4 h-4 text-blue-600" />
                 <span className="text-sm font-medium text-blue-700 dark:text-blue-300">

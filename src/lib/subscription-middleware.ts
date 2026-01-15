@@ -3,7 +3,11 @@
 import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
 import prisma from "@/lib/prisma";
-import { getPlanByTier, canAccessFeature, checkLimit } from "@/lib/subscription-plans";
+import {
+  getPlanByTier,
+  canAccessFeature,
+  checkLimit,
+} from "@/lib/subscription-plans";
 import type { SubscriptionTier } from "@/generated/prisma";
 
 export async function getCurrentSubscription() {
@@ -32,12 +36,14 @@ export async function getCurrentSubscription() {
     tier: user.subscriptionTier,
     status: user.subscriptionStatus,
     currentPeriodEnd: user.currentPeriodEnd,
-    isActive: user.subscriptionStatus === "ACTIVE" || user.subscriptionStatus === "TRIALING",
+    isActive:
+      user.subscriptionStatus === "ACTIVE" ||
+      user.subscriptionStatus === "TRIALING",
   };
 }
 
 export async function hasFeatureAccess(
-  feature: string
+  feature: string,
 ): Promise<{ allowed: boolean; tier: SubscriptionTier }> {
   const subscription = await getCurrentSubscription();
 
@@ -59,7 +65,12 @@ export async function hasFeatureAccess(
 }
 
 export async function checkUsageLimit(
-  limitType: "interviews" | "aiMockSessions" | "codeChallenges" | "cvs" | "coverLetters"
+  limitType:
+    | "interviews"
+    | "aiMockSessions"
+    | "codeChallenges"
+    | "cvs"
+    | "coverLetters",
 ): Promise<{
   allowed: boolean;
   limit: number;
@@ -138,7 +149,12 @@ export async function requireFeatureAccess(feature: string): Promise<void> {
 }
 
 export async function requireUsageLimit(
-  limitType: "interviews" | "aiMockSessions" | "codeChallenges" | "cvs" | "coverLetters"
+  limitType:
+    | "interviews"
+    | "aiMockSessions"
+    | "codeChallenges"
+    | "cvs"
+    | "coverLetters",
 ): Promise<void> {
   const { allowed, remaining } = await checkUsageLimit(limitType);
 
@@ -146,7 +162,7 @@ export async function requireUsageLimit(
     throw new Error(
       `You have reached your ${limitType} limit. ${
         remaining === 0 ? "Upgrade to continue." : ""
-      }`
+      }`,
     );
   }
 }

@@ -24,7 +24,11 @@ function BillingPageContent({ children }: { children: React.ReactNode }) {
   return <>{children}</>;
 }
 
-export function BillingPageWrapper({ children }: { children: React.ReactNode }) {
+export function BillingPageWrapper({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   return (
     <Suspense fallback={<div>{children}</div>}>
       <BillingPageContent>{children}</BillingPageContent>

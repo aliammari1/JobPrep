@@ -116,7 +116,7 @@ export function CodeChallengeArena({
     actual: string;
   }> | null>(null);
   const [timeRemaining, setTimeRemaining] = useState(
-    challenge?.timeLimit || 3600
+    challenge?.timeLimit || 3600,
   );
   const [isTimerRunning, setIsTimerRunning] = useState(false);
 
@@ -226,7 +226,7 @@ export function CodeChallengeArena({
             <Badge
               className={cn(
                 "font-medium",
-                getDifficultyColor(challenge.difficulty)
+                getDifficultyColor(challenge.difficulty),
               )}
             >
               {challenge.difficulty.toUpperCase()}
@@ -397,13 +397,13 @@ export function CodeChallengeArena({
                         "flex items-center gap-2 p-2 rounded text-xs",
                         result.passed
                           ? "bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-300"
-                          : "bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-300"
+                          : "bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-300",
                       )}
                     >
                       <CheckCircle2
                         className={cn(
                           "w-4 h-4",
-                          result.passed ? "text-green-600" : "text-red-600"
+                          result.passed ? "text-green-600" : "text-red-600",
                         )}
                       />
                       <span>
