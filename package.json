@@ -147,7 +147,7 @@
     "@biomejs/biome": "2.3.11",
     "@tailwindcss/postcss": "^4.1.18",
     "@types/dom-speech-recognition": "^0.0.7",
-    "@types/node": "^20.19.29",
+    "@types/node": "^24.0.0",
     "@types/qrcode": "^1.5.6",
     "@types/react": "^19.2.8",
     "@types/react-dom": "^19.2.3",
