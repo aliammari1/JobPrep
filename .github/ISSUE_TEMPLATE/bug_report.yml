@@ -1,0 +1,162 @@
+name: 🐛 Bug Report
+description: Report a bug or issue with JobPrep AI
+title: "[Bug]: "
+labels: ["bug", "needs-triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to report a bug! Please fill out the information below to help us resolve the issue.
+
+  - type: textarea
+    id: description
+    attributes:
+      label: Description
+      description: A clear and concise description of what the bug is.
+      placeholder: When I try to..., the application...
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to Reproduce
+      description: Steps to reproduce the behavior
+      placeholder: |
+        1. Go to '...'
+        2. Click on '...'
+        3. Scroll down to '...'
+        4. See error
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected Behavior
+      description: What did you expect to happen?
+      placeholder: I expected the application to...
+    validations:
+      required: true
+
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual Behavior
+      description: What actually happened?
+      placeholder: Instead, the application...
+    validations:
+      required: true
+
+  - type: textarea
+    id: screenshots
+    attributes:
+      label: Screenshots / Videos
+      description: If applicable, add screenshots or videos to help explain your problem
+      placeholder: Drag and drop images here or paste image URLs
+
+  - type: dropdown
+    id: area
+    attributes:
+      label: Affected Area
+      description: Which part of the application is affected?
+      options:
+        - Mock Interviews
+        - CV Builder
+        - Code Challenges
+        - Cover Letter Generator
+        - Authentication / Login
+        - Dashboard / Analytics
+        - Settings / Profile
+        - Chrome Extension
+        - API / Backend
+        - Database
+        - Other
+    validations:
+      required: true
+
+  - type: dropdown
+    id: severity
+    attributes:
+      label: Severity
+      description: How severe is this bug?
+      options:
+        - Critical (Application crashes or data loss)
+        - High (Major feature broken)
+        - Medium (Feature partially broken)
+        - Low (Minor issue or cosmetic)
+    validations:
+      required: true
+
+  - type: input
+    id: version
+    attributes:
+      label: Version
+      description: What version of JobPrep AI are you using?
+      placeholder: e.g., 1.0.0, main branch, commit hash
+    validations:
+      required: false
+
+  - type: dropdown
+    id: browser
+    attributes:
+      label: Browser
+      description: Which browser are you using?
+      options:
+        - Chrome
+        - Firefox
+        - Safari
+        - Edge
+        - Brave
+        - Other
+      multiple: true
+    validations:
+      required: false
+
+  - type: input
+    id: os
+    attributes:
+      label: Operating System
+      description: What OS are you using?
+      placeholder: e.g., Windows 11, macOS 14, Ubuntu 22.04
+    validations:
+      required: false
+
+  - type: input
+    id: node
+    attributes:
+      label: Node.js Version
+      description: What version of Node.js? (run `node --version`)
+      placeholder: e.g., v20.11.0
+    validations:
+      required: false
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Error Messages / Logs
+      description: Include any error messages or relevant logs
+      render: shell
+      placeholder: |
+        Error: Failed to generate interview questions
+        at generateQuestions (src/lib/ai/gemini.ts:45)
+
+  - type: textarea
+    id: additional
+    attributes:
+      label: Additional Context
+      description: Add any other context about the problem
+      placeholder: This started happening after...
+
+  - type: checkboxes
+    id: checklist
+    attributes:
+      label: Checklist
+      description: Please confirm the following
+      options:
+        - label: I have searched existing issues to avoid duplicates
+          required: true
+        - label: I have read the [Contributing Guidelines](https://github.com/aliammari1/JobPrep/blob/main/CONTRIBUTING.md)
+          required: true
+        - label: This is not a security vulnerability (use [Security Advisories](https://github.com/aliammari1/JobPrep/security/advisories/new) instead)
+          required: true
