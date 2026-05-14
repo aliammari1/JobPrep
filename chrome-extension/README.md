@@ -191,7 +191,7 @@ chrome-extension/
 ### "Failed to Send Data" Error
 
 **Solutions:**
-1. Make sure JobPrep is running: `npm run dev`
+1. Make sure JobPrep is running: `bun run dev`
 2. Check the URL is correct (default: `http://localhost:3000`)
 3. Verify CORS is enabled for localhost in JobPrep backend
 4. Check browser console for network errors
