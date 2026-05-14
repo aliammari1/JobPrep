@@ -135,7 +135,7 @@
       "devDependencies": {
         "@biomejs/biome": "2.3.11",
         "@tailwindcss/postcss": "^4.1.18",
-        "@types/dom-speech-recognition": "^0.0.7",
+        "@types/dom-speech-recognition": "^0.0.11",
         "@types/node": "^20.19.29",
         "@types/qrcode": "^1.5.6",
         "@types/react": "^19.2.8",
@@ -1057,7 +1057,7 @@
 
     "@types/dom-mediacapture-record": ["@types/dom-mediacapture-record@1.0.22", "", {}, "sha512-mUMZLK3NvwRLcAAT9qmcK+9p7tpU2FHdDsntR3YI4+GY88XrgG4XiE7u1Q2LAN2/FZOz/tdMDC3GQCR4T8nFuw=="],
 
-    "@types/dom-speech-recognition": ["@types/dom-speech-recognition@0.0.7", "", {}, "sha512-NjiUoJbBlKhyufNsMZLSp+pbPNtPAFnR738RCJvtZy/HVQ2TZjmqpMyaeOSMXgxdfZM60nt8QGbtfmQrJAH2sw=="],
+    "@types/dom-speech-recognition": ["@types/dom-speech-recognition@0.0.11", "", {}, "sha512-PyLFPLM9F5D+qEmkNLX/ZC3uiEV/2B/UhZA9uhWkFVOxUyDVj+UBKI2pF1dnhKhliOiIoR1d/QsOZQfOtQPE3A=="],
 
     "@types/eslint": ["@types/eslint@9.6.1", "", { "dependencies": { "@types/estree": "*", "@types/json-schema": "*" } }, "sha512-FXx2pKgId/WyYo2jXw63kk7/+TY7u7AziEJxJAnSFzHlqTAS3Ync6SvgYAN/k4/PQpnnVuzoMuVnByKK2qp0ag=="],
 
