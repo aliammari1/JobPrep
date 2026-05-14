@@ -9,3 +9,6 @@ contact_links:
   - name: 🔒 Security Vulnerability
     url: https://github.com/aliammari1/JobPrep/security/advisories/new
     about: Report a security vulnerability (private)
+  - name: 💼 Commercial Licensing
+    url: mailto:ammari.ali.0001@gmail.com?subject=Commercial%20License%20Request%20%E2%80%94%20JobPrep%20AI
+    about: Contact for commercial use licensing

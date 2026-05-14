@@ -10,7 +10,7 @@
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.0-blue?style=for-the-badge&logo=typescript)](https://www.typescriptlang.org/)
 [![Prisma](https://img.shields.io/badge/Prisma-6.17-2D3748?style=for-the-badge&logo=prisma)](https://www.prisma.io/)
 [![Tailwind](https://img.shields.io/badge/Tailwind-4.0-38B2AC?style=for-the-badge&logo=tailwind-css)](https://tailwindcss.com/)
-[![License](https://img.shields.io/badge/License-MIT-green?style=for-the-badge)](LICENSE)
+[![License](https://img.shields.io/badge/License-Source--Available-orange?style=for-the-badge)](LICENSE.md)
 
 [![React](https://img.shields.io/badge/React-19.1-61DAFB?style=for-the-badge&logo=react&logoColor=black)](https://react.dev/)
 [![LiveKit](https://img.shields.io/badge/LiveKit-WebRTC-00A86B?style=for-the-badge)](https://livekit.io/)
@@ -181,7 +181,7 @@ git clone https://github.com/aliammari1/JobPrep.git
 cd JobPrep
 
 # Install dependencies
-npm install
+bun install
 
 # Set up environment variables
 cp .env.example .env
@@ -192,7 +192,7 @@ npx prisma generate
 npx prisma db push
 
 # Run development server
-npm run dev
+bun run dev
 ```
 
 Visit `http://localhost:3000` 🎉
@@ -353,17 +353,13 @@ model Subscription {
 
 <div align="center">
 
-### 🏠 Dashboard
-![Dashboard](https://via.placeholder.com/800x450/1a1a2e/ffffff?text=Smart+Analytics+Dashboard)
+### 🖥️ Desktop Experience
+![Desktop](docs/screenshots/desktop.png)
+*Full desktop dashboard experience*
 
-### 🎤 AI Mock Interview
-![Interview](https://via.placeholder.com/800x450/16213e/ffffff?text=Real-time+AI+Interview)
-
-### 📄 CV Builder
-![CV Builder](https://via.placeholder.com/800x450/0f3460/ffffff?text=Professional+CV+Builder)
-
-### 💻 Code Challenges
-![Code Challenge](https://via.placeholder.com/800x450/533483/ffffff?text=Multi-language+Code+Arena)
+### 📱 Mobile Experience
+![Mobile](docs/screenshots/mobile.png)
+*Responsive mobile interface*
 
 </div>
 
@@ -441,9 +437,14 @@ git push origin feature/amazing-feature
 
 ## 📄 License
 
-MIT License - see [LICENSE](LICENSE) for details.
+This project is licensed under the [Source-Available License 1.0](LICENSE.md).
 
-Copyright (c) 2024-2025 Ali Ammari
+- **Free for**: Personal use, education, research, non-profits, and security research
+- **Commercial use**: Requires a Commercial License. Contact [ammari.ali.0001@gmail.com](mailto:ammari.ali.0001@gmail.com)
+
+This is a source-available license. It is NOT an Open Source Initiative (OSI) approved open-source license.
+
+Copyright (c) 2026 Ali Ammari
 
 ---
 
