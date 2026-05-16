@@ -112,7 +112,7 @@
     "prisma": "^6.19.2",
     "qrcode": "^1.5.4",
     "quill": "^2.0.3",
-    "react": "19.2.3",
+    "react": "19.2.6",
     "react-big-calendar": "^1.19.4",
     "react-day-picker": "^9.13.0",
     "react-dom": "^19.2.3",
