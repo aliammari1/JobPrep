@@ -66,6 +66,18 @@ bun run dev                   # → http://localhost:3000
 The only required vars are `DATABASE_URL` + `BETTER_AUTH_SECRET`; everything else
 (AI, video, billing) is optional and feature-gated.
 
+### 🧱 Use it as a starter
+
+JobPrep is a **GitHub [template repository](https://docs.github.com/repositories/creating-and-managing-repositories/creating-a-repository-from-a-template)** —
+hit **Use this template** to spin up your own multi-LLM interview-prep app (or
+any BYOK AI product) with auth, billing, Prisma, rate-limiting and observability
+already wired. Then deploy your own copy:
+
+[![Deploy to Cloudflare](https://img.shields.io/badge/Deploy_your_own-Cloudflare-F38020?style=for-the-badge&logo=cloudflare&logoColor=white)](https://deploy.workers.cloudflare.com/?url=https://github.com/aliammari1/JobPrep)
+
+The web app runs on Cloudflare Workers/Pages (see [`docs/DEPLOYMENT.md`](docs/DEPLOYMENT.md));
+the long-running LiveKit avatar agent runs on a container next to LiveKit Cloud.
+
 ---
 
 ## 🎯 What's inside
