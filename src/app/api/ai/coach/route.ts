@@ -6,6 +6,7 @@ import {
   isKnownModel,
   resolveModel,
 } from "@/lib/ai/providers";
+import { rateLimit, rateLimitResponse } from "@/lib/rate-limit";
 
 export const maxDuration = 60;
 
@@ -50,6 +51,10 @@ export const maxDuration = 60;
  * in-product model picker.
  */
 export async function POST(req: Request) {
+  // Throttle the paid AI fan-out (no-op unless Upstash Redis is configured).
+  const limit = await rateLimit(req, "ai");
+  if (!limit.success) return rateLimitResponse(limit);
+
   let body: unknown;
   try {
     body = await req.json();
@@ -80,6 +85,14 @@ export async function POST(req: Request) {
       model: resolveModel(modelId),
       system: COACH_SYSTEM_PROMPT,
       messages: parsed.data.messages as ModelMessage[],
+      // Emit OpenTelemetry GenAI spans (token usage, latency, cost) when an
+      // OTel exporter is wired via instrumentation.ts. Off in dev to keep noise
+      // down; on in production where a collector/Sentry is configured.
+      experimental_telemetry: {
+        isEnabled: process.env.NODE_ENV === "production",
+        functionId: "ai-coach",
+        metadata: { model: modelId },
+      },
     });
 
     return result.toTextStreamResponse();
