@@ -41,6 +41,9 @@ yarn-error.log*
 # vercel
 .vercel
 
+# generated OpenAPI spec (produced by `bun run openapi:generate`)
+/openapi.json
+
 # typescript
 *.tsbuildinfo
 next-env.d.ts
