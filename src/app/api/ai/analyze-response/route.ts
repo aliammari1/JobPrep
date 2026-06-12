@@ -1,6 +1,7 @@
 import { createOpenAICompatible } from "@ai-sdk/openai-compatible";
 import { streamText } from "ai";
 import { NextResponse } from "next/server";
+import { rateLimit, rateLimitResponse } from "@/lib/rate-limit";
 
 export const maxDuration = 60;
 
@@ -13,6 +14,9 @@ const ollama = createOpenAICompatible({
 
 export async function POST(req: Request) {
   try {
+    const limit = await rateLimit(req, "ai");
+    if (!limit.success) return rateLimitResponse(limit);
+
     const { question, answer, context } = await req.json();
 
     if (!question || !answer) {

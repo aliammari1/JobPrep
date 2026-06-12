@@ -1,44 +1,118 @@
 <div align="center">
 
-<img src="https://capsule-render.vercel.app/api?type=waving&color=gradient&customColorList=6,11,20&height=150&section=header&text=JobPrep%20AI&fontSize=50&fontColor=fff&animation=fadeIn&fontAlignY=38" width="100%">
+<img src="assets/banner.svg" alt="JobPrep — open-source AI interview-prep platform" width="100%">
 
-# 🚀 JobPrep AI
+# JobPrep
 
-### *Your AI-Powered Career Companion for Interview Success*
+### The open-source AI interview-prep platform — multi-LLM mock interviews, **BYOK, self-host, no subscription**
 
-[![Next.js](https://img.shields.io/badge/Next.js-15.5-black?style=for-the-badge&logo=next.js)](https://nextjs.org/)
-[![TypeScript](https://img.shields.io/badge/TypeScript-5.0-blue?style=for-the-badge&logo=typescript)](https://www.typescriptlang.org/)
-[![Prisma](https://img.shields.io/badge/Prisma-6.17-2D3748?style=for-the-badge&logo=prisma)](https://www.prisma.io/)
-[![Tailwind](https://img.shields.io/badge/Tailwind-4.0-38B2AC?style=for-the-badge&logo=tailwind-css)](https://tailwindcss.com/)
-[![License](https://img.shields.io/badge/License-Source--Available-orange?style=for-the-badge)](LICENSE.md)
+**A free, self-hostable alternative to Final Round AI, Interview Coder & Pramp.**
+Bring your own API key (Claude / GPT / Gemini) or run **100% local & offline** with Ollama. Your data stays yours.
 
-[![React](https://img.shields.io/badge/React-19.1-61DAFB?style=for-the-badge&logo=react&logoColor=black)](https://react.dev/)
-[![LiveKit](https://img.shields.io/badge/LiveKit-WebRTC-00A86B?style=for-the-badge)](https://livekit.io/)
-[![Stripe](https://img.shields.io/badge/Stripe-Payments-008CDD?style=for-the-badge&logo=stripe&logoColor=white)](https://stripe.com/)
-[![Vercel](https://img.shields.io/badge/Vercel-Deployed-000000?style=for-the-badge&logo=vercel)](https://vercel.com/)
+[![Try it (BYOK)](https://img.shields.io/badge/▶_Try_it_live_(BYOK)-6C2BD9?style=for-the-badge&logo=cloudflare&logoColor=white)](https://jobprep.pages.dev)
+&nbsp;
+[![Deploy to Cloudflare](https://img.shields.io/badge/Deploy_your_own-Cloudflare-F38020?style=for-the-badge&logo=cloudflare&logoColor=white)](https://deploy.workers.cloudflare.com/?url=https://github.com/aliammari1/JobPrep)
+&nbsp;
+[![⭐ Star this repo](https://img.shields.io/github/stars/aliammari1/JobPrep?style=for-the-badge&label=%E2%AD%90%20Star&color=F9A825)](https://github.com/aliammari1/JobPrep)
 
-[🎯 Live Demo](https://jobprep.aliammari.dev) • [📚 Documentation](https://docs.jobprep.ai) • [🐛 Report Bug](https://github.com/aliammari1/JobPrep/issues) • [💡 Request Feature](https://github.com/aliammari1/JobPrep/issues)
-
----
-
-### ✨ **Land Your Dream Job with AI-Powered Interview Preparation**
-
-JobPrep is a comprehensive, next-generation platform that combines cutting-edge AI technology with practical career tools to help you ace interviews, build stunning CVs, master coding challenges, and stand out in the competitive job market.
+[![CI](https://github.com/aliammari1/JobPrep/actions/workflows/ci.yml/badge.svg)](https://github.com/aliammari1/JobPrep/actions/workflows/ci.yml)
+[![CodeQL](https://github.com/aliammari1/JobPrep/actions/workflows/codeql.yml/badge.svg)](https://github.com/aliammari1/JobPrep/actions/workflows/codeql.yml)
+[![OpenSSF Scorecard](https://api.securityscorecards.dev/projects/github.com/aliammari1/JobPrep/badge)](https://securityscorecards.dev/viewer/?uri=github.com/aliammari1/JobPrep)
+[![Next.js 15](https://img.shields.io/badge/Next.js-15-black?logo=next.js)](https://nextjs.org/)
+[![React 19](https://img.shields.io/badge/React-19-61DAFB?logo=react&logoColor=black)](https://react.dev/)
+[![License: Source-Available](https://img.shields.io/badge/License-Source--Available--1.0-orange)](LICENSE.md)
 
 </div>
 
+> **▶ 60-second demo** — _GIF coming soon_ (see [`BANNER.md`](BANNER.md) for the recording brief).
+> <br><img src="docs/screenshots/desktop.png" alt="JobPrep desktop" width="70%">
+
 ---
 
-## 🎯 Key Highlights
+## Why JobPrep vs. paid interview-prep tools
 
-- 🤖 **Multi-AI Intelligence** - Powered by Google Gemini, OpenAI GPT-4, Claude & Ollama
-- 🎥 **Real-Time Video Interviews** - LiveKit-powered immersive practice with AI feedback
-- 📄 **Professional CV Builder** - ATS-friendly templates with LinkedIn import
-- 💻 **Code Challenge Arena** - Practice coding in 15+ languages with instant feedback
-- ✍️ **AI Cover Letters** - Generate tailored cover letters in seconds
-- 🎤 **Voice & Emotion Analysis** - MediaPipe-powered body language insights
-- 📊 **Smart Analytics** - Track progress, identify weak areas, improve systematically
-- 🔐 **Secure & Modern** - Passkey authentication, 2FA, enterprise-grade security
+Most interview-prep tools lock you into one AI vendor, charge a monthly subscription, and keep your practice data on their servers. JobPrep flips all three.
+
+| | **JobPrep** | Final Round AI / Interview Coder / Pramp |
+| --- | :---: | :---: |
+| **Price** | **$0** — self-host / BYOK | ~$96–$149 / month |
+| **AI models** | **Claude · GPT · Gemini · Ollama** (swap per request) | Single vendor, fixed |
+| **API keys** | **Bring your own** (or run local) | Vendor-controlled |
+| **Self-host** | ✅ Cloudflare / Docker / your box | ❌ |
+| **Run offline / local** | ✅ Ollama, fully private | ❌ |
+| **Source code** | ✅ Source-available, auditable | ❌ Closed |
+| **Your data** | ✅ Stays in your own DB | ❌ On their servers |
+| **Mock interviews** | ✅ Live video (LiveKit) + AI feedback | ✅ |
+| **CV builder + coding arena** | ✅ Included | Partial / extra |
+
+> **The pitch in one line:** the practice quality of a $149/mo product, for **$0**, with **your** keys and **your** data.
+
+---
+
+## ⚡ Try it in minutes (BYOK)
+
+No vendor account, no subscription — just your own API key (or none, with local Ollama):
+
+```bash
+git clone https://github.com/aliammari1/JobPrep.git && cd JobPrep
+bun install
+cp .env.example .env          # add ONE key: ANTHROPIC_API_KEY=... (or OPENAI / GEMINI)
+bun run prisma:generate && bun run prisma:migrate
+bun run dev                   # → http://localhost:3000
+```
+
+**Zero API keys?** Set `AI_COACH_DEFAULT_MODEL=ollama:llama3.2` and run a local
+[Ollama](https://ollama.com) — JobPrep then runs **fully offline and private**.
+The only required vars are `DATABASE_URL` + `BETTER_AUTH_SECRET`; everything else
+(AI, video, billing) is optional and feature-gated.
+
+### 🧱 Use it as a starter
+
+JobPrep is a **GitHub [template repository](https://docs.github.com/repositories/creating-and-managing-repositories/creating-a-repository-from-a-template)** —
+hit **Use this template** to spin up your own multi-LLM interview-prep app (or
+any BYOK AI product) with auth, billing, Prisma, rate-limiting and observability
+already wired. Then deploy your own copy:
+
+[![Deploy to Cloudflare](https://img.shields.io/badge/Deploy_your_own-Cloudflare-F38020?style=for-the-badge&logo=cloudflare&logoColor=white)](https://deploy.workers.cloudflare.com/?url=https://github.com/aliammari1/JobPrep)
+
+The web app runs on Cloudflare Workers/Pages (see [`docs/DEPLOYMENT.md`](docs/DEPLOYMENT.md));
+the long-running LiveKit avatar agent runs on a container next to LiveKit Cloud.
+
+---
+
+## 🎯 What's inside
+
+- 🤖 **Multi-LLM AI coach** — Claude, GPT-4, Gemini, or local Ollama, switchable per request (BYOK)
+- 🎥 **Live video mock interviews** — LiveKit WebRTC + AI feedback on answers, tone & body language
+- 📄 **ATS-friendly CV builder** — 3 templates, LinkedIn import (Chrome extension), multi-format export
+- 💻 **Coding arena** — practice in 15+ languages with instant evaluation
+- ✍️ **AI cover letters** tailored to a job description
+- 📊 **Progress analytics** + 🔐 **passkey auth & 2FA**
+
+---
+
+## 🤔 Provider-agnostic AI (how BYOK works)
+
+The **AI Coach** resolves a model at request time from a single
+`<provider>:<model>` id, so you switch between **Claude, GPT, Gemini, or a
+self-hosted Ollama** model — including fully local/offline — without touching any
+feature code.
+
+| Want… | Pick |
+| --- | --- |
+| Fast & cheap (default) | `anthropic:claude-haiku-4-5` |
+| Highest quality | `anthropic:claude-sonnet-4-5` / `openai:gpt-4o` |
+| Free/local & private | `ollama:llama3.2` |
+
+```bash
+# Stream a coaching reply (omit "model" to use the default)
+curl -N -X POST http://localhost:3000/api/ai/coach \
+  -H 'content-type: application/json' \
+  -d '{"messages":[{"role":"user","content":"STAR-review my answer"}],"model":"anthropic:claude-haiku-4-5"}'
+```
+
+List available models at `GET /api/ai/models`. Adding a new provider is a
+three-line change in `src/lib/ai/providers.ts`.
 
 ---
 
@@ -164,77 +238,15 @@ One-click LinkedIn CV import - automatically extracts work experience, education
 
 ## 🚀 Quick Start
 
-### Prerequisites
+See [**⚡ Try it in minutes (BYOK)**](#-try-it-in-minutes-byok) above for the
+2-minute path. **Prerequisites:** Bun 1.x (this repo is Bun, not npm/pnpm),
+PostgreSQL 14+, Git. Optional: [uv](https://docs.astral.sh/uv/) for the Python
+avatar agent in `functions/`.
 
-```bash
-Node.js 20+
-PostgreSQL 14+
-npm or pnpm
-Git
-```
-
-### Installation
-
-```bash
-# Clone repository
-git clone https://github.com/aliammari1/JobPrep.git
-cd JobPrep
-
-# Install dependencies
-bun install
-
-# Set up environment variables
-cp .env.example .env
-# Edit .env with your API keys
-
-# Set up database
-npx prisma generate
-npx prisma db push
-
-# Run development server
-bun run dev
-```
-
-Visit `http://localhost:3000` 🎉
-
-### Environment Variables
-
-```bash
-# Database
-DATABASE_URL="postgresql://user:password@localhost:5432/jobprep"
-
-# AI APIs
-GOOGLE_GENERATIVE_AI_API_KEY="your_gemini_key"
-OPENAI_API_KEY="your_openai_key"
-ANTHROPIC_API_KEY="your_claude_key"
-
-# Authentication
-BETTER_AUTH_SECRET="your_secret_key"
-BETTER_AUTH_URL="http://localhost:3000"
-
-# LiveKit (Video)
-LIVEKIT_API_KEY="your_livekit_key"
-LIVEKIT_API_SECRET="your_livekit_secret"
-LIVEKIT_URL="wss://your-project.livekit.cloud"
-
-# Stripe Payments
-STRIPE_SECRET_KEY="your_stripe_secret"
-STRIPE_WEBHOOK_SECRET="your_webhook_secret"
-
-# Storage
-APPWRITE_ENDPOINT="your_appwrite_endpoint"
-APPWRITE_PROJECT_ID="your_project_id"
-CLOUDINARY_URL="cloudinary://key:secret@cloud_name"
-
-# Email
-SMTP_HOST="smtp.gmail.com"
-SMTP_USER="your_email@gmail.com"
-SMTP_PASS="your_app_password"
-
-# Google Calendar
-GOOGLE_CLIENT_ID="your_google_client_id"
-GOOGLE_CLIENT_SECRET="your_google_client_secret"
-```
+**Environment variables:** the canonical, commented list lives in
+[`.env.example`](.env.example). Only `DATABASE_URL` + `BETTER_AUTH_SECRET` are
+required; AI providers (BYOK), LiveKit video, Stripe billing, Upstash
+rate-limiting and Sentry are all optional and feature-gated.
 
 ---
 
@@ -367,14 +379,70 @@ model Subscription {
 
 ## 🔐 Security
 
-- 🔒 **Modern Authentication** - Better Auth with passkeys & 2FA
-- 🛡️ **HTTPS Only** - Automatic SSL via Vercel
-- 🔑 **API Key Encryption** - AES-256 encrypted storage
-- 🚫 **Rate Limiting** - DDoS & brute force protection
-- ✅ **SQL Injection Safe** - Prisma parameterized queries
-- 🧹 **XSS Protection** - React automatic HTML sanitization
-- 🎫 **CSRF Tokens** - Built-in cross-site attack prevention
-- 📋 **Security Headers** - CSP, HSTS, X-Frame-Options
+- 🔒 **Modern auth** — Better Auth with passkeys & 2FA
+- 🚫 **Rate limiting** — Upstash sliding-window limits on the AI + LiveKit endpoints (`src/lib/rate-limit.ts`)
+- 🧰 **Typed env** — boot-time validation via `@t3-oss/env-nextjs` + Zod (`src/env.ts`)
+- 📋 **Security headers / CSP** — HSTS, X-Frame-Options, `script-src` without `unsafe-eval` in prod (`next.config.mjs`)
+- 💳 **Idempotent Stripe webhooks** — duplicate-delivery ledger so retries are safe
+- 📈 **Observability** — Sentry + OpenTelemetry, with AI-SDK telemetry (token/cost) — all no-ops unless configured
+- ✅ **SQL-injection safe** (Prisma) · **XSS** (React) · **CSRF** (built-in)
+- 🔎 **Automated scanning** — CodeQL, gitleaks, Trivy, dependency-review + OpenSSF Scorecard in CI
+
+---
+
+## 📖 API Reference
+
+- **Interactive (Scalar):** run the app and open [`/api-docs`](/api-docs).
+- **OpenAPI document:** [`/api/openapi`](/api/openapi) (also generated to
+  `openapi.json` via `bun run openapi:generate`).
+- New endpoints are documented by adding a `@swagger` JSDoc block above the route
+  handler — `next-swagger-doc` picks them up automatically.
+
+---
+
+## ☁️ Deploy to Cloudflare
+
+[![Deploy to Cloudflare](https://deploy.workers.cloudflare.com/button)](https://deploy.workers.cloudflare.com/?url=https://github.com/aliammari1/JobPrep)
+
+The Next.js app deploys to **Cloudflare** via `@opennextjs/cloudflare`, with
+PostgreSQL reached through **Hyperdrive**. Config lives in `wrangler.jsonc` +
+`open-next.config.ts`; deployment is gated behind a manual workflow.
+
+```bash
+bun add -D @opennextjs/cloudflare
+bunx @opennextjs/cloudflare build
+bunx wrangler deploy
+```
+
+> ⚠️ **Two-part deploy.** The Python **LiveKit/Simli avatar agent** (`functions/`)
+> is a long-running WebRTC process — it **cannot** run on Cloudflare Workers. The
+> web app runs on Cloudflare; the agent runs on a container next to **LiveKit
+> Cloud** (free Build tier). Full host comparison (LiveKit Cloud agents, Railway,
+> Render, Fly.io, Koyeb — researched for 2026) is in
+> [`docs/DEPLOYMENT.md`](docs/DEPLOYMENT.md).
+
+**More docs:** [Deployment](docs/DEPLOYMENT.md) ·
+[Architecture](docs/ARCHITECTURE.md) ·
+[Chrome Web Store publishing](docs/CHROME_WEB_STORE.md) ·
+[Banner / social preview](BANNER.md) ·
+[Launch checklist](docs/TRENDING.md)
+
+---
+
+## 🧭 Engineering Decisions
+
+- **Bun + Biome (no ESLint/Prettier).** One fast toolchain for install, lint, and
+  format; `biome ci` runs in CI with a blocking format check.
+- **Source-Available license kept** (SPDX `LicenseRef-Source-Available-1.0`) —
+  JobPrep is a commercial product, not a permissive OSS sample.
+- **Provider-agnostic AI** on the Vercel AI SDK with a model registry, rather than
+  hard-wiring one vendor — enables Claude/GPT/Gemini/Ollama and offline use.
+- **Hyperdrive, not D1**, for the database: the Prisma schema is Postgres-specific
+  and Better-Auth uses the Postgres adapter, so a SQLite port would be high-risk.
+- **Lazy Stripe init** so `next build` doesn't require live billing keys in CI.
+- **Scoped, ratcheting test coverage** instead of a global 80% gate that failed CI.
+- **Avatar agent on a container** (uv + ruff + pytest), honestly documented as a
+  non-Workers workload.
 
 ---
 
@@ -437,7 +505,8 @@ git push origin feature/amazing-feature
 
 ## 📄 License
 
-This project is licensed under the [Source-Available License 1.0](LICENSE.md).
+This project is licensed under the [Source-Available License 1.0](LICENSE.md)
+(SPDX: `LicenseRef-Source-Available-1.0`).
 
 - **Free for**: Personal use, education, research, non-profits, and security research
 - **Commercial use**: Requires a Commercial License. Contact [ammari.ali.0001@gmail.com](mailto:ammari.ali.0001@gmail.com)
@@ -469,7 +538,7 @@ Copyright (c) 2026 Ali Ammari
 
 Special thanks to:
 - [Next.js](https://nextjs.org/) - The React Framework
-- [Vercel](https://vercel.com/) - Deployment & Hosting
+- [Cloudflare](https://www.cloudflare.com/) - Edge deployment & hosting
 - [Prisma](https://prisma.io/) - Next-gen ORM
 - [shadcn/ui](https://ui.shadcn.com/) - Beautiful Components
 - [LiveKit](https://livekit.io/) - Real-time Video
@@ -482,11 +551,24 @@ Special thanks to:
 
 ## ⭐ Support
 
-If you find JobPrep helpful:
+If JobPrep saves you a $149/mo subscription, the best thank-you is a star:
 
-- ⭐ **Star the repository**
-- 🐦 **Share on social media**
+[![⭐ Star JobPrep](https://img.shields.io/github/stars/aliammari1/JobPrep?style=for-the-badge&label=%E2%AD%90%20Star%20JobPrep&color=F9A825)](https://github.com/aliammari1/JobPrep)
+
+- ⭐ **Star the repo** so others discover the free alternative
+- 🐦 **Share it** with anyone grinding interviews
 - ☕ **[Buy me a coffee](https://buymeacoffee.com/aliammari)**
+
+---
+
+## 🔗 Related open-source projects
+
+Part of a wider open-source ecosystem — if JobPrep is useful, these might be too:
+
+- 📚 [**readrealm**](https://github.com/aliammari1/readrealm) — open-source AI book-chat (Speechify / Blinkist alternative)
+- 🩺 [**pulmocare**](https://github.com/aliammari1/pulmocare) — open-source, self-hostable chest-X-ray AI agent
+- 📊 [**github-traffic-analytics**](https://github.com/aliammari1/github-traffic-analytics) — keep your repo traffic past GitHub's 14-day window
+- 🧰 [**awesome-ai-tools**](https://github.com/aliammari1/awesome-ai-tools) — a curated index of ~400 AI tools
 
 ---
 

@@ -1,4 +1,7 @@
+import { withSentryConfig } from "@sentry/nextjs";
 import withSerwistInit from "@serwist/next";
+
+const isDev = process.env.NODE_ENV !== "production";
 
 const withSerwist = withSerwistInit({
   // This is where the modern magic happens
@@ -7,6 +10,16 @@ const withSerwist = withSerwistInit({
   disable: process.env.NODE_ENV === "development",
   register: true,
 });
+
+// `unsafe-eval` is only required by the dev toolchain (HMR / React Refresh).
+// Drop it in production builds to shrink the script-src attack surface.
+const scriptSrc = [
+  "script-src",
+  "'self'",
+  ...(isDev ? ["'unsafe-eval'"] : []),
+  "'unsafe-inline'",
+  "https://cdn.jsdelivr.net",
+].join(" ");
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
@@ -23,11 +36,22 @@ const nextConfig = {
       {
         source: "/:path*",
         headers: [
+          { key: "X-Content-Type-Options", value: "nosniff" },
+          { key: "X-Frame-Options", value: "DENY" },
+          { key: "X-XSS-Protection", value: "1; mode=block" },
+          {
+            key: "Referrer-Policy",
+            value: "strict-origin-when-cross-origin",
+          },
+          {
+            key: "Strict-Transport-Security",
+            value: "max-age=31536000; includeSubDomains",
+          },
           {
             key: "Content-Security-Policy",
             value: [
               "default-src 'self'",
-              "script-src 'self' 'unsafe-eval' 'unsafe-inline' https://cdn.jsdelivr.net",
+              scriptSrc,
               "style-src 'self' 'unsafe-inline'",
               "img-src 'self' data: blob: https://models.readyplayer.me https://cdn.jsdelivr.net https://media.licdn.com",
               "font-src 'self' data:",
@@ -45,4 +69,17 @@ const nextConfig = {
   },
 };
 
-export default withSerwist(nextConfig);
+// Sentry wraps the build to upload source maps + instrument the server. It is
+// inert at runtime unless SENTRY_DSN is configured; source-map upload only runs
+// when SENTRY_AUTH_TOKEN is present (so CI/local builds without it are fine).
+const config = withSerwist(nextConfig);
+
+export default withSentryConfig(config, {
+  silent: true,
+  org: process.env.SENTRY_ORG,
+  project: process.env.SENTRY_PROJECT,
+  authToken: process.env.SENTRY_AUTH_TOKEN,
+  widenClientFileUpload: true,
+  tunnelRoute: "/monitoring",
+  webpack: { treeshake: { removeDebugLogging: true } },
+});

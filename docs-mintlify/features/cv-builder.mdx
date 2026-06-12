@@ -1,0 +1,19 @@
+---
+title: "CV Builder"
+description: "Section-based résumé editor with AI enhancement and PDF export."
+---
+
+The CV Builder is a section-based résumé editor. Each section (experience,
+education, skills, projects, certifications, awards, languages) is editable and
+reorderable, with multiple templates (Classic, Minimal, Modern).
+
+## AI enhancement
+
+`POST /api/cv/enhance` rewrites/improves a section's content. Skill-gap analysis
+against a target role is available via the AI Coach + `/api/ai/analyze-skill-gap`.
+
+## Export
+
+`POST /api/cv/generate-pdf` renders the current CV to a PDF (react-pdf). The
+Chrome extension can also import LinkedIn profile data into the builder via
+`/api/cv/import-extension`.

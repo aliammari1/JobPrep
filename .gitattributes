@@ -1,0 +1,17 @@
+# Normalise line endings to LF so Biome's formatter is deterministic across
+# platforms (Windows checkouts would otherwise show CRLF churn in `biome ci`).
+* text=auto eol=lf
+
+# Binary / generated assets must not be touched.
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.webp binary
+*.ico binary
+*.pdf binary
+*.woff binary
+*.woff2 binary
+*.ttf binary
+*.zip binary
+bun.lock -diff

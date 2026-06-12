@@ -12,6 +12,10 @@
 
 # testing
 /coverage
+/test-results
+/playwright-report
+/blob-report
+/.playwright/.cache
 
 # next.js
 /.next/
@@ -37,9 +41,20 @@ yarn-error.log*
 # vercel
 .vercel
 
+# generated OpenAPI spec (produced by `bun run openapi:generate`)
+/openapi.json
+
+# Cloudflare / OpenNext build output
+/.open-next
+/.wrangler
+
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# Sentry
+.sentryclirc
+.env.sentry-build-plugin
 
 # PWA files
 **/public/sw.js
@@ -54,3 +69,10 @@ next-env.d.ts
 # Serwist
 public/sw*
 public/swe-worker*
+# Internal growth/marketing notes (not for public)
+GROWTH.md
+BANNER.md
+SUBMITTING_TO_AWESOME.md
+launch-kit.md
+star-strategy.md
+modernization-backlog.md

@@ -1,0 +1,49 @@
+name: Lighthouse CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+env:
+  # Dummy values so the app can build/start without real secrets (see ci.yml).
+  DATABASE_URL: postgresql://user:pass@localhost:5432/jobprep
+  POSTGRES_PRISMA_URL: postgresql://user:pass@localhost:5432/jobprep
+  STRIPE_SECRET_KEY: sk_test_dummy
+  NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: pk_test_dummy
+  STRIPE_WEBHOOK_SECRET: whsec_dummy
+  BETTER_AUTH_SECRET: ci_dummy_secret_value_padding_padding_padding
+  BETTER_AUTH_URL: http://localhost:3000
+  NEXT_PUBLIC_APP_URL: http://localhost:3000
+  OPENAI_API_KEY: sk-dummy
+  LIVEKIT_API_KEY: dummy
+  LIVEKIT_API_SECRET: dummy
+  NEXT_PUBLIC_LIVEKIT_URL: wss://dummy.livekit.cloud
+  APP_NAME: JobPrep
+  SKIP_ENV_VALIDATION: "1"
+
+jobs:
+  lighthouse:
+    name: Lighthouse budgets
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+      - name: Build application
+        run: bun run build
+      - name: Run Lighthouse CI
+        run: bunx --bun @lhci/cli@0.14.x autorun || echo "Lighthouse budgets not met (advisory)."

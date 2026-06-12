@@ -1,0 +1,29 @@
+---
+title: "Introduction"
+description: "AI-powered, multi-provider career preparation."
+---
+
+JobPrep is an AI-powered career-preparation platform that brings interview
+practice, CV building, and coding practice into one product.
+
+## What you get
+
+- **AI Coach** — a provider-agnostic coaching chat backed by a model registry.
+  Pick Claude, GPT, Gemini, or a self-hosted Ollama model from the in-product
+  picker. Default model: `claude-haiku-4-5` (configurable via
+  `AI_COACH_DEFAULT_MODEL`).
+- **CV Builder** — section-based résumé editor with AI enhancement and PDF
+  export.
+- **Mock Interviews** — AI question generation, answer evaluation, and a live
+  video avatar interviewer (LiveKit + Simli).
+- **Coding Arena** — in-browser code editor with execution via Judge0/Piston.
+
+## Why multi-AI?
+
+Different providers win on different axes — cost, latency, quality, privacy.
+JobPrep resolves a model at request time from a single `<provider>:<model>` id,
+so swapping providers (or self-hosting via Ollama) never touches feature code.
+
+<Card title="API Reference" href="/api-docs" icon="code">
+  Explore the live, interactive API reference (Scalar) served by the app.
+</Card>

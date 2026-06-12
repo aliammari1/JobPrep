@@ -1,4 +1,49 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
-  "extends": ["config:recommended"]
+  "extends": ["config:recommended", ":semanticCommits", ":dependencyDashboard"],
+  "timezone": "Africa/Tunis",
+  "schedule": ["before 6am on monday"],
+  "prConcurrentLimit": 8,
+  "prHourlyLimit": 2,
+  "labels": ["dependencies"],
+  "lockFileMaintenance": { "enabled": true },
+  "packageRules": [
+    {
+      "description": "Group all Radix UI primitives into one PR",
+      "matchPackageNames": ["@radix-ui/**"],
+      "groupName": "radix-ui"
+    },
+    {
+      "description": "Group the Vercel AI SDK + providers",
+      "matchPackageNames": ["ai", "@ai-sdk/**", "@vercel/ai-utils", "ollama"],
+      "groupName": "ai-sdk"
+    },
+    {
+      "description": "Group LiveKit packages",
+      "matchPackageNames": [
+        "@livekit/**",
+        "livekit-client",
+        "livekit-server-sdk"
+      ],
+      "groupName": "livekit"
+    },
+    {
+      "description": "Automerge devDependency updates (non-major) once CI passes",
+      "matchDepTypes": ["devDependencies"],
+      "matchUpdateTypes": ["minor", "patch"],
+      "automerge": true
+    },
+    {
+      "description": "Group GitHub Actions and keep them SHA-pinned",
+      "matchManagers": ["github-actions"],
+      "groupName": "github-actions",
+      "pinDigests": true
+    },
+    {
+      "description": "Python agent (uv) updates",
+      "matchManagers": ["pep621"],
+      "matchFileNames": ["functions/**"],
+      "groupName": "python-agent"
+    }
+  ]
 }
