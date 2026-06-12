@@ -51,10 +51,14 @@ jobs:
         run: bun install --frozen-lockfile
       - name: Biome format check
         run: bun run format:check
-      - name: Biome CI (lint)
-        # The existing codebase carries lint debt (noExplicitAny, unused vars).
-        # Surface it without blocking CI, then ratchet to blocking as it's paid
-        # down. Format-check above IS blocking.
+      - name: Biome lint (modern surface — BLOCKING)
+        # Newer/critical modules are kept lint-clean and gate CI. As the legacy
+        # debt below is paid down, move paths into this blocking command.
+        run: bun run lint:strict
+      - name: Biome CI (full repo — advisory)
+        # The legacy codebase still carries lint debt (noExplicitAny, unused
+        # vars). Surface it without blocking, ratcheting into the strict step
+        # above over time. Format-check + the strict step ARE blocking.
         run: bun run lint:ci
         continue-on-error: true
 
