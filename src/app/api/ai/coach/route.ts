@@ -10,6 +10,38 @@ import {
 export const maxDuration = 60;
 
 /**
+ * @swagger
+ * /api/ai/coach:
+ *   post:
+ *     tags: [AI]
+ *     summary: Stream a reply from the provider-agnostic AI Coach
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [messages]
+ *             properties:
+ *               messages:
+ *                 type: array
+ *                 items:
+ *                   type: object
+ *                   required: [role, content]
+ *                   properties:
+ *                     role: { type: string, enum: [system, user, assistant] }
+ *                     content: { type: string }
+ *               model:
+ *                 type: string
+ *                 description: "Model id of the form <provider>:<model> (e.g. anthropic:claude-haiku-4-5)"
+ *     responses:
+ *       200:
+ *         description: A streamed text response (text/plain)
+ *       400:
+ *         description: Invalid request or unknown model
+ */
+
+/**
  * Provider-agnostic AI Coach endpoint.
  *
  * Accepts a chat transcript plus an optional `model` id ("<provider>:<model>")
