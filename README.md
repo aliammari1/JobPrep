@@ -201,10 +201,10 @@ One-click LinkedIn CV import - automatically extracts work experience, education
 ### Prerequisites
 
 ```bash
-Node.js 20+
+Bun 1.x        # package manager + runtime (this repo is Bun, not npm/pnpm)
 PostgreSQL 14+
-npm or pnpm
 Git
+# Optional: uv (for the Python avatar agent in functions/)
 ```
 
 ### Installation
@@ -222,8 +222,8 @@ cp .env.example .env
 # Edit .env with your API keys
 
 # Set up database
-npx prisma generate
-npx prisma db push
+bun run prisma:generate
+bun run prisma:migrate
 
 # Run development server
 bun run dev
@@ -435,9 +435,18 @@ bunx @opennextjs/cloudflare build
 bunx wrangler deploy
 ```
 
-> ⚠️ The Python **LiveKit/Simli avatar agent** (`functions/`) is a long-running
-> WebRTC container workload — it **cannot** run on Cloudflare Workers and is
-> hosted separately. See [`docs/DEPLOYMENT.md`](docs/DEPLOYMENT.md).
+> ⚠️ **Two-part deploy.** The Python **LiveKit/Simli avatar agent** (`functions/`)
+> is a long-running WebRTC process — it **cannot** run on Cloudflare Workers. The
+> web app runs on Cloudflare; the agent runs on a container next to **LiveKit
+> Cloud** (free Build tier). Full host comparison (LiveKit Cloud agents, Railway,
+> Render, Fly.io, Koyeb — researched for 2026) is in
+> [`docs/DEPLOYMENT.md`](docs/DEPLOYMENT.md).
+
+**More docs:** [Deployment](docs/DEPLOYMENT.md) ·
+[Architecture](docs/ARCHITECTURE.md) ·
+[Chrome Web Store publishing](docs/CHROME_WEB_STORE.md) ·
+[Banner / social preview](BANNER.md) ·
+[Launch checklist](docs/TRENDING.md)
 
 ---
 
