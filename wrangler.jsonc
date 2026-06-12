@@ -1,0 +1,31 @@
+{
+  // Cloudflare Workers/Pages config for deploying the Next.js app via
+  // @opennextjs/cloudflare. Deploy is gated behind a manual workflow + secrets
+  // (no automatic production deploy from this repo).
+  //
+  // DB decision: JobPrep uses Prisma + PostgreSQL (Better-Auth adapter, complex
+  // relational schema). We connect to managed Postgres through **Hyperdrive**
+  // (connection pooling + edge caching) rather than D1, because:
+  //   - the existing Prisma schema is Postgres-specific (enums, relations) and a
+  //     D1/SQLite port would be a large, risky migration, and
+  //   - Better-Auth's Prisma adapter is configured for "postgresql".
+  // D1 remains an option for a from-scratch demo, but Hyperdrive preserves the
+  // real schema with minimal change.
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "jobprep",
+  "main": ".open-next/worker.js",
+  "compatibility_date": "2025-03-01",
+  "compatibility_flags": ["nodejs_compat"],
+  "assets": {
+    "directory": ".open-next/assets",
+    "binding": "ASSETS"
+  },
+  "observability": {
+    "enabled": true
+  }
+  // Bind managed Postgres via Hyperdrive once the connection string secret is
+  // configured (uncomment and set the id from `wrangler hyperdrive create`):
+  // "hyperdrive": [
+  //   { "binding": "HYPERDRIVE", "id": "<hyperdrive-id>" }
+  // ]
+}

@@ -44,6 +44,10 @@ yarn-error.log*
 # generated OpenAPI spec (produced by `bun run openapi:generate`)
 /openapi.json
 
+# Cloudflare / OpenNext build output
+/.open-next
+/.wrangler
+
 # typescript
 *.tsbuildinfo
 next-env.d.ts

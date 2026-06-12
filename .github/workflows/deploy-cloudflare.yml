@@ -1,0 +1,39 @@
+name: Deploy (Cloudflare)
+
+# Gated: manual dispatch only, and only runs when the Cloudflare secrets are
+# configured. No automatic production deploy. The Next.js app deploys to
+# Cloudflare via @opennextjs/cloudflare; the Python LiveKit agent is NOT
+# deployed here (it runs on a container, not Workers).
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    name: Build & deploy to Cloudflare
+    runs-on: ubuntu-latest
+    # Only attempt when the account secret exists.
+    if: ${{ vars.ENABLE_CLOUDFLARE_DEPLOY == 'true' }}
+    environment: production
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+      - name: Install OpenNext Cloudflare adapter
+        run: bun add -D @opennextjs/cloudflare
+      - name: Build for Cloudflare
+        run: bunx @opennextjs/cloudflare build
+        env:
+          SKIP_ENV_VALIDATION: "1"
+      - name: Deploy with Wrangler
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          command: deploy
