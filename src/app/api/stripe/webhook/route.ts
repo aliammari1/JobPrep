@@ -34,6 +34,18 @@ export async function POST(req: Request) {
       );
     }
 
+    // Idempotency: Stripe can deliver an event more than once. Record the
+    // event id before processing; if it already exists, this is a duplicate
+    // delivery and we ack without re-applying side effects.
+    try {
+      await prisma.processedWebhookEvent.create({
+        data: { eventId: event.id, source: "stripe", type: event.type },
+      });
+    } catch {
+      // Unique-constraint violation => already processed. Ack and return.
+      return NextResponse.json({ received: true, duplicate: true });
+    }
+
     // Handle the event
     switch (event.type) {
       case "checkout.session.completed":
