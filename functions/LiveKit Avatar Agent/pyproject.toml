@@ -1,0 +1,31 @@
+[project]
+name = "jobprep-avatar-agent"
+version = "0.1.0"
+description = "LiveKit + Simli avatar agent for JobPrep AI interviews (runs on a container, not Cloudflare Workers)."
+readme = "README.md"
+requires-python = ">=3.9"
+dependencies = [
+    "livekit-api>=0.6.0",
+    "aiohttp>=3.9.0",
+]
+
+[dependency-groups]
+dev = [
+    "pytest>=8.0.0",
+    "ruff>=0.8.0",
+]
+
+[tool.ruff]
+target-version = "py39"
+line-length = 100
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B"]
+# main.py contains two illustrative spawn_avatar implementations (the second
+# overrides the first) plus its imports mid-file; keep that structure for now and
+# silence the related redefinition / mid-file-import / line-length lints.
+ignore = ["F811", "E402", "E501"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]
