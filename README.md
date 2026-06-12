@@ -10,14 +10,22 @@
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.0-blue?style=for-the-badge&logo=typescript)](https://www.typescriptlang.org/)
 [![Prisma](https://img.shields.io/badge/Prisma-6.17-2D3748?style=for-the-badge&logo=prisma)](https://www.prisma.io/)
 [![Tailwind](https://img.shields.io/badge/Tailwind-4.0-38B2AC?style=for-the-badge&logo=tailwind-css)](https://tailwindcss.com/)
-[![License](https://img.shields.io/badge/License-Source--Available-orange?style=for-the-badge)](LICENSE.md)
+[![License: Source-Available](https://img.shields.io/badge/License-Source--Available--1.0-orange?style=for-the-badge)](LICENSE.md)
 
-[![React](https://img.shields.io/badge/React-19.1-61DAFB?style=for-the-badge&logo=react&logoColor=black)](https://react.dev/)
+[![CI](https://github.com/aliammari1/JobPrep/actions/workflows/ci.yml/badge.svg)](https://github.com/aliammari1/JobPrep/actions/workflows/ci.yml)
+[![CodeQL](https://github.com/aliammari1/JobPrep/actions/workflows/codeql.yml/badge.svg)](https://github.com/aliammari1/JobPrep/actions/workflows/codeql.yml)
+[![codecov](https://codecov.io/gh/aliammari1/JobPrep/branch/main/graph/badge.svg)](https://codecov.io/gh/aliammari1/JobPrep)
+[![OpenSSF Scorecard](https://api.securityscorecards.dev/projects/github.com/aliammari1/JobPrep/badge)](https://securityscorecards.dev/viewer/?uri=github.com/aliammari1/JobPrep)
+
+[![React](https://img.shields.io/badge/React-19.2-61DAFB?style=for-the-badge&logo=react&logoColor=black)](https://react.dev/)
 [![LiveKit](https://img.shields.io/badge/LiveKit-WebRTC-00A86B?style=for-the-badge)](https://livekit.io/)
-[![Stripe](https://img.shields.io/badge/Stripe-Payments-008CDD?style=for-the-badge&logo=stripe&logoColor=white)](https://stripe.com/)
-[![Vercel](https://img.shields.io/badge/Vercel-Deployed-000000?style=for-the-badge&logo=vercel)](https://vercel.com/)
+[![Cloudflare](https://img.shields.io/badge/Cloudflare-Workers-F38020?style=for-the-badge&logo=cloudflare&logoColor=white)](https://workers.cloudflare.com/)
 
-[🎯 Live Demo](https://jobprep.aliammari.dev) • [📚 Documentation](https://docs.jobprep.ai) • [🐛 Report Bug](https://github.com/aliammari1/JobPrep/issues) • [💡 Request Feature](https://github.com/aliammari1/JobPrep/issues)
+[📚 Documentation](docs/ARCHITECTURE.md) • [🔌 API Reference](/api-docs) • [🐛 Report Bug](https://github.com/aliammari1/JobPrep/issues) • [💡 Request Feature](https://github.com/aliammari1/JobPrep/issues)
+
+<img src="assets/banner.svg" alt="JobPrep — multi-AI career preparation" width="100%">
+
+<img src="docs/screenshots/desktop.png" alt="JobPrep desktop" width="48%"> <img src="docs/screenshots/mobile.png" alt="JobPrep mobile" width="22%">
 
 ---
 
@@ -39,6 +47,32 @@ JobPrep is a comprehensive, next-generation platform that combines cutting-edge 
 - 🎤 **Voice & Emotion Analysis** - MediaPipe-powered body language insights
 - 📊 **Smart Analytics** - Track progress, identify weak areas, improve systematically
 - 🔐 **Secure & Modern** - Passkey authentication, 2FA, enterprise-grade security
+
+---
+
+## 🤔 Why JobPrep? (multi-AI)
+
+Most interview-prep tools lock you into a single AI vendor. JobPrep is
+**provider-agnostic**: the **AI Coach** resolves a model at request time from a
+single `<provider>:<model>` id, so you can switch between **Claude, GPT, Gemini,
+or a self-hosted Ollama** model — including a fully local/offline setup — without
+touching any feature code.
+
+| Want… | Pick |
+| --- | --- |
+| Fast & cheap (default) | `anthropic:claude-haiku-4-5` |
+| Highest quality | `anthropic:claude-sonnet-4-5` / `openai:gpt-4o` |
+| Free/local & private | `ollama:llama3.2` |
+
+```bash
+# Stream a coaching reply (omit "model" to use the default)
+curl -N -X POST http://localhost:3000/api/ai/coach \
+  -H 'content-type: application/json' \
+  -d '{"messages":[{"role":"user","content":"STAR-review my answer"}],"model":"anthropic:claude-haiku-4-5"}'
+```
+
+List available models at `GET /api/ai/models`. Adding a new provider is a
+three-line change in `src/lib/ai/providers.ts`.
 
 ---
 
@@ -368,13 +402,59 @@ model Subscription {
 ## 🔐 Security
 
 - 🔒 **Modern Authentication** - Better Auth with passkeys & 2FA
-- 🛡️ **HTTPS Only** - Automatic SSL via Vercel
+- 🛡️ **HTTPS Only** - Automatic SSL at the edge (Cloudflare)
 - 🔑 **API Key Encryption** - AES-256 encrypted storage
 - 🚫 **Rate Limiting** - DDoS & brute force protection
 - ✅ **SQL Injection Safe** - Prisma parameterized queries
 - 🧹 **XSS Protection** - React automatic HTML sanitization
 - 🎫 **CSRF Tokens** - Built-in cross-site attack prevention
 - 📋 **Security Headers** - CSP, HSTS, X-Frame-Options
+- 🔎 **Automated scanning** - CodeQL, gitleaks, Trivy, dependency-review + OpenSSF Scorecard in CI
+
+---
+
+## 📖 API Reference
+
+- **Interactive (Scalar):** run the app and open [`/api-docs`](/api-docs).
+- **OpenAPI document:** [`/api/openapi`](/api/openapi) (also generated to
+  `openapi.json` via `bun run openapi:generate`).
+- New endpoints are documented by adding a `@swagger` JSDoc block above the route
+  handler — `next-swagger-doc` picks them up automatically.
+
+---
+
+## ☁️ Deploy to Cloudflare
+
+The Next.js app deploys to **Cloudflare** via `@opennextjs/cloudflare`, with
+PostgreSQL reached through **Hyperdrive**. Config lives in `wrangler.jsonc` +
+`open-next.config.ts`; deployment is gated behind a manual workflow.
+
+```bash
+bun add -D @opennextjs/cloudflare
+bunx @opennextjs/cloudflare build
+bunx wrangler deploy
+```
+
+> ⚠️ The Python **LiveKit/Simli avatar agent** (`functions/`) is a long-running
+> WebRTC container workload — it **cannot** run on Cloudflare Workers and is
+> hosted separately. See [`docs/DEPLOYMENT.md`](docs/DEPLOYMENT.md).
+
+---
+
+## 🧭 Engineering Decisions
+
+- **Bun + Biome (no ESLint/Prettier).** One fast toolchain for install, lint, and
+  format; `biome ci` runs in CI with a blocking format check.
+- **Source-Available license kept** (SPDX `LicenseRef-Source-Available-1.0`) —
+  JobPrep is a commercial product, not a permissive OSS sample.
+- **Provider-agnostic AI** on the Vercel AI SDK with a model registry, rather than
+  hard-wiring one vendor — enables Claude/GPT/Gemini/Ollama and offline use.
+- **Hyperdrive, not D1**, for the database: the Prisma schema is Postgres-specific
+  and Better-Auth uses the Postgres adapter, so a SQLite port would be high-risk.
+- **Lazy Stripe init** so `next build` doesn't require live billing keys in CI.
+- **Scoped, ratcheting test coverage** instead of a global 80% gate that failed CI.
+- **Avatar agent on a container** (uv + ruff + pytest), honestly documented as a
+  non-Workers workload.
 
 ---
 
@@ -437,7 +517,8 @@ git push origin feature/amazing-feature
 
 ## 📄 License
 
-This project is licensed under the [Source-Available License 1.0](LICENSE.md).
+This project is licensed under the [Source-Available License 1.0](LICENSE.md)
+(SPDX: `LicenseRef-Source-Available-1.0`).
 
 - **Free for**: Personal use, education, research, non-profits, and security research
 - **Commercial use**: Requires a Commercial License. Contact [ammari.ali.0001@gmail.com](mailto:ammari.ali.0001@gmail.com)
@@ -469,7 +550,7 @@ Copyright (c) 2026 Ali Ammari
 
 Special thanks to:
 - [Next.js](https://nextjs.org/) - The React Framework
-- [Vercel](https://vercel.com/) - Deployment & Hosting
+- [Cloudflare](https://www.cloudflare.com/) - Edge deployment & hosting
 - [Prisma](https://prisma.io/) - Next-gen ORM
 - [shadcn/ui](https://ui.shadcn.com/) - Beautiful Components
 - [LiveKit](https://livekit.io/) - Real-time Video
