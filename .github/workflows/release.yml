@@ -1,0 +1,47 @@
+name: Release
+
+on:
+  push:
+    branches: [main]
+    tags: ["v*"]
+
+permissions:
+  contents: read
+
+jobs:
+  release-please:
+    name: release-please
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+      # googleapis/release-please-action v5.0.0
+      - uses: googleapis/release-please-action@45996ed1f6d02564a971a2fa1b5860e934307cf7
+        with:
+          config-file: release-please-config.json
+          manifest-file: .release-please-manifest.json
+
+  chrome-extension-zip:
+    name: Package Chrome extension
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/v')
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - name: Read extension version
+        id: ext
+        run: |
+          VERSION=$(node -p "require('./chrome-extension/manifest.json').version")
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+      - name: Zip chrome-extension
+        run: |
+          cd chrome-extension
+          zip -r "../jobprep-chrome-extension-${{ steps.ext.outputs.version }}.zip" . -x "*.DS_Store"
+      - name: Attach zip to release
+        # softprops/action-gh-release v2.6.2
+        uses: softprops/action-gh-release@3bb12739c298aeb8a4eeaf626c5b8d85266b0e65
+        with:
+          files: jobprep-chrome-extension-*.zip
