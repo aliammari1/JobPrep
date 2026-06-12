@@ -1,0 +1,19 @@
+---
+title: "Mock Interviews"
+description: "AI question generation, evaluation, and a live video avatar."
+---
+
+JobPrep runs realistic mock interviews end to end.
+
+- **Question generation** — `/api/ai/generate-questions` and
+  `/api/generate-questions` produce role/difficulty-tagged questions.
+- **Answer evaluation** — `/api/evaluate-answer` scores a candidate answer
+  against an ideal answer with structured feedback.
+- **Live video avatar** — the interview room uses LiveKit for real-time media
+  and a Simli avatar driven by the Python agent in `functions/`.
+
+<Warning>
+The Python LiveKit/Simli avatar agent is a long-running container workload. It
+**cannot** run on Cloudflare Workers — deploy it on a small container/VM. The
+Next.js app itself targets Cloudflare (see Deployment).
+</Warning>

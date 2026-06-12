@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="640" viewBox="0 0 1280 640" role="img" aria-label="JobPrep banner">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#4f46e5"/>
+      <stop offset="100%" stop-color="#10b981"/>
+    </linearGradient>
+    <linearGradient id="panel" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#ffffff" stop-opacity="0.10"/>
+      <stop offset="100%" stop-color="#ffffff" stop-opacity="0.03"/>
+    </linearGradient>
+  </defs>
+  <rect width="1280" height="640" fill="url(#bg)"/>
+  <!-- Triptych panels: CV / Interview / Code Arena -->
+  <g font-family="Segoe UI, Helvetica, Arial, sans-serif" fill="#ffffff">
+    <g transform="translate(80,360)">
+      <rect x="0" y="0" width="320" height="200" rx="16" fill="url(#panel)" stroke="#ffffff" stroke-opacity="0.25"/>
+      <text x="24" y="56" font-size="26" font-weight="700">CV Builder</text>
+      <text x="24" y="92" font-size="16" fill-opacity="0.85">AI-enhanced, ATS-ready</text>
+    </g>
+    <g transform="translate(480,360)">
+      <rect x="0" y="0" width="320" height="200" rx="16" fill="url(#panel)" stroke="#ffffff" stroke-opacity="0.25"/>
+      <text x="24" y="56" font-size="26" font-weight="700">Interviews</text>
+      <text x="24" y="92" font-size="16" fill-opacity="0.85">Live avatar + feedback</text>
+    </g>
+    <g transform="translate(880,360)">
+      <rect x="0" y="0" width="320" height="200" rx="16" fill="url(#panel)" stroke="#ffffff" stroke-opacity="0.25"/>
+      <text x="24" y="56" font-size="26" font-weight="700">Code Arena</text>
+      <text x="24" y="92" font-size="16" fill-opacity="0.85">Multi-language challenges</text>
+    </g>
+    <text x="80" y="150" font-size="84" font-weight="800" letter-spacing="-2">JobPrep</text>
+    <text x="84" y="220" font-size="30" fill-opacity="0.92">Multi-AI career preparation — Claude · GPT · Gemini · Ollama</text>
+  </g>
+</svg>

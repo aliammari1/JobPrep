@@ -1,0 +1,15 @@
+---
+title: "Deployment"
+description: "Cloudflare for the app, a container for the avatar agent."
+---
+
+The Next.js app deploys to **Cloudflare** via `@opennextjs/cloudflare`, with
+PostgreSQL reached through **Hyperdrive**. The Python LiveKit/Simli avatar agent
+is a long-running container workload and **cannot** run on Cloudflare Workers, so
+it is hosted separately.
+
+Deployment is gated behind a manual workflow that only runs when the Cloudflare
+secrets and `ENABLE_CLOUDFLARE_DEPLOY=true` are configured.
+
+See [`docs/DEPLOYMENT.md`](https://github.com/aliammari1/JobPrep/blob/main/docs/DEPLOYMENT.md)
+for the full guide, including the Hyperdrive-vs-D1 decision.

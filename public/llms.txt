@@ -1,0 +1,38 @@
+# JobPrep
+
+> JobPrep is an AI-powered, multi-provider career-preparation platform: an AI CV
+> builder, mock interviews with live video avatars, a coding-challenge arena, and
+> a provider-agnostic AI Coach (Claude, GPT, Gemini, or local Ollama). Built with
+> Next.js 15, Prisma/PostgreSQL, Better-Auth, and the Vercel AI SDK.
+
+## Key concepts
+
+- AI Coach: a single provider-agnostic chat surface backed by a model registry.
+  Select a model with a `<provider>:<model>` id (e.g. `anthropic:claude-haiku-4-5`,
+  `openai:gpt-4o-mini`, `gemini:gemini-2.0-flash`, `ollama:llama3.2`). The default
+  is `claude-haiku-4-5`, configurable via `AI_COACH_DEFAULT_MODEL`.
+- CV Builder: section-based résumé editor with AI enhancement and PDF export.
+- Mock Interviews: question generation, answer evaluation, and a LiveKit + Simli
+  video avatar interviewer (the avatar agent runs as a Python container, not on
+  Cloudflare Workers).
+- Coding Arena: in-browser code editor with execution via Judge0/Piston.
+
+## API
+
+- API reference (interactive): `/api-docs`
+- OpenAPI document: `/api/openapi`
+- AI Coach (streaming): `POST /api/ai/coach` with `{ messages, model? }`
+- Available models: `GET /api/ai/models`
+- Health/config status: `GET /api/health`
+
+## Docs
+
+- Architecture: docs/ARCHITECTURE.md
+- Deployment (incl. Cloudflare): docs/DEPLOYMENT.md
+- Project overview: wiki/01-project-overview.md
+- Conceptual docs (Mintlify source): docs-mintlify/
+
+## License
+
+Source-Available License 1.0 (SPDX: LicenseRef-Source-Available-1.0). Commercial
+use requires a separate licence.
