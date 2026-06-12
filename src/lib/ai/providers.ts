@@ -109,7 +109,9 @@ export function isKnownModel(modelId: string): boolean {
  * Resolve a `LanguageModel` instance for a given model id, wiring the correct
  * provider + credentials from the environment.
  */
-export function resolveModel(modelId: string = DEFAULT_MODEL_ID): LanguageModel {
+export function resolveModel(
+  modelId: string = DEFAULT_MODEL_ID,
+): LanguageModel {
   const { provider, model } = parseModelId(modelId);
 
   switch (provider) {
