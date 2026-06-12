@@ -143,7 +143,7 @@ We appreciate security researchers who responsibly disclose vulnerabilities. Con
 2. **Dependency Management**
    - Keep dependencies updated
    - Review dependency security advisories
-   - Use `npm audit` or `pnpm audit` regularly
+   - Watch Renovate PRs and Trivy/CodeQL CI findings
    - Avoid dependencies with known vulnerabilities
 
 3. **Sensitive Data**
@@ -187,7 +187,7 @@ We appreciate security researchers who responsibly disclose vulnerabilities. Con
 - ✅ **Security Headers**: CSP, HSTS, X-Frame-Options, etc.
 - ✅ **HTTPS Only**: Automatic redirect to HTTPS
 - ✅ **Environment Isolation**: Separate dev/staging/production
-- ✅ **Secure Deployment**: Vercel's secure infrastructure
+- ✅ **Secure Deployment**: Cloudflare's edge network (TLS at the edge, DDoS protection); the Python avatar agent runs on an isolated container
 
 ### Monitoring & Logging
 
@@ -275,10 +275,12 @@ If you're self-hosting JobPrep AI:
 
 ### Tools We Use
 
-- **npm audit / pnpm audit**: Dependency vulnerability scanning
-- **GitHub CodeQL**: Static code analysis
+- **GitHub CodeQL**: Static code analysis (JS/TS)
+- **gitleaks**: Secret scanning in CI
+- **Trivy**: Dependency & lockfile vulnerability scanning
+- **dependency-review-action** + **OpenSSF Scorecard**: Supply-chain checks
 - **Renovate**: Automated dependency updates
-- **ESLint**: Code quality and security rules
+- **Biome**: Code quality and lint rules (no ESLint)
 
 ### Security Headers
 
