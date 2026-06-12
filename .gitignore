@@ -52,6 +52,10 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
+# Sentry
+.sentryclirc
+.env.sentry-build-plugin
+
 # PWA files
 **/public/sw.js
 **/public/workbox-*.js
