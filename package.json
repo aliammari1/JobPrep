@@ -72,7 +72,7 @@
     "@radix-ui/react-tooltip": "^1.2.8",
     "@react-pdf/renderer": "^4.3.2",
     "@serwist/next": "^9.5.0",
-    "@stripe/stripe-js": "^8.6.1",
+    "@stripe/stripe-js": "^9.0.0",
     "@tanstack/react-query": "^5.90.17",
     "@tanstack/react-table": "^8.21.3",
     "@tanstack/table-core": "^8.21.3",
