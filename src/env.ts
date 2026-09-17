@@ -171,8 +171,9 @@ export const env = createEnv({
       process.env.NEXT_PUBLIC_APPWRITE_DATABASE_ID,
   },
 
-  /** Unit tests can load modules without production service configuration. */
-  skipValidation: process.env.NODE_ENV === "test",
+  /** Unit tests and CI environments can bypass full secret validation when placeholders are used. */
+  skipValidation:
+    !!process.env.SKIP_ENV_VALIDATION || process.env.NODE_ENV === "test",
 
   /** Treat empty strings as undefined (a common .env footgun). */
   emptyStringAsUndefined: true,

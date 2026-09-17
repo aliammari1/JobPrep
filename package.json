@@ -24,7 +24,7 @@
     "format": "biome format --write",
     "format:check": "biome format",
 
-    "typecheck": "tsc --noEmit",
+    "typecheck": "node --max-old-space-size=4096 node_modules/typescript/bin/tsc --noEmit",
 
     "test": "vitest run",
     "test:watch": "vitest",
@@ -88,7 +88,7 @@
     "@serwist/next": "^9.5.0",
     "@t3-oss/env-nextjs": "^0.13.11",
     "@tanstack/react-query": "^5.90.17",
-    "@types/nodemailer": "^7.0.5",
+    "@types/nodemailer": "^8.0.2",
     "@uiw/react-codemirror": "^4.25.4",
     "@upstash/ratelimit": "^2.0.8",
     "@upstash/redis": "^1.38.0",
@@ -115,7 +115,7 @@
     "mammoth": "^1.11.0",
     "next": "15.5.24",
     "next-themes": "^0.4.6",
-    "nodemailer": "^7.0.12",
+    "nodemailer": "^9.1.1",
     "ollama": "^0.6.3",
     "pdf-lib": "^1.17.1",
     "prisma": "^6.19.2",
@@ -170,6 +170,20 @@
     "seed": "tsx prisma/seed.ts"
   },
   "overrides": {
-    "protobufjs": "7.5.5"
+    "protobufjs": "^7.6.1",
+    "postcss": "^8.5.18",
+    "form-data": "^4.0.6",
+    "deepmerge-ts": "^8.0.0",
+    "brace-expansion": "^5.0.9",
+    "axios": "^1.18.0",
+    "browserslist": "^4.28.7",
+    "@xmldom/xmldom": "^0.8.15",
+    "nanoid": "^3.3.18",
+    "qs": "^6.16.0",
+    "baseline-browser-mapping": "^2.11.0",
+    "@simplewebauthn/server": "^13.3.2",
+    "@babel/core": "^7.29.6",
+    "fflate": "^0.8.3",
+    "@ai-sdk/provider-utils": "^4.0.33"
   }
 }
