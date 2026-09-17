@@ -2,6 +2,7 @@ import { createOpenAICompatible } from "@ai-sdk/openai-compatible";
 import { generateText } from "ai";
 import { z } from "zod";
 import { NextResponse } from "next/server";
+import { rateLimit, rateLimitResponse } from "@/lib/rate-limit";
 
 export const maxDuration = 30;
 
@@ -25,6 +26,9 @@ const questionSchema = z.object({
 
 export async function POST(req: Request) {
   try {
+    const limit = await rateLimit(req, "ai");
+    if (!limit.success) return rateLimitResponse(limit);
+
     const { role, skillLevel, count = 5, focus } = await req.json();
 
     const { text } = await generateText({

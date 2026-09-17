@@ -1,4 +1,8 @@
+<!-- SPDX-License-Identifier: LicenseRef-Source-Available-1.0 -->
+
 # Source-Available License 1.0
+
+SPDX-License-Identifier: `LicenseRef-Source-Available-1.0`
 
 Copyright (c) 2026 Ali Ammari
 

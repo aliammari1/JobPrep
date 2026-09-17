@@ -1,0 +1,51 @@
+name: Lighthouse CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+env:
+  # Dummy values so the app can build/start without real secrets (see ci.yml).
+  DATABASE_URL: postgresql://user:pass@localhost:5432/jobprep
+  POSTGRES_PRISMA_URL: postgresql://user:pass@localhost:5432/jobprep
+  STRIPE_SECRET_KEY: sk_test_dummy
+  NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: pk_test_dummy
+  STRIPE_WEBHOOK_SECRET: whsec_dummy
+  BETTER_AUTH_SECRET: ci_dummy_secret_value_padding_padding_padding
+  BETTER_AUTH_URL: http://localhost:3000
+  NEXT_PUBLIC_APP_URL: http://localhost:3000
+  OPENAI_API_KEY: sk-dummy
+  LIVEKIT_API_KEY: dummy
+  LIVEKIT_API_SECRET: dummy
+  NEXT_PUBLIC_LIVEKIT_URL: wss://dummy.livekit.cloud
+  APP_NAME: JobPrep
+
+jobs:
+  lighthouse:
+    name: Lighthouse budgets
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2.2.0
+        with:
+          bun-version: "1.4.2"
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+      - name: Build application
+        run: bun run build
+      - name: Run Lighthouse CI (advisory)
+        continue-on-error: true
+        run: bunx --bun @lhci/cli@0.14.x autorun

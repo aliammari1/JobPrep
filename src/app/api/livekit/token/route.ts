@@ -1,5 +1,6 @@
 import { AccessToken } from "livekit-server-sdk";
 import { NextRequest, NextResponse } from "next/server";
+import { rateLimit, rateLimitResponse } from "@/lib/rate-limit";
 
 async function generateToken(roomName: string, participantName: string) {
   const apiKey = process.env.LIVEKIT_API_KEY;
@@ -32,6 +33,9 @@ async function generateToken(roomName: string, participantName: string) {
 
 export async function GET(req: NextRequest) {
   try {
+    const limit = await rateLimit(req, "livekit");
+    if (!limit.success) return rateLimitResponse(limit);
+
     const roomName = req.nextUrl.searchParams.get("roomName");
     const participantName = req.nextUrl.searchParams.get("participantName");
 
@@ -62,6 +66,9 @@ export async function GET(req: NextRequest) {
 
 export async function POST(req: NextRequest) {
   try {
+    const limit = await rateLimit(req, "livekit");
+    if (!limit.success) return rateLimitResponse(limit);
+
     const body = await req.json();
     const { roomName, participantName } = body;
 

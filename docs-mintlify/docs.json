@@ -1,0 +1,44 @@
+{
+  "$schema": "https://mintlify.com/docs.json",
+  "theme": "mint",
+  "name": "JobPrep",
+  "colors": {
+    "primary": "#4f46e5",
+    "light": "#10b981",
+    "dark": "#4f46e5"
+  },
+  "favicon": "/favicon.svg",
+  "navigation": {
+    "tabs": [
+      {
+        "tab": "Guides",
+        "groups": [
+          {
+            "group": "Getting Started",
+            "pages": ["introduction", "architecture", "deployment"]
+          },
+          {
+            "group": "Features",
+            "pages": [
+              "features/ai-coach",
+              "features/cv-builder",
+              "features/interviews"
+            ]
+          }
+        ]
+      },
+      {
+        "tab": "API Reference",
+        "openapi": "https://raw.githubusercontent.com/aliammari1/JobPrep/main/openapi.json"
+      }
+    ]
+  },
+  "navbar": {
+    "links": [
+      {
+        "label": "GitHub",
+        "href": "https://github.com/aliammari1/JobPrep"
+      }
+    ]
+  }
+}

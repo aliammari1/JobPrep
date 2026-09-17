@@ -107,6 +107,21 @@ model Payment {
   @@map("payment")
 }
 
+/// Idempotency ledger for incoming webhooks (Stripe). Stripe may deliver the
+/// same event more than once; recording the event id before processing lets the
+/// handler short-circuit duplicate deliveries so retries are safe.
+model ProcessedWebhookEvent {
+  id          String   @id @default(cuid())
+  /// Provider event id, e.g. Stripe's `evt_...`.
+  eventId     String   @unique
+  source      String   @default("stripe")
+  type        String?
+  processedAt DateTime @default(now())
+
+  @@index([source])
+  @@map("processed_webhook_event")
+}
+
 model Session {
   id                   String   @id
   expiresAt            DateTime

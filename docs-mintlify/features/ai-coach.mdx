@@ -1,0 +1,45 @@
+---
+title: "AI Coach"
+description: "Provider-agnostic coaching on the Vercel AI SDK."
+---
+
+The AI Coach consolidates JobPrep's AI features behind one provider-agnostic
+endpoint and a model registry.
+
+## Model ids
+
+Models are addressed as `<provider>:<model>`:
+
+| Model id | Provider | Notes |
+| --- | --- | --- |
+| `anthropic:claude-haiku-4-5` | Claude | Default — fast & inexpensive |
+| `anthropic:claude-sonnet-4-5` | Claude | Higher quality |
+| `openai:gpt-4o-mini` | OpenAI | |
+| `openai:gpt-4o` | OpenAI | |
+| `gemini:gemini-2.0-flash` | Google | OpenAI-compatible endpoint |
+| `ollama:llama3.2` | Ollama | Local / self-host |
+
+List them at runtime via `GET /api/ai/models`.
+
+## Streaming a reply
+
+```bash
+curl -N -X POST http://localhost:3000/api/ai/coach \
+  -H 'content-type: application/json' \
+  -d '{
+    "messages": [{ "role": "user", "content": "Give me STAR feedback on my answer." }],
+    "model": "anthropic:claude-haiku-4-5"
+  }'
+```
+
+The response is a streamed `text/plain` body. Omit `model` to use the default.
+
+## Configuration
+
+| Variable | Purpose |
+| --- | --- |
+| `AI_COACH_DEFAULT_MODEL` | Default model id |
+| `ANTHROPIC_API_KEY` | Claude |
+| `OPENAI_API_KEY` / `OPENAI_BASE_URL` | GPT (and Ollama-via-OpenAI) |
+| `GEMINI_API_KEY` | Gemini |
+| `OLLAMA_HOST` / `OLLAMA_API_KEY` | Local or hosted Ollama |
