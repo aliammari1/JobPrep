@@ -478,8 +478,8 @@ jobs:
           enable-cache: true
           working-directory: functions/LiveKit Avatar Agent
           cache-dependency-glob: |
-            functions/LiveKit Avatar Agent/uv.lock
-            functions/LiveKit Avatar Agent/pyproject.toml
+            uv.lock
+            pyproject.toml
 
       - name: Show uv version
         run: uv --version
