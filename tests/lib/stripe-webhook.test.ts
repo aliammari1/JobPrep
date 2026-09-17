@@ -1,5 +1,5 @@
-import { describe, expect, it } from "vitest";
 import Stripe from "stripe";
+import { describe, expect, it } from "vitest";
 import {
   processStripeWebhookEvent,
   verifyStripeWebhook,
