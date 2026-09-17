@@ -30,7 +30,7 @@ export const maxDuration = 60;
  *                   type: object
  *                   required: [role, content]
  *                   properties:
- *                     role: { type: string, enum: [system, user, assistant] }
+ *                     role: { type: string, enum: [user, assistant] }
  *                     content: { type: string }
  *               model:
  *                 type: string
@@ -84,6 +84,7 @@ export async function POST(req: Request) {
     const result = streamText({
       model: resolveModel(modelId),
       system: COACH_SYSTEM_PROMPT,
+      // `coachRequestSchema` restricts roles and content before this conversion.
       messages: parsed.data.messages as ModelMessage[],
       // Emit OpenTelemetry GenAI spans (token usage, latency, cost) when an
       // OTel exporter is wired via instrumentation.ts. Off in dev to keep noise

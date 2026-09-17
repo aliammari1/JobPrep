@@ -21,12 +21,14 @@ Guidelines:
 - Keep answers concise and skimmable (short paragraphs, bullets, headers).`;
 
 export const coachMessageSchema = z.object({
-  role: z.enum(["system", "user", "assistant"]),
-  content: z.string(),
+  // System instructions are constructed on the server. Accepting them from a
+  // browser lets callers override the coach's trusted policy and prompt.
+  role: z.enum(["user", "assistant"]),
+  content: z.string().min(1).max(20_000),
 });
 
 export const coachRequestSchema = z.object({
-  messages: z.array(coachMessageSchema).min(1),
+  messages: z.array(coachMessageSchema).min(1).max(100),
   /** Optional model id of the form "<provider>:<model>". */
   model: z.string().optional(),
 });
