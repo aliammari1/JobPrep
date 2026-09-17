@@ -1,0 +1,56 @@
+# Changelog
+
+## [0.2.0](https://github.com/aliammari1/JobPrep/compare/v0.1.0...v0.2.0) (2026-09-17)
+
+
+### Features
+
+* Add Challenge model and update CodeSubmission to reference challenges; enhance API for challenge generation and retrieval ([f71627b](https://github.com/aliammari1/JobPrep/commit/f71627b880793e010062b8288bca434108e578f2))
+* Add FullPageAnswersView component for detailed interview answer review ([c587ff0](https://github.com/aliammari1/JobPrep/commit/c587ff04f9706cbbf9bf1a4c6f7d4f5c10064e44))
+* Add FullPageAnswersView component for detailed interview answer… ([02feaa0](https://github.com/aliammari1/JobPrep/commit/02feaa0eb00e2690f62bcf4faa5eb96a2b363ba2))
+* add interview & CV builder features, UI layout, hooks and backend helpers ([7bf7967](https://github.com/aliammari1/JobPrep/commit/7bf7967d8ba1ca8466721c3ec4bbc8a1162a53ae))
+* add LiveKit chat hook for messaging and file sharing ([61523bf](https://github.com/aliammari1/JobPrep/commit/61523bf5ee8908a4474a2e8807b84b470320a328))
+* add LiveKit chat hook for messaging and file sharing ([2c1dfb5](https://github.com/aliammari1/JobPrep/commit/2c1dfb58282f109117df9182d94106a6877cecc1))
+* **ai:** provider-agnostic AI Coach + scoped Vitest suite ([2171625](https://github.com/aliammari1/JobPrep/commit/2171625006f0b78669c3b72ff497be4a1df2e555))
+* **auth:** remove GitHub social provider and unify social sign-in to Google ([69c9501](https://github.com/aliammari1/JobPrep/commit/69c95014fb44ba18e0e1f0fb653c5d9ef9fa8524))
+* **calendar:** integrate Google Calendar for interview scheduling ([dc5c0b1](https://github.com/aliammari1/JobPrep/commit/dc5c0b18042b0e5a65714afca9d5f3913dc16fec))
+* **ci:** enhance CI workflow with improved job structure and environment variables ([febd760](https://github.com/aliammari1/JobPrep/commit/febd760e314ed08e5bbe9ad3b74588d41107b636))
+* create email templates for interview reminders, confirmations, rescheduling, and cancellations ([2c1dfb5](https://github.com/aliammari1/JobPrep/commit/2c1dfb58282f109117df9182d94106a6877cecc1))
+* Create SwipeableResultsCard to display interview results with feedback and navigation ([c587ff0](https://github.com/aliammari1/JobPrep/commit/c587ff04f9706cbbf9bf1a4c6f7d4f5c10064e44))
+* **email:** enable Resend sending and return unified success/error payload ([0b454d0](https://github.com/aliammari1/JobPrep/commit/0b454d0cf5624ee4a17e790fc6bd5cd6b76e2dd4))
+* Enhance LinkedIn data import handling with improved message processing and timeout management ([682988c](https://github.com/aliammari1/JobPrep/commit/682988ce24e16dec9420320466bed970aa2ab7f3))
+* Enhance LinkedIn profile extraction and improve UI ([289a8e4](https://github.com/aliammari1/JobPrep/commit/289a8e4e50bd5ae131c9571e179f60f27b8493bf))
+* Enhance Projects Section and Templates with Bullet Point Descriptions ([13df271](https://github.com/aliammari1/JobPrep/commit/13df271adcee3dfe36786a3c5c27d51f9ab9ff93))
+* Implement CV parsing API and onboarding flow for personalized coding challenges ([7a5476e](https://github.com/aliammari1/JobPrep/commit/7a5476e7babb37cb6e20b7cbcf1233e002bfb228))
+* Implement hooks for API requests, auto-saving, LiveKit token caching, and interview scheduling ([a400a67](https://github.com/aliammari1/JobPrep/commit/a400a67546a26ad52de2dfdf938380175fd620db))
+* Implement Interview Page with Mode and Type Selection ([01f72f8](https://github.com/aliammari1/JobPrep/commit/01f72f81ee0dc7b26337a0f60421da6dd1b41e67))
+* Implement LinkedIn data import session management and retrieval ([55a5dcc](https://github.com/aliammari1/JobPrep/commit/55a5dcc9270a7a6d925f20fce965788db5ef9cd0))
+* implement push notifications hook for PWA with service worker registration and subscription management ([2c1dfb5](https://github.com/aliammari1/JobPrep/commit/2c1dfb58282f109117df9182d94106a6877cecc1))
+* implement subscription management and pricing components ([12bccba](https://github.com/aliammari1/JobPrep/commit/12bccba403909907e37f9c41f644752b98bfe720))
+* Implement SwipeableQuestionsCard for interactive question navigation ([c587ff0](https://github.com/aliammari1/JobPrep/commit/c587ff04f9706cbbf9bf1a4c6f7d4f5c10064e44))
+* initialize Prisma schema and generated files ([acd3adc](https://github.com/aliammari1/JobPrep/commit/acd3adc0bd268affa14c814ece0dfaab0daf58fd))
+* integrate better-auth for authentication handling in API routes and client; implement middleware for session management in admin routes ([c03b499](https://github.com/aliammari1/JobPrep/commit/c03b499904d0c4607842f6533109d9b34d0e7fd3))
+* integrate Google Calendar service for event management including creation, updating, and deletion ([2c1dfb5](https://github.com/aliammari1/JobPrep/commit/2c1dfb58282f109117df9182d94106a6877cecc1))
+* modernize Cloudflare upgrade baseline ([1be8273](https://github.com/aliammari1/JobPrep/commit/1be82735ee8d9aa7b22adf87415a6fe676d2c289))
+* **observability+security:** Sentry + OTel, error boundaries, CSP, Stripe idempotency ([9d83ce4](https://github.com/aliammari1/JobPrep/commit/9d83ce46b137de9be4aa3727292cb3e049f52555))
+* Refactor audio transcription to utilize Web Speech API; enhance error handling and backend integration for improved user experience ([4500c1d](https://github.com/aliammari1/JobPrep/commit/4500c1dfe57285bd765e2a0f03ab945fcb13761b))
+* Refactor Home component to remove recent users fetching logic ([70afdb7](https://github.com/aliammari1/JobPrep/commit/70afdb73d70aca70f53496d92d57bc925233da35))
+* remove QuestionTemplatesPage component and associated logic ([e6260ee](https://github.com/aliammari1/JobPrep/commit/e6260ee98082190c1f3f2d7c84709969031d40b9))
+* Remove unused PWAInstallPrompt component from layout and clean up navbar ([5eda25b](https://github.com/aliammari1/JobPrep/commit/5eda25b171a7c6e753b246f6132d28856a323961))
+* **security:** typed env ([@t3-oss](https://github.com/t3-oss)) + rate limiting + AI telemetry ([796389f](https://github.com/aliammari1/JobPrep/commit/796389f19f0bb491cd9e16cbe875a0e3218d93c4))
+* Update LinkedIn disconnect route to remove tokens and improve error handling; enhance interview room logic for session management and user feedback; adjust session controls to reset timer based on total duration ([dad2e5c](https://github.com/aliammari1/JobPrep/commit/dad2e5c307b8ebd3fd652f10da59c97a99e85892))
+* Update personalInfo handling in CV data to ensure proper merging with initial values ([09dc0d7](https://github.com/aliammari1/JobPrep/commit/09dc0d768ec3a4b0b57905fa4b881634de042e76))
+* update Prisma schema to include User, Session, Account, and Verification models with necessary fields and relationships; add migration SQL for new schema structure ([c03b499](https://github.com/aliammari1/JobPrep/commit/c03b499904d0c4607842f6533109d9b34d0e7fd3))
+* Update PWA configuration to disable in development mode; add Vercel configuration for service worker headers and rewrites ([a7f5243](https://github.com/aliammari1/JobPrep/commit/a7f524390118bc113d0f4b73442ff8bf7bc29c6e))
+
+
+### Bug Fixes
+
+* **agent:** declare required LiveKit dependencies ([2a98709](https://github.com/aliammari1/JobPrep/commit/2a98709f2bb97cd082ff88ea3c705f4f887be97f))
+* **ai:** reject client-provided system messages ([83ad28d](https://github.com/aliammari1/JobPrep/commit/83ad28d32c54587267d0aac7dcda96b0bd070a8a))
+* **billing:** accept unknown Stripe event types ([b8776b3](https://github.com/aliammari1/JobPrep/commit/b8776b3107ab53eba81e8ab96b6cd93ead6fc4ac))
+* **billing:** make Stripe webhook processing retry-safe ([ba0d4d1](https://github.com/aliammari1/JobPrep/commit/ba0d4d1ba37f9feb5c3be1822f994745b93313e5))
+* **billing:** preserve non-ledger webhook failures ([cdb6306](https://github.com/aliammari1/JobPrep/commit/cdb6306dde279487a7bb00aec1bbc6dc6f9b2370))
+* **ci:** fix coverage runner compatibility, setup-uv cache glob, and prune unused packages ([9d9260d](https://github.com/aliammari1/JobPrep/commit/9d9260d1fd32600ab2ab2ea7bf9234d0a782922d))
+* **ci:** patch dependency CVEs and fix Cloudflare preview e2e health check ([4522a63](https://github.com/aliammari1/JobPrep/commit/4522a63e8e02777e52ee0de5512df604067eded5))
+* **security:** patch aiohttp and scope secret allowlist ([8ce8499](https://github.com/aliammari1/JobPrep/commit/8ce8499b38a8d5d47242c6aab2f4d8a84b3bbcf4))
