@@ -3,27 +3,43 @@
   "version": "0.1.0",
   "private": true,
   "license": "LicenseRef-Source-Available-1.0",
-  "scripts": {
-    "dev": "next dev",
-    "build": "next build",
-    "start": "next start",
-    "lint": "biome check",
-    "lint:ci": "biome ci",
-    "lint:strict": "biome lint src/env.ts src/lib/rate-limit.ts src/lib/ai src/instrumentation.ts src/instrumentation-client.ts src/app/error.tsx src/app/global-error.tsx sentry.server.config.ts sentry.edge.config.ts",
-    "format": "biome format --write",
-    "format:check": "biome format",
-    "typecheck": "tsc --noEmit",
-    "test": "vitest run",
-    "test:watch": "vitest",
-    "test:coverage": "vitest run --coverage",
-    "test:e2e": "playwright test",
-    "openapi:generate": "tsx scripts/generate-openapi.ts",
-    "prisma:generate": "prisma generate",
-    "prisma:studio": "prisma studio",
-    "prisma:migrate": "prisma migrate dev",
-    "prisma:seed": "prisma db seed",
-    "postinstall": "prisma generate"
+  "packageManager": "bun@1.4.2",
+    "engines": {
+    "bun": ">=1.0.0"
   },
+"scripts": {
+  "dev": "next dev",
+  "build": "next build",
+  "start": "next start",
+
+  "cf:build": "opennextjs-cloudflare build",
+  "cf:preview": "opennextjs-cloudflare preview",
+  "cf:deploy": "opennextjs-cloudflare deploy",
+  "cf:upload": "opennextjs-cloudflare upload",
+
+  "lint": "biome check",
+  "lint:ci": "biome ci",
+  "lint:strict": "biome lint src/env.ts src/lib/rate-limit.ts src/lib/ai src/instrumentation.ts src/instrumentation-client.ts src/app/error.tsx src/app/global-error.tsx sentry.server.config.ts sentry.edge.config.ts",
+
+  "format": "biome format --write",
+  "format:check": "biome format",
+
+  "typecheck": "tsc --noEmit",
+
+  "test": "vitest run",
+  "test:watch": "vitest",
+  "test:coverage": "vitest run --coverage",
+  "test:e2e": "playwright test",
+
+  "openapi:generate": "tsx scripts/generate-openapi.ts",
+
+  "prisma:generate": "prisma generate",
+  "prisma:studio": "prisma studio",
+  "prisma:migrate": "prisma migrate dev",
+  "prisma:seed": "prisma db seed",
+
+  "postinstall": "prisma generate"
+},
   "dependencies": {
     "@ai-sdk/anthropic": "^3.0.13",
     "@ai-sdk/openai": "^3.0.10",
@@ -118,7 +134,7 @@
     "livekit-server-sdk": "^2.15.0",
     "lucide-react": "^0.562.0",
     "mammoth": "^1.11.0",
-    "next": "15.5.9",
+    "next": "15.5.24",
     "next-themes": "^0.4.6",
     "nodemailer": "^7.0.12",
     "ollama": "^0.6.3",
@@ -160,6 +176,7 @@
   "devDependencies": {
     "@axe-core/playwright": "^4.11.3",
     "@biomejs/biome": "2.3.11",
+    "@opennextjs/cloudflare": "1.20.6",
     "@playwright/test": "^1.49.0",
     "@scalar/nextjs-api-reference": "^0.4.0",
     "@tailwindcss/postcss": "^4.1.18",
@@ -181,12 +198,10 @@
     "tsx": "^4.21.0",
     "tw-animate-css": "^1.4.0",
     "typescript": "^5.9.3",
-    "vitest": "^2.1.8"
+    "vitest": "^2.1.8",
+    "wrangler": "4.129.1"
   },
   "prisma": {
     "seed": "tsx prisma/seed.ts"
-  },
-  "engines": {
-    "bun": ">=1.0.0"
   }
 }
