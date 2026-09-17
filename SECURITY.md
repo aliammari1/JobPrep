@@ -165,34 +165,34 @@ We appreciate security researchers who responsibly disclose vulnerabilities. Con
 - ✅ **Two-Factor Authentication (2FA)**: TOTP and SMS support
 - ✅ **Session Management**: Secure cookie-based sessions
 - ✅ **Password Security**: Bcrypt hashing with salt
-- ✅ **OAuth Integration**: Google, GitHub, LinkedIn
+- ⚠️ **OAuth integration**: Google and LinkedIn routes exist; state/PKCE/session-binding remediation is tracked before production enablement
 
 ### API Security
 
-- ✅ **Rate Limiting**: Prevents brute force and DoS attacks
-- ✅ **Input Validation**: All inputs validated and sanitized
+- ⚠️ **Rate Limiting**: Upstash limits cover selected AI and LiveKit routes when Redis is configured; this is not a blanket API control
+- ⚠️ **Input Validation**: New security-sensitive endpoints use schema validation; legacy routes require ongoing review
 - ✅ **SQL Injection Protection**: Prisma ORM with parameterized queries
 - ✅ **XSS Protection**: React's built-in escaping + CSP headers
-- ✅ **CSRF Protection**: Built-in CSRF token validation
+- ⚠️ **CSRF Protection**: Better Auth protects its own flows; application routes require endpoint-specific review
 
 ### Data Protection
 
-- ✅ **Encryption at Rest**: Database encryption for sensitive data
-- ✅ **Encryption in Transit**: HTTPS/TLS 1.3 only
-- ✅ **API Key Encryption**: AES-256 encryption for stored API keys
-- ✅ **Secure File Storage**: Signed URLs with expiration
+- ⚠️ **Encryption at Rest**: Depends on the selected managed PostgreSQL and storage provider configuration
+- ✅ **Encryption in Transit**: TLS is terminated by the deployment platform
+- ⚠️ **Integration tokens**: Stored by the application; application-level encryption has not been implemented
+- ⚠️ **File storage**: Signed URLs and expiration depend on the selected storage backend and are not currently a universal control
 
 ### Infrastructure Security
 
 - ✅ **Security Headers**: CSP, HSTS, X-Frame-Options, etc.
-- ✅ **HTTPS Only**: Automatic redirect to HTTPS
+- ⚠️ **HTTPS redirect**: Configure this at the Cloudflare zone/edge; it is not enforced by this repository alone
 - ✅ **Environment Isolation**: Separate dev/staging/production
 - ✅ **Secure Deployment**: Cloudflare's edge network (TLS at the edge, DDoS protection); the Python avatar agent runs on an isolated container
 
 ### Monitoring & Logging
 
 - ✅ **Error Tracking**: Sentry integration (if enabled)
-- ✅ **Audit Logs**: Track sensitive operations
+- ⚠️ **Audit Logs**: No general-purpose audit log is implemented
 - ✅ **Security Alerts**: Automated vulnerability scanning
 
 ## 🚨 Known Security Considerations

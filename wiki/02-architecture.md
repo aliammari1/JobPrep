@@ -225,8 +225,8 @@ Subscription → Payment
 ### Security Features
 - Passkey support (WebAuthn)
 - Two-factor authentication (TOTP)
-- Rate limiting per user/IP
-- CSRF protection
+- Rate limiting on selected endpoints when Upstash Redis is configured
+- CSRF protection for Better Auth flows; application routes require endpoint-specific controls
 - SQL injection prevention (Prisma)
 - XSS prevention (React sanitization)
 
@@ -370,9 +370,9 @@ Source Code → TypeScript Compilation → Next.js Build → Optimization → De
 
 ### Defense in Depth
 1. **Network**: HTTPS, WAF, DDoS protection
-2. **Application**: Input validation, CSRF, XSS prevention
-3. **Data**: Encryption at rest and in transit
-4. **Access**: Authentication, authorization, rate limiting
+2. **Application**: Input validation and React/CSP XSS mitigations; CSRF review remains route-specific
+3. **Data**: Transport encryption; at-rest encryption depends on the managed provider
+4. **Access**: Authentication, authorization, and selected-endpoint rate limiting
 
 ### Security Layers
 
