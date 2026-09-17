@@ -4,9 +4,8 @@ These tests don't contact LiveKit/Simli or require a GPU, so they are safe in
 CI. The full avatar session needs real credentials and a long-running container
 (documented as out of scope for Cloudflare Workers).
 
-`src/main.py` mid-file re-imports `livekit.rtc` / `livekit.agents` plugins that
-are not part of the agent's declared runtime deps, so we validate it via AST
-(structure + entry points) rather than executing the module.
+The production dependencies are installed by uv; these tests still inspect the
+entry point without opening LiveKit or Simli network connections.
 """
 
 import ast
