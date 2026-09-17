@@ -54,10 +54,7 @@ export async function POST(req: Request) {
       duplicate: result === "duplicate" ? true : undefined,
     });
   } catch (error) {
-    if (
-      error instanceof Prisma.PrismaClientKnownRequestError &&
-      error.code === "P2002"
-    ) {
+    if (isProcessedEventDuplicate(error)) {
       return NextResponse.json({ received: true, duplicate: true });
     }
     console.error("Error processing webhook:", error);
@@ -66,6 +63,23 @@ export async function POST(req: Request) {
       { status: 500 },
     );
   }
+}
+
+/**
+ * A concurrent delivery can lose the ledger insert race. Only acknowledge the
+ * idempotency ledger's unique key; a unique violation in a business mutation
+ * must still fail so Stripe retries and the error is visible.
+ */
+function isProcessedEventDuplicate(error: unknown) {
+  if (
+    !(error instanceof Prisma.PrismaClientKnownRequestError) ||
+    error.code !== "P2002"
+  ) {
+    return false;
+  }
+
+  const target = error.meta?.target;
+  return Array.isArray(target) && target.includes("eventId");
 }
 
 async function handleStripeEvent(tx: WebhookTransaction, event: Stripe.Event) {
