@@ -10,6 +10,8 @@ type StripeWebhookVerifier = {
   };
 };
 
+type WebhookEvent = Pick<Stripe.Event, "id"> & { type: string };
+
 /** The subset of a Prisma transaction used by the Stripe webhook. */
 type WebhookTransaction = {
   processedWebhookEvent: {
@@ -27,7 +29,7 @@ type WebhookTransaction = {
  */
 export async function processStripeWebhookEvent(
   tx: WebhookTransaction,
-  event: Pick<Stripe.Event, "id" | "type">,
+  event: WebhookEvent,
   handleEvent: () => Promise<void>,
 ): Promise<"processed" | "duplicate"> {
   const existing = await tx.processedWebhookEvent.findUnique({
