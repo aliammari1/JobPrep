@@ -380,12 +380,12 @@ model Subscription {
 ## 🔐 Security
 
 - 🔒 **Modern auth** — Better Auth with passkeys & 2FA
-- 🚫 **Rate limiting** — Upstash sliding-window limits on the AI + LiveKit endpoints (`src/lib/rate-limit.ts`)
+- 🚫 **Rate limiting** — Upstash sliding-window limits on the AI + LiveKit endpoints when Redis is configured (`src/lib/rate-limit.ts`)
 - 🧰 **Typed env** — boot-time validation via `@t3-oss/env-nextjs` + Zod (`src/env.ts`)
 - 📋 **Security headers / CSP** — HSTS, X-Frame-Options, `script-src` without `unsafe-eval` in prod (`next.config.mjs`)
 - 💳 **Idempotent Stripe webhooks** — duplicate-delivery ledger so retries are safe
 - 📈 **Observability** — Sentry + OpenTelemetry, with AI-SDK telemetry (token/cost) — all no-ops unless configured
-- ✅ **SQL-injection safe** (Prisma) · **XSS** (React) · **CSRF** (built-in)
+- ✅ **SQL-injection resistant** (Prisma) · **XSS mitigation** (React/CSP); route-specific CSRF and authorization review remains in progress
 - 🔎 **Automated scanning** — CodeQL, gitleaks, Trivy, dependency-review + OpenSSF Scorecard in CI
 
 ---
