@@ -243,7 +243,7 @@ jobs:
           else
             bunx prisma migrate diff \
               --from-url "$DATABASE_URL" \
-              --to-schema prisma/schema.prisma \
+              --to-schema-datamodel prisma/schema.prisma \
               --exit-code
           fi
 
@@ -353,18 +353,14 @@ jobs:
       #
       # The build must be reproducible from the committed lockfile.
       - name: Build for Cloudflare Workers
-        run: bun run opennextjs-cloudflare build
+        run: bun run cf:build
 
 
   # ===========================================================================
   # Browser / end-to-end tests
   #
-  # For now these continue using your existing Next.js Playwright setup.
-  #
-  # After you send me playwright.config.ts + open-next.config.ts, we can change
-  # this so Playwright runs against `opennextjs-cloudflare preview`.
-  #
-  # That will make E2E behave even closer to production.
+  # Run smoke tests against the built Worker, rather than a separate Node.js
+  # `next start` process. This exercises the OpenNext/Workers runtime.
   # ===========================================================================
 
   e2e:
@@ -392,15 +388,24 @@ jobs:
       - name: Install Playwright Chromium
         run: bunx playwright install --with-deps chromium
 
-      # Keep this separate for the moment.
-      #
-      # I need to inspect playwright.config.ts before safely switching this
-      # to the Cloudflare preview runtime.
-      - name: Build Next.js application for E2E
-        run: bun run build
+      - name: Build and start the Worker preview
+        run: |
+          bun run cf:build
+          bun run cf:preview -- --port 3000 > "$RUNNER_TEMP/opennext-preview.log" 2>&1 &
+          echo $! > "$RUNNER_TEMP/opennext-preview.pid"
+          for attempt in {1..30}; do
+            if curl --fail --silent http://127.0.0.1:3000/api/health > /dev/null; then
+              exit 0
+            fi
+            sleep 2
+          done
+          cat "$RUNNER_TEMP/opennext-preview.log"
+          exit 1
 
       - name: Run Playwright tests
         run: bunx playwright test
+        env:
+          PLAYWRIGHT_NO_SERVER: "true"
 
       - name: Upload Playwright report
         if: ${{ !cancelled() }}
@@ -410,6 +415,10 @@ jobs:
           path: playwright-report/
           retention-days: 7
           if-no-files-found: ignore
+
+      - name: Show Worker preview log on failure
+        if: ${{ failure() }}
+        run: cat "$RUNNER_TEMP/opennext-preview.log"
 
 
   # ===========================================================================

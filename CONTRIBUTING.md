@@ -67,7 +67,7 @@ git remote add upstream https://github.com/aliammari1/JobPrep.git
 bun install
 
 # Environment
-cp .env.example .env          # fill in keys; SKIP_ENV_VALIDATION=1 builds with placeholders
+cp .env.example .env          # fill in required local values; CI uses placeholders
 
 # Database
 bun run prisma:migrate        # apply dev migrations
@@ -112,7 +112,7 @@ bun run typecheck    # tsc --noEmit
 bun run test         # Vitest unit + API tests
 bun run test:coverage # with V8 coverage (uploaded to Codecov in CI)
 bun run test:e2e     # Playwright (needs the app running / a built app)
-bun run build        # next build (set SKIP_ENV_VALIDATION=1 without real keys)
+bun run build        # next build (use schema-valid local values)
 ```
 
 For the Python agent: `uv run ruff check . && uv run pytest -q`.

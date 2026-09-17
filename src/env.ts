@@ -7,8 +7,8 @@
  *
  * Most provider keys are OPTIONAL by design — JobPrep is BYOK (bring-your-own-
  * key) and self-hostable, so a contributor can run the app with only a database
- * + auth secret and wire AI/video/billing in later. Set `SKIP_ENV_VALIDATION=1`
- * to bypass validation entirely (used by CI builds and `next lint`).
+ * + auth secret and wire AI/video/billing in later. CI supplies schema-valid
+ * placeholders, so it does not bypass this validation.
  */
 import { createEnv } from "@t3-oss/env-nextjs";
 import { z } from "zod";
@@ -28,7 +28,7 @@ export const env = createEnv({
     POSTGRES_PRISMA_URL: z.string().url().optional(),
 
     // --- Auth (required) ---
-    BETTER_AUTH_SECRET: z.string().min(1),
+    BETTER_AUTH_SECRET: z.string().min(32),
     BETTER_AUTH_URL: z.string().url().optional(),
     APP_NAME: z.string().optional(),
 
@@ -63,6 +63,8 @@ export const env = createEnv({
 
     // --- Observability (Sentry; optional) ---
     SENTRY_DSN: z.string().optional(),
+    SENTRY_ORG: z.string().optional(),
+    SENTRY_PROJECT: z.string().optional(),
     SENTRY_AUTH_TOKEN: z.string().optional(),
 
     // --- Email ---
@@ -74,8 +76,14 @@ export const env = createEnv({
     // --- Integrations ---
     GOOGLE_CLIENT_ID: z.string().optional(),
     GOOGLE_CLIENT_SECRET: z.string().optional(),
+    GOOGLE_REDIRECT_URI: z.string().url().optional(),
+    LINKEDIN_CLIENT_ID: z.string().optional(),
+    LINKEDIN_CLIENT_SECRET: z.string().optional(),
+    LINKEDIN_REDIRECT_URI: z.string().url().optional(),
     JUDGE0_API_URL: z.string().optional(),
     JUDGE0_API_KEY: z.string().optional(),
+    PISTON_API_URL: z.string().url().optional(),
+    USE_RAPID_API: z.enum(["true", "false"]).optional(),
   },
 
   /**
@@ -87,6 +95,8 @@ export const env = createEnv({
     NEXT_PUBLIC_SIMLI_API_KEY: z.string().optional(),
     NEXT_PUBLIC_SIMLI_FACE_ID: z.string().optional(),
     NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: z.string().optional(),
+    NEXT_PUBLIC_STRIPE_PRICE_MONTHLY: z.string().optional(),
+    NEXT_PUBLIC_STRIPE_PRICE_YEARLY: z.string().optional(),
     NEXT_PUBLIC_SENTRY_DSN: z.string().optional(),
     NEXT_PUBLIC_APPWRITE_PROJECT_ID: z.string().optional(),
     NEXT_PUBLIC_APPWRITE_ENDPOINT: z.string().url().optional(),
@@ -123,9 +133,15 @@ export const env = createEnv({
     HEYGEN_API_KEY: process.env.HEYGEN_API_KEY,
     STRIPE_SECRET_KEY: process.env.STRIPE_SECRET_KEY,
     STRIPE_WEBHOOK_SECRET: process.env.STRIPE_WEBHOOK_SECRET,
+    NEXT_PUBLIC_STRIPE_PRICE_MONTHLY:
+      process.env.NEXT_PUBLIC_STRIPE_PRICE_MONTHLY,
+    NEXT_PUBLIC_STRIPE_PRICE_YEARLY:
+      process.env.NEXT_PUBLIC_STRIPE_PRICE_YEARLY,
     UPSTASH_REDIS_REST_URL: process.env.UPSTASH_REDIS_REST_URL,
     UPSTASH_REDIS_REST_TOKEN: process.env.UPSTASH_REDIS_REST_TOKEN,
     SENTRY_DSN: process.env.SENTRY_DSN,
+    SENTRY_ORG: process.env.SENTRY_ORG,
+    SENTRY_PROJECT: process.env.SENTRY_PROJECT,
     SENTRY_AUTH_TOKEN: process.env.SENTRY_AUTH_TOKEN,
     GMAIL_USER_EMAIL: process.env.GMAIL_USER_EMAIL,
     GMAIL_APP_PASSWORD: process.env.GMAIL_APP_PASSWORD,
@@ -133,8 +149,14 @@ export const env = createEnv({
     RESEND_FROM_EMAIL: process.env.RESEND_FROM_EMAIL,
     GOOGLE_CLIENT_ID: process.env.GOOGLE_CLIENT_ID,
     GOOGLE_CLIENT_SECRET: process.env.GOOGLE_CLIENT_SECRET,
+    GOOGLE_REDIRECT_URI: process.env.GOOGLE_REDIRECT_URI,
+    LINKEDIN_CLIENT_ID: process.env.LINKEDIN_CLIENT_ID,
+    LINKEDIN_CLIENT_SECRET: process.env.LINKEDIN_CLIENT_SECRET,
+    LINKEDIN_REDIRECT_URI: process.env.LINKEDIN_REDIRECT_URI,
     JUDGE0_API_URL: process.env.JUDGE0_API_URL,
     JUDGE0_API_KEY: process.env.JUDGE0_API_KEY,
+    PISTON_API_URL: process.env.PISTON_API_URL,
+    USE_RAPID_API: process.env.USE_RAPID_API,
     NEXT_PUBLIC_APP_URL: process.env.NEXT_PUBLIC_APP_URL,
     NEXT_PUBLIC_LIVEKIT_URL: process.env.NEXT_PUBLIC_LIVEKIT_URL,
     NEXT_PUBLIC_SIMLI_API_KEY: process.env.NEXT_PUBLIC_SIMLI_API_KEY,
@@ -149,11 +171,8 @@ export const env = createEnv({
       process.env.NEXT_PUBLIC_APPWRITE_DATABASE_ID,
   },
 
-  /**
-   * Skip validation (CI builds, Docker, lint) — placeholders are accepted.
-   */
-  skipValidation:
-    !!process.env.SKIP_ENV_VALIDATION || process.env.NODE_ENV === "test",
+  /** Unit tests can load modules without production service configuration. */
+  skipValidation: process.env.NODE_ENV === "test",
 
   /** Treat empty strings as undefined (a common .env footgun). */
   emptyStringAsUndefined: true,
