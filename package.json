@@ -4,42 +4,42 @@
   "private": true,
   "license": "LicenseRef-Source-Available-1.0",
   "packageManager": "bun@1.4.2",
-    "engines": {
-    "bun": ">=1.0.0"
+  "engines": {
+    "bun": ">=1.4.2"
   },
-"scripts": {
-  "dev": "next dev",
-  "build": "next build",
-  "start": "next start",
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
 
-  "cf:build": "opennextjs-cloudflare build",
-  "cf:preview": "opennextjs-cloudflare preview",
-  "cf:deploy": "opennextjs-cloudflare deploy",
-  "cf:upload": "opennextjs-cloudflare upload",
+    "cf:build": "opennextjs-cloudflare build",
+    "cf:preview": "opennextjs-cloudflare preview",
+    "cf:deploy": "opennextjs-cloudflare deploy",
+    "cf:upload": "opennextjs-cloudflare upload",
 
-  "lint": "biome check",
-  "lint:ci": "biome ci",
-  "lint:strict": "biome lint src/env.ts src/lib/rate-limit.ts src/lib/ai src/instrumentation.ts src/instrumentation-client.ts src/app/error.tsx src/app/global-error.tsx sentry.server.config.ts sentry.edge.config.ts",
+    "lint": "biome check",
+    "lint:ci": "biome ci",
+    "lint:strict": "biome lint src/env.ts src/lib/rate-limit.ts src/lib/ai src/instrumentation.ts src/instrumentation-client.ts src/app/error.tsx src/app/global-error.tsx sentry.server.config.ts sentry.edge.config.ts",
 
-  "format": "biome format --write",
-  "format:check": "biome format",
+    "format": "biome format --write",
+    "format:check": "biome format",
 
-  "typecheck": "tsc --noEmit",
+    "typecheck": "tsc --noEmit",
 
-  "test": "vitest run",
-  "test:watch": "vitest",
-  "test:coverage": "vitest run --coverage",
-  "test:e2e": "playwright test",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
+    "test:e2e": "playwright test",
 
-  "openapi:generate": "tsx scripts/generate-openapi.ts",
+    "openapi:generate": "tsx scripts/generate-openapi.ts",
 
-  "prisma:generate": "prisma generate",
-  "prisma:studio": "prisma studio",
-  "prisma:migrate": "prisma migrate dev",
-  "prisma:seed": "prisma db seed",
+    "prisma:generate": "prisma generate",
+    "prisma:studio": "prisma studio",
+    "prisma:migrate": "prisma migrate dev",
+    "prisma:seed": "prisma db seed",
 
-  "postinstall": "prisma generate"
-},
+    "postinstall": "prisma generate"
+  },
   "dependencies": {
     "@ai-sdk/anthropic": "^3.0.13",
     "@ai-sdk/openai": "^3.0.10",

@@ -105,7 +105,7 @@ keys as the host's secrets.
 ## Environment
 
 Copy `.env.example` to `.env`. `next build` succeeds with placeholder values when
-`SKIP_ENV_VALIDATION=1` (used by CI). Real features (DB, Stripe, LiveKit, AI
+CI supplies schema-valid placeholder values. Real features (DB, Stripe, LiveKit, AI
 providers) require their respective keys.
 
 ## Database

@@ -29,21 +29,23 @@ env:
   LIVEKIT_API_SECRET: dummy
   NEXT_PUBLIC_LIVEKIT_URL: wss://dummy.livekit.cloud
   APP_NAME: JobPrep
-  SKIP_ENV_VALIDATION: "1"
 
 jobs:
   lighthouse:
     name: Lighthouse budgets
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - name: Setup Bun
-        uses: oven-sh/setup-bun@v2
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          bun-version: latest
+          persist-credentials: false
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2.2.0
+        with:
+          bun-version: "1.4.2"
       - name: Install dependencies
         run: bun install --frozen-lockfile
       - name: Build application
         run: bun run build
-      - name: Run Lighthouse CI
-        run: bunx --bun @lhci/cli@0.14.x autorun || echo "Lighthouse budgets not met (advisory)."
+      - name: Run Lighthouse CI (advisory)
+        continue-on-error: true
+        run: bunx --bun @lhci/cli@0.14.x autorun

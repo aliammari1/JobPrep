@@ -4,10 +4,9 @@ import { defineCloudflareConfig } from "@opennextjs/cloudflare";
 /**
  * OpenNext (Cloudflare) configuration.
  *
- * Builds the Next.js app into a Cloudflare Worker. Install the adapter with:
- *   bun add -D @opennextjs/cloudflare
- * then build + deploy with:
- *   bunx @opennextjs/cloudflare build && bunx wrangler deploy
+ * Builds the Next.js app into a Cloudflare Worker. The adapter and Wrangler
+ * are committed development dependencies; use `bun run cf:*` scripts so CI
+ * and local builds execute the lockfile's exact dependency graph.
  *
  * Note: the Python LiveKit/Simli avatar agent in functions/ is a long-running
  * container workload and CANNOT run on Workers — deploy it separately (small
