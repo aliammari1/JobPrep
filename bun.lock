@@ -18,7 +18,7 @@
         "@dnd-kit/core": "^6.3.1",
         "@dnd-kit/sortable": "^10.0.0",
         "@dnd-kit/utilities": "^3.2.2",
-        "@heygen/streaming-avatar": "2.1.0",
+        "@heygen/streaming-avatar": "2.1.1",
         "@livekit/components-react": "^2.9.17",
         "@livekit/components-styles": "^1.2.0",
         "@prisma/client": "^6.19.2",
@@ -494,7 +494,7 @@
 
     "@hexagon/base64": ["@hexagon/base64@1.1.28", "", {}, "sha512-lhqDEAvWixy3bZ+UOYbPwUbBkwBq5C1LAJ/xPC8Oi+lL54oyakv/npbA0aU2hgCsx/1NUd4IBvV03+aUBWxerw=="],
 
-    "@heygen/streaming-avatar": ["@heygen/streaming-avatar@2.1.0", "", { "dependencies": { "livekit-client": "2.11.3", "protobufjs": "7.5.0", "webrtc-issue-detector": "1.16.3" } }, "sha512-JMCM46KNCj9vo+unVAWk5EjtR9z7ZVRsjwpQ3/qkxxF0yRXX2hLrhJ7ZLnrxMMGT1p1iL79rUn4Y5EO6I+xtKw=="],
+    "@heygen/streaming-avatar": ["@heygen/streaming-avatar@2.1.1", "", { "dependencies": { "livekit-client": "2.11.3", "protobufjs": "7.5.0", "webrtc-issue-detector": "1.16.3" } }, "sha512-QsEtIQzW3jBCH+t7N3RV5LqbJ9ExRuFHRsIumAiLhOX+seAswDail0Xr/34HtxOfrmvSci9moeG6QS6+Oj3C/w=="],
 
     "@img/colour": ["@img/colour@1.1.0", "", {}, "sha512-Td76q7j57o/tLVdgS746cYARfSyxk8iEfRxewL9h4OMzYhbW4TAcppl0mT4eyqXddh6L/jwoM75mo7ixa/pCeQ=="],
 
