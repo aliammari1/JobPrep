@@ -102,7 +102,7 @@
     "codemirror": "^6.0.2",
     "date-fns": "^4.1.0",
     "embla-carousel-react": "^8.6.0",
-    "framer-motion": "^12.26.2",
+    "motion": "^12.26.2",
     "googleapis": "^170.0.0",
     "html2canvas": "^1.4.1",
     "ical-generator": "^10.0.0",
