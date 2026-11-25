@@ -1,47 +1,85 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
+import { z } from "zod";
+import { generateStructured, resolveRequestModel } from "@/lib/ai/generate";
+import { rateLimit, rateLimitResponse } from "@/lib/rate-limit";
 
-export async function POST(request: NextRequest) {
+export const maxDuration = 60;
+
+const cvDataSchema = z.object({
+  personalInfo: z
+    .object({ fullName: z.string().max(200).optional() })
+    .passthrough()
+    .optional(),
+  summary: z.string().max(10_000).optional(),
+  experiences: z
+    .array(
+      z
+        .object({ id: z.string(), description: z.string().optional() })
+        .passthrough(),
+    )
+    .optional(),
+  skills: z.array(z.string().max(100)).optional(),
+  model: z.string().optional(),
+});
+
+const enhancementSchema = z.object({
+  summary: z.string(),
+  experiences: z.array(z.object({ id: z.string(), description: z.string() })),
+});
+
+export async function POST(request: Request) {
   try {
-    const cvData = await request.json();
+    const limit = await rateLimit(request, "ai");
+    if (!limit.success) return rateLimitResponse(limit);
 
-    // Call AI service (Ollama/OpenAI) to enhance CV content
-    const response = await fetch("http://localhost:11434/api/generate", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        model: "llama3.2",
-        prompt: `Enhance this CV content to be more professional and impactful. 
-				
+    const body: unknown = await request.json();
+    const parsed = cvDataSchema.safeParse(body);
+    if (!parsed.success) {
+      return NextResponse.json(
+        { error: "Invalid request", details: parsed.error.flatten() },
+        { status: 400 },
+      );
+    }
+    const cvData = parsed.data as Record<string, any>;
+
+    let modelId: string;
+    try {
+      modelId = resolveRequestModel(parsed.data.model);
+    } catch {
+      return NextResponse.json(
+        { error: `Unknown model: ${parsed.data.model}` },
+        { status: 400 },
+      );
+    }
+
+    const fullName = parsed.data.personalInfo?.fullName ?? "the candidate";
+    const summary = parsed.data.summary ?? "";
+    const experiences = parsed.data.experiences ?? [];
+    const skills = parsed.data.skills ?? [];
+
+    let enhancedData: z.infer<typeof enhancementSchema>;
+    try {
+      enhancedData = await generateStructured({
+        modelId,
+        functionId: "cv-enhance",
+        schema: enhancementSchema,
+        instructions:
+          "You are an expert resume writer. Enhance CV content to be professional and impactful. Respond with structured output matching the requested schema.",
+        prompt: `Enhance this CV content to be more professional and impactful.
+
 CV Data:
-- Name: ${cvData.personalInfo.fullName}
-- Summary: ${cvData.summary}
-- Experience: ${JSON.stringify(cvData.experiences)}
-- Skills: ${cvData.skills.join(", ")}
+- Name: ${fullName}
+- Summary: ${summary}
+- Experience: ${JSON.stringify(experiences)}
+- Skills: ${skills.join(", ")}
 
 Provide improved versions of:
 1. Professional summary
-2. Experience descriptions (make them achievement-focused with quantifiable results)
-
-Return ONLY valid JSON with this structure:
-{
-  "summary": "enhanced summary here",
-  "experiences": [{"id": "...", "description": "enhanced description"}]
-}`,
-        stream: false,
-      }),
-    });
-
-    if (!response.ok) {
-      throw new Error("AI service unavailable");
-    }
-
-    const aiResponse = await response.json();
-    let enhancedData;
-
-    try {
-      enhancedData = JSON.parse(aiResponse.response);
+2. Experience descriptions (make them achievement-focused with quantifiable results)`,
+      });
     } catch {
-      // If AI doesn't return valid JSON, use original data
+      // If the model is unavailable, return the original data so the user
+      // never loses their work.
       return NextResponse.json(cvData);
     }
 
@@ -49,7 +87,7 @@ Return ONLY valid JSON with this structure:
     const enhanced = {
       ...cvData,
       summary: enhancedData.summary || cvData.summary,
-      experiences: cvData.experiences.map((exp: any) => {
+      experiences: (cvData.experiences ?? []).map((exp: any) => {
         const enhancedExp = enhancedData.experiences?.find(
           (e: any) => e.id === exp.id,
         );

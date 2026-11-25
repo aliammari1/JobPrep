@@ -19,7 +19,11 @@ export async function GET(req: NextRequest) {
     const questionType = searchParams.get("questionType");
     const difficulty = searchParams.get("difficulty");
 
-    const where: any = {};
+    const where: Record<string, any> = {
+      template: {
+        OR: [{ createdBy: session.user.id }, { isPublic: true }],
+      },
+    };
 
     if (templateId) {
       where.templateId = templateId;
@@ -63,7 +67,16 @@ export async function GET(req: NextRequest) {
       },
     });
 
-    return NextResponse.json(questions);
+    const serialized = questions.map((q) => ({
+      ...q,
+      createdAt: q.createdAt.toISOString(),
+      responses: q.responses.map((r) => ({
+        ...r,
+        submittedAt: r.submittedAt?.toISOString() ?? null,
+      })),
+    }));
+
+    return NextResponse.json(serialized);
   } catch (error) {
     console.error("Error fetching questions:", error);
     return NextResponse.json(

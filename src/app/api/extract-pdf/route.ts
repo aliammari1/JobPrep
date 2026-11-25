@@ -1,40 +1,37 @@
-import { NextRequest, NextResponse } from "next/server";
-import { extractText, getMeta } from "unpdf";
+import { type NextRequest, NextResponse } from "next/server";
+import { PDFParse } from "pdf-parse";
+import { captureApiError } from "@/lib/observability";
+
+export const runtime = "nodejs";
 
 export async function POST(request: NextRequest) {
   try {
     const formData = await request.formData();
-    const file = formData.get("file") as File;
+    const file = formData.get("file") as File | null;
 
     if (!file) {
       return NextResponse.json({ error: "No file provided" }, { status: 400 });
     }
 
-    console.log(
-      `Processing PDF with unpdf: ${file.name}, size: ${file.size} bytes`,
-    );
-
-    // 1. Convert File directly to ArrayBuffer (Modern Web API)
     const arrayBuffer = await file.arrayBuffer();
     const uint8Array = new Uint8Array(arrayBuffer);
+    const parser = new PDFParse({ data: uint8Array });
 
     try {
-      // 2. Extract Text and Metadata using unpdf
-      const { text, totalPages } = await extractText(uint8Array, {
-        mergePages: true,
-      });
-      const { info } = await getMeta(uint8Array);
+      const [textResult, infoResult] = await Promise.all([
+        parser.getText(),
+        parser.getInfo(),
+      ]);
 
-      console.log(`PDF parsed successfully. Total pages: ${totalPages}`);
-
-      // 3. Return structured data
       return NextResponse.json({
-        text: text || "No text could be extracted from the PDF",
-        pages: totalPages,
-        info: info, // Metadata like Author, Creator, etc.
+        text: textResult.text || "No text could be extracted from the PDF",
+        pages: textResult.total,
+        info: infoResult.info ?? null,
       });
     } catch (parseError) {
-      console.error("Unpdf parsing error:", parseError);
+      captureApiError("POST /api/extract-pdf", parseError, {
+        extra: { fileName: file.name, fileSize: file.size },
+      });
       return NextResponse.json(
         {
           error: "Failed to parse PDF",
@@ -46,9 +43,11 @@ export async function POST(request: NextRequest) {
         },
         { status: 500 },
       );
+    } finally {
+      await parser.destroy().catch(() => {});
     }
   } catch (error) {
-    console.error("General extraction error:", error);
+    captureApiError("POST /api/extract-pdf", error);
     return NextResponse.json(
       {
         error: "Failed to process file",

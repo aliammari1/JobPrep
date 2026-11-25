@@ -14,6 +14,13 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
+    if (!process.env.STRIPE_SECRET_KEY) {
+      return NextResponse.json(
+        { error: "Billing service is not configured" },
+        { status: 503 },
+      );
+    }
+
     const { priceId } = await req.json();
 
     if (!priceId) {

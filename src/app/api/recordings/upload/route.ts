@@ -57,6 +57,17 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
+    if (
+      !process.env.NEXT_PUBLIC_APPWRITE_ENDPOINT ||
+      !process.env.NEXT_PUBLIC_APPWRITE_PROJECT_ID ||
+      !process.env.APPWRITE_API_KEY
+    ) {
+      return NextResponse.json(
+        { error: "Recording cloud storage is not configured" },
+        { status: 503 },
+      );
+    }
+
     // Convert File to Buffer for Appwrite
     const arrayBuffer = await file.arrayBuffer();
     const buffer = Buffer.from(arrayBuffer);

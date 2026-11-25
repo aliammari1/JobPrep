@@ -1,13 +1,13 @@
-import { NextResponse } from "next/server";
-import { stripe } from "@/lib/stripe";
 import { headers } from "next/headers";
+import { NextResponse } from "next/server";
+import type Stripe from "stripe";
+import { Prisma } from "@/generated/prisma/client";
 import prisma from "@/lib/prisma";
+import { stripe } from "@/lib/stripe";
 import {
   processStripeWebhookEvent,
   verifyStripeWebhook,
 } from "@/lib/stripe-webhook";
-import type Stripe from "stripe";
-import { Prisma } from "@/generated/prisma";
 
 type WebhookTransaction = Pick<
   Prisma.TransactionClient,

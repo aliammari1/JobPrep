@@ -1,15 +1,20 @@
 import { AccessToken } from "livekit-server-sdk";
+import { headers } from "next/headers";
 import { NextRequest, NextResponse } from "next/server";
+import { auth } from "@/lib/auth";
 import { rateLimit, rateLimitResponse } from "@/lib/rate-limit";
 
-async function generateToken(roomName: string, participantName: string) {
-  const apiKey = process.env.LIVEKIT_API_KEY;
-  const apiSecret = process.env.LIVEKIT_API_SECRET;
-  const wsUrl = process.env.LIVEKIT_URL;
+function isLiveKitConfigured() {
+  return Boolean(
+    process.env.LIVEKIT_API_KEY &&
+      process.env.LIVEKIT_API_SECRET &&
+      (process.env.LIVEKIT_URL || process.env.NEXT_PUBLIC_LIVEKIT_URL),
+  );
+}
 
-  if (!apiKey || !apiSecret || !wsUrl) {
-    throw new Error("Server misconfigured - LiveKit credentials not found");
-  }
+async function generateToken(roomName: string, participantName: string) {
+  const apiKey = process.env.LIVEKIT_API_KEY!;
+  const apiSecret = process.env.LIVEKIT_API_SECRET!;
 
   // Create access token
   const at = new AccessToken(apiKey, apiSecret, {
@@ -33,8 +38,22 @@ async function generateToken(roomName: string, participantName: string) {
 
 export async function GET(req: NextRequest) {
   try {
+    const session = await auth.api.getSession({
+      headers: await headers(),
+    });
+    if (!session?.user) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
     const limit = await rateLimit(req, "livekit");
     if (!limit.success) return rateLimitResponse(limit);
+
+    if (!isLiveKitConfigured()) {
+      return NextResponse.json(
+        { error: "Video conferencing service is not configured" },
+        { status: 503 },
+      );
+    }
 
     const roomName = req.nextUrl.searchParams.get("roomName");
     const participantName = req.nextUrl.searchParams.get("participantName");
@@ -66,8 +85,22 @@ export async function GET(req: NextRequest) {
 
 export async function POST(req: NextRequest) {
   try {
+    const session = await auth.api.getSession({
+      headers: await headers(),
+    });
+    if (!session?.user) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
     const limit = await rateLimit(req, "livekit");
     if (!limit.success) return rateLimitResponse(limit);
+
+    if (!isLiveKitConfigured()) {
+      return NextResponse.json(
+        { error: "Video conferencing service is not configured" },
+        { status: 503 },
+      );
+    }
 
     const body = await req.json();
     const { roomName, participantName } = body;

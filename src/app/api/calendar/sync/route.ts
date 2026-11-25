@@ -10,11 +10,11 @@
  * DELETE /api/calendar/sync/event - Remove event from Google Calendar
  */
 
-import { NextRequest, NextResponse } from "next/server";
-import prisma from "@/lib/prisma";
-import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
+import { type NextRequest, NextResponse } from "next/server";
+import { auth } from "@/lib/auth";
 import { googleCalendarService } from "@/lib/google-calendar-service";
+import prisma from "@/lib/prisma";
 
 // GET /api/calendar/sync/authorize
 /**
@@ -90,23 +90,49 @@ export async function POST(req: NextRequest) {
       }
 
       // Exchange code for tokens
-      const tokens = await googleCalendarService.exchangeCodeForTokens(code);
-
-      // Store tokens in user settings
-      const user = await prisma.user.findUnique({
-        where: { id: session.user.id },
-      });
-
-      if (!user) {
-        return NextResponse.json({ error: "User not found" }, { status: 404 });
+      let tokens: {
+        access_token?: string | null;
+        refresh_token?: string | null;
+        expiry_date?: number | null;
+        scope?: string;
+        token_type?: string | null;
+      };
+      try {
+        tokens = await googleCalendarService.exchangeCodeForTokens(code);
+      } catch {
+        return NextResponse.json(
+          { error: "Google Calendar is not configured or code is invalid" },
+          { status: 500 },
+        );
       }
 
-      // Update user with calendar tokens
-      await prisma.user.update({
-        where: { id: session.user.id },
-        data: {
-          // Store as JSON in a custom field if available, or use metadata
-          // This depends on your User schema
+      if (!tokens.access_token) {
+        return NextResponse.json(
+          { error: "Google did not return an access token" },
+          { status: 502 },
+        );
+      }
+
+      // Store tokens in the IntegrationToken store (upsert per user+provider)
+      await prisma.integrationToken.upsert({
+        where: {
+          userId_provider: { userId: session.user.id, provider: "google" },
+        },
+        create: {
+          userId: session.user.id,
+          provider: "google",
+          accessToken: tokens.access_token,
+          refreshToken: tokens.refresh_token ?? null,
+          expiresAt: tokens.expiry_date ? new Date(tokens.expiry_date) : null,
+          tokenType: tokens.token_type ?? "Bearer",
+          scope: tokens.scope ?? null,
+        },
+        update: {
+          accessToken: tokens.access_token,
+          refreshToken: tokens.refresh_token ?? null,
+          expiresAt: tokens.expiry_date ? new Date(tokens.expiry_date) : null,
+          tokenType: tokens.token_type ?? "Bearer",
+          scope: tokens.scope ?? null,
         },
       });
 
@@ -130,7 +156,8 @@ export async function POST(req: NextRequest) {
       const interview = await prisma.interview.findUnique({
         where: { id: interviewId },
         include: {
-          candidate: true,
+          candidate: { select: { email: true } },
+          interviewer: { select: { email: true } },
         },
       });
 
@@ -141,8 +168,18 @@ export async function POST(req: NextRequest) {
         );
       }
 
-      if (interview.interviewerId !== session.user.id) {
+      if (
+        interview.interviewerId !== session.user.id &&
+        interview.candidateId !== session.user.id
+      ) {
         return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      }
+
+      if (!interview.scheduledAt) {
+        return NextResponse.json(
+          { error: "Interview has no scheduled time" },
+          { status: 400 },
+        );
       }
 
       // Get calendar tokens from user storage and export interview
@@ -162,25 +199,49 @@ export async function POST(req: NextRequest) {
         );
       }
 
-      // For full implementation, would export interview to calendar using oauth2Client
-      // This is a placeholder that tracks the intent to sync
-      const eventData = {
-        summary: interview.position || interview.candidateName || "Interview",
-        startTime: interview.scheduledAt,
-        endTime: interview.duration
-          ? new Date(
-              interview.scheduledAt!.getTime() + interview.duration * 60000,
-            )
-          : interview.scheduledAt,
-        attendees: [interview.interviewerId, interview.candidateId].filter(
-          Boolean,
-        ),
-      };
+      const startTime = interview.scheduledAt;
+      const endTime = interview.duration
+        ? new Date(startTime.getTime() + interview.duration * 60000)
+        : new Date(startTime.getTime() + 60 * 60000);
+      const attendeeEmails = [
+        interview.candidate?.email,
+        interview.interviewer?.email,
+      ].filter((e): e is string => Boolean(e));
+
+      let eventId: string;
+      try {
+        eventId = await googleCalendarService.createEvent(
+          {
+            summary:
+              interview.position || interview.candidateName || "Interview",
+            description: interview.notes ?? undefined,
+            startTime,
+            endTime,
+            location: interview.location ?? undefined,
+            attendees: attendeeEmails,
+          },
+          {
+            accessToken: tokenRecord.accessToken,
+            refreshToken: tokenRecord.refreshToken ?? undefined,
+            expiryDate: tokenRecord.expiresAt?.getTime(),
+          },
+        );
+      } catch {
+        return NextResponse.json(
+          { error: "Failed to create calendar event" },
+          { status: 502 },
+        );
+      }
+
+      await prisma.interview.update({
+        where: { id: interview.id },
+        data: { isCalendarSynced: true },
+      });
 
       return NextResponse.json({
         success: true,
         message: "Interview exported to calendar",
-        eventData,
+        eventId,
       });
     }
 
@@ -202,17 +263,30 @@ export async function POST(req: NextRequest) {
         );
       }
 
-      // Full sync logic would:
-      // 1. Initialize Google OAuth client with tokens
-      // 2. Fetch all events from primary calendar
-      // 3. Parse event details and map to interview format
-      // 4. Create/update corresponding interview records
-      // 5. Return number of events synced
+      let events: Array<{
+        id?: string | null;
+        summary?: string | null;
+        start?: unknown;
+        end?: unknown;
+      }>;
+      try {
+        events = await googleCalendarService.syncFromGoogle({
+          accessToken: tokenRecord.accessToken,
+          refreshToken: tokenRecord.refreshToken ?? undefined,
+          expiryDate: tokenRecord.expiresAt?.getTime(),
+        });
+      } catch {
+        return NextResponse.json(
+          { error: "Failed to fetch calendar events" },
+          { status: 502 },
+        );
+      }
 
       return NextResponse.json({
         success: true,
         message: "Calendar events imported successfully",
-        eventsSynced: 0,
+        eventsSynced: events.length,
+        events: events.slice(0, 50),
       });
     }
 
@@ -259,7 +333,24 @@ export async function POST(req: NextRequest) {
         );
       }
 
-      // For full implementation, would delete event from calendar using oauth2Client
+      try {
+        await googleCalendarService.deleteEvent(eventId, {
+          accessToken: tokenRecord.accessToken,
+          refreshToken: tokenRecord.refreshToken ?? undefined,
+          expiryDate: tokenRecord.expiresAt?.getTime(),
+        });
+      } catch {
+        return NextResponse.json(
+          { error: "Failed to delete calendar event" },
+          { status: 502 },
+        );
+      }
+
+      await prisma.interview.update({
+        where: { id: interview.id },
+        data: { isCalendarSynced: false },
+      });
+
       return NextResponse.json({
         success: true,
         message: "Event removed from calendar",

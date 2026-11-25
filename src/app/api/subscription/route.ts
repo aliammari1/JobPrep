@@ -30,7 +30,9 @@ export async function GET(req: Request) {
     return NextResponse.json({
       tier: user.subscriptionTier,
       status: user.subscriptionStatus,
-      currentPeriodEnd: user.currentPeriodEnd,
+      currentPeriodEnd: user.currentPeriodEnd
+        ? user.currentPeriodEnd.toISOString()
+        : null,
       cancelAtPeriodEnd: user.cancelAtPeriodEnd,
     });
   } catch (error) {

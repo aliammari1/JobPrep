@@ -3,10 +3,12 @@
  * POST /api/notifications/subscribe - Subscribe user to push notifications
  */
 
-import { NextRequest, NextResponse } from "next/server";
+import { type NextRequest, NextResponse } from "next/server";
 
-// In production, store subscriptions in a database
-// This is a simple in-memory store for demonstration
+// Ephemeral dev-only store: this Map is per-process and is lost on restart.
+// It does not work on serverless/edge (Cloudflare Workers) or multi-instance
+// deploys. Production needs a persistent PushSubscription model (endpoint +
+// userId); until then POST /api/notifications/send returns 501.
 const subscriptions = new Map<string, any>();
 
 /**

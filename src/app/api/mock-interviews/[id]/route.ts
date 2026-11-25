@@ -5,6 +5,15 @@ import prisma from "@/lib/prisma";
 
 export const runtime = "nodejs";
 
+function safeJsonParse<T = unknown>(value: string | null | undefined): T | null {
+  if (!value) return null;
+  try {
+    return JSON.parse(value) as T;
+  } catch {
+    return null;
+  }
+}
+
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> },
@@ -34,16 +43,15 @@ export async function GET(
       );
     }
 
-    // Parse JSON fields
+    // Safely parse JSON fields and serialize dates
     const interviewData = {
       ...interview,
-      conversationLog: interview.conversationLog
-        ? JSON.parse(interview.conversationLog)
-        : null,
-      feedback: interview.feedback ? JSON.parse(interview.feedback) : null,
-      specificScores: interview.specificScores
-        ? JSON.parse(interview.specificScores)
-        : null,
+      startedAt: interview.startedAt?.toISOString() ?? null,
+      completedAt: interview.completedAt?.toISOString() ?? null,
+      createdAt: interview.createdAt.toISOString(),
+      conversationLog: safeJsonParse(interview.conversationLog),
+      feedback: safeJsonParse(interview.feedback),
+      specificScores: safeJsonParse(interview.specificScores),
     };
 
     return NextResponse.json({

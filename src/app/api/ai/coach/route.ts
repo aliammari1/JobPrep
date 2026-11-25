@@ -1,6 +1,6 @@
 import { type ModelMessage, streamText } from "ai";
 import { NextResponse } from "next/server";
-import { coachRequestSchema, COACH_SYSTEM_PROMPT } from "@/lib/ai/coach";
+import { COACH_SYSTEM_PROMPT, coachRequestSchema } from "@/lib/ai/coach";
 import {
   DEFAULT_MODEL_ID,
   isKnownModel,
@@ -83,16 +83,14 @@ export async function POST(req: Request) {
   try {
     const result = streamText({
       model: resolveModel(modelId),
-      system: COACH_SYSTEM_PROMPT,
+      instructions: COACH_SYSTEM_PROMPT,
       // `coachRequestSchema` restricts roles and content before this conversion.
       messages: parsed.data.messages as ModelMessage[],
-      // Emit OpenTelemetry GenAI spans (token usage, latency, cost) when an
-      // OTel exporter is wired via instrumentation.ts. Off in dev to keep noise
-      // down; on in production where a collector/Sentry is configured.
-      experimental_telemetry: {
-        isEnabled: process.env.NODE_ENV === "production",
+      // Emit OpenTelemetry GenAI spans (token usage, latency, cost) via the
+      // globally registered `@ai-sdk/otel` integration (see
+      // src/instrumentation.ts). Telemetry is opt-out once registered.
+      telemetry: {
         functionId: "ai-coach",
-        metadata: { model: modelId },
       },
     });
 

@@ -1,38 +1,61 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
+import { z } from "zod";
+import { generateModelText, resolveRequestModel } from "@/lib/ai/generate";
+import { rateLimit, rateLimitResponse } from "@/lib/rate-limit";
 
-export async function POST(request: NextRequest) {
+export const maxDuration = 60;
+
+const requestSchema = z.object({
+  companyName: z.string().min(1).max(200),
+  position: z.string().min(1).max(200),
+  content: z.string().min(1).max(20_000),
+  model: z.string().optional(),
+});
+
+export async function POST(request: Request) {
   try {
-    const letterData = await request.json();
+    const limit = await rateLimit(request, "ai");
+    if (!limit.success) return rateLimitResponse(limit);
 
-    const response = await fetch("http://localhost:11434/api/generate", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        model: "llama3.2",
-        prompt: `Enhance this cover letter to be more compelling and professional.
+    const parsed = requestSchema.safeParse(await request.json());
+    if (!parsed.success) {
+      return NextResponse.json(
+        { error: "Invalid request", details: parsed.error.flatten() },
+        { status: 400 },
+      );
+    }
 
-Company: ${letterData.companyName}
-Position: ${letterData.position}
-Current Content: ${letterData.content.replace(/<[^>]*>/g, "")}
+    const { companyName, position, content } = parsed.data;
+    let modelId: string;
+    try {
+      modelId = resolveRequestModel(parsed.data.model);
+    } catch {
+      return NextResponse.json(
+        { error: `Unknown model: ${parsed.data.model}` },
+        { status: 400 },
+      );
+    }
+
+    const plainContent = content.replace(/<[^>]*>/g, "");
+
+    const enhancedContent = await generateModelText({
+      modelId,
+      functionId: "cover-letter-enhance",
+      instructions:
+        "You are an expert cover-letter writer. Improve the letter while keeping it concise (under 400 words). Return only the enhanced letter content as plain text, no JSON.",
+      prompt: `Enhance this cover letter to be more compelling and professional.
+
+Company: ${companyName}
+Position: ${position}
+Current Content: ${plainContent}
 
 Improve the content by:
 1. Making it more specific to the role
 2. Highlighting relevant achievements
 3. Using stronger action verbs
 4. Maintaining professional tone
-5. Keeping it concise (under 400 words)
-
-Return ONLY the enhanced letter content as plain text, no JSON.`,
-        stream: false,
-      }),
+5. Keeping it concise (under 400 words)`,
     });
-
-    if (!response.ok) {
-      throw new Error("AI service unavailable");
-    }
-
-    const aiResponse = await response.json();
-    const enhancedContent = aiResponse.response;
 
     return NextResponse.json({ content: enhancedContent });
   } catch (error) {

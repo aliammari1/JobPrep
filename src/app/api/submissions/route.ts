@@ -1,25 +1,33 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
+import { captureApiError } from "@/lib/observability";
 import prisma from "@/lib/prisma";
 
 // POST - Submit a solution
 export async function POST(request: NextRequest) {
+  let userId: string | undefined;
   try {
-    // ✅ Add authentication
     const session = await auth.api.getSession({
       headers: await headers(),
     });
 
-    if (!session?.user) {
+    if (!session?.user?.id) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
+    userId = session.user.id;
 
     const body = await request.json();
-    const { challengeId, language, code, testResults, metrics, timeElapsed } =
-      body;
+    const {
+      challengeId,
+      applicationId,
+      language,
+      code,
+      testResults,
+      metrics,
+      timeElapsed,
+    } = body;
 
-    // Validate required fields
     if (!challengeId || !language || !code) {
       return NextResponse.json(
         { error: "Missing required fields" },
@@ -27,18 +35,34 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // ✅ Save to database - track for usage
+    const [challenge, linkedApp] = await Promise.all([
+      prisma.challenge.findUnique({
+        where: { id: challengeId },
+        select: { id: true, title: true },
+      }),
+      typeof applicationId === "string" && applicationId.trim()
+        ? prisma.jobApplication.findFirst({
+            where: { id: applicationId, userId },
+            select: { id: true },
+          })
+        : Promise.resolve(null),
+    ]);
+
     const submission = await prisma.codeSubmission.create({
       data: {
-        userId: session.user.id,
-        title: `Challenge ${challengeId}`,
+        userId,
+        challengeId: challenge?.id ?? null,
+        applicationId: linkedApp?.id ?? null,
+        title: challenge?.title ?? `Challenge ${challengeId}`,
         description: `Submitted solution in ${language}`,
         language,
         code,
-        testsPassed: metrics.passedTests,
-        totalTests: metrics.totalTests,
+        testsPassed: metrics?.passedTests ?? 0,
+        totalTests: metrics?.totalTests ?? 0,
         status:
-          metrics.passedTests === metrics.totalTests ? "passed" : "failed",
+          metrics && metrics.passedTests === metrics.totalTests
+            ? "passed"
+            : "failed",
       },
     });
 
@@ -46,13 +70,14 @@ export async function POST(request: NextRequest) {
       {
         id: submission.id,
         challengeId,
-        userId: session.user.id,
+        applicationId: submission.applicationId,
+        userId,
         language,
         testResults,
         metrics,
         timeElapsed,
         status:
-          metrics.passedTests === metrics.totalTests
+          metrics && metrics.passedTests === metrics.totalTests
             ? "ACCEPTED"
             : "WRONG_ANSWER",
         submittedAt: submission.createdAt.toISOString(),
@@ -60,7 +85,7 @@ export async function POST(request: NextRequest) {
       { status: 201 },
     );
   } catch (error) {
-    console.error("Error submitting solution:", error);
+    captureApiError("POST /api/submissions", error, { userId });
     return NextResponse.json(
       { error: "Failed to submit solution" },
       { status: 500 },

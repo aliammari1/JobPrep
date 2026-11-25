@@ -3,7 +3,7 @@
  * POST /api/notifications/unsubscribe - Unsubscribe user from push notifications
  */
 
-import { NextRequest, NextResponse } from "next/server";
+import { type NextRequest, NextResponse } from "next/server";
 
 /**
  * Handles POST requests to unsubscribe a push notification endpoint.
@@ -22,7 +22,8 @@ export async function POST(request: NextRequest) {
     }
 
     // Remove subscription from store
-    // In production, delete from database
+    // Note: subscribe uses an ephemeral in-memory Map (dev only); there is no
+    // persistent record to delete yet. This only acknowledges the request.
     console.log(`[API] User unsubscribed from notifications: ${endpoint}`);
 
     // In production, you would:

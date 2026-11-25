@@ -77,7 +77,21 @@ export async function GET(
       );
     }
 
-    return NextResponse.json(interview);
+    if (
+      interview.candidateId !== session.user.id &&
+      interview.interviewerId !== session.user.id
+    ) {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    }
+
+    return NextResponse.json({
+      ...interview,
+      scheduledAt: interview.scheduledAt?.toISOString() ?? null,
+      startedAt: interview.startedAt?.toISOString() ?? null,
+      completedAt: interview.completedAt?.toISOString() ?? null,
+      createdAt: interview.createdAt.toISOString(),
+      updatedAt: interview.updatedAt.toISOString(),
+    });
   } catch (error) {
     console.error("Error fetching interview:", error);
     return NextResponse.json(
@@ -102,6 +116,26 @@ export async function PATCH(
     }
 
     const { id } = await params;
+
+    const existing = await prisma.interview.findUnique({
+      where: { id },
+      select: { id: true, candidateId: true, interviewerId: true },
+    });
+
+    if (!existing) {
+      return NextResponse.json(
+        { error: "Interview not found" },
+        { status: 404 },
+      );
+    }
+
+    if (
+      existing.candidateId !== session.user.id &&
+      existing.interviewerId !== session.user.id
+    ) {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    }
+
     const body = await req.json();
 
     const {
@@ -118,12 +152,34 @@ export async function PATCH(
       behavioralScore,
       communicationScore,
       settings,
+      candidateName,
+      position,
+      candidateEmail,
+      candidatePhone,
+      notes,
+      type,
+      duration,
+      time,
     } = body;
 
-    const updateData: any = {};
+    const settingsObj =
+      settings && typeof settings === "object"
+        ? (settings as Record<string, any>)
+        : {};
+
+    const updateData: Record<string, any> = {};
 
     if (status) updateData.status = status;
-    if (scheduledAt) updateData.scheduledAt = new Date(scheduledAt);
+    if (scheduledAt) {
+      const parsed = new Date(scheduledAt);
+      if (Number.isNaN(parsed.getTime())) {
+        return NextResponse.json(
+          { error: "Invalid scheduledAt date" },
+          { status: 400 },
+        );
+      }
+      updateData.scheduledAt = parsed;
+    }
     if (startedAt) updateData.startedAt = new Date(startedAt);
     if (completedAt) updateData.completedAt = new Date(completedAt);
     if (interviewerId !== undefined) updateData.interviewerId = interviewerId;
@@ -140,7 +196,28 @@ export async function PATCH(
       updateData.behavioralScore = behavioralScore;
     if (communicationScore !== undefined)
       updateData.communicationScore = communicationScore;
-    if (settings !== undefined) updateData.settings = JSON.stringify(settings);
+
+    if (candidateName !== undefined || settingsObj.candidateName !== undefined)
+      updateData.candidateName = candidateName ?? settingsObj.candidateName;
+    if (position !== undefined || settingsObj.position !== undefined)
+      updateData.position = position ?? settingsObj.position;
+    if (candidateEmail !== undefined || settingsObj.candidateEmail !== undefined)
+      updateData.candidateEmail = candidateEmail ?? settingsObj.candidateEmail;
+    if (candidatePhone !== undefined || settingsObj.candidatePhone !== undefined)
+      updateData.candidatePhone = candidatePhone ?? settingsObj.candidatePhone;
+    if (notes !== undefined || settingsObj.notes !== undefined)
+      updateData.notes = notes ?? settingsObj.notes;
+    if (type !== undefined || settingsObj.type !== undefined)
+      updateData.type = type ?? settingsObj.type;
+    if (duration !== undefined || settingsObj.duration !== undefined)
+      updateData.duration = duration ?? settingsObj.duration;
+    if (time !== undefined || settingsObj.time !== undefined)
+      updateData.time = time ?? settingsObj.time;
+
+    if (settings !== undefined) {
+      updateData.settings =
+        typeof settings === "string" ? settings : JSON.stringify(settings);
+    }
 
     const interview = await prisma.interview.update({
       where: { id },
@@ -175,7 +252,14 @@ export async function PATCH(
       },
     });
 
-    return NextResponse.json(interview);
+    return NextResponse.json({
+      ...interview,
+      scheduledAt: interview.scheduledAt?.toISOString() ?? null,
+      startedAt: interview.startedAt?.toISOString() ?? null,
+      completedAt: interview.completedAt?.toISOString() ?? null,
+      createdAt: interview.createdAt.toISOString(),
+      updatedAt: interview.updatedAt.toISOString(),
+    });
   } catch (error) {
     console.error("Error updating interview:", error);
     return NextResponse.json(
@@ -200,6 +284,25 @@ export async function DELETE(
     }
 
     const { id } = await params;
+
+    const existing = await prisma.interview.findUnique({
+      where: { id },
+      select: { id: true, candidateId: true, interviewerId: true },
+    });
+
+    if (!existing) {
+      return NextResponse.json(
+        { error: "Interview not found" },
+        { status: 404 },
+      );
+    }
+
+    if (
+      existing.candidateId !== session.user.id &&
+      existing.interviewerId !== session.user.id
+    ) {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    }
 
     await prisma.interview.delete({
       where: { id },

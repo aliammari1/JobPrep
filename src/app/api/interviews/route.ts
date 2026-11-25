@@ -5,6 +5,45 @@ import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
 import { createGoogleCalendarEvent } from "@/lib/google-calendar";
 
+function safeParseSettings(settings: unknown): Record<string, any> {
+  if (!settings) return {};
+  if (typeof settings === "string") {
+    try {
+      const parsed = JSON.parse(settings);
+      return parsed && typeof parsed === "object" ? parsed : {};
+    } catch {
+      return {};
+    }
+  }
+  return typeof settings === "object" ? (settings as Record<string, any>) : {};
+}
+
+function serializeInterview<T extends Record<string, any>>(interview: T) {
+  return {
+    ...interview,
+    scheduledAt:
+      interview.scheduledAt instanceof Date
+        ? interview.scheduledAt.toISOString()
+        : (interview.scheduledAt ?? null),
+    startedAt:
+      interview.startedAt instanceof Date
+        ? interview.startedAt.toISOString()
+        : (interview.startedAt ?? null),
+    completedAt:
+      interview.completedAt instanceof Date
+        ? interview.completedAt.toISOString()
+        : (interview.completedAt ?? null),
+    createdAt:
+      interview.createdAt instanceof Date
+        ? interview.createdAt.toISOString()
+        : interview.createdAt,
+    updatedAt:
+      interview.updatedAt instanceof Date
+        ? interview.updatedAt.toISOString()
+        : interview.updatedAt,
+  };
+}
+
 // GET /api/interviews - Get all interviews with filters
 export async function GET(req: NextRequest) {
   try {
@@ -12,7 +51,7 @@ export async function GET(req: NextRequest) {
       headers: await headers(),
     });
 
-    if (!session) {
+    if (!session?.user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
     const searchParams = req.nextUrl.searchParams;
@@ -20,11 +59,22 @@ export async function GET(req: NextRequest) {
     const candidateId = searchParams.get("candidateId");
     const interviewerId = searchParams.get("interviewerId");
     const templateId = searchParams.get("templateId");
-    const page = parseInt(searchParams.get("page") || "1");
-    const limit = parseInt(searchParams.get("limit") || "20");
+    const page = Math.max(
+      1,
+      Number.parseInt(searchParams.get("page") || "1", 10) || 1,
+    );
+    const limit = Math.min(
+      100,
+      Math.max(1, Number.parseInt(searchParams.get("limit") || "20", 10) || 20),
+    );
     const skip = (page - 1) * limit;
 
-    const where: Record<string, any> = {};
+    const where: Record<string, any> = {
+      OR: [
+        { candidateId: session.user.id },
+        { interviewerId: session.user.id },
+      ],
+    };
 
     if (status && status !== "all") {
       where.status = status;
@@ -94,7 +144,7 @@ export async function GET(req: NextRequest) {
     });
 
     return NextResponse.json({
-      interviews,
+      interviews: interviews.map(serializeInterview),
       pagination: {
         total,
         page,
@@ -132,14 +182,32 @@ export async function POST(req: NextRequest) {
       isAIInterviewer,
       allowRecording,
       settings,
+      candidateName,
+      position,
+      candidateEmail,
+      candidatePhone,
+      notes,
+      type,
+      duration,
+      time,
+      status,
     } = body;
 
+    const settingsData = safeParseSettings(settings);
+
     // Validate required fields
-    if (!candidateId) {
-      return NextResponse.json(
-        { error: "candidateId is required" },
-        { status: 400 },
-      );
+    const resolvedCandidateId = candidateId || session.user.id;
+
+    let parsedScheduledAt: Date | null = null;
+    if (scheduledAt) {
+      const candidateDate = new Date(scheduledAt);
+      if (Number.isNaN(candidateDate.getTime())) {
+        return NextResponse.json(
+          { error: "Invalid scheduledAt date" },
+          { status: 400 },
+        );
+      }
+      parsedScheduledAt = candidateDate;
     }
 
     // Get or create a default template if templateId not provided
@@ -172,17 +240,36 @@ export async function POST(req: NextRequest) {
       finalTemplateId = defaultTemplate.id;
     }
 
+    const resolvedTime =
+      time ||
+      settingsData.time ||
+      (parsedScheduledAt
+        ? `${parsedScheduledAt.getHours().toString().padStart(2, "0")}:${parsedScheduledAt.getMinutes().toString().padStart(2, "0")}`
+        : null);
+
     // Create the interview
     const interview = await prisma.interview.create({
       data: {
-        candidateId,
-        interviewerId,
+        candidateId: resolvedCandidateId,
+        interviewerId: interviewerId || session.user.id,
         templateId: finalTemplateId,
-        scheduledAt: scheduledAt ? new Date(scheduledAt) : null,
+        scheduledAt: parsedScheduledAt,
+        time: resolvedTime,
+        duration:
+          duration ?? (typeof settingsData.duration === "number" ? settingsData.duration : 60),
+        type: type || settingsData.type || "video",
+        candidateName: candidateName ?? settingsData.candidateName ?? null,
+        position: position ?? settingsData.position ?? null,
+        candidateEmail: candidateEmail ?? settingsData.candidateEmail ?? null,
+        candidatePhone: candidatePhone ?? settingsData.candidatePhone ?? null,
+        notes: notes ?? settingsData.notes ?? null,
         isAIInterviewer: isAIInterviewer || false,
         allowRecording: allowRecording !== undefined ? allowRecording : true,
-        settings: settings ? JSON.stringify(settings) : null,
-        status: "scheduled",
+        settings:
+          Object.keys(settingsData).length > 0
+            ? JSON.stringify(settingsData)
+            : null,
+        status: status || "scheduled",
       },
       include: {
         candidate: {
@@ -216,18 +303,21 @@ export async function POST(req: NextRequest) {
 
     // Try to sync with Google Calendar if connected
     try {
-      if (scheduledAt) {
-        const settingsData = settings ? JSON.parse(settings) : {};
+      if (parsedScheduledAt) {
         const result = await createGoogleCalendarEvent(session.user.id, {
-          summary: `Interview: ${settingsData.position || "Position"} - ${settingsData.candidateName || "Candidate"}`,
-          description: `Interview Details:\n\nPosition: ${settingsData.position || "N/A"}\nCandidate: ${settingsData.candidateName || "N/A"}\nEmail: ${settingsData.candidateEmail || "N/A"}\nPhone: ${settingsData.candidatePhone || "N/A"}\nType: ${settingsData.type || "video"}\n\nNotes:\n${settingsData.notes || "No additional notes"}`,
-          startTime: new Date(scheduledAt),
+          summary: `Interview: ${interview.position || "Position"} - ${interview.candidateName || "Candidate"}`,
+          description: `Interview Details:\n\nPosition: ${interview.position || "N/A"}\nCandidate: ${interview.candidateName || "N/A"}\nEmail: ${interview.candidateEmail || "N/A"}\nPhone: ${interview.candidatePhone || "N/A"}\nType: ${interview.type || "video"}\n\nNotes:\n${interview.notes || "No additional notes"}`,
+          startTime: parsedScheduledAt,
           endTime: new Date(
-            new Date(scheduledAt).getTime() +
-              (settingsData.duration || 60) * 60000,
+            parsedScheduledAt.getTime() + (interview.duration || 60) * 60000,
           ),
-          attendees: settingsData.candidateEmail
-            ? [settingsData.candidateEmail]
+          attendees: interview.candidateEmail
+            ? [
+                {
+                  email: interview.candidateEmail,
+                  displayName: interview.candidateName || undefined,
+                },
+              ]
             : [],
         });
 
@@ -236,6 +326,7 @@ export async function POST(req: NextRequest) {
           await prisma.interview.update({
             where: { id: interview.id },
             data: {
+              isCalendarSynced: true,
               settings: JSON.stringify({
                 ...settingsData,
                 googleCalendarEventId: result.eventId,
@@ -249,7 +340,7 @@ export async function POST(req: NextRequest) {
       console.error("Failed to sync with Google Calendar:", calendarError);
     }
 
-    return NextResponse.json(interview, { status: 201 });
+    return NextResponse.json(serializeInterview(interview), { status: 201 });
   } catch (error) {
     console.error("Error creating interview:", error);
     return NextResponse.json(
@@ -327,7 +418,10 @@ export async function PATCH(req: NextRequest) {
         ...(technicalScore !== undefined && { technicalScore }),
         ...(behavioralScore !== undefined && { behavioralScore }),
         ...(communicationScore !== undefined && { communicationScore }),
-        ...(settings && { settings: JSON.stringify(settings) }),
+        ...(settings !== undefined && {
+          settings:
+            typeof settings === "string" ? settings : JSON.stringify(settings),
+        }),
       },
       include: {
         candidate: {
@@ -353,7 +447,10 @@ export async function PATCH(req: NextRequest) {
       },
     });
 
-    return NextResponse.json({ interview }, { status: 200 });
+    return NextResponse.json(
+      { interview: serializeInterview(interview) },
+      { status: 200 },
+    );
   } catch (error) {
     console.error("Error updating interview:", error);
     return NextResponse.json(

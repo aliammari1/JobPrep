@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
+import { captureApiError } from "@/lib/observability";
 import prisma from "@/lib/prisma";
 
 export const runtime = "nodejs";
@@ -38,6 +39,7 @@ export async function POST(request: NextRequest) {
       candidateName,
       jobTitle,
       companyName,
+      applicationId,
     } = await request.json();
 
     console.log("Request body received:", {
@@ -89,9 +91,30 @@ export async function POST(request: NextRequest) {
     });
 
     // Save session first
+    const serializedFeedback =
+      typeof feedback === "string"
+        ? feedback
+        : JSON.stringify(feedback ?? {});
+    const serializedSpecificScores =
+      specificScores === undefined || specificScores === null
+        ? null
+        : typeof specificScores === "string"
+          ? specificScores
+          : JSON.stringify(specificScores);
+
+    let validApplicationId: string | null = null;
+    if (typeof applicationId === "string" && applicationId.trim()) {
+      const app = await prisma.jobApplication.findFirst({
+        where: { id: applicationId, userId: session.user.id },
+        select: { id: true },
+      });
+      validApplicationId = app?.id ?? null;
+    }
+
     const mockSession = await prisma.aIMockSession.create({
       data: {
         userId: session.user.id,
+        applicationId: validApplicationId,
         sessionType: sessionType || "mock-interview",
         aiPersonality: "professional",
         difficultyLevel: "intermediate",
@@ -103,10 +126,10 @@ export async function POST(request: NextRequest) {
           companyName,
           questions: detailedQuestions, // Store detailed question data with answers and evaluations
         }),
-        feedback: JSON.stringify(feedback),
+        feedback: serializedFeedback,
         improvementAreas: improvementAreas || [],
-        overallScore: overallScore,
-        specificScores: JSON.stringify(specificScores),
+        overallScore: overallScore ?? null,
+        specificScores: serializedSpecificScores,
         startedAt: new Date(Date.now() - (duration || 0) * 60000), // Calculate start time
         completedAt: new Date(),
       },
@@ -163,12 +186,7 @@ export async function POST(request: NextRequest) {
       message: "Interview saved successfully",
     });
   } catch (error) {
-    console.error("Error saving interview:", error);
-    console.error("Error details:", {
-      name: error instanceof Error ? error.name : "Unknown",
-      message: error instanceof Error ? error.message : "Unknown error",
-      stack: error instanceof Error ? error.stack : "No stack trace",
-    });
+    captureApiError("POST /api/save-interview", error);
     return NextResponse.json(
       {
         error: "Failed to save interview",
@@ -198,6 +216,9 @@ export async function GET(request: NextRequest) {
         createdAt: "desc",
       },
       include: {
+        application: {
+          select: { id: true, company: true, role: true },
+        },
         mockQuestions: {
           orderBy: {
             order: "asc",
@@ -206,9 +227,24 @@ export async function GET(request: NextRequest) {
       },
     });
 
+    const serialized = interviews.map((interview) => ({
+      ...interview,
+      startedAt: interview.startedAt?.toISOString() ?? null,
+      completedAt: interview.completedAt?.toISOString() ?? null,
+      createdAt: interview.createdAt.toISOString(),
+      questions: interview.mockQuestions.map((q) => ({
+        ...q,
+        createdAt: q.createdAt.toISOString(),
+      })),
+      mockQuestions: interview.mockQuestions.map((q) => ({
+        ...q,
+        createdAt: q.createdAt.toISOString(),
+      })),
+    }));
+
     return NextResponse.json({
       success: true,
-      interviews,
+      interviews: serialized,
     });
   } catch (error) {
     console.error("Error fetching interviews:", error);

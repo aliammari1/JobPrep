@@ -38,6 +38,13 @@ export async function GET(
         startedAt: true,
         completedAt: true,
         createdAt: true,
+        applicationId: true,
+        application: {
+          select: { id: true, company: true, role: true },
+        },
+        mockQuestions: {
+          orderBy: { order: "asc" },
+        },
       },
     });
 
@@ -50,7 +57,16 @@ export async function GET(
 
     return NextResponse.json({
       success: true,
-      interview,
+      interview: {
+        ...interview,
+        startedAt: interview.startedAt?.toISOString() ?? null,
+        completedAt: interview.completedAt?.toISOString() ?? null,
+        createdAt: interview.createdAt.toISOString(),
+        mockQuestions: interview.mockQuestions.map((q) => ({
+          ...q,
+          createdAt: q.createdAt.toISOString(),
+        })),
+      },
     });
   } catch (error) {
     console.error("Error fetching interview:", error);

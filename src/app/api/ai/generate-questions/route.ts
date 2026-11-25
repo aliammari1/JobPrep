@@ -1,17 +1,9 @@
-import { createOpenAICompatible } from "@ai-sdk/openai-compatible";
-import { generateText } from "ai";
-import { z } from "zod";
 import { NextResponse } from "next/server";
+import { z } from "zod";
+import { generateStructured, resolveRequestModel } from "@/lib/ai/generate";
 import { rateLimit, rateLimitResponse } from "@/lib/rate-limit";
 
 export const maxDuration = 30;
-
-// Configure Ollama as OpenAI-compatible provider
-const ollama = createOpenAICompatible({
-  name: "ollama",
-  baseURL: "http://localhost:11434/v1",
-  apiKey: "ollama",
-});
 
 const questionSchema = z.object({
   questions: z.array(
@@ -24,70 +16,54 @@ const questionSchema = z.object({
   ),
 });
 
+const requestSchema = z.object({
+  role: z.string().min(1).max(200),
+  skillLevel: z.string().min(1).max(100),
+  count: z.number().int().min(1).max(20).optional(),
+  focus: z.string().max(500).optional(),
+  model: z.string().optional(),
+});
+
 export async function POST(req: Request) {
   try {
     const limit = await rateLimit(req, "ai");
     if (!limit.success) return rateLimitResponse(limit);
 
-    const { role, skillLevel, count = 5, focus } = await req.json();
+    const parsed = requestSchema.safeParse(await req.json());
+    if (!parsed.success) {
+      return NextResponse.json(
+        { error: "Invalid request", details: parsed.error.flatten() },
+        { status: 400 },
+      );
+    }
 
-    const { text } = await generateText({
-      model: ollama("llama3.2"),
-      system: `You are an expert technical interviewer. You MUST respond with valid JSON only. No explanations, no markdown, just pure JSON.`,
-      prompt: `Generate exactly ${count} interview questions for a ${skillLevel} ${role} position.
+    const { role, skillLevel, count = 5, focus } = parsed.data;
+    let modelId: string;
+    try {
+      modelId = resolveRequestModel(parsed.data.model);
+    } catch {
+      return NextResponse.json(
+        { error: `Unknown model: ${parsed.data.model}` },
+        { status: 400 },
+      );
+    }
+
+    try {
+      const result = await generateStructured({
+        modelId,
+        functionId: "ai-generate-questions",
+        schema: questionSchema,
+        instructions: `You are an expert technical interviewer. Respond with structured output matching the requested schema.`,
+        prompt: `Generate exactly ${count} interview questions for a ${skillLevel} ${role} position.
 ${focus ? `Focus on: ${focus}` : ""}
 
-CRITICAL: Return ONLY valid JSON. No markdown. No code blocks. No explanations.
-Use this EXACT structure:
-{
-  "questions": [
-    {
-      "text": "Question text here",
-      "category": "technical",
-      "difficulty": "medium",
-      "expectedAnswer": "Brief expected answer"
-    }
-  ]
-}
-
 Categories: technical, behavioral, or situational
-Difficulties: easy, medium, or hard`,
-    });
-
-    console.log("Raw generated text:", text);
-
-    // Aggressive JSON cleaning
-    let cleanedText = text.trim();
-
-    // Remove markdown code blocks
-    cleanedText = cleanedText
-      .replace(/```json\n?/gi, "")
-      .replace(/```\n?/g, "");
-
-    // Remove any leading/trailing non-JSON text
-    const jsonStart = cleanedText.indexOf("{");
-    const jsonEnd = cleanedText.lastIndexOf("}");
-
-    if (jsonStart !== -1 && jsonEnd !== -1) {
-      cleanedText = cleanedText.substring(jsonStart, jsonEnd + 1);
-    }
-
-    // Fix common JSON issues
-    cleanedText = cleanedText
-      .replace(/,(\s*[}\]])/g, "$1") // Remove trailing commas
-      .replace(/\n/g, " ") // Remove newlines that might break strings
-      .replace(/\r/g, ""); // Remove carriage returns
-
-    let parsed: z.infer<typeof questionSchema>;
-    try {
-      const jsonData = JSON.parse(cleanedText);
-      parsed = questionSchema.parse(jsonData);
-    } catch (parseError) {
-      console.error("JSON Parse Error:", parseError);
-      console.error("Cleaned text:", cleanedText);
-      console.error("Original text:", text);
-
-      // Return a fallback response with default questions
+Difficulties: easy, medium, or hard. Include a brief expected answer per question.`,
+      });
+      return NextResponse.json(result);
+    } catch (error) {
+      console.error("Question generation error:", error);
+      // Fallback so interview setup never hard-fails on a model outage.
       return NextResponse.json({
         questions: [
           {
@@ -107,8 +83,6 @@ Difficulties: easy, medium, or hard`,
         ],
       });
     }
-
-    return NextResponse.json(parsed);
   } catch (error) {
     console.error("Question generation error:", error);
     return NextResponse.json(

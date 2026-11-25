@@ -1,17 +1,9 @@
-import { createOpenAICompatible } from "@ai-sdk/openai-compatible";
-import { generateText } from "ai";
-import { z } from "zod";
 import { NextResponse } from "next/server";
+import { z } from "zod";
+import { generateStructured, resolveRequestModel } from "@/lib/ai/generate";
 import { rateLimit, rateLimitResponse } from "@/lib/rate-limit";
 
 export const maxDuration = 30;
-
-// Configure Ollama as OpenAI-compatible provider
-const ollama = createOpenAICompatible({
-  name: "ollama",
-  baseURL: "http://localhost:11434/v1",
-  apiKey: "ollama",
-});
 
 const skillAnalysisSchema = z.object({
   matchPercentage: z.number().min(0).max(100),
@@ -44,25 +36,43 @@ const skillAnalysisSchema = z.object({
   ),
 });
 
+const requestSchema = z.object({
+  jobDescription: z.string().min(1).max(20_000),
+  cvSkills: z.array(z.string().max(100)).min(1).max(200),
+  model: z.string().optional(),
+});
+
 export async function POST(req: Request) {
   try {
     const limit = await rateLimit(req, "ai");
     if (!limit.success) return rateLimitResponse(limit);
 
-    const { jobDescription, cvSkills } = await req.json();
-
-    if (!jobDescription || !cvSkills || !Array.isArray(cvSkills)) {
+    const parsed = requestSchema.safeParse(await req.json());
+    if (!parsed.success) {
       return NextResponse.json(
-        { error: "Invalid input: jobDescription and cvSkills array required" },
+        { error: "Invalid request", details: parsed.error.flatten() },
         { status: 400 },
       );
     }
 
-    const { text } = await generateText({
-      model: ollama("llama3.2"), // Using Mistral model
-      system: `You are an expert career counselor and technical skills analyst. You MUST respond with valid JSON only. No explanations, no markdown, just pure JSON.`,
-      prompt: `
-Analyze the following job description and the user's current skills to identify skills gaps and provide recommendations.
+    const { jobDescription, cvSkills } = parsed.data;
+    let modelId: string;
+    try {
+      modelId = resolveRequestModel(parsed.data.model);
+    } catch {
+      return NextResponse.json(
+        { error: `Unknown model: ${parsed.data.model}` },
+        { status: 400 },
+      );
+    }
+
+    try {
+      const result = await generateStructured({
+        modelId,
+        functionId: "ai-analyze-skill-gap",
+        schema: skillAnalysisSchema,
+        instructions: `You are an expert career counselor and technical skills analyst. Respond with structured output matching the requested schema.`,
+        prompt: `Analyze the following job description and the user's current skills to identify skills gaps and provide recommendations.
 
 Job Description:
 ${jobDescription}
@@ -70,77 +80,12 @@ ${jobDescription}
 User's Current Skills:
 ${cvSkills.join(", ")}
 
-Please provide a JSON response with the following structure:
-{
-  "matchPercentage": number (0-100),
-  "missingSkills": [
-    {
-      "skill": "string",
-      "proficiency": "beginner" | "intermediate" | "advanced" | "expert",
-      "required": boolean,
-      "importance": "critical" | "high" | "medium" | "low"
-    }
-  ],
-  "matchingSkills": [
-    {
-      "skill": "string",
-      "proficiency": "beginner" | "intermediate" | "advanced" | "expert",
-      "required": boolean,
-      "importance": "critical" | "high" | "medium" | "low"
-    }
-  ],
-  "learningPath": [
-    {
-      "title": "string",
-      "provider": "string",
-      "duration": "string (e.g., '20 hours')",
-      "type": "course" | "certification" | "tutorial" | "book",
-      "url": "string",
-      "rating": number (0-5),
-      "price": "free" | "paid"
-    }
-  ]
-}
-
-Focus on technical skills relevant to the job. Be realistic about skill importance and requirements.
-CRITICAL: Return ONLY valid JSON. No markdown. No code blocks. No explanations.
-`,
-    });
-
-    console.log("Raw generated text:", text);
-
-    // Aggressive JSON cleaning
-    let cleanedText = text.trim();
-
-    // Remove markdown code blocks
-    cleanedText = cleanedText
-      .replace(/```json\n?/gi, "")
-      .replace(/```\n?/g, "");
-
-    // Remove any leading/trailing non-JSON text
-    const jsonStart = cleanedText.indexOf("{");
-    const jsonEnd = cleanedText.lastIndexOf("}");
-
-    if (jsonStart !== -1 && jsonEnd !== -1) {
-      cleanedText = cleanedText.substring(jsonStart, jsonEnd + 1);
-    }
-
-    // Fix common JSON issues
-    cleanedText = cleanedText
-      .replace(/,(\s*[}\]])/g, "$1") // Remove trailing commas
-      .replace(/\n/g, " ") // Remove newlines that might break strings
-      .replace(/\r/g, ""); // Remove carriage returns
-
-    let parsed: z.infer<typeof skillAnalysisSchema>;
-    try {
-      const jsonData = JSON.parse(cleanedText);
-      parsed = skillAnalysisSchema.parse(jsonData);
-    } catch (parseError) {
-      console.error("JSON Parse Error:", parseError);
-      console.error("Cleaned text:", cleanedText);
-      console.error("Original text:", text);
-
-      // Return a fallback response
+Focus on technical skills relevant to the job. Be realistic about skill importance and requirements.`,
+      });
+      return NextResponse.json(result);
+    } catch (error) {
+      console.error("Skill gap analysis error:", error);
+      // Fallback so the UI never hard-fails on a model outage.
       return NextResponse.json({
         matchPercentage: 50,
         missingSkills: [
@@ -172,8 +117,6 @@ CRITICAL: Return ONLY valid JSON. No markdown. No code blocks. No explanations.
         ],
       });
     }
-
-    return NextResponse.json(parsed);
   } catch (error) {
     console.error("Skill gap analysis error:", error);
     return NextResponse.json(

@@ -38,17 +38,23 @@ export async function DELETE(
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
-    // Delete file from Appwrite Storage if URL exists
-    if (interview.videoRecordingUrl) {
+    // Delete file from Appwrite Storage if URL exists and Appwrite is configured
+    const isAppwriteConfigured = Boolean(
+      process.env.NEXT_PUBLIC_APPWRITE_ENDPOINT &&
+        process.env.NEXT_PUBLIC_APPWRITE_PROJECT_ID &&
+        process.env.APPWRITE_API_KEY,
+    );
+
+    if (interview.videoRecordingUrl && isAppwriteConfigured) {
       try {
-        // Extract file ID from URL if needed
-        const fileId = interview.settings
-          ? JSON.parse(
-              typeof interview.settings === "string"
-                ? interview.settings
-                : "{}",
-            ).recordingFileId
-          : recordingId;
+        let fileId: string | undefined = recordingId;
+        if (interview.settings) {
+          const parsed =
+            typeof interview.settings === "string"
+              ? JSON.parse(interview.settings)
+              : interview.settings;
+          fileId = parsed?.recordingFileId || recordingId;
+        }
 
         if (fileId) {
           const { deleteRecording } = await import("@/lib/appwrite");

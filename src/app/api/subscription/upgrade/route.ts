@@ -15,6 +15,13 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
     }
 
+    if (!process.env.STRIPE_SECRET_KEY) {
+      return NextResponse.json(
+        { message: "Billing service is not configured" },
+        { status: 503 },
+      );
+    }
+
     const { tier } = await request.json();
 
     if (!tier || !["MONTHLY", "YEARLY"].includes(tier)) {

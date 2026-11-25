@@ -1,15 +1,15 @@
-import { createOpenAICompatible } from "@ai-sdk/openai-compatible";
-import { streamText } from "ai";
 import { NextResponse } from "next/server";
+import { z } from "zod";
+import { resolveRequestModel, streamModelText } from "@/lib/ai/generate";
 import { rateLimit, rateLimitResponse } from "@/lib/rate-limit";
 
 export const maxDuration = 60;
 
-// Configure Ollama as OpenAI-compatible provider
-const ollama = createOpenAICompatible({
-  name: "ollama",
-  baseURL: "http://localhost:11434/v1",
-  apiKey: "ollama", // Ollama doesn't require an API key, but the field is required
+const requestSchema = z.object({
+  question: z.string().min(1).max(10_000),
+  answer: z.string().min(1).max(20_000),
+  context: z.string().max(10_000).optional(),
+  model: z.string().optional(),
 });
 
 export async function POST(req: Request) {
@@ -17,20 +17,31 @@ export async function POST(req: Request) {
     const limit = await rateLimit(req, "ai");
     if (!limit.success) return rateLimitResponse(limit);
 
-    const { question, answer, context } = await req.json();
-
-    if (!question || !answer) {
+    const parsed = requestSchema.safeParse(await req.json());
+    if (!parsed.success) {
       return NextResponse.json(
-        { error: "Missing required fields: question and answer" },
+        { error: "Invalid request", details: parsed.error.flatten() },
         { status: 400 },
       );
     }
 
-    const result = streamText({
-      model: ollama("llama3.2"),
-      system: `You are an expert interview coach. Analyze candidate responses and provide constructive, actionable feedback. Be encouraging but honest.`,
+    const { question, answer, context } = parsed.data;
+    let modelId: string;
+    try {
+      modelId = resolveRequestModel(parsed.data.model);
+    } catch {
+      return NextResponse.json(
+        { error: `Unknown model: ${parsed.data.model}` },
+        { status: 400 },
+      );
+    }
+
+    const result = streamModelText({
+      modelId,
+      functionId: "ai-analyze-response",
+      instructions: `You are an expert interview coach. Analyze candidate responses and provide constructive, actionable feedback. Be encouraging but honest.`,
       prompt: `Interview Question: ${question}
-      
+
 Candidate's Answer: ${answer}
 
 ${context ? `Additional Context: ${context}` : ""}

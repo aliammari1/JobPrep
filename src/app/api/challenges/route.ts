@@ -18,8 +18,14 @@ export async function GET(request: NextRequest) {
     const id = searchParams.get("id");
     const difficulty = searchParams.get("difficulty");
     const category = searchParams.get("category");
-    const limit = parseInt(searchParams.get("limit") || "10");
-    const offset = parseInt(searchParams.get("offset") || "0");
+    const limit = Math.min(
+      100,
+      Math.max(1, Number.parseInt(searchParams.get("limit") || "10", 10) || 10),
+    );
+    const offset = Math.max(
+      0,
+      Number.parseInt(searchParams.get("offset") || "0", 10) || 0,
+    );
 
     if (id) {
       // Fetch specific challenge from database
@@ -34,11 +40,19 @@ export async function GET(request: NextRequest) {
         );
       }
 
-      return NextResponse.json(challenge);
+      if (challenge.userId !== session.user.id) {
+        return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+      }
+
+      return NextResponse.json({
+        ...challenge,
+        createdAt: challenge.createdAt.toISOString(),
+        updatedAt: challenge.updatedAt.toISOString(),
+      });
     }
 
     // Fetch challenges with filters from database
-    const where: any = { userId: session.user.id };
+    const where: Record<string, any> = { userId: session.user.id };
 
     if (difficulty) {
       where.difficulty = difficulty;
@@ -59,7 +73,11 @@ export async function GET(request: NextRequest) {
     ]);
 
     return NextResponse.json({
-      challenges,
+      challenges: challenges.map((c) => ({
+        ...c,
+        createdAt: c.createdAt.toISOString(),
+        updatedAt: c.updatedAt.toISOString(),
+      })),
       total,
       hasMore: offset + limit < total,
     });
