@@ -1,84 +1,87 @@
-// Background service worker for JobPrep LinkedIn CV Importer
+// Manifest V3 service worker for JobPrep Career & LinkedIn Companion
+// Stateless: all state lives in chrome.storage.local
 
-console.log("JobPrep LinkedIn Importer - Background service worker started");
+const DEFAULT_TARGET_URL = "http://localhost:3000";
 
-// Listen for extension installation
-chrome.runtime.onInstalled.addListener((details) => {
+chrome.runtime.onInstalled.addListener(async (details) => {
   if (details.reason === "install") {
-    console.log("Extension installed");
-
-    // Set default target URL
-    chrome.storage.local.set({
-      targetUrl: "https://job-prep-fawn.vercel.app",
-      extractionHistory: [],
-    });
-  } else if (details.reason === "update") {
-    console.log(
-      "Extension updated to version",
-      chrome.runtime.getManifest().version,
-    );
-  }
-});
-
-// Handle messages from content script or popup
-chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
-  if (request.action === "saveData") {
-    // Save extracted data to storage with timestamp
-    const dataToSave = {
-      ...request.data,
-      extractedAt: new Date().toISOString(),
-      sourceUrl: sender.url,
-    };
-
-    chrome.storage.local.set({ extractedData: dataToSave }, () => {
-      console.log("Data saved to storage");
-      sendResponse({ success: true });
-    });
-    return true;
-  }
-
-  if (request.action === "getData") {
-    // Retrieve extracted data from storage
-    chrome.storage.local.get(["extractedData"], (result) => {
-      sendResponse({ success: true, data: result.extractedData });
-    });
-    return true;
-  }
-
-  if (request.action === "clearData") {
-    // Clear stored data
-    chrome.storage.local.remove(["extractedData"], () => {
-      console.log("Data cleared from storage");
-      sendResponse({ success: true });
-    });
-    return true;
-  }
-
-  if (request.action === "logError") {
-    // Log errors for debugging
-    console.error("Extension error:", request.error);
-    console.error("Context:", request.context);
-    return true;
-  }
-});
-
-// Update badge when data is extracted
-chrome.storage.onChanged.addListener((changes, namespace) => {
-  if (namespace === "local" && changes.extractedData) {
-    if (changes.extractedData.newValue) {
-      // Data extracted - show badge
-      const data = changes.extractedData.newValue;
-      const label = data.personalInfo?.fullName
-        ? data.personalInfo.fullName.split(" ")[0] // First name
-        : "✓";
-
-      chrome.action.setBadgeText({ text: "✓" });
-      chrome.action.setBadgeBackgroundColor({ color: "#10B981" });
-      chrome.action.setTitle({ title: `Data ready: ${label}` });
-    } else {
-      // Data cleared - hide badge
-      chrome.action.setBadgeText({ text: "" });
-      chrome.action.setTitle({ title: "JobPrep LinkedIn CV Importer" });
+    const existing = await chrome.storage.local.get(["targetUrl"]);
+    if (!existing.targetUrl) {
+      await chrome.storage.local.set({
+        targetUrl: DEFAULT_TARGET_URL,
+        extractionHistory: [],
+      });
     }
+  }
+});
+
+chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+  (async () => {
+    try {
+      if (request.action === "saveData") {
+        const dataToSave = {
+          ...request.data,
+          extractedAt: new Date().toISOString(),
+          sourceUrl: sender.url || request.sourceUrl || null,
+        };
+        await chrome.storage.local.set({ extractedData: dataToSave });
+        sendResponse({ success: true, data: dataToSave });
+        return;
+      }
+
+      if (request.action === "getData") {
+        const { extractedData = null } = await chrome.storage.local.get([
+          "extractedData",
+        ]);
+        sendResponse({ success: true, data: extractedData });
+        return;
+      }
+
+      if (request.action === "clearData") {
+        await chrome.storage.local.remove(["extractedData"]);
+        sendResponse({ success: true });
+        return;
+      }
+
+      if (request.action === "setTargetUrl") {
+        const sanitized = String(request.targetUrl || DEFAULT_TARGET_URL)
+          .trim()
+          .replace(/\/+$/, "");
+        await chrome.storage.local.set({ targetUrl: sanitized });
+        sendResponse({ success: true, targetUrl: sanitized });
+        return;
+      }
+
+      if (request.action === "getTargetUrl") {
+        const { targetUrl = DEFAULT_TARGET_URL } =
+          await chrome.storage.local.get(["targetUrl"]);
+        sendResponse({ success: true, targetUrl });
+        return;
+      }
+
+      sendResponse({ success: false, error: "Unknown action" });
+    } catch (error) {
+      sendResponse({
+        success: false,
+        error: error instanceof Error ? error.message : String(error),
+      });
+    }
+  })();
+
+  return true; // keep message channel open for async response
+});
+
+chrome.storage.onChanged.addListener(async (changes, namespace) => {
+  if (namespace !== "local" || !changes.extractedData) return;
+
+  if (changes.extractedData.newValue) {
+    const data = changes.extractedData.newValue;
+    const firstName = data.personalInfo?.fullName?.split(" ")[0] || "Ready";
+    await chrome.action.setBadgeText({ text: "✓" });
+    await chrome.action.setBadgeBackgroundColor({ color: "#2563EB" });
+    await chrome.action.setTitle({ title: `JobPrep — Ready: ${firstName}` });
+  } else {
+    await chrome.action.setBadgeText({ text: "" });
+    await chrome.action.setTitle({ title: "JobPrep Career Companion" });
   }
 });

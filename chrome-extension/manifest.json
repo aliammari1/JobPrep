@@ -1,32 +1,37 @@
 {
   "manifest_version": 3,
-  "name": "JobPrep LinkedIn CV Importer",
-  "version": "1.0.0",
-  "description": "Extract LinkedIn profile data and import it directly into JobPrep CV Builder",
+  "name": "JobPrep Career & LinkedIn Companion",
+  "version": "2.0.0",
+  "description": "Import your LinkedIn profile into JobPrep CV Builder via official OAuth, LinkedIn PDF export, or one-click active-tab capture.",
+  "icons": {
+    "16": "icons/icon-16.png",
+    "48": "icons/icon-48.png",
+    "128": "icons/icon-128.png"
+  },
   "permissions": ["activeTab", "scripting", "storage", "tabs"],
   "host_permissions": [
-    "https://www.linkedin.com/*",
-    "https://*.linkedin.com/*",
-    "https://job-prep-fawn.vercel.app/*",
+    "https://www.linkedin.com/in/*",
     "http://localhost:*/*",
     "http://127.0.0.1:*/*"
   ],
+  "optional_host_permissions": ["https://*/*"],
   "action": {
     "default_popup": "popup.html",
-    "default_title": "JobPrep LinkedIn CV Importer"
+    "default_title": "JobPrep Career Companion",
+    "default_icon": {
+      "16": "icons/icon-16.png",
+      "48": "icons/icon-48.png",
+      "128": "icons/icon-128.png"
+    }
   },
   "content_scripts": [
     {
-      "matches": [
-        "https://www.linkedin.com/in/*",
-        "https://*.linkedin.com/in/*"
-      ],
+      "matches": ["https://www.linkedin.com/in/*"],
       "js": ["content.js"],
       "run_at": "document_idle"
     },
     {
       "matches": [
-        "https://job-prep-fawn.vercel.app/cv-builder*",
         "http://localhost:*/cv-builder*",
         "http://127.0.0.1:*/cv-builder*"
       ],

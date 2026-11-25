@@ -1,349 +1,227 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>JobPrep LinkedIn Importer</title>
-  <style>
-    * {
-      box-sizing: border-box;
-    }
-
-    body {
-      width: 400px;
-      min-height: 500px;
-      padding: 0;
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-      margin: 0;
-      background: #ffffff;
-      color: #1a1a1a;
-    }
-
-    .header {
-      background: #ffffff;
-      padding: 20px 20px 16px 20px;
-      border-bottom: 1px solid #e5e5e5;
-    }
-
-    .header h1 {
-      margin: 0 0 4px 0;
-      font-size: 22px;
-      font-weight: 700;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      background: linear-gradient(to right, #3b82f6, #3b82f6);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
-    }
-
-    .header p {
-      margin: 0;
-      font-size: 13px;
-      color: #666666;
-    }
-
-    .container {
-      padding: 20px;
-      overflow-y: auto;
-      max-height: calc(100vh - 120px);
-    }
-
-    .status-card {
-      background: #f9fafb;
-      padding: 14px;
-      border-radius: 10px;
-      margin-bottom: 16px;
-      font-size: 12px;
-      word-break: break-word;
-      border: 1px solid #e5e5e5;
-    }
-
-    .status-label {
-      font-weight: 600;
-      margin-bottom: 6px;
-      color: #333333;
-      text-transform: uppercase;
-      font-size: 11px;
-      letter-spacing: 0.5px;
-    }
-
-    .status-value {
-      background: #ffffff;
-      padding: 8px 10px;
-      border-radius: 6px;
-      font-family: 'Monaco', 'Menlo', monospace;
-      font-size: 11px;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-      border: 1px solid #e5e5e5;
-      color: #666666;
-    }
-
-    button {
-      width: 100%;
-      padding: 12px 16px;
-      border: none;
-      border-radius: 10px;
-      font-size: 14px;
-      font-weight: 600;
-      cursor: pointer;
-      transition: all 0.3s ease;
-      margin-bottom: 10px;
-      text-align: center;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 8px;
-    }
-
-    button:disabled {
-      opacity: 0.6;
-      cursor: not-allowed;
-    }
-
-    .btn-primary {
-      background: #3b82f6;
-      color: #ffffff;
-      font-weight: 700;
-      box-shadow: 0 2px 8px rgba(59, 130, 246, 0.2);
-      border: 1px solid #3b82f6;
-    }
-
-    .btn-primary:hover:not(:disabled) {
-      background: #2563eb;
-      border-color: #2563eb;
-      box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
-    }
-
-    .btn-primary:active:not(:disabled) {
-      transform: translateY(0);
-    }
-
-    .btn-secondary {
-      background: #f3f4f6;
-      color: #374151;
-      border: 1px solid #e5e7eb;
-    }
-
-    .btn-secondary:hover:not(:disabled) {
-      background: #e5e7eb;
-      border-color: #d1d5db;
-    }
-
-    .btn-danger {
-      background: #ef4444;
-      color: #ffffff;
-      border: 1px solid #ef4444;
-    }
-
-    .btn-danger:hover:not(:disabled) {
-      background: #dc2626;
-      border-color: #dc2626;
-    }
-
-    .form-group {
-      margin-bottom: 14px;
-    }
-
-    .form-label {
-      display: block;
-      font-size: 12px;
-      font-weight: 600;
-      margin-bottom: 6px;
-      opacity: 0.9;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-    }
-
-    input {
-      width: 100%;
-      padding: 11px 13px;
-      border: 2px solid #e5e7eb;
-      border-radius: 8px;
-      font-size: 13px;
-      background: #ffffff;
-      color: #1f2937;
-    }
-
-    input::placeholder {
-      color: #9ca3af;
-    }
-
-    input:focus {
-      outline: none;
-      border-color: #3b82f6;
-      background: #ffffff;
-      box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
-    }
-
-    .message {
-      padding: 12px 14px;
-      border-radius: 8px;
-      margin-bottom: 12px;
-      font-size: 13px;
-      font-weight: 500;
-      display: flex;
-      align-items: flex-start;
-      gap: 10px;
-      animation: slideIn 0.3s ease;
-    }
-
-    @keyframes slideIn {
-      from {
-        opacity: 0;
-        transform: translateY(-10px);
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>JobPrep Career Companion</title>
+    <style>
+      :root {
+        --bg: #fcfdff;
+        --surface: #ffffff;
+        --muted: #f4f6fa;
+        --border: #e2e8f0;
+        --ink: #090b10;
+        --ink-muted: #475569;
+        --blue: #2563eb;
+        --blue-hover: #1d4ed8;
+        --blue-soft: #eff6ff;
       }
-      to {
-        opacity: 1;
-        transform: translateY(0);
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
       }
-    }
+      body {
+        width: 360px;
+        background: var(--bg);
+        color: var(--ink);
+        font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        font-size: 13px;
+        line-height: 1.45;
+      }
+      header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 14px 16px;
+        background: var(--ink);
+        color: #ffffff;
+      }
+      .brand {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-weight: 700;
+        font-size: 14px;
+        letter-spacing: -0.01em;
+      }
+      .brand-dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 999px;
+        background: var(--blue);
+      }
+      .version {
+        font-size: 11px;
+        color: rgba(255, 255, 255, 0.6);
+      }
+      main {
+        padding: 14px 16px 16px;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+      }
+      .card {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        padding: 12px;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+      }
+      .card-title {
+        font-size: 12px;
+        font-weight: 600;
+        color: var(--ink);
+      }
+      .card-desc {
+        font-size: 12px;
+        color: var(--ink-muted);
+      }
+      .row {
+        display: flex;
+        gap: 8px;
+      }
+      input[type="url"] {
+        flex: 1;
+        height: 34px;
+        padding: 0 10px;
+        border: 1px solid var(--border);
+        border-radius: 7px;
+        font-size: 12px;
+        color: var(--ink);
+        background: var(--bg);
+      }
+      button {
+        cursor: pointer;
+        border-radius: 7px;
+        font-size: 12px;
+        font-weight: 600;
+        height: 34px;
+        padding: 0 12px;
+        border: 1px solid transparent;
+        transition: background-color 140ms ease, border-color 140ms ease;
+      }
+      button:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+      }
+      .btn-primary {
+        background: var(--blue);
+        color: #ffffff;
+        width: 100%;
+      }
+      .btn-primary:hover:not(:disabled) {
+        background: var(--blue-hover);
+      }
+      .btn-outline {
+        background: var(--surface);
+        color: var(--ink);
+        border-color: var(--border);
+      }
+      .btn-outline:hover:not(:disabled) {
+        background: var(--muted);
+      }
+      .btn-full {
+        width: 100%;
+      }
+      .status {
+        font-size: 12px;
+        padding: 8px 10px;
+        border-radius: 7px;
+        background: var(--blue-soft);
+        color: #1e3a8a;
+        display: none;
+      }
+      .status.visible {
+        display: block;
+      }
+      .status.error {
+        background: #fef2f2;
+        color: #991b1b;
+      }
+      .preview {
+        font-size: 12px;
+        color: var(--ink-muted);
+        border-top: 1px solid var(--border);
+        padding-top: 8px;
+        display: none;
+      }
+      .preview.visible {
+        display: block;
+      }
+      .preview strong {
+        color: var(--ink);
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <div class="brand">
+        <span class="brand-dot"></span>
+        <span>JobPrep Companion</span>
+      </div>
+      <span class="version">v2.0</span>
+    </header>
 
-    .message.success {
-      background: #d1fae5;
-      border: 1px solid #6ee7b7;
-      color: #065f46;
-    }
+    <main>
+      <div id="statusBox" class="status" role="status" aria-live="polite"></div>
 
-    .message.error {
-      background: #fee2e2;
-      border: 1px solid #fca5a5;
-      color: #991b1b;
-    }
+      <!-- Recommended Official Flows -->
+      <section class="card">
+        <div class="card-title">Official LinkedIn Import (Recommended)</div>
+        <p class="card-desc">
+          Connect via LinkedIn OpenID OAuth or upload your official LinkedIn
+          &ldquo;Save to PDF&rdquo; export directly into JobPrep CV Builder.
+        </p>
+        <div class="row">
+          <button id="oauthBtn" type="button" class="btn-outline btn-full">
+            Connect OAuth
+          </button>
+          <button id="pdfImportBtn" type="button" class="btn-outline btn-full">
+            Import PDF
+          </button>
+        </div>
+      </section>
 
-    .message.info {
-      background: #dbeafe;
-      border: 1px solid #93c5fd;
-      color: #1e40af;
-    }
+      <!-- User-Initiated Active Tab Capture -->
+      <section class="card">
+        <div class="card-title">Active LinkedIn Profile Tab</div>
+        <p class="card-desc">
+          Runs only when you click below on your open
+          <code>linkedin.com/in/</code> profile. Data stays local until you open
+          JobPrep.
+        </p>
+        <button id="extractBtn" type="button" class="btn-primary">
+          Capture current profile tab
+        </button>
+        <div id="previewBox" class="preview"></div>
+        <div id="sendRow" class="row" style="display: none">
+          <button id="openCvBtn" type="button" class="btn-primary">
+            Open in CV Builder
+          </button>
+          <button id="clearBtn" type="button" class="btn-outline">Clear</button>
+        </div>
+      </section>
 
-    .message.warning {
-      background: #fef3c7;
-      border: 1px solid #fce68a;
-      color: #92400e;
-    }
+      <!-- Self-Hosted / Local Instance URL -->
+      <section class="card">
+        <div class="card-title">JobPrep Instance URL</div>
+        <div class="row">
+          <input
+            id="targetUrlInput"
+            type="url"
+            placeholder="http://localhost:3000"
+            aria-label="JobPrep instance URL"
+          />
+          <button id="saveUrlBtn" type="button" class="btn-outline">
+            Save
+          </button>
+        </div>
+      </section>
+    </main>
 
-    .preview {
-      background: #f9fafb;
-      padding: 14px;
-      border-radius: 8px;
-      border: 1px solid #e5e7eb;
-      margin-top: 12px;
-      max-height: 220px;
-      overflow-y: auto;
-      font-size: 12px;
-    }
-
-    .preview-title {
-      font-weight: 700;
-      margin-bottom: 10px;
-      font-size: 13px;
-      color: #1f2937;
-    }
-
-    .preview-item {
-      margin-bottom: 8px;
-      padding-bottom: 8px;
-      border-bottom: 1px solid #e5e7eb;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-
-    .preview-item:last-child {
-      border-bottom: none;
-      margin-bottom: 0;
-      padding-bottom: 0;
-    }
-
-    .preview-label {
-      font-weight: 600;
-      color: #4b5563;
-    }
-
-    .preview-value {
-      color: #1f2937;
-      font-weight: 500;
-    }
-
-    .loader {
-      border: 2px solid #e5e7eb;
-      border-top: 2px solid #3b82f6;
-      border-radius: 50%;
-      width: 24px;
-      height: 24px;
-      animation: spin 0.8s linear infinite;
-      display: inline-block;
-    }
-
-    @keyframes spin {
-      0% { transform: rotate(0deg); }
-      100% { transform: rotate(360deg); }
-    }
-
-    .hidden {
-      display: none;
-    }
-
-    .footer-hint {
-      margin-top: 12px;
-      font-size: 11px;
-      color: #6b7280;
-      text-align: center;
-      border-top: 1px solid #e5e7eb;
-      padding-top: 12px;
-    }
-  </style>
-</head>
-<body>
-  <div class="header">
-    <h1>🚀 JobPrep</h1>
-    <p>LinkedIn CV Importer</p>
-  </div>
-
-  <div class="container">
-    <div class="status-card">
-      <div class="status-label">Current Page</div>
-      <div class="status-value" id="currentUrl" title="Hover for full URL">Loading...</div>
-    </div>
-
-    <div id="messageContainer"></div>
-
-    <button id="extractBtn" class="btn-primary">
-      <span>📥</span>
-      <span>Extract Profile</span>
-    </button>
-
-    <div id="preview" class="preview hidden"></div>
-
-    <div class="form-group">
-      <label class="form-label">JobPrep Server URL</label>
-      <input 
-        type="text" 
-        id="targetUrl" 
-        placeholder="e.g., http://localhost:3000"
-        value="https://job-prep-fawn.vercel.app"
-      />
-    </div>
-
-    <button id="sendBtn" class="btn-secondary" disabled>
-      <span>⬆️</span>
-      <span>Send to JobPrep</span>
-    </button>
-
-    <button id="clearBtn" class="btn-danger hidden">
-      <span>🗑️</span>
-      <span>Clear Data</span>
-    </button>
-
-    <div class="footer-hint">
-      ℹ️ Make sure you're viewing a LinkedIn profile page to extract data
-    </div>
-  </div>
-
-  <script src="popup.js"></script>
-</body>
+    <script src="popup.js"></script>
+  </body>
 </html>

@@ -24,7 +24,8 @@ Bring your own API key (Claude / GPT / Gemini) or run **100% local & offline** w
 
 </div>
 
-> **▶ 60-second demo** — _GIF coming soon_ (see [`BANNER.md`](BANNER.md) for the recording brief).
+> **▶ 60-second demo** — screenshots below show the current UI
+> (`docs/screenshots/desktop.png` and `docs/screenshots/mobile.png`).
 > <br><img src="docs/screenshots/desktop.png" alt="JobPrep desktop" width="70%">
 
 ---
@@ -424,7 +425,7 @@ bunx wrangler deploy
 **More docs:** [Deployment](docs/DEPLOYMENT.md) ·
 [Architecture](docs/ARCHITECTURE.md) ·
 [Chrome Web Store publishing](docs/CHROME_WEB_STORE.md) ·
-[Banner / social preview](BANNER.md) ·
+[Social preview banner](assets/banner.svg) ·
 [Launch checklist](docs/TRENDING.md)
 
 ---
