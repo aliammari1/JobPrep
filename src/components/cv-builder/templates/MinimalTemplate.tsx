@@ -34,7 +34,9 @@ export function MinimalTemplate({ cvData, settings }: TemplateProps) {
         </p>
 
         <div className="space-y-1 text-sm font-light text-gray-600">
-          {personalInfo.email && <p className="break-all">{personalInfo.email}</p>}
+          {personalInfo.email && (
+            <p className="break-all">{personalInfo.email}</p>
+          )}
           {personalInfo.phone && <p>{personalInfo.phone}</p>}
           {personalInfo.location && <p>{personalInfo.location}</p>}
         </div>

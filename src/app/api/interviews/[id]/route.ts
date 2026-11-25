@@ -201,9 +201,15 @@ export async function PATCH(
       updateData.candidateName = candidateName ?? settingsObj.candidateName;
     if (position !== undefined || settingsObj.position !== undefined)
       updateData.position = position ?? settingsObj.position;
-    if (candidateEmail !== undefined || settingsObj.candidateEmail !== undefined)
+    if (
+      candidateEmail !== undefined ||
+      settingsObj.candidateEmail !== undefined
+    )
       updateData.candidateEmail = candidateEmail ?? settingsObj.candidateEmail;
-    if (candidatePhone !== undefined || settingsObj.candidatePhone !== undefined)
+    if (
+      candidatePhone !== undefined ||
+      settingsObj.candidatePhone !== undefined
+    )
       updateData.candidatePhone = candidatePhone ?? settingsObj.candidatePhone;
     if (notes !== undefined || settingsObj.notes !== undefined)
       updateData.notes = notes ?? settingsObj.notes;

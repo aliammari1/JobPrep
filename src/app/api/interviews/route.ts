@@ -256,7 +256,10 @@ export async function POST(req: NextRequest) {
         scheduledAt: parsedScheduledAt,
         time: resolvedTime,
         duration:
-          duration ?? (typeof settingsData.duration === "number" ? settingsData.duration : 60),
+          duration ??
+          (typeof settingsData.duration === "number"
+            ? settingsData.duration
+            : 60),
         type: type || settingsData.type || "video",
         candidateName: candidateName ?? settingsData.candidateName ?? null,
         position: position ?? settingsData.position ?? null,

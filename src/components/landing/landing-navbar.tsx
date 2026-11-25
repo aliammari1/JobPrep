@@ -181,7 +181,11 @@ export function LandingNavbar() {
                 );
               })}
               <div className="mt-3 flex flex-col gap-2 border-t border-border pt-3">
-                <Button asChild variant="outline" onClick={() => setIsOpen(false)}>
+                <Button
+                  asChild
+                  variant="outline"
+                  onClick={() => setIsOpen(false)}
+                >
                   <a
                     href={GITHUB_URL}
                     target="_blank"

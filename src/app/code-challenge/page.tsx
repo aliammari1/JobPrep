@@ -95,9 +95,7 @@ public:
 export default function CodeChallengeArena() {
   const router = useRouter();
   const { executeCode, isExecuting } = useCodeExecution();
-  const {
-    isLoading: isChallengeLoading,
-  } = useChallenges();
+  const { isLoading: isChallengeLoading } = useChallenges();
   const { submitSolution, isSubmitting } = useSubmissions();
   const { generateChallenges, isGenerating } = useGenerateChallenges();
 

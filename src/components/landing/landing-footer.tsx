@@ -101,13 +101,22 @@ export function LandingFooter() {
         <div className="mt-12 flex flex-col items-center justify-between gap-4 border-t border-border pt-6 text-xs text-muted-foreground sm:flex-row">
           <p>© {new Date().getFullYear()} JobPrep. All rights reserved.</p>
           <div className="flex items-center gap-5">
-            <Link href="/dashboard" className="hover:text-foreground transition-colors">
+            <Link
+              href="/dashboard"
+              className="hover:text-foreground transition-colors"
+            >
               Dashboard
             </Link>
-            <Link href="/sign-in" className="hover:text-foreground transition-colors">
+            <Link
+              href="/sign-in"
+              className="hover:text-foreground transition-colors"
+            >
               Sign in
             </Link>
-            <Link href="/contact" className="hover:text-foreground transition-colors">
+            <Link
+              href="/contact"
+              className="hover:text-foreground transition-colors"
+            >
               Support
             </Link>
           </div>

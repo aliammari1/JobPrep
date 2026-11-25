@@ -294,10 +294,7 @@ export function ExportPanel() {
     if (cvData.experience.length > 0) {
       sectionsChildren.push(createSectionHeading("Work Experience"));
       for (const exp of cvData.experience) {
-        const dateRange = [
-          exp.startDate,
-          exp.current ? "Present" : exp.endDate,
-        ]
+        const dateRange = [exp.startDate, exp.current ? "Present" : exp.endDate]
           .filter(Boolean)
           .join(" - ");
 
@@ -325,7 +322,9 @@ export function ExportPanel() {
           }),
         );
 
-        const metaLine = [dateRange, exp.location].filter(Boolean).join("  |  ");
+        const metaLine = [dateRange, exp.location]
+          .filter(Boolean)
+          .join("  |  ");
         if (metaLine) {
           sectionsChildren.push(
             new Paragraph({

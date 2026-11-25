@@ -130,7 +130,10 @@ export async function DELETE(request: NextRequest) {
 
     const id = request.nextUrl.searchParams.get("id");
     if (!id) {
-      return NextResponse.json({ error: "Missing cover letter id" }, { status: 400 });
+      return NextResponse.json(
+        { error: "Missing cover letter id" },
+        { status: 400 },
+      );
     }
 
     const existing = await prisma.coverLetter.findFirst({

@@ -27,7 +27,10 @@ export async function POST(request: NextRequest) {
     }
 
     // Cancel Stripe subscription if it exists and Stripe is configured
-    if (existingSubscription.stripeSubscriptionId && process.env.STRIPE_SECRET_KEY) {
+    if (
+      existingSubscription.stripeSubscriptionId &&
+      process.env.STRIPE_SECRET_KEY
+    ) {
       try {
         await stripe.subscriptions.cancel(
           existingSubscription.stripeSubscriptionId,

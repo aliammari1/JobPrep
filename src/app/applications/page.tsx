@@ -220,7 +220,11 @@ export default function ApplicationsPage() {
       cvData.personalInfo.title,
       cvData.personalInfo.summary,
       ...cvData.skills.flatMap((s) => [s.category, ...s.items]),
-      ...cvData.experience.flatMap((e) => [e.title, e.company, ...e.description]),
+      ...cvData.experience.flatMap((e) => [
+        e.title,
+        e.company,
+        ...e.description,
+      ]),
       ...cvData.projects.flatMap((p) => [
         p.name,
         ...p.description,
@@ -283,7 +287,12 @@ export default function ApplicationsPage() {
       payload: Partial<
         Pick<
           JobApplication,
-          "stage" | "jobDescription" | "atsScore" | "notes" | "jobUrl" | "salaryRange"
+          | "stage"
+          | "jobDescription"
+          | "atsScore"
+          | "notes"
+          | "jobUrl"
+          | "salaryRange"
         >
       >,
     ) => {

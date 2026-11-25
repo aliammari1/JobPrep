@@ -118,7 +118,10 @@ export async function POST(request: Request) {
     const parsed = createApplicationSchema.safeParse(body);
     if (!parsed.success) {
       return NextResponse.json(
-        { error: "Invalid application payload", details: parsed.error.flatten() },
+        {
+          error: "Invalid application payload",
+          details: parsed.error.flatten(),
+        },
         { status: 400 },
       );
     }

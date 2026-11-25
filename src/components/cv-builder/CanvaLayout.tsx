@@ -78,7 +78,9 @@ export function CanvaLayout() {
         }
         const latest = json.cvs[0] as {
           title?: string;
-          content?: { cvData?: Record<string, unknown> } | Record<string, unknown>;
+          content?:
+            | { cvData?: Record<string, unknown> }
+            | Record<string, unknown>;
         };
         const payload =
           latest.content &&
@@ -89,7 +91,13 @@ export function CanvaLayout() {
             : latest.content;
 
         if (payload && typeof payload === "object") {
-          useCVStore.getState().importData(payload as Parameters<ReturnType<typeof useCVStore.getState>["importData"]>[0]);
+          useCVStore
+            .getState()
+            .importData(
+              payload as Parameters<
+                ReturnType<typeof useCVStore.getState>["importData"]
+              >[0],
+            );
           if (applicationId && latest.title) {
             toast.success(`Loaded "${latest.title}" from PostgreSQL`);
           }

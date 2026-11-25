@@ -234,7 +234,11 @@ export default function PhoneNumberPage() {
             >
               <Link href="/settings/two-factor">Two-Factor</Link>
             </TabsTrigger>
-            <TabsTrigger value="passkeys" asChild className="text-xs sm:text-sm">
+            <TabsTrigger
+              value="passkeys"
+              asChild
+              className="text-xs sm:text-sm"
+            >
               <Link href="/settings/passkeys">Passkeys</Link>
             </TabsTrigger>
             <TabsTrigger

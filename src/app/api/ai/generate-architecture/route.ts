@@ -67,7 +67,10 @@ function layoutNodes(
     storage: 3,
   };
 
-  const buckets = new Map<number, { id: string; type: NodeTypeId; label: string }[]>();
+  const buckets = new Map<
+    number,
+    { id: string; type: NodeTypeId; label: string }[]
+  >();
   for (const node of rawNodes) {
     const tier = tierForType[node.type] ?? 2;
     const list = buckets.get(tier) ?? [];
@@ -116,7 +119,10 @@ export async function POST(request: Request) {
     const parsed = requestSchema.safeParse(body);
     if (!parsed.success) {
       return NextResponse.json(
-        { error: "Please enter a clear system design prompt (at least 5 characters)." },
+        {
+          error:
+            "Please enter a clear system design prompt (at least 5 characters).",
+        },
         { status: 400 },
       );
     }
@@ -141,7 +147,9 @@ export async function POST(request: Request) {
     const positionedNodes = layoutNodes(diagram.nodes);
     const validIds = new Set(positionedNodes.map((n) => n.id));
     const cleanEdges = diagram.edges
-      .filter((e) => validIds.has(e.from) && validIds.has(e.to) && e.from !== e.to)
+      .filter(
+        (e) => validIds.has(e.from) && validIds.has(e.to) && e.from !== e.to,
+      )
       .map((e, idx) => ({
         id: `edge-ai-${Date.now()}-${idx}`,
         from: e.from,
@@ -156,7 +164,9 @@ export async function POST(request: Request) {
   } catch (error) {
     captureApiError("POST /api/ai/generate-architecture", error, { userId });
     return NextResponse.json(
-      { error: "Failed to generate architecture from prompt. Please try again." },
+      {
+        error: "Failed to generate architecture from prompt. Please try again.",
+      },
       { status: 500 },
     );
   }

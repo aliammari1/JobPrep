@@ -84,7 +84,9 @@ export default function ReadinessPage() {
       setData(payload);
     } catch (err) {
       setError(
-        err instanceof Error ? err.message : "Failed to load practice telemetry",
+        err instanceof Error
+          ? err.message
+          : "Failed to load practice telemetry",
       );
     } finally {
       setLoading(false);
@@ -226,7 +228,9 @@ export default function ReadinessPage() {
             disabled={loading}
             className="gap-1.5"
           >
-            <RefreshCw className={`size-3.5 ${loading ? "animate-spin" : ""}`} />
+            <RefreshCw
+              className={`size-3.5 ${loading ? "animate-spin" : ""}`}
+            />
             Refresh
           </Button>
           <Button
@@ -295,7 +299,10 @@ export default function ReadinessPage() {
                   }}
                   className="inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-medium"
                 >
-                  <ShieldCheck className="size-3.5" style={{ color: "#3b82f6" }} />
+                  <ShieldCheck
+                    className="size-3.5"
+                    style={{ color: "#3b82f6" }}
+                  />
                   Verified PostgreSQL Telemetry · Anonymized
                 </span>
               </div>
@@ -307,9 +314,9 @@ export default function ReadinessPage() {
                 style={{ color: "#a1a1aa" }}
                 className="max-w-xl text-sm leading-relaxed"
               >
-                Every figure below is queried directly from completed interviews,
-                architecture reviews, code runs, and role dossiers. No synthetic
-                weights or estimates.
+                Every figure below is queried directly from completed
+                interviews, architecture reviews, code runs, and role dossiers.
+                No synthetic weights or estimates.
               </p>
             </div>
 
@@ -448,7 +455,9 @@ export default function ReadinessPage() {
                 style={{ color: "#09090b" }}
                 className="mt-2 font-display text-3xl font-bold tabular-nums"
               >
-                {stats.avgAtsScore !== null ? `${stats.avgAtsScore}%` : stats.applicationsCount}
+                {stats.avgAtsScore !== null
+                  ? `${stats.avgAtsScore}%`
+                  : stats.applicationsCount}
               </p>
               <p
                 style={{ color: "#71717a" }}

@@ -155,7 +155,8 @@ export function SubscriptionManager() {
           <CardTitle className="flex items-center justify-between">
             <span>Current Subscription</span>
             <Badge className={getStatusColor(subscription.status)}>
-              {subscription.tier === "FREE" && subscription.status === "INACTIVE"
+              {subscription.tier === "FREE" &&
+              subscription.status === "INACTIVE"
                 ? "Free"
                 : subscription.status.charAt(0) +
                   subscription.status.slice(1).toLowerCase()}
@@ -202,8 +203,8 @@ export function SubscriptionManager() {
             <div className="flex items-start gap-2 rounded-lg bg-yellow-500/10 p-4 text-sm text-yellow-600 dark:text-yellow-400 border border-yellow-500/20">
               <TriangleAlert className="mt-0.5 h-4 w-4 shrink-0" />
               <span>
-                Your payment is past due. Update your payment method to
-                continue using premium features.
+                Your payment is past due. Update your payment method to continue
+                using premium features.
               </span>
             </div>
           )}
@@ -242,7 +243,10 @@ export function SubscriptionManager() {
             {subscription.tier === "FREE" ? (
               <>
                 You&apos;re on the free plan.{" "}
-                <a href="#plans" className="font-medium text-primary hover:underline">
+                <a
+                  href="#plans"
+                  className="font-medium text-primary hover:underline"
+                >
                   Upgrade to unlock more features
                 </a>
                 .

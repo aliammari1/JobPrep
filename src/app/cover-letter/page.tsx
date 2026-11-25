@@ -127,7 +127,12 @@ export default function CoverLetterPage() {
         .then((res) => (res.ok ? res.json() : null))
         .then((json) => {
           const app = json?.application as
-            | { id: string; company: string; role: string; jobDescription: string }
+            | {
+                id: string;
+                company: string;
+                role: string;
+                jobDescription: string;
+              }
             | undefined;
           if (!active || !app) return;
           setLinkedApp({ id: app.id, company: app.company, role: app.role });
@@ -265,7 +270,10 @@ export default function CoverLetterPage() {
         throw new Error(err.error || "Failed to save cover letter");
       }
 
-      const saved = (await response.json()) as { id: string; createdAt?: string };
+      const saved = (await response.json()) as {
+        id: string;
+        createdAt?: string;
+      };
       setSavedLetters((prev) => [
         {
           id: saved.id,
@@ -285,9 +293,7 @@ export default function CoverLetterPage() {
       );
     } catch (error) {
       toast.error(
-        error instanceof Error
-          ? error.message
-          : "Failed to save cover letter.",
+        error instanceof Error ? error.message : "Failed to save cover letter.",
       );
     } finally {
       setIsSaving(false);

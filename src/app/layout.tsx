@@ -1,9 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import {
-  DM_Sans,
-  JetBrains_Mono,
-  Outfit,
-} from "next/font/google";
+import { DM_Sans, JetBrains_Mono, Outfit } from "next/font/google";
 import "./globals.css";
 import { AppLayout } from "@/components/layout/app-layout";
 import { DeferredClientWidgets } from "@/components/providers/deferred-client-widgets";

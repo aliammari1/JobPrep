@@ -5,10 +5,9 @@ import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useSession } from "@/lib/auth-client";
 
-const Sidebar = dynamic(
-  () => import("./sidebar").then((m) => m.Sidebar),
-  { ssr: false },
-);
+const Sidebar = dynamic(() => import("./sidebar").then((m) => m.Sidebar), {
+  ssr: false,
+});
 
 const Navbar = dynamic(() => import("./navbar").then((m) => m.Navbar), {
   ssr: false,

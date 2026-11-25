@@ -144,7 +144,9 @@ export default function SecuritySettingsPage() {
             </Link>
             <UserNav />
           </div>
-          <h1 className="text-3xl md:text-4xl font-bold tracking-tight">Security settings</h1>
+          <h1 className="text-3xl md:text-4xl font-bold tracking-tight">
+            Security settings
+          </h1>
           <p className="text-muted-foreground mt-2">
             Manage your password and security preferences
           </p>

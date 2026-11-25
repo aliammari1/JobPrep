@@ -358,7 +358,8 @@ export default function InterviewRoom() {
     // Validate room name based on mode
     let finalRoomName: string;
     if (activeMode === "create") {
-      finalRoomName = overrideRoomName || generatedRoomCode || generateRoomName();
+      finalRoomName =
+        overrideRoomName || generatedRoomCode || generateRoomName();
     } else {
       const candidateRoom = overrideRoomName ?? formRoomName;
       // Join mode - must have a room code

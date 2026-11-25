@@ -216,7 +216,8 @@ const INTEGRATIONS = [
   {
     icon: Calendar,
     title: "Calendar Sync",
-    description: "Google Calendar and standard iCal export for interview loops.",
+    description:
+      "Google Calendar and standard iCal export for interview loops.",
   },
   {
     icon: Video,
@@ -226,7 +227,8 @@ const INTEGRATIONS = [
   {
     icon: Shield,
     title: "Passkeys & 2FA",
-    description: "Modern Better Auth security with passkeys, TOTP, and sessions.",
+    description:
+      "Modern Better Auth security with passkeys, TOTP, and sessions.",
   },
   {
     icon: Globe,
@@ -241,7 +243,8 @@ const INTEGRATIONS = [
   {
     icon: Headphones,
     title: "Self-Hostable Stack",
-    description: "Standard Next.js + PostgreSQL deployment with Docker Compose.",
+    description:
+      "Standard Next.js + PostgreSQL deployment with Docker Compose.",
   },
 ];
 

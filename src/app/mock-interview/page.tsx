@@ -259,10 +259,9 @@ export default function MockInterview() {
           if (app.jobDescription) {
             setJobDescriptionText(app.jobDescription);
             // Extract key technical terms so skillsText is pre-populated and ready for 1-click generation
-            const extractedSkills = app.jobDescription
-              .match(
-                /\b(TypeScript|JavaScript|React|Next\.js|Node\.js|PostgreSQL|Prisma|Redis|Kafka|Go|Rust|Python|Docker|Kubernetes|Cloudflare|Workers|WebSockets|IndexedDB|GraphQL|SQL|AWS|GCP|Sentry|OpenTelemetry|gRPC|HTTP\/3|CI\/CD|System Design)\b/gi,
-              );
+            const extractedSkills = app.jobDescription.match(
+              /\b(TypeScript|JavaScript|React|Next\.js|Node\.js|PostgreSQL|Prisma|Redis|Kafka|Go|Rust|Python|Docker|Kubernetes|Cloudflare|Workers|WebSockets|IndexedDB|GraphQL|SQL|AWS|GCP|Sentry|OpenTelemetry|gRPC|HTTP\/3|CI\/CD|System Design)\b/gi,
+            );
             if (extractedSkills && extractedSkills.length > 0) {
               const unique = Array.from(
                 new Set(extractedSkills.map((s) => s.trim())),

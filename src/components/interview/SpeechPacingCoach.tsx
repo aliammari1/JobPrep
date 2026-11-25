@@ -1,6 +1,13 @@
 "use client";
 
-import { Cpu, Gauge, Info, Loader2, MessageSquareWarning, X } from "lucide-react";
+import {
+  Cpu,
+  Gauge,
+  Info,
+  Loader2,
+  MessageSquareWarning,
+  X,
+} from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -15,10 +22,7 @@ import {
   checkBrowserAIAvailability,
   runLocalBrowserCoach,
 } from "@/lib/ai/browser-ai";
-import {
-  analyzeSpeechMetrics,
-  type PacingStatus,
-} from "@/lib/speech-metrics";
+import { analyzeSpeechMetrics, type PacingStatus } from "@/lib/speech-metrics";
 import { cn } from "@/lib/utils";
 
 interface SpeechPacingCoachProps {
@@ -28,30 +32,25 @@ interface SpeechPacingCoachProps {
   className?: string;
 }
 
-const PACING_META: Record<
-  PacingStatus,
-  { label: string; badgeClass: string }
-> = {
-  idle: {
-    label: "Ready",
-    badgeClass: "bg-muted text-muted-foreground border-border",
-  },
-  "too-slow": {
-    label: "Too Slow",
-    badgeClass:
-      "bg-secondary text-secondary-foreground border-border",
-  },
-  ideal: {
-    label: "Ideal Pace",
-    badgeClass:
-      "bg-primary/10 text-primary border-primary/25",
-  },
-  "too-fast": {
-    label: "Too Fast",
-    badgeClass:
-      "bg-destructive/10 text-destructive border-destructive/25",
-  },
-};
+const PACING_META: Record<PacingStatus, { label: string; badgeClass: string }> =
+  {
+    idle: {
+      label: "Ready",
+      badgeClass: "bg-muted text-muted-foreground border-border",
+    },
+    "too-slow": {
+      label: "Too Slow",
+      badgeClass: "bg-secondary text-secondary-foreground border-border",
+    },
+    ideal: {
+      label: "Ideal Pace",
+      badgeClass: "bg-primary/10 text-primary border-primary/25",
+    },
+    "too-fast": {
+      label: "Too Fast",
+      badgeClass: "bg-destructive/10 text-destructive border-destructive/25",
+    },
+  };
 
 export function SpeechPacingCoach({
   transcript,

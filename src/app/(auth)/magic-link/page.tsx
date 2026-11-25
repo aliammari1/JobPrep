@@ -95,11 +95,7 @@ export default function MagicLinkPage() {
             />
           </div>
 
-          <Button
-            type="submit"
-            className="w-full h-11"
-            disabled={isLoading}
-          >
+          <Button type="submit" className="w-full h-11" disabled={isLoading}>
             {isLoading ? (
               <>
                 <Icons.spinner className="mr-2 h-4 w-4 animate-spin" />
@@ -116,10 +112,7 @@ export default function MagicLinkPage() {
       )}
 
       <div className="space-y-3 text-center text-sm">
-        <Link
-          href="/sign-in"
-          className="block text-primary hover:underline"
-        >
+        <Link href="/sign-in" className="block text-primary hover:underline">
           ← Back to sign in
         </Link>
         <div className="text-muted-foreground">

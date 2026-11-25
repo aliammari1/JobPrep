@@ -81,7 +81,8 @@ const FOCUS_AREAS = [
   {
     icon: FileCheck2,
     label: "Career Documents",
-    detail: "ATS-readable resumes, tailored cover letters, and clean PDF export.",
+    detail:
+      "ATS-readable resumes, tailored cover letters, and clean PDF export.",
   },
   {
     icon: Lock,
@@ -137,8 +138,8 @@ export default function AboutPage() {
               How we think about great preparation
             </h2>
             <p className="mt-3 text-base leading-relaxed text-muted-foreground">
-              Four commitments that guide every feature, rubric, and architectural
-              decision in JobPrep.
+              Four commitments that guide every feature, rubric, and
+              architectural decision in JobPrep.
             </p>
           </div>
 

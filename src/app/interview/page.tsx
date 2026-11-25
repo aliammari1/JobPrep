@@ -100,8 +100,12 @@ export default function InterviewHubPage() {
       description:
         "Role-calibrated technical and behavioral questions with real-time speech pacing, grading, and saved transcripts.",
       href: mockHref,
-      cta: selectedRole ? `Practice for ${selectedRole.company}` : "Start mock interview",
-      metric: stats ? `${stats.totalInterviews} sessions logged` : "Voice & text",
+      cta: selectedRole
+        ? `Practice for ${selectedRole.company}`
+        : "Start mock interview",
+      metric: stats
+        ? `${stats.totalInterviews} sessions logged`
+        : "Voice & text",
       icon: Target,
       primary: true,
     },
@@ -110,8 +114,12 @@ export default function InterviewHubPage() {
       description:
         "Interactive architecture whiteboard with AI diagram generation from your prompt and staff-level bottleneck critiques.",
       href: designHref,
-      cta: selectedRole ? `Design for ${selectedRole.company}` : "Open whiteboard",
-      metric: stats ? `${stats.systemDesignCount} architectures saved` : "Interactive canvas",
+      cta: selectedRole
+        ? `Design for ${selectedRole.company}`
+        : "Open whiteboard",
+      metric: stats
+        ? `${stats.systemDesignCount} architectures saved`
+        : "Interactive canvas",
       icon: MonitorPlay,
       primary: false,
     },
@@ -121,7 +129,9 @@ export default function InterviewHubPage() {
         "Timed coding editor with test cases, multi-language execution, and PostgreSQL submission history.",
       href: codeHref,
       cta: "Open code arena",
-      metric: stats ? `${stats.codeSubmissionsTotal} submissions` : "Multi-language",
+      metric: stats
+        ? `${stats.codeSubmissionsTotal} submissions`
+        : "Multi-language",
       icon: Code2,
       primary: false,
     },
@@ -133,7 +143,9 @@ export default function InterviewHubPage() {
       secondaryHref: "/interview-room",
       cta: "Open scheduler",
       secondaryCta: "Join live room",
-      metric: stats ? `${stats.upcomingInterviews} upcoming` : "Video & calendar",
+      metric: stats
+        ? `${stats.upcomingInterviews} upcoming`
+        : "Video & calendar",
       icon: Video,
       primary: false,
     },
@@ -179,7 +191,10 @@ export default function InterviewHubPage() {
         {tracks.map((track) => {
           const Icon = track.icon;
           return (
-            <Card key={track.title} className="flex flex-col justify-between shadow-none">
+            <Card
+              key={track.title}
+              className="flex flex-col justify-between shadow-none"
+            >
               <CardHeader className="space-y-3">
                 <div className="flex items-center justify-between gap-2">
                   <span className="grid size-10 place-items-center rounded-xl bg-primary/10 text-primary">

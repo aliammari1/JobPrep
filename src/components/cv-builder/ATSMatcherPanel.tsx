@@ -245,7 +245,9 @@ export function ATSMatcherPanel() {
 
       const rewrittenText = enhancedExp?.description?.trim();
       if (!rewrittenText || rewrittenText === entry.text) {
-        toast.info("AI returned the same bullet — try adding a metric manually.");
+        toast.info(
+          "AI returned the same bullet — try adding a metric manually.",
+        );
         return;
       }
 

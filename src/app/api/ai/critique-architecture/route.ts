@@ -73,19 +73,31 @@ function hasProviderCredentials(modelId: string): boolean {
 
 function normalizeType(type: string, label: string): string {
   const combined = `${type} ${label}`.toLowerCase();
-  if (combined.includes("client") || combined.includes("browser") || combined.includes("mobile")) {
+  if (
+    combined.includes("client") ||
+    combined.includes("browser") ||
+    combined.includes("mobile")
+  ) {
     return "client";
   }
   if (combined.includes("cdn") || combined.includes("edge")) {
     return "cdn";
   }
-  if (combined.includes("load") || combined.includes("balancer") || combined.includes("lb")) {
+  if (
+    combined.includes("load") ||
+    combined.includes("balancer") ||
+    combined.includes("lb")
+  ) {
     return "load-balancer";
   }
   if (combined.includes("gateway") || combined.includes("api-gateway")) {
     return "api-gateway";
   }
-  if (combined.includes("redis") || combined.includes("cache") || combined.includes("memcached")) {
+  if (
+    combined.includes("redis") ||
+    combined.includes("cache") ||
+    combined.includes("memcached")
+  ) {
     return "cache";
   }
   if (
@@ -197,7 +209,12 @@ function buildHeuristicCritique(
     strengths.push(
       `Includes a dedicated caching tier (${caches.map((n) => n.label).join(", ")}) to absorb hot reads and cut database latency.`,
     );
-  } else if (databases.length > 0 || promptLower.includes("url") || promptLower.includes("commerce") || promptLower.includes("read")) {
+  } else if (
+    databases.length > 0 ||
+    promptLower.includes("url") ||
+    promptLower.includes("commerce") ||
+    promptLower.includes("read")
+  ) {
     score -= 8;
     bottlenecks.push(
       "No Redis/cache layer detected: repetitive read queries will hit the primary database directly and saturate connections under traffic spikes.",

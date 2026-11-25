@@ -645,7 +645,9 @@ function InterviewScheduler() {
                         Avg Duration
                       </p>
                       <p className="text-3xl font-bold tabular-nums text-primary">
-                        {stats.avgDuration > 0 ? `${stats.avgDuration} min` : "—"}
+                        {stats.avgDuration > 0
+                          ? `${stats.avgDuration} min`
+                          : "—"}
                       </p>
                     </div>
                     <div className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center">

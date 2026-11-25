@@ -138,7 +138,11 @@ export default async function Home() {
           </p>
 
           <div className="mt-9 flex flex-wrap items-center justify-center gap-3">
-            <Button asChild size="lg" className="h-12 px-7 text-sm font-semibold">
+            <Button
+              asChild
+              size="lg"
+              className="h-12 px-7 text-sm font-semibold"
+            >
               <Link href="/sign-up">
                 Start practicing free
                 <ArrowRight className="size-4" />
@@ -314,7 +318,11 @@ export default async function Home() {
               under your control.
             </p>
             <div className="flex flex-wrap items-center gap-3 pt-2">
-              <Button asChild size="lg" className="h-11 px-6 text-sm font-semibold">
+              <Button
+                asChild
+                size="lg"
+                className="h-11 px-6 text-sm font-semibold"
+              >
                 <Link href="/sign-up">
                   Create free account
                   <ArrowRight className="size-4" />

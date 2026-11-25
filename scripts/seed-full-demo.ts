@@ -38,7 +38,9 @@ async function main() {
     );
   }
 
-  console.log(`Seeding full interconnected dataset for ${user.email} (${user.id})...`);
+  console.log(
+    `Seeding full interconnected dataset for ${user.email} (${user.id})...`,
+  );
 
   // Upgrade demo account to active Pro so all workspaces are unlocked
   await prisma.user.update({
@@ -198,7 +200,8 @@ async function main() {
       jobUrl: "https://www.figma.com/careers/",
       stage: "applied",
       atsScore: 73,
-      notes: "Submitted tailored CV emphasizing Core Web Vitals and canvas rendering.",
+      notes:
+        "Submitted tailored CV emphasizing Core Web Vitals and canvas rendering.",
       jobDescription:
         "Lead frontend architecture, WebGL/Canvas performance, TypeScript build tooling, design system foundations, accessibility (WCAG), and Core Web Vitals optimization across Figma web surfaces.",
       updatedAt: daysAgo(12),
@@ -211,7 +214,8 @@ async function main() {
       jobUrl: "https://supabase.com/careers",
       stage: "saved",
       atsScore: 68,
-      notes: "Interesting open-source role — tailor CV to emphasize Postgres connection pooling and Prisma migrations before applying.",
+      notes:
+        "Interesting open-source role — tailor CV to emphasize Postgres connection pooling and Prisma migrations before applying.",
       jobDescription:
         "Maintain and scale managed PostgreSQL fleets, PgBouncer connection pooling, Row Level Security, edge functions, TypeScript SDKs, and developer dashboard workflows.",
       updatedAt: daysAgo(15),
@@ -230,8 +234,14 @@ async function main() {
     createdApps.push(created);
   }
 
-  const [linearApp, stripeApp, cloudflareApp, vercelApp, datadogApp, anthropicApp] =
-    createdApps;
+  const [
+    linearApp,
+    stripeApp,
+    cloudflareApp,
+    vercelApp,
+    datadogApp,
+    anthropicApp,
+  ] = createdApps;
 
   // 3. Tailored CVs linked to JobApplications
   const baseCvPayload = (targetTitle: string, summary: string) =>
@@ -278,12 +288,27 @@ async function main() {
           {
             id: "sk-1",
             category: "Core Stack",
-            items: ["TypeScript", "React", "Next.js", "Node.js", "Go", "PostgreSQL", "Prisma"],
+            items: [
+              "TypeScript",
+              "React",
+              "Next.js",
+              "Node.js",
+              "Go",
+              "PostgreSQL",
+              "Prisma",
+            ],
           },
           {
             id: "sk-2",
             category: "Infrastructure",
-            items: ["Cloudflare Workers", "Redis", "Kafka", "Docker", "Kubernetes", "Sentry"],
+            items: [
+              "Cloudflare Workers",
+              "Redis",
+              "Kafka",
+              "Docker",
+              "Kubernetes",
+              "Sentry",
+            ],
           },
         ],
         projects: [],
@@ -511,7 +536,11 @@ async function main() {
     {
       applicationId: vercelApp.id,
       sessionType: "behavioral",
-      topics: ["React Server Components", "DX Trade-offs", "Cross-team Alignment"],
+      topics: [
+        "React Server Components",
+        "DX Trade-offs",
+        "Cross-team Alignment",
+      ],
       duration: 28,
       overallScore: 84,
       daysAgo: 12,
@@ -629,7 +658,9 @@ async function main() {
           "Backed claims with real production latency metrics",
         ],
         weaknesses: ["Could explicitly call out monitoring/alerting signals"],
-        suggestions: ["Close with 1-sentence summary of operational trade-offs"],
+        suggestions: [
+          "Close with 1-sentence summary of operational trade-offs",
+        ],
         order: idx + 1,
         createdAt,
       })),
@@ -647,11 +678,41 @@ async function main() {
       daysAgo: 3,
       nodes: [
         { id: "n1", type: "client", label: "Merchant SDKs", x: 32, y: 210 },
-        { id: "n2", type: "api-gateway", label: "Edge API Gateway", x: 225, y: 210 },
-        { id: "n3", type: "service", label: "Ledger & Idempotency Svc", x: 430, y: 150 },
-        { id: "n4", type: "cache", label: "Redis Idempotency Lock", x: 430, y: 310 },
-        { id: "n5", type: "database", label: "PostgreSQL Ledger Primary", x: 650, y: 120 },
-        { id: "n6", type: "queue", label: "Settlement Kafka Topic", x: 650, y: 260 },
+        {
+          id: "n2",
+          type: "api-gateway",
+          label: "Edge API Gateway",
+          x: 225,
+          y: 210,
+        },
+        {
+          id: "n3",
+          type: "service",
+          label: "Ledger & Idempotency Svc",
+          x: 430,
+          y: 150,
+        },
+        {
+          id: "n4",
+          type: "cache",
+          label: "Redis Idempotency Lock",
+          x: 430,
+          y: 310,
+        },
+        {
+          id: "n5",
+          type: "database",
+          label: "PostgreSQL Ledger Primary",
+          x: 650,
+          y: 120,
+        },
+        {
+          id: "n6",
+          type: "queue",
+          label: "Settlement Kafka Topic",
+          x: 650,
+          y: 260,
+        },
       ],
       edges: [
         { id: "e1", from: "n1", to: "n2", label: "HTTPS + Key" },
@@ -669,11 +730,41 @@ async function main() {
       score: 94,
       daysAgo: 6,
       nodes: [
-        { id: "l1", type: "client", label: "Web + IndexedDB Cache", x: 32, y: 210 },
-        { id: "l2", type: "api-gateway", label: "WebSocket Edge Router", x: 235, y: 210 },
-        { id: "l3", type: "service", label: "Sync & Mutation Engine", x: 445, y: 145 },
-        { id: "l4", type: "cache", label: "Redis Pub/Sub Fan-out", x: 445, y: 305 },
-        { id: "l5", type: "database", label: "PostgreSQL Delta Log", x: 655, y: 185 },
+        {
+          id: "l1",
+          type: "client",
+          label: "Web + IndexedDB Cache",
+          x: 32,
+          y: 210,
+        },
+        {
+          id: "l2",
+          type: "api-gateway",
+          label: "WebSocket Edge Router",
+          x: 235,
+          y: 210,
+        },
+        {
+          id: "l3",
+          type: "service",
+          label: "Sync & Mutation Engine",
+          x: 445,
+          y: 145,
+        },
+        {
+          id: "l4",
+          type: "cache",
+          label: "Redis Pub/Sub Fan-out",
+          x: 445,
+          y: 305,
+        },
+        {
+          id: "l5",
+          type: "database",
+          label: "PostgreSQL Delta Log",
+          x: 655,
+          y: 185,
+        },
       ],
       edges: [
         { id: "le1", from: "l1", to: "l2", label: "WSS Delta" },
@@ -692,9 +783,27 @@ async function main() {
       nodes: [
         { id: "c1", type: "client", label: "Global Clients", x: 32, y: 210 },
         { id: "c2", type: "cdn", label: "Anycast Edge PoPs", x: 225, y: 210 },
-        { id: "c3", type: "service", label: "Workers Isolates", x: 430, y: 140 },
-        { id: "c4", type: "storage", label: "Cloudflare R2 Origin", x: 650, y: 110 },
-        { id: "c5", type: "database", label: "Hyperdrive + Postgres", x: 650, y: 260 },
+        {
+          id: "c3",
+          type: "service",
+          label: "Workers Isolates",
+          x: 430,
+          y: 140,
+        },
+        {
+          id: "c4",
+          type: "storage",
+          label: "Cloudflare R2 Origin",
+          x: 650,
+          y: 110,
+        },
+        {
+          id: "c5",
+          type: "database",
+          label: "Hyperdrive + Postgres",
+          x: 650,
+          y: 260,
+        },
       ],
       edges: [
         { id: "ce1", from: "c1", to: "c2", label: "HTTP/3" },
@@ -712,10 +821,28 @@ async function main() {
       daysAgo: 17,
       nodes: [
         { id: "d1", type: "client", label: "OTel Agents", x: 32, y: 210 },
-        { id: "d2", type: "load-balancer", label: "Ingest Load Balancer", x: 230, y: 210 },
-        { id: "d3", type: "service", label: "Quota & Ingest Tier", x: 435, y: 210 },
+        {
+          id: "d2",
+          type: "load-balancer",
+          label: "Ingest Load Balancer",
+          x: 230,
+          y: 210,
+        },
+        {
+          id: "d3",
+          type: "service",
+          label: "Quota & Ingest Tier",
+          x: 435,
+          y: 210,
+        },
         { id: "d4", type: "queue", label: "Partitioned Kafka", x: 645, y: 130 },
-        { id: "d5", type: "storage", label: "Columnar R2 / S3", x: 645, y: 290 },
+        {
+          id: "d5",
+          type: "storage",
+          label: "Columnar R2 / S3",
+          x: 645,
+          y: 290,
+        },
       ],
       edges: [
         { id: "de1", from: "d1", to: "d2", label: "gRPC OTLP" },
@@ -762,7 +889,8 @@ async function main() {
   const template1 = await prisma.interviewTemplate.create({
     data: {
       title: "Staff Backend & Distributed Systems Loop",
-      description: "Architecture, idempotency, PostgreSQL internals, and incident response.",
+      description:
+        "Architecture, idempotency, PostgreSQL internals, and incident response.",
       category: "System Design",
       difficulty: "Hard",
       duration: 60,
@@ -772,7 +900,8 @@ async function main() {
       questions: {
         create: [
           {
-            question: "Design a multi-region idempotent payment ledger with strict auditability.",
+            question:
+              "Design a multi-region idempotent payment ledger with strict auditability.",
             questionType: "technical",
             difficulty: "Hard",
             timeLimit: 25,
@@ -780,7 +909,8 @@ async function main() {
             order: 1,
           },
           {
-            question: "How do you diagnose and resolve PostgreSQL vacuum/bloat issues under heavy UPDATE workloads?",
+            question:
+              "How do you diagnose and resolve PostgreSQL vacuum/bloat issues under heavy UPDATE workloads?",
             questionType: "technical",
             difficulty: "Hard",
             timeLimit: 15,
@@ -795,7 +925,8 @@ async function main() {
   const template2 = await prisma.interviewTemplate.create({
     data: {
       title: "Frontend Architecture & Sync Engine Screen",
-      description: "React 19 rendering performance, IndexedDB caching, and accessibility.",
+      description:
+        "React 19 rendering performance, IndexedDB caching, and accessibility.",
       category: "Frontend",
       difficulty: "Medium",
       duration: 45,
@@ -805,7 +936,8 @@ async function main() {
       questions: {
         create: [
           {
-            question: "Implement an optimistic mutation queue with rollback on server rejection.",
+            question:
+              "Implement an optimistic mutation queue with rollback on server rejection.",
             questionType: "coding",
             difficulty: "Medium",
             timeLimit: 25,
@@ -896,7 +1028,12 @@ async function main() {
       description:
         "Implement a per-key token bucket rate limiter supporting burst capacity, steady refill rate, and monotonic timestamps.",
       constraints: ["O(1) time per allow() call", "Handle clock skew safely"],
-      examples: [{ input: "capacity=5, refill=1/sec", output: "first 5 true, 6th false" }],
+      examples: [
+        {
+          input: "capacity=5, refill=1/sec",
+          output: "first 5 true, 6th false",
+        },
+      ],
       testCases: [{ input: "burst-5", expected: "true" }],
       tags: ["Rate Limiting", "Systems", "TypeScript"],
       hints: ["Store lastRefillTs and currentTokens per key."],
@@ -912,7 +1049,12 @@ async function main() {
       description:
         "Design an O(1) Least Recently Used cache that evicts expired entries lazily and on capacity overflow.",
       constraints: ["get and put must run in O(1) average time"],
-      examples: [{ input: "capacity=2, ttl=1000ms", output: "evicts oldest non-expired" }],
+      examples: [
+        {
+          input: "capacity=2, ttl=1000ms",
+          output: "evicts oldest non-expired",
+        },
+      ],
       testCases: [{ input: "put-get-expire", expected: "null" }],
       tags: ["Cache", "HashMap", "Doubly Linked List"],
       hints: ["JavaScript Map preserves insertion order."],
@@ -927,7 +1069,10 @@ async function main() {
       category: "Concurrency",
       description:
         "Process an out-of-order stream of webhook events ensuring exactly-once side effects within a sliding window.",
-      constraints: ["Bounded memory footprint", "Deterministic ordering per entityId"],
+      constraints: [
+        "Bounded memory footprint",
+        "Deterministic ordering per entityId",
+      ],
       examples: [{ input: "duplicate event_id", output: "ignored" }],
       testCases: [{ input: "replay-storm", expected: "1 side effect" }],
       tags: ["Idempotency", "Streams", "Concurrency"],
@@ -1037,7 +1182,9 @@ async function main() {
   });
 
   console.log("✅ Full demo seed complete!");
-  console.log("   • 8 Role Dossiers (Offer, Onsite, Screening, Applied, Saved)");
+  console.log(
+    "   • 8 Role Dossiers (Offer, Onsite, Screening, Applied, Saved)",
+  );
   console.log("   • 6 Tailored CVs linked to roles");
   console.log("   • 5 Tailored Cover Letters linked to roles");
   console.log("   • 7 AI Mock Interview Sessions + 10 graded MockQuestions");

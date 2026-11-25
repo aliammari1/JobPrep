@@ -92,9 +92,7 @@ export async function POST(request: NextRequest) {
 
     // Save session first
     const serializedFeedback =
-      typeof feedback === "string"
-        ? feedback
-        : JSON.stringify(feedback ?? {});
+      typeof feedback === "string" ? feedback : JSON.stringify(feedback ?? {});
     const serializedSpecificScores =
       specificScores === undefined || specificScores === null
         ? null

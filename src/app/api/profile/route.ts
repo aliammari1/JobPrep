@@ -96,7 +96,9 @@ export async function PATCH(request: Request) {
           : {}),
         ...(d.linkedIn !== undefined ? { linkedIn: d.linkedIn || null } : {}),
         ...(d.github !== undefined ? { github: d.github || null } : {}),
-        ...(d.portfolio !== undefined ? { portfolio: d.portfolio || null } : {}),
+        ...(d.portfolio !== undefined
+          ? { portfolio: d.portfolio || null }
+          : {}),
         ...(d.remote !== undefined ? { remote: d.remote } : {}),
         ...(d.skills !== undefined ? { skills: d.skills } : {}),
         ...(d.careerGoals !== undefined

@@ -29,7 +29,9 @@ export function BrandMark({
   };
 
   const content = (
-    <span className={cn("inline-flex items-center gap-2.5 select-none", className)}>
+    <span
+      className={cn("inline-flex items-center gap-2.5 select-none", className)}
+    >
       <span
         className={cn(
           "grid place-items-center shrink-0 transition-transform duration-200 group-hover:scale-[1.03]",

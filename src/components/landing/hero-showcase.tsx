@@ -17,7 +17,12 @@ type TabId = "mock" | "code" | "models";
 type AnswerVariant = "raw" | "refined";
 type ProviderId = "claude" | "openai" | "gemini" | "ollama";
 
-const TABS: { id: TabId; label: string; icon: React.ElementType; path: string }[] = [
+const TABS: {
+  id: TabId;
+  label: string;
+  icon: React.ElementType;
+  path: string;
+}[] = [
   {
     id: "mock",
     label: "Mock Interview Rubric",
@@ -115,7 +120,8 @@ const PROVIDERS: Record<
     mode: "100% offline on your machine",
     cost: "$0 forever",
     privacy: "Zero bytes leave localhost — air-gapped ready",
-    envLine: 'AI_PROVIDER="ollama"     OLLAMA_BASE_URL="http://localhost:11434"',
+    envLine:
+      'AI_PROVIDER="ollama"     OLLAMA_BASE_URL="http://localhost:11434"',
   },
 };
 

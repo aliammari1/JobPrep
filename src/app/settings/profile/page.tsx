@@ -220,7 +220,10 @@ export default function ProfileSettingsPage() {
               }[];
             }
           ).mockQuestions.map((q) => ({
-            question: { question: q.questionText, idealAnswer: q.idealAnswer || "" },
+            question: {
+              question: q.questionText,
+              idealAnswer: q.idealAnswer || "",
+            },
             userAnswer: q.userAnswer || "",
             evaluation: { score: q.score || 0, feedback: q.feedback || "" },
           }))

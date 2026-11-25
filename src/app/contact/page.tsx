@@ -439,31 +439,19 @@ export default function ContactPage() {
                   and offline models work?
                 </p>
                 <div className="mt-4 flex flex-col gap-2">
-                  <Button
-                    asChild
-                    variant="outline"
-                    className="justify-between"
-                  >
+                  <Button asChild variant="outline" className="justify-between">
                     <Link href="/features">
                       <span>Explore features</span>
                       <ArrowRight className="size-4" />
                     </Link>
                   </Button>
-                  <Button
-                    asChild
-                    variant="outline"
-                    className="justify-between"
-                  >
+                  <Button asChild variant="outline" className="justify-between">
                     <Link href="/pricing">
                       <span>View pricing &amp; FAQ</span>
                       <ArrowRight className="size-4" />
                     </Link>
                   </Button>
-                  <Button
-                    asChild
-                    variant="outline"
-                    className="justify-between"
-                  >
+                  <Button asChild variant="outline" className="justify-between">
                     <Link href="/about">
                       <span>About JobPrep</span>
                       <ArrowRight className="size-4" />

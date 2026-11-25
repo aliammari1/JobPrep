@@ -103,7 +103,10 @@ export async function POST(request: Request) {
     const parsed = saveDesignSchema.safeParse(body);
     if (!parsed.success) {
       return NextResponse.json(
-        { error: "Invalid system design payload", details: parsed.error.flatten() },
+        {
+          error: "Invalid system design payload",
+          details: parsed.error.flatten(),
+        },
         { status: 400 },
       );
     }
@@ -181,7 +184,10 @@ export async function DELETE(request: NextRequest) {
 
     const id = request.nextUrl.searchParams.get("id");
     if (!id) {
-      return NextResponse.json({ error: "Missing session id" }, { status: 400 });
+      return NextResponse.json(
+        { error: "Missing session id" },
+        { status: 400 },
+      );
     }
 
     const existing = await prisma.systemDesignSession.findFirst({

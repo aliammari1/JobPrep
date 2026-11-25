@@ -170,12 +170,42 @@ const SCENARIOS: ScenarioPreset[] = [
     prompt:
       "Design a global URL shortener handling 100M daily redirects (100:1 read/write ratio) with sub-50ms p99 latency, custom aliases, and click analytics.",
     nodes: [
-      { id: "n-client", type: "client", label: "Web & Mobile Clients", x: 32, y: 220 },
+      {
+        id: "n-client",
+        type: "client",
+        label: "Web & Mobile Clients",
+        x: 32,
+        y: 220,
+      },
       { id: "n-cdn", type: "cdn", label: "Global CDN / Edge", x: 230, y: 120 },
-      { id: "n-lb", type: "load-balancer", label: "Load Balancer", x: 230, y: 310 },
-      { id: "n-svc", type: "service", label: "Redirect & Shorten API", x: 438, y: 220 },
-      { id: "n-cache", type: "cache", label: "Redis Hot-Key Cache", x: 654, y: 110 },
-      { id: "n-db", type: "database", label: "PostgreSQL Primary", x: 654, y: 230 },
+      {
+        id: "n-lb",
+        type: "load-balancer",
+        label: "Load Balancer",
+        x: 230,
+        y: 310,
+      },
+      {
+        id: "n-svc",
+        type: "service",
+        label: "Redirect & Shorten API",
+        x: 438,
+        y: 220,
+      },
+      {
+        id: "n-cache",
+        type: "cache",
+        label: "Redis Hot-Key Cache",
+        x: 654,
+        y: 110,
+      },
+      {
+        id: "n-db",
+        type: "database",
+        label: "PostgreSQL Primary",
+        x: 654,
+        y: 230,
+      },
       { id: "n-q", type: "queue", label: "Click Events Queue", x: 654, y: 350 },
     ],
     edges: [
@@ -194,12 +224,42 @@ const SCENARIOS: ScenarioPreset[] = [
     prompt:
       "Design a multi-device real-time chat platform supporting 1:1 and group channels (up to 500 members), presence indicators, message history, and media attachments.",
     nodes: [
-      { id: "c-client", type: "client", label: "Chat Clients (WS)", x: 32, y: 215 },
-      { id: "c-gw", type: "api-gateway", label: "WebSocket Gateway", x: 240, y: 215 },
-      { id: "c-svc", type: "service", label: "Chat & Presence Svc", x: 452, y: 145 },
+      {
+        id: "c-client",
+        type: "client",
+        label: "Chat Clients (WS)",
+        x: 32,
+        y: 215,
+      },
+      {
+        id: "c-gw",
+        type: "api-gateway",
+        label: "WebSocket Gateway",
+        x: 240,
+        y: 215,
+      },
+      {
+        id: "c-svc",
+        type: "service",
+        label: "Chat & Presence Svc",
+        x: 452,
+        y: 145,
+      },
       { id: "c-cache", type: "cache", label: "Redis Pub/Sub", x: 452, y: 315 },
-      { id: "c-db", type: "database", label: "PostgreSQL Messages", x: 664, y: 120 },
-      { id: "c-storage", type: "storage", label: "Media Storage / R2", x: 664, y: 245 },
+      {
+        id: "c-db",
+        type: "database",
+        label: "PostgreSQL Messages",
+        x: 664,
+        y: 120,
+      },
+      {
+        id: "c-storage",
+        type: "storage",
+        label: "Media Storage / R2",
+        x: 664,
+        y: 245,
+      },
       { id: "c-q", type: "queue", label: "Push Notify Queue", x: 664, y: 370 },
     ],
     edges: [
@@ -217,12 +277,48 @@ const SCENARIOS: ScenarioPreset[] = [
     prompt:
       "Design a high-consistency checkout and inventory reservation system for flash sales with idempotent payment processing, zero overselling, and asynchronous order fulfillment.",
     nodes: [
-      { id: "ec-client", type: "client", label: "Storefront Client", x: 32, y: 220 },
-      { id: "ec-lb", type: "load-balancer", label: "Global Load Balancer", x: 230, y: 220 },
-      { id: "ec-order", type: "service", label: "Checkout Service", x: 438, y: 140 },
-      { id: "ec-inv", type: "service", label: "Inventory Service", x: 438, y: 300 },
-      { id: "ec-cache", type: "cache", label: "Redis Locks & Cart", x: 656, y: 110 },
-      { id: "ec-db", type: "database", label: "PostgreSQL Ledger", x: 656, y: 230 },
+      {
+        id: "ec-client",
+        type: "client",
+        label: "Storefront Client",
+        x: 32,
+        y: 220,
+      },
+      {
+        id: "ec-lb",
+        type: "load-balancer",
+        label: "Global Load Balancer",
+        x: 230,
+        y: 220,
+      },
+      {
+        id: "ec-order",
+        type: "service",
+        label: "Checkout Service",
+        x: 438,
+        y: 140,
+      },
+      {
+        id: "ec-inv",
+        type: "service",
+        label: "Inventory Service",
+        x: 438,
+        y: 300,
+      },
+      {
+        id: "ec-cache",
+        type: "cache",
+        label: "Redis Locks & Cart",
+        x: 656,
+        y: 110,
+      },
+      {
+        id: "ec-db",
+        type: "database",
+        label: "PostgreSQL Ledger",
+        x: 656,
+        y: 230,
+      },
       { id: "ec-q", type: "queue", label: "Fulfillment Queue", x: 656, y: 350 },
     ],
     edges: [
@@ -600,10 +696,12 @@ export default function SystemDesignPage() {
         const json = (await res.json()) as { session?: SavedDesignSession };
         if (json.session) {
           setActiveSessionId(json.session.id);
-          setSavedSessions((prev) => [
-            json.session!,
-            ...prev.filter((item) => item.id !== json.session!.id),
-          ].slice(0, 12));
+          setSavedSessions((prev) =>
+            [
+              json.session!,
+              ...prev.filter((item) => item.id !== json.session!.id),
+            ].slice(0, 12),
+          );
           setSaveNotice(
             activeSessionId ? "Updated in PostgreSQL" : "Saved to PostgreSQL",
           );
@@ -1132,7 +1230,8 @@ export default function SystemDesignPage() {
                 <>
                   <div className="flex-1 space-y-1.5">
                     <Label htmlFor="selected-node-label">
-                      Selected component ({PALETTE_MAP.get(selectedNode.type)?.label})
+                      Selected component (
+                      {PALETTE_MAP.get(selectedNode.type)?.label})
                     </Label>
                     <Input
                       id="selected-node-label"
@@ -1192,7 +1291,8 @@ export default function SystemDesignPage() {
                 </p>
                 <div className="flex flex-wrap gap-1.5">
                   {edges.map((edge) => {
-                    const fromLabel = nodeById.get(edge.from)?.label ?? edge.from;
+                    const fromLabel =
+                      nodeById.get(edge.from)?.label ?? edge.from;
                     const toLabel = nodeById.get(edge.to)?.label ?? edge.to;
                     return (
                       <Badge
@@ -1200,9 +1300,13 @@ export default function SystemDesignPage() {
                         variant="secondary"
                         className="gap-1.5 pr-1.5 text-[11px] font-normal"
                       >
-                        <span className="max-w-[100px] truncate">{fromLabel}</span>
+                        <span className="max-w-[100px] truncate">
+                          {fromLabel}
+                        </span>
                         <ArrowRight className="size-3 text-primary" />
-                        <span className="max-w-[100px] truncate">{toLabel}</span>
+                        <span className="max-w-[100px] truncate">
+                          {toLabel}
+                        </span>
                         {edge.label && (
                           <span className="text-muted-foreground">
                             ({edge.label})
@@ -1235,7 +1339,9 @@ export default function SystemDesignPage() {
                 </CardTitle>
                 {critique && (
                   <Badge variant="outline" className="text-[11px]">
-                    {critique.source === "ai" ? "AI Review" : "Heuristic Review"}
+                    {critique.source === "ai"
+                      ? "AI Review"
+                      : "Heuristic Review"}
                   </Badge>
                 )}
               </div>
@@ -1382,7 +1488,8 @@ export default function SystemDesignPage() {
               </Badge>
             </div>
             <CardDescription>
-              Click any previous session to reload its nodes, edges, and critique.
+              Click any previous session to reload its nodes, edges, and
+              critique.
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -1429,8 +1536,8 @@ export default function SystemDesignPage() {
                   </button>
                   <div className="flex items-center justify-between pt-1 text-[11px] text-muted-foreground tabular-nums">
                     <span>
-                      {Array.isArray(item.nodes) ? item.nodes.length : 0} nodes ·{" "}
-                      {new Date(item.updatedAt).toLocaleDateString()}
+                      {Array.isArray(item.nodes) ? item.nodes.length : 0} nodes
+                      · {new Date(item.updatedAt).toLocaleDateString()}
                     </span>
                     <button
                       type="button"
