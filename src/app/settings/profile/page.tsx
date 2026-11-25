@@ -6,6 +6,7 @@ import { useSession, authClient } from "@/lib/auth-client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import {
   Card,
   CardContent,
@@ -20,6 +21,7 @@ import { Separator } from "@/components/ui/separator";
 import Link from "next/link";
 import { UserNav } from "@/components/custom/user-nav";
 import { Badge } from "@/components/ui/badge";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
   FileText,
   Download,
@@ -29,7 +31,6 @@ import {
   Eye,
   Trash2,
 } from "lucide-react";
-import { generateInterviewPDF, downloadPDF } from "@/lib/pdf-generator";
 import { toast } from "sonner";
 import {
   AlertDialog,
@@ -70,6 +71,75 @@ export default function ProfileSettingsPage() {
     image: session?.user?.image || "",
     username: (session?.user as { username?: string })?.username || "",
   });
+
+  const [careerProfile, setCareerProfile] = useState({
+    jobTitle: "",
+    location: "",
+    expectedSalary: "",
+    linkedIn: "",
+    github: "",
+    portfolio: "",
+    skillsText: "",
+    careerGoals: "",
+  });
+  const [savingCareer, setSavingCareer] = useState(false);
+
+  // Fetch CandidateProfile from PostgreSQL
+  useEffect(() => {
+    if (!session?.user) return;
+    let active = true;
+    fetch("/api/profile", { cache: "no-store" })
+      .then((res) => (res.ok ? res.json() : null))
+      .then((json) => {
+        if (!active || !json?.profile) return;
+        const p = json.profile;
+        setCareerProfile({
+          jobTitle: p.jobTitle || "",
+          location: p.location || "",
+          expectedSalary: p.expectedSalary || "",
+          linkedIn: p.linkedIn || "",
+          github: p.github || "",
+          portfolio: p.portfolio || "",
+          skillsText: Array.isArray(p.skills) ? p.skills.join(", ") : "",
+          careerGoals: p.careerGoals || "",
+        });
+      })
+      .catch(() => {});
+    return () => {
+      active = false;
+    };
+  }, [session?.user]);
+
+  const handleSaveCareerProfile = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setSavingCareer(true);
+    try {
+      const skills = careerProfile.skillsText
+        .split(",")
+        .map((s) => s.trim())
+        .filter(Boolean);
+      const res = await fetch("/api/profile", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          jobTitle: careerProfile.jobTitle,
+          location: careerProfile.location,
+          expectedSalary: careerProfile.expectedSalary,
+          linkedIn: careerProfile.linkedIn,
+          github: careerProfile.github,
+          portfolio: careerProfile.portfolio,
+          skills,
+          careerGoals: careerProfile.careerGoals,
+        }),
+      });
+      if (!res.ok) throw new Error("Failed to save career profile");
+      toast.success("Career profile saved to PostgreSQL.");
+    } catch {
+      toast.error("Could not save career profile.");
+    } finally {
+      setSavingCareer(false);
+    }
+  };
 
   // Fetch saved interviews
   useEffect(() => {
@@ -125,21 +195,49 @@ export default function ProfileSettingsPage() {
     try {
       toast.loading("Generating PDF...");
 
-      // Parse the interview data
-      const conversationLog =
-        typeof interview.conversationLog === "string"
+      // Parse the interview data safely (supporting relational mockQuestions too)
+      const parsedLog =
+        typeof interview.conversationLog === "string" &&
+        interview.conversationLog.trim()
           ? JSON.parse(interview.conversationLog)
           : interview.conversationLog;
+      const logArray = Array.isArray(parsedLog)
+        ? parsedLog
+        : Array.isArray(parsedLog?.questions)
+          ? parsedLog.questions
+          : [];
+      const relationalQuestions = Array.isArray(
+        (interview as unknown as { mockQuestions?: unknown[] }).mockQuestions,
+      )
+        ? (
+            interview as unknown as {
+              mockQuestions: {
+                questionText: string;
+                userAnswer?: string | null;
+                idealAnswer?: string | null;
+                score?: number | null;
+                feedback?: string | null;
+              }[];
+            }
+          ).mockQuestions.map((q) => ({
+            question: { question: q.questionText, idealAnswer: q.idealAnswer || "" },
+            userAnswer: q.userAnswer || "",
+            evaluation: { score: q.score || 0, feedback: q.feedback || "" },
+          }))
+        : [];
+      const conversationLog =
+        relationalQuestions.length > 0 ? relationalQuestions : logArray;
 
       const feedback =
-        typeof interview.feedback === "string"
+        typeof interview.feedback === "string" && interview.feedback.trim()
           ? JSON.parse(interview.feedback)
-          : interview.feedback;
+          : interview.feedback || {};
 
       const scores =
-        typeof interview.specificScores === "string"
+        typeof interview.specificScores === "string" &&
+        interview.specificScores.trim()
           ? JSON.parse(interview.specificScores)
-          : interview.specificScores;
+          : interview.specificScores || {};
 
       // Get job title from topics array
       const jobTitle = Array.isArray(interview.topics)
@@ -169,6 +267,9 @@ export default function ProfileSettingsPage() {
       };
 
       // Generate PDF with personalized filename
+      const { generateInterviewPDF, downloadPDF } = await import(
+        "@/lib/pdf-generator"
+      );
       const blob = await generateInterviewPDF(pdfData);
 
       // Create filename: CandidateName_JobTitle_Date.pdf
@@ -190,7 +291,14 @@ export default function ProfileSettingsPage() {
   };
 
   if (isPending) {
-    return <div>Loading...</div>;
+    return (
+      <div className="min-h-screen bg-linear-to-br from-background via-background to-muted/20">
+        <div className="container mx-auto p-4 md:p-8 max-w-4xl">
+          <Skeleton className="h-12 w-full mb-4" />
+          <Skeleton className="h-64 w-full" />
+        </div>
+      </div>
+    );
   }
 
   if (!session) {
@@ -285,7 +393,10 @@ export default function ProfileSettingsPage() {
             <Button variant="outline">Passkeys</Button>
           </Link>
           <Link href="/settings/connected-accounts">
-            <Button variant="outline">Connected Accounts</Button>
+            <Button variant="outline">Connected</Button>
+          </Link>
+          <Link href="/settings/phone">
+            <Button variant="outline">Phone</Button>
           </Link>
         </div>
 
@@ -441,7 +552,7 @@ export default function ProfileSettingsPage() {
                 <div>
                   <p className="font-medium">
                     {session.user.emailVerified
-                      ? "Email Verified"
+                      ? "Email verified"
                       : "Email Not Verified"}
                   </p>
                   <p className="text-sm text-muted-foreground">
@@ -513,7 +624,7 @@ export default function ProfileSettingsPage() {
                   return (
                     <div
                       key={interview.id}
-                      className="flex items-center justify-between p-4 border rounded-lg hover:bg-muted/50 transition-colors"
+                      className="flex flex-col gap-3 p-4 border rounded-lg hover:bg-muted/50 transition-colors md:flex-row md:items-center md:justify-between"
                     >
                       <div className="flex-1">
                         <div className="flex items-center gap-3 mb-2">
@@ -565,7 +676,7 @@ export default function ProfileSettingsPage() {
                         </p>
                       </div>
 
-                      <div className="flex items-center gap-2 ml-4">
+                      <div className="flex flex-wrap items-center gap-2">
                         <Button
                           onClick={() => handleViewInterview(interview.id)}
                           variant="outline"
@@ -628,6 +739,152 @@ export default function ProfileSettingsPage() {
                 })}
               </div>
             )}
+          </CardContent>
+        </Card>
+
+        {/* Career & Candidate Profile (PostgreSQL CandidateProfile) */}
+        <Card className="mt-6">
+          <CardHeader>
+            <CardTitle className="font-display">
+              Candidate &amp; Career Profile
+            </CardTitle>
+            <CardDescription>
+              Stored in PostgreSQL and used across your CV Builder, ATS Matcher,
+              and Role Dossiers.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <form onSubmit={handleSaveCareerProfile} className="space-y-4">
+              <div className="grid gap-4 sm:grid-cols-2">
+                <div className="space-y-1.5">
+                  <Label htmlFor="career-title">Target Job Title</Label>
+                  <Input
+                    id="career-title"
+                    value={careerProfile.jobTitle}
+                    onChange={(e) =>
+                      setCareerProfile((p) => ({
+                        ...p,
+                        jobTitle: e.target.value,
+                      }))
+                    }
+                    placeholder="Senior Full-Stack Engineer"
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <Label htmlFor="career-location">Location / Timezone</Label>
+                  <Input
+                    id="career-location"
+                    value={careerProfile.location}
+                    onChange={(e) =>
+                      setCareerProfile((p) => ({
+                        ...p,
+                        location: e.target.value,
+                      }))
+                    }
+                    placeholder="Remote (EU / US)"
+                  />
+                </div>
+              </div>
+
+              <div className="grid gap-4 sm:grid-cols-2">
+                <div className="space-y-1.5">
+                  <Label htmlFor="career-salary">Expected Compensation</Label>
+                  <Input
+                    id="career-salary"
+                    value={careerProfile.expectedSalary}
+                    onChange={(e) =>
+                      setCareerProfile((p) => ({
+                        ...p,
+                        expectedSalary: e.target.value,
+                      }))
+                    }
+                    placeholder="$180k–$220k"
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <Label htmlFor="career-github">GitHub URL</Label>
+                  <Input
+                    id="career-github"
+                    value={careerProfile.github}
+                    onChange={(e) =>
+                      setCareerProfile((p) => ({
+                        ...p,
+                        github: e.target.value,
+                      }))
+                    }
+                    placeholder="https://github.com/username"
+                  />
+                </div>
+              </div>
+
+              <div className="grid gap-4 sm:grid-cols-2">
+                <div className="space-y-1.5">
+                  <Label htmlFor="career-linkedin">LinkedIn URL</Label>
+                  <Input
+                    id="career-linkedin"
+                    value={careerProfile.linkedIn}
+                    onChange={(e) =>
+                      setCareerProfile((p) => ({
+                        ...p,
+                        linkedIn: e.target.value,
+                      }))
+                    }
+                    placeholder="https://linkedin.com/in/username"
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <Label htmlFor="career-portfolio">Portfolio URL</Label>
+                  <Input
+                    id="career-portfolio"
+                    value={careerProfile.portfolio}
+                    onChange={(e) =>
+                      setCareerProfile((p) => ({
+                        ...p,
+                        portfolio: e.target.value,
+                      }))
+                    }
+                    placeholder="https://your-site.dev"
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-1.5">
+                <Label htmlFor="career-skills">
+                  Core Skills (comma-separated)
+                </Label>
+                <Input
+                  id="career-skills"
+                  value={careerProfile.skillsText}
+                  onChange={(e) =>
+                    setCareerProfile((p) => ({
+                      ...p,
+                      skillsText: e.target.value,
+                    }))
+                  }
+                  placeholder="TypeScript, Next.js, PostgreSQL, Redis, System Design"
+                />
+              </div>
+
+              <div className="space-y-1.5">
+                <Label htmlFor="career-goals">Career Goals</Label>
+                <Textarea
+                  id="career-goals"
+                  rows={3}
+                  value={careerProfile.careerGoals}
+                  onChange={(e) =>
+                    setCareerProfile((p) => ({
+                      ...p,
+                      careerGoals: e.target.value,
+                    }))
+                  }
+                  placeholder="What kind of team, architecture, or role are you targeting next?"
+                />
+              </div>
+
+              <Button type="submit" disabled={savingCareer}>
+                {savingCareer ? "Saving..." : "Save Career Profile"}
+              </Button>
+            </form>
           </CardContent>
         </Card>
       </div>

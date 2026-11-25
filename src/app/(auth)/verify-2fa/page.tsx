@@ -142,7 +142,7 @@ function TwoFactorChallengeContent() {
             </Alert>
           </div>
         </CardContent>
-        <CardFooter className="flex flex-col space-y-4">
+        <CardFooter className="flex flex-col space-y-2">
           <Button
             variant="outline"
             className="w-full"
@@ -168,7 +168,17 @@ function TwoFactorChallengeContent() {
 
 export default function TwoFactorChallengePage() {
   return (
-    <Suspense fallback={<div>Loading...</div>}>
+    <Suspense
+      fallback={
+        <div className="min-h-screen flex items-center justify-center bg-linear-to-br from-background via-background to-muted/20 p-4">
+          <Card className="w-full max-w-md shadow-xl">
+            <CardContent className="py-12 text-center">
+              <Icons.spinner className="h-8 w-8 animate-spin mx-auto" />
+            </CardContent>
+          </Card>
+        </div>
+      }
+    >
       <TwoFactorChallengeContent />
     </Suspense>
   );

@@ -1,17 +1,19 @@
-import { createAuthClient } from "better-auth/react";
-import {
-  usernameClient,
-  twoFactorClient,
-  adminClient,
-  organizationClient,
-  magicLinkClient,
-  emailOTPClient,
-  phoneNumberClient,
-  multiSessionClient,
-} from "better-auth/client/plugins";
 import { passkeyClient } from "@better-auth/passkey/client";
+import {
+  adminClient,
+  emailOTPClient,
+  magicLinkClient,
+  multiSessionClient,
+  organizationClient,
+  phoneNumberClient,
+  twoFactorClient,
+  usernameClient,
+} from "better-auth/client/plugins";
+import { createAuthClient } from "better-auth/react";
 export const authClient = createAuthClient({
-  baseURL: process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000",
+  // Same-origin: the browser app and the auth API are served by the same
+  // Next.js server. A hardcoded absolute URL (e.g. localhost:3000) breaks
+  // auth whenever dev runs on another port — requests would go elsewhere.
   plugins: [
     usernameClient(),
     twoFactorClient(),

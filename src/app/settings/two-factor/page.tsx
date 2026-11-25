@@ -217,9 +217,9 @@ export default function TwoFactorPage() {
         )}
 
         {success && (
-          <Alert className="mb-6 border-green-600">
+          <Alert className="mb-6 border-green-200 bg-green-50 dark:bg-green-900/20">
             <Icons.check className="h-4 w-4 text-green-600" />
-            <AlertDescription className="text-green-600">
+            <AlertDescription className="text-green-600 dark:text-green-400">
               {success}
             </AlertDescription>
           </Alert>
@@ -274,7 +274,7 @@ export default function TwoFactorPage() {
                 <div>
                   <h3 className="font-semibold mb-2">Step 2: Verify Code</h3>
                   <div className="space-y-3">
-                    <div>
+                    <div className="space-y-2">
                       <Label htmlFor="code">
                         Enter the 6-digit code from your app
                       </Label>
@@ -312,9 +312,9 @@ export default function TwoFactorPage() {
 
           {backupCodes.length > 0 && (
             <CardContent>
-              <Alert className="border-yellow-600 mb-4">
+              <Alert className="border-yellow-200 bg-yellow-50 dark:bg-yellow-900/20 mb-4">
                 <Icons.alertCircle className="h-4 w-4 text-yellow-600" />
-                <AlertDescription className="text-yellow-600">
+                <AlertDescription className="text-yellow-600 dark:text-yellow-400">
                   <strong>Save your backup codes!</strong> Store these codes in
                   a safe place. You can use them to access your account if you
                   lose your authenticator device.
@@ -363,10 +363,12 @@ export default function TwoFactorPage() {
 
           {twoFactorEnabled && !qrCode && backupCodes.length === 0 && (
             <CardContent>
-              <div className="flex items-center gap-3 p-4 border rounded-lg border-green-600">
-                <Icons.check className="h-5 w-5 text-green-600" />
+              <div className="flex items-center gap-3 p-4 border rounded-lg border-green-200 bg-green-50 dark:bg-green-900/20">
+                <Icons.check className="h-5 w-5 text-green-600 dark:text-green-400" />
                 <div>
-                  <p className="font-medium text-green-600">2FA is enabled</p>
+                  <p className="font-medium text-green-600 dark:text-green-400">
+                    2FA is enabled
+                  </p>
                   <p className="text-sm text-muted-foreground">
                     Your account is protected with two-factor authentication
                   </p>

@@ -89,11 +89,9 @@ export default function ForgotPasswordPage() {
             >
               Try Another Email
             </Button>
-            <Link href="/sign-in" className="w-full">
-              <Button variant="ghost" className="w-full">
-                Back to Sign In
-              </Button>
-            </Link>
+            <Button asChild variant="ghost" className="w-full">
+              <Link href="/sign-in">Back to Sign In</Link>
+            </Button>
           </CardFooter>
         </Card>
       </div>
@@ -150,12 +148,12 @@ export default function ForgotPasswordPage() {
           </form>
         </CardContent>
         <CardFooter className="flex flex-col space-y-2">
-          <Link href="/sign-in" className="w-full">
-            <Button variant="ghost" className="w-full">
+          <Button asChild variant="ghost" className="w-full">
+            <Link href="/sign-in">
               <Icons.arrowLeft className="mr-2 h-4 w-4" />
               Back to Sign In
-            </Button>
-          </Link>
+            </Link>
+          </Button>
           <div className="text-sm text-center w-full text-muted-foreground">
             Don't have an account?{" "}
             <Link

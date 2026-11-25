@@ -1,12 +1,13 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { authClient } from "@/lib/auth-client";
+import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
+import { Icons } from "@/components/custom/icons";
+import { UserNav } from "@/components/custom/user-nav";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import {
   Card,
   CardContent,
@@ -14,11 +15,6 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Icons } from "@/components/custom/icons";
-import { Badge } from "@/components/ui/badge";
-import { Separator } from "@/components/ui/separator";
-import { UserNav } from "@/components/custom/user-nav";
 import {
   Dialog,
   DialogContent,
@@ -27,7 +23,11 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { authClient } from "@/lib/auth-client";
 
 interface PhoneNumber {
   id: string;
@@ -195,7 +195,7 @@ export default function PhoneNumberPage() {
 
   return (
     <div className="min-h-screen bg-linear-to-br from-background via-background to-muted/20">
-      <div className="container max-w-5xl mx-auto p-6 space-y-8">
+      <div className="container mx-auto max-w-4xl px-4 sm:px-6 lg:px-8 py-6 md:py-8 space-y-8">
         {/* Header */}
         <div className="flex items-center justify-between">
           <div>
@@ -209,23 +209,44 @@ export default function PhoneNumberPage() {
 
         {/* Navigation Tabs */}
         <Tabs defaultValue="phone" className="w-full">
-          <TabsList className="grid w-full grid-cols-6">
-            <TabsTrigger value="profile" asChild>
+          <TabsList className="grid w-full grid-cols-7">
+            <TabsTrigger value="profile" asChild className="text-xs sm:text-sm">
               <Link href="/settings/profile">Profile</Link>
             </TabsTrigger>
-            <TabsTrigger value="security" asChild>
+            <TabsTrigger
+              value="security"
+              asChild
+              className="text-xs sm:text-sm"
+            >
               <Link href="/settings/security">Security</Link>
             </TabsTrigger>
-            <TabsTrigger value="sessions" asChild>
+            <TabsTrigger
+              value="sessions"
+              asChild
+              className="text-xs sm:text-sm"
+            >
               <Link href="/settings/sessions">Sessions</Link>
             </TabsTrigger>
-            <TabsTrigger value="two-factor" asChild>
+            <TabsTrigger
+              value="two-factor"
+              asChild
+              className="text-xs sm:text-sm"
+            >
               <Link href="/settings/two-factor">Two-Factor</Link>
             </TabsTrigger>
-            <TabsTrigger value="passkeys" asChild>
+            <TabsTrigger value="passkeys" asChild className="text-xs sm:text-sm">
               <Link href="/settings/passkeys">Passkeys</Link>
             </TabsTrigger>
-            <TabsTrigger value="phone">Phone</TabsTrigger>
+            <TabsTrigger
+              value="connected-accounts"
+              asChild
+              className="text-xs sm:text-sm"
+            >
+              <Link href="/settings/connected-accounts">Connected</Link>
+            </TabsTrigger>
+            <TabsTrigger value="phone" className="text-xs sm:text-sm">
+              Phone
+            </TabsTrigger>
           </TabsList>
         </Tabs>
 
@@ -365,7 +386,7 @@ export default function PhoneNumberPage() {
             <div className="space-y-2">
               <h4 className="font-medium">SMS Authentication</h4>
               <p className="text-sm text-muted-foreground">
-                Phone numbers can be used for passwordless login and account
+                Phone numbers can be used for passwordless sign-in and account
                 recovery. You'll receive a verification code via SMS.
               </p>
             </div>

@@ -1,242 +1,318 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { zodResolver } from "@hookform/resolvers/zod";
 import Link from "next/link";
-import { authClient } from "@/lib/auth-client";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import { useRouter, useSearchParams } from "next/navigation";
+import { Suspense, useState } from "react";
+import { useForm } from "react-hook-form";
+import { z } from "zod";
 import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { Alert, AlertDescription } from "@/components/ui/alert";
+  AuthDivider,
+  AuthShell,
+  isGoogleAuthEnabled,
+  safeCallbackUrl,
+} from "@/components/auth/auth-shell";
 import { Icons } from "@/components/custom/icons";
-import { Separator } from "@/components/ui/separator";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import { authClient } from "@/lib/auth-client";
 
-export default function SignInPage() {
+const signInSchema = z.object({
+  emailOrUsername: z.string().min(1, "Enter your email or username"),
+  password: z.string().min(1, "Enter your password"),
+  rememberMe: z.boolean(),
+});
+
+type SignInValues = z.infer<typeof signInSchema>;
+
+function SignInForm() {
   const router = useRouter();
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [rememberMe, setRememberMe] = useState(true);
-  const [emailOrUsername, setEmailOrUsername] = useState("");
-  const [password, setPassword] = useState("");
+  const searchParams = useSearchParams();
+  const [submitError, setSubmitError] = useState<string | null>(null);
+  const [needsVerification, setNeedsVerification] = useState<string | null>(
+    null,
+  );
+  const [resent, setResent] = useState(false);
+  const [resending, setResending] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
-  const handleEmailSignIn = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsLoading(true);
-    setError(null);
+  const form = useForm<SignInValues>({
+    resolver: zodResolver(signInSchema),
+    defaultValues: { emailOrUsername: "", password: "", rememberMe: true },
+  });
+  const { isSubmitting } = form.formState;
 
-    try {
-      const isEmail = emailOrUsername.includes("@");
+  const callbackUrl = safeCallbackUrl(searchParams.get("callbackUrl"));
 
-      if (isEmail) {
-        await authClient.signIn.email(
-          {
-            email: emailOrUsername,
-            password,
-            rememberMe,
-          },
-          {
-            onRequest: () => {
-              setIsLoading(true);
-            },
-            onSuccess: () => {
-              router.push("/dashboard");
-              router.refresh();
-            },
-            onError: (ctx: { error: { message?: string } }) => {
-              setError(ctx.error.message || "An error occurred during sign in");
-              setIsLoading(false);
-            },
-          },
-        );
-      } else {
-        await authClient.signIn.username(
-          {
-            username: emailOrUsername,
-            password,
-          },
-          {
-            onRequest: () => {
-              setIsLoading(true);
-            },
-            onSuccess: () => {
-              router.push("/dashboard");
-              router.refresh();
-            },
-            onError: (ctx: { error: { message?: string } }) => {
-              setError(ctx.error.message || "An error occurred during sign in");
-              setIsLoading(false);
-            },
-          },
-        );
-      }
-    } catch (err) {
-      setError(
-        err instanceof Error ? err.message : "An unexpected error occurred",
+  const onSubmit = async (values: SignInValues) => {
+    setSubmitError(null);
+    setNeedsVerification(null);
+    setResent(false);
+
+    const callbacks = {
+      onSuccess: () => {
+        router.push(callbackUrl);
+        router.refresh();
+      },
+      onError: (ctx: { error: { message?: string } }) => {
+        const message = ctx.error.message || "Couldn't sign you in.";
+        if (message.toLowerCase().includes("verif")) {
+          // Account exists but the email isn't verified yet — offer the
+          // recovery path inline instead of a dead-end error.
+          setNeedsVerification(
+            values.emailOrUsername.includes("@") ? values.emailOrUsername : "",
+          );
+          setSubmitError(
+            "Your email isn't verified yet. Resend the link below, then try again.",
+          );
+        } else {
+          setSubmitError(message);
+        }
+      },
+    };
+
+    if (values.emailOrUsername.includes("@")) {
+      await authClient.signIn.email(
+        {
+          email: values.emailOrUsername,
+          password: values.password,
+          rememberMe: values.rememberMe,
+        },
+        callbacks,
       );
-    } finally {
-      setIsLoading(false);
+    } else {
+      await authClient.signIn.username(
+        {
+          username: values.emailOrUsername,
+          password: values.password,
+        },
+        callbacks,
+      );
     }
   };
 
-  const handleGoogleSignIn = async () => {
-    setIsLoading(true);
-    setError(null);
-
-    try {
-      await authClient.signIn.social({
-        provider: "google",
-        callbackURL: "/dashboard",
-      });
-    } catch (err) {
-      setError(
-        err instanceof Error ? err.message : "An unexpected error occurred",
+  const handleResend = async () => {
+    const email = needsVerification || "";
+    if (!email) return;
+    setResending(true);
+    setSubmitError(null);
+    const result = await authClient.sendVerificationEmail({
+      email,
+      callbackURL: callbackUrl,
+    });
+    setResending(false);
+    if (result.error) {
+      setSubmitError(
+        result.error.message || "Couldn't resend the verification email.",
       );
-      setIsLoading(false);
+    } else {
+      setResent(true);
     }
+  };
+
+  const handleGoogle = async () => {
+    setSubmitError(null);
+    await authClient.signIn.social({
+      provider: "google",
+      callbackURL: callbackUrl,
+    });
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-linear-to-br from-background via-background to-muted/20 p-4">
-      <Card className="w-full max-w-md shadow-xl">
-        <CardHeader className="space-y-1">
-          <CardTitle className="text-3xl font-bold text-center bg-linear-to-r from-primary to-primary/60 bg-clip-text text-transparent">
-            Welcome Back
-          </CardTitle>
-          <CardDescription className="text-center text-base">
-            Sign in to your account to continue
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          {error && (
-            <Alert variant="destructive">
-              <AlertDescription>{error}</AlertDescription>
-            </Alert>
-          )}
-
-          <form onSubmit={handleEmailSignIn} className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="emailOrUsername">Email or Username</Label>
-              <Input
-                id="emailOrUsername"
-                type="text"
-                placeholder="john@example.com or john_doe"
-                value={emailOrUsername}
-                onChange={(e) => setEmailOrUsername(e.target.value)}
-                required
-                disabled={isLoading}
-                className="h-11"
-              />
-            </div>
-
-            <div className="space-y-2">
-              <div className="flex items-center justify-between">
-                <Label htmlFor="password">Password</Label>
-                <Link
-                  href="/forgot-password"
-                  className="text-sm text-primary hover:underline"
+    <AuthShell
+      title="Welcome back"
+      description="Sign in to continue your job search."
+      footer={
+        <p className="text-center text-sm text-muted-foreground">
+          Don&apos;t have an account?{" "}
+          <Link
+            href="/sign-up"
+            className="font-semibold text-primary hover:underline"
+          >
+            Sign up
+          </Link>
+        </p>
+      }
+    >
+      {submitError && (
+        <Alert variant="destructive">
+          <AlertDescription>{submitError}</AlertDescription>
+        </Alert>
+      )}
+      {needsVerification !== null && (
+        <Alert>
+          <Icons.mail className="h-4 w-4" />
+          <AlertDescription className="space-y-2">
+            <span className="block">
+              {resent
+                ? `Verification link sent${needsVerification ? ` to ${needsVerification}` : ""}. Check your inbox (and spam folder).`
+                : "No link in your inbox?"}
+            </span>
+            {!resent &&
+              (needsVerification ? (
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  disabled={resending}
+                  onClick={handleResend}
                 >
-                  Forgot password?
+                  {resending && (
+                    <Icons.spinner className="mr-2 h-3.5 w-3.5 animate-spin" />
+                  )}
+                  Resend verification email
+                </Button>
+              ) : (
+                <Link
+                  href="/verify-email"
+                  className="font-medium text-primary hover:underline"
+                >
+                  Go to the verification page
                 </Link>
-              </div>
-              <Input
-                id="password"
-                type="password"
-                placeholder="Enter your password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-                disabled={isLoading}
-                className="h-11"
-              />
-            </div>
+              ))}
+          </AlertDescription>
+        </Alert>
+      )}
 
-            <div className="flex items-center space-x-2">
-              <Checkbox
-                id="remember"
-                checked={rememberMe}
-                onCheckedChange={(checked) => setRememberMe(checked as boolean)}
-                disabled={isLoading}
-              />
-              <Label
-                htmlFor="remember"
-                className="text-sm font-normal cursor-pointer"
-              >
-                Remember me for 7 days
-              </Label>
-            </div>
+      <Form {...form}>
+        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+          <FormField
+            control={form.control}
+            name="emailOrUsername"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Email or username</FormLabel>
+                <FormControl>
+                  <Input
+                    placeholder="you@example.com"
+                    autoComplete="username"
+                    className="h-11"
+                    {...field}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={form.control}
+            name="password"
+            render={({ field }) => (
+              <FormItem>
+                <div className="flex items-center justify-between">
+                  <FormLabel>Password</FormLabel>
+                  <Link
+                    href="/forgot-password"
+                    className="text-sm text-primary hover:underline"
+                  >
+                    Forgot password?
+                  </Link>
+                </div>
+                <FormControl>
+                  <div className="relative">
+                    <Input
+                      type={showPassword ? "text" : "password"}
+                      placeholder="Enter your password"
+                      autoComplete="current-password"
+                      className="h-11 pr-10"
+                      {...field}
+                    />
+                    <button
+                      type="button"
+                      aria-label={
+                        showPassword ? "Hide password" : "Show password"
+                      }
+                      onClick={() => setShowPassword((v) => !v)}
+                      className="absolute top-1/2 right-3 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                    >
+                      {showPassword ? (
+                        <Icons.eyeOff className="h-4 w-4" />
+                      ) : (
+                        <Icons.eye className="h-4 w-4" />
+                      )}
+                    </button>
+                  </div>
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={form.control}
+            name="rememberMe"
+            render={({ field }) => (
+              <FormItem className="flex items-center gap-2 space-y-0">
+                <FormControl>
+                  <Checkbox
+                    checked={field.value}
+                    onCheckedChange={field.onChange}
+                  />
+                </FormControl>
+                <FormLabel className="cursor-pointer font-normal">
+                  Remember me for 7 days
+                </FormLabel>
+              </FormItem>
+            )}
+          />
+          <Button
+            type="submit"
+            className="h-11 w-full text-base font-semibold"
+            disabled={isSubmitting}
+          >
+            {isSubmitting && (
+              <Icons.spinner className="mr-2 h-4 w-4 animate-spin" />
+            )}
+            Sign in
+          </Button>
+        </form>
+      </Form>
 
-            <Button
-              type="submit"
-              className="w-full h-11 text-base font-semibold"
-              disabled={isLoading}
-            >
-              {isLoading && (
-                <Icons.spinner className="mr-2 h-4 w-4 animate-spin" />
-              )}
-              Sign In
-            </Button>
-          </form>
-
-          <div className="relative">
-            <div className="absolute inset-0 flex items-center">
-              <Separator className="w-full" />
-            </div>
-            <div className="relative flex justify-center text-xs uppercase">
-              <span className="bg-background px-2 text-muted-foreground">
-                Or continue with
-              </span>
-            </div>
-          </div>
-
+      {isGoogleAuthEnabled() && (
+        <>
+          <AuthDivider label="Or continue with" />
           <Button
             variant="outline"
             type="button"
-            disabled={isLoading}
-            onClick={handleGoogleSignIn}
-            className="w-full h-11"
+            className="h-11 w-full"
+            onClick={handleGoogle}
           >
-            {isLoading ? (
-              <Icons.spinner className="mr-2 h-4 w-4 animate-spin" />
-            ) : (
-              <Icons.google className="mr-2 h-4 w-4" />
-            )}
+            <Icons.google className="mr-2 h-4 w-4" />
             Continue with Google
           </Button>
-        </CardContent>
-        <CardFooter className="flex flex-col space-y-4">
-          <div className="flex items-center justify-center gap-4 text-sm">
-            <Link href="/magic-link" className="text-primary hover:underline">
-              Magic link
-            </Link>
-            <span className="text-muted-foreground">•</span>
-            <Link href="/email-otp" className="text-primary hover:underline">
-              Email OTP
-            </Link>
-            <span className="text-muted-foreground">•</span>
-            <Link href="/phone-signin" className="text-primary hover:underline">
-              Phone
-            </Link>
-          </div>
-          <div className="text-sm text-center w-full text-muted-foreground">
-            Don't have an account?{" "}
-            <Link
-              href="/sign-up"
-              className="text-primary hover:underline font-semibold"
-            >
-              Sign up
-            </Link>
-          </div>
-        </CardFooter>
-      </Card>
-    </div>
+        </>
+      )}
+
+      <div className="flex items-center justify-center gap-3 text-sm">
+        <Link href="/magic-link" className="text-primary hover:underline">
+          Magic link
+        </Link>
+        <span className="text-muted-foreground">•</span>
+        <Link href="/email-otp" className="text-primary hover:underline">
+          Email code
+        </Link>
+        <span className="text-muted-foreground">•</span>
+        <Link href="/phone-signin" className="text-primary hover:underline">
+          Phone
+        </Link>
+      </div>
+    </AuthShell>
+  );
+}
+
+export default function SignInPage() {
+  return (
+    <Suspense>
+      <SignInForm />
+    </Suspense>
   );
 }

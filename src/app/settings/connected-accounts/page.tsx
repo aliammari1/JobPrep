@@ -139,23 +139,40 @@ export default function ConnectedAccountsPage() {
         {/* Navigation Tabs */}
         <Tabs defaultValue="connected-accounts" className="w-full">
           <TabsList className="grid w-full grid-cols-7">
-            <TabsTrigger value="profile" asChild>
+            <TabsTrigger value="profile" asChild className="text-xs sm:text-sm">
               <Link href="/settings/profile">Profile</Link>
             </TabsTrigger>
-            <TabsTrigger value="security" asChild>
+            <TabsTrigger
+              value="security"
+              asChild
+              className="text-xs sm:text-sm"
+            >
               <Link href="/settings/security">Security</Link>
             </TabsTrigger>
-            <TabsTrigger value="sessions" asChild>
+            <TabsTrigger
+              value="sessions"
+              asChild
+              className="text-xs sm:text-sm"
+            >
               <Link href="/settings/sessions">Sessions</Link>
             </TabsTrigger>
-            <TabsTrigger value="two-factor" asChild>
+            <TabsTrigger
+              value="two-factor"
+              asChild
+              className="text-xs sm:text-sm"
+            >
               <Link href="/settings/two-factor">Two-Factor</Link>
             </TabsTrigger>
-            <TabsTrigger value="passkeys" asChild>
+            <TabsTrigger value="passkeys" asChild className="text-xs sm:text-sm">
               <Link href="/settings/passkeys">Passkeys</Link>
             </TabsTrigger>
-            <TabsTrigger value="connected-accounts">Connected</TabsTrigger>
-            <TabsTrigger value="phone" asChild>
+            <TabsTrigger
+              value="connected-accounts"
+              className="text-xs sm:text-sm"
+            >
+              Connected
+            </TabsTrigger>
+            <TabsTrigger value="phone" asChild className="text-xs sm:text-sm">
               <Link href="/settings/phone">Phone</Link>
             </TabsTrigger>
           </TabsList>
@@ -169,9 +186,9 @@ export default function ConnectedAccountsPage() {
         )}
 
         {success && (
-          <Alert className="mb-6 border-green-600">
+          <Alert className="mb-6 border-green-200 bg-green-50 dark:bg-green-900/20">
             <Icons.check className="h-4 w-4 text-green-600" />
-            <AlertDescription className="text-green-600">
+            <AlertDescription className="text-green-600 dark:text-green-400">
               {success}
             </AlertDescription>
           </Alert>
@@ -198,7 +215,7 @@ export default function ConnectedAccountsPage() {
                 {isAccountLinked("google") ? (
                   <Badge
                     variant="secondary"
-                    className="bg-green-100 text-green-700"
+                    className="bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400"
                   >
                     Connected
                   </Badge>

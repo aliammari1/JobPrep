@@ -24,6 +24,7 @@ export default function EmailOTPPage() {
   const [step, setStep] = useState<"email" | "verify">("email");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [resent, setResent] = useState(false);
 
   const handleSendOTP = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -86,7 +87,7 @@ export default function EmailOTPPage() {
         setError(result.error.message || "Failed to resend OTP");
       } else {
         setError(null);
-        alert("OTP code resent successfully!");
+        setResent(true);
       }
     } catch (err) {
       setError("An unexpected error occurred");
@@ -99,19 +100,19 @@ export default function EmailOTPPage() {
     <div className="min-h-screen flex items-center justify-center bg-linear-to-br from-background via-background to-muted/20 p-4">
       <Card className="w-full max-w-md shadow-xl">
         <CardHeader className="text-center">
-          <div className="mx-auto mb-4 h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center">
-            <Icons.mail className="h-6 w-6 text-primary" />
+          <div className="mx-auto mb-4 h-16 w-16 rounded-full bg-primary/10 flex items-center justify-center">
+            <Icons.mail className="h-8 w-8 text-primary" />
           </div>
-          <CardTitle className="text-2xl">Email OTP Sign In</CardTitle>
+          <CardTitle className="text-3xl">Email OTP Sign In</CardTitle>
           <CardDescription>
             {step === "email"
               ? "Enter your email to receive a one-time code"
               : "Enter the 6-digit code sent to your email"}
           </CardDescription>
         </CardHeader>
-        <CardContent>
+        <CardContent className="space-y-4">
           {error && (
-            <Alert variant="destructive" className="mb-4">
+            <Alert variant="destructive">
               <Icons.alertCircle className="h-4 w-4" />
               <AlertDescription>{error}</AlertDescription>
             </Alert>
@@ -152,12 +153,21 @@ export default function EmailOTPPage() {
             </form>
           ) : (
             <form onSubmit={handleVerifyOTP} className="space-y-4">
-              <Alert className="border-blue-600">
-                <Icons.info className="h-4 w-4 text-blue-600" />
-                <AlertDescription className="text-blue-600">
+              <Alert className="border-blue-600 dark:border-blue-400">
+                <Icons.info className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+                <AlertDescription className="text-blue-600 dark:text-blue-400">
                   A 6-digit code was sent to <strong>{email}</strong>
                 </AlertDescription>
               </Alert>
+
+              {resent && (
+                <Alert className="border-green-600 dark:border-green-400">
+                  <Icons.check className="h-4 w-4 text-green-600 dark:text-green-400" />
+                  <AlertDescription className="text-green-600 dark:text-green-400">
+                    A new code has been sent to <strong>{email}</strong>
+                  </AlertDescription>
+                </Alert>
+              )}
 
               <div className="space-y-2">
                 <Label htmlFor="otp">Enter Code</Label>
@@ -168,7 +178,7 @@ export default function EmailOTPPage() {
                   placeholder="000000"
                   value={otp}
                   onChange={(e) => setOtp(e.target.value.replace(/\D/g, ""))}
-                  className="text-center text-2xl tracking-widest h-14"
+                  className="h-11 text-center text-2xl tracking-widest font-mono"
                   required
                 />
                 <p className="text-xs text-muted-foreground text-center">

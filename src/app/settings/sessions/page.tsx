@@ -14,6 +14,7 @@ import {
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Icons } from "@/components/custom/icons";
 import { Badge } from "@/components/ui/badge";
+import { Skeleton } from "@/components/ui/skeleton";
 import Link from "next/link";
 import { UserNav } from "@/components/custom/user-nav";
 
@@ -103,7 +104,14 @@ export default function SessionsPage() {
   };
 
   if (isPending || isLoading) {
-    return <div>Loading...</div>;
+    return (
+      <div className="min-h-screen bg-linear-to-br from-background via-background to-muted/20">
+        <div className="container mx-auto p-4 md:p-8 max-w-4xl">
+          <Skeleton className="h-12 w-full mb-4" />
+          <Skeleton className="h-64 w-full" />
+        </div>
+      </div>
+    );
   }
 
   if (!session) {

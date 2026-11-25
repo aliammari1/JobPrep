@@ -1,9 +1,10 @@
 "use client";
 
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
+import { Mail, Shield, UserPlus } from "lucide-react";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import {
   Select,
@@ -12,14 +13,15 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { UserPlus, Mail, Shield } from "lucide-react";
 
 export default function TeamSettingsPage() {
   return (
-    <div className="p-6 max-w-6xl mx-auto space-y-6">
+    <div className="container mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-6 md:py-8 space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold">Team Management</h1>
+          <h1 className="text-3xl md:text-4xl font-bold tracking-tight">
+            Team Management
+          </h1>
           <p className="text-muted-foreground mt-1">
             Manage team members, roles, and permissions
           </p>
@@ -35,10 +37,10 @@ export default function TeamSettingsPage() {
           <CardTitle>Invite Team Member</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="flex gap-2">
+          <div className="flex flex-col gap-2 sm:flex-row">
             <Input placeholder="email@company.com" className="flex-1" />
             <Select defaultValue="member">
-              <SelectTrigger className="w-[180px]">
+              <SelectTrigger className="w-full sm:w-[180px]">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>

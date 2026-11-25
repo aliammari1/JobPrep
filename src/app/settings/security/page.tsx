@@ -19,6 +19,7 @@ import { Separator } from "@/components/ui/separator";
 import { Switch } from "@/components/ui/switch";
 import Link from "next/link";
 import { UserNav } from "@/components/custom/user-nav";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export default function SecuritySettingsPage() {
   const router = useRouter();
@@ -35,7 +36,14 @@ export default function SecuritySettingsPage() {
   });
 
   if (isPending) {
-    return <div>Loading...</div>;
+    return (
+      <div className="min-h-screen bg-linear-to-br from-background via-background to-muted/20">
+        <div className="container mx-auto p-4 md:p-8 max-w-4xl">
+          <Skeleton className="h-12 w-full mb-4" />
+          <Skeleton className="h-64 w-full" />
+        </div>
+      </div>
+    );
   }
 
   if (!session) {
@@ -136,7 +144,7 @@ export default function SecuritySettingsPage() {
             </Link>
             <UserNav />
           </div>
-          <h1 className="text-4xl font-bold">Security Settings</h1>
+          <h1 className="text-3xl md:text-4xl font-bold tracking-tight">Security settings</h1>
           <p className="text-muted-foreground mt-2">
             Manage your password and security preferences
           </p>
@@ -160,7 +168,10 @@ export default function SecuritySettingsPage() {
             <Button variant="outline">Passkeys</Button>
           </Link>
           <Link href="/settings/connected-accounts">
-            <Button variant="outline">Connected Accounts</Button>
+            <Button variant="outline">Connected</Button>
+          </Link>
+          <Link href="/settings/phone">
+            <Button variant="outline">Phone</Button>
           </Link>
         </div>
 

@@ -1,25 +1,48 @@
+import { passkey } from "@better-auth/passkey";
 import { betterAuth } from "better-auth";
 import { prismaAdapter } from "better-auth/adapters/prisma";
-import prisma from "./prisma";
 import { nextCookies } from "better-auth/next-js";
 import {
-  username,
-  twoFactor,
   admin,
-  organization,
-  magicLink,
   emailOTP,
-  phoneNumber,
+  magicLink,
   multiSession,
+  organization,
+  phoneNumber,
+  twoFactor,
+  username,
 } from "better-auth/plugins";
-import { passkey } from "@better-auth/passkey";
-import { sendEmail, emailTemplates } from "./email";
+import { emailTemplates, sendEmail } from "./email";
+import prisma from "./prisma";
 
 export const auth = betterAuth({
   basePath: "/api/auth",
   database: prismaAdapter(prisma, {
     provider: "postgresql",
   }),
+
+  // Local dev runs on whatever port is free (3000 is often taken), so the
+  // request origin rarely matches BETTER_AUTH_URL exactly. Trust the
+  // request's own origin for loopback hosts in non-production only —
+  // production keeps the static BETTER_AUTH_URL-derived list.
+  trustedOrigins: async (req?: Request) => {
+    if (process.env.NODE_ENV === "production") return [];
+    const origin = req?.headers.get("origin");
+    if (!origin) return [];
+    try {
+      const url = new URL(origin);
+      if (
+        url.hostname === "localhost" ||
+        url.hostname === "127.0.0.1" ||
+        url.hostname === "[::1]"
+      ) {
+        return [origin];
+      }
+    } catch {
+      // Ignore malformed origins — the default check rejects them.
+    }
+    return [];
+  },
 
   // Email and password authentication configuration
   emailAndPassword: {

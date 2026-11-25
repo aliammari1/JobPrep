@@ -119,9 +119,9 @@ function ResetPasswordForm() {
             </p>
           </CardContent>
           <CardFooter>
-            <Link href="/sign-in" className="w-full">
-              <Button className="w-full">Go to Sign In</Button>
-            </Link>
+            <Button asChild className="w-full">
+              <Link href="/sign-in">Go to Sign In</Link>
+            </Button>
           </CardFooter>
         </Card>
       </div>
@@ -148,14 +148,12 @@ function ResetPasswordForm() {
             </Alert>
           </CardContent>
           <CardFooter className="flex flex-col space-y-2">
-            <Link href="/forgot-password" className="w-full">
-              <Button className="w-full">Request New Reset Link</Button>
-            </Link>
-            <Link href="/sign-in" className="w-full">
-              <Button variant="ghost" className="w-full">
-                Back to Sign In
-              </Button>
-            </Link>
+            <Button asChild className="w-full">
+              <Link href="/forgot-password">Request New Reset Link</Link>
+            </Button>
+            <Button asChild variant="ghost" className="w-full">
+              <Link href="/sign-in">Back to Sign In</Link>
+            </Button>
           </CardFooter>
         </Card>
       </div>
@@ -226,12 +224,12 @@ function ResetPasswordForm() {
           </form>
         </CardContent>
         <CardFooter>
-          <Link href="/sign-in" className="w-full">
-            <Button variant="ghost" className="w-full">
+          <Button asChild variant="ghost" className="w-full">
+            <Link href="/sign-in">
               <Icons.arrowLeft className="mr-2 h-4 w-4" />
               Back to Sign In
-            </Button>
-          </Link>
+            </Link>
+          </Button>
         </CardFooter>
       </Card>
     </div>

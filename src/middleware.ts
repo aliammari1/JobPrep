@@ -29,6 +29,11 @@ const PROTECTED_ROUTES = [
   "/mock-interview",
   "/code-challenge",
   "/recordings",
+  "/cv-builder",
+  "/cover-letter",
+  "/applications",
+  "/system-design",
+  "/readiness",
 ];
 
 export async function middleware(request: NextRequest) {

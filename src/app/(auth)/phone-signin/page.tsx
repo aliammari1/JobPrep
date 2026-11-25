@@ -173,7 +173,7 @@ export default function PhoneSignInPage() {
                 Verify & Sign In
               </Button>
 
-              <div className="flex items-center justify-center gap-2">
+              <div className="flex items-center justify-center gap-3">
                 <Button
                   type="button"
                   variant="link"
