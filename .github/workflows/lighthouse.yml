@@ -48,4 +48,4 @@ jobs:
         run: bun run build
       - name: Run Lighthouse CI (advisory)
         continue-on-error: true
-        run: bunx --bun @lhci/cli@0.14.x autorun
+        run: bunx --bun @lhci/cli@0.14.0 autorun

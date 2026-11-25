@@ -38,7 +38,7 @@ env:
   # value below makes the CI runtime equally reproducible.
   # ---------------------------------------------------------------------------
 
-  BUN_VERSION: "1.4.2"
+  BUN_VERSION: "1.4.3"
   UV_VERSION: "0.12.15"
 
   # Disable framework / CLI telemetry in CI.
