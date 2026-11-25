@@ -1,10 +1,12 @@
 "use client";
 
-import { useCVStore } from "@/store/cv-store";
+import { Plus, Trash2, X } from "lucide-react";
+import { useState } from "react";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Card } from "@/components/ui/card";
 import {
   Select,
   SelectContent,
@@ -12,9 +14,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Plus, Trash2, X } from "lucide-react";
-import { useState } from "react";
-import { Badge } from "@/components/ui/badge";
+import { useCVStore } from "@/store/cv-store";
 
 export function SkillsSection() {
   const { cvData, addSkill, updateSkill, removeSkill } = useCVStore();
@@ -74,6 +74,7 @@ export function SkillsSection() {
                     variant="ghost"
                     size="icon"
                     onClick={() => removeSkill(skill.id)}
+                    aria-label="Remove skill"
                   >
                     <Trash2 className="h-4 w-4 text-destructive" />
                   </Button>
@@ -81,7 +82,7 @@ export function SkillsSection() {
 
                 <div className="grid gap-4 md:grid-cols-2">
                   <div>
-                    <Label>Category Name *</Label>
+                    <Label className="mb-2">Category Name *</Label>
                     <Input
                       value={skill.category}
                       onChange={(e) =>
@@ -101,6 +102,7 @@ export function SkillsSection() {
                         <button
                           onClick={() => handleRemoveSkillItem(skill.id, idx)}
                           className="ml-1 hover:text-destructive"
+                          aria-label="Remove skill item"
                         >
                           <X className="h-3 w-3" />
                         </button>
@@ -118,7 +120,7 @@ export function SkillsSection() {
                         })
                       }
                       placeholder="Add a skill"
-                      onKeyPress={(e) => {
+                      onKeyDown={(e) => {
                         if (e.key === "Enter") {
                           e.preventDefault();
                           handleAddSkillItem(skill.id);

@@ -1,32 +1,31 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
+import { AnimatePresence, motion } from "framer-motion";
+import {
+  AlertCircle,
+  ArrowLeft,
+  ArrowRight,
+  Brain,
+  Briefcase,
+  CheckCircle2,
+  Copy,
+  FileText,
+  Link2,
+  Loader2,
+  Target,
+  Trash2,
+  Upload,
+  Zap,
+} from "lucide-react";
+import { useRouter } from "next/navigation";
+import { useEffect, useRef, useState } from "react";
+import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
-import { Progress } from "@/components/ui/progress";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { toast } from "sonner";
-import { useRouter } from "next/navigation";
-import {
-  FileText,
-  Briefcase,
-  Sparkles,
-  CheckCircle2,
-  ArrowRight,
-  ArrowLeft,
-  Loader2,
-  Upload,
-  Link2,
-  Brain,
-  Zap,
-  AlertCircle,
-  Copy,
-  Trash2,
-  ChevronRight,
-} from "lucide-react";
+import { Progress } from "@/components/ui/progress";
 import { cn } from "@/lib/utils";
 
 interface OnboardingStep {
@@ -162,7 +161,7 @@ export default function CodeChallengeOnboardingImproved() {
 
       setCvText(data.text);
       setCvParseError(null);
-      toast.success("✓ CV uploaded successfully!", {
+      toast.success("CV uploaded", {
         description: "Your resume has been analyzed",
       });
     } catch (error) {
@@ -208,7 +207,7 @@ export default function CodeChallengeOnboardingImproved() {
 
       if (data.jobDescription) {
         setJobDescriptionText(data.jobDescription);
-        toast.success("✓ Job description scraped!", {
+        toast.success("Job description added", {
           description: `Found: ${data.title || "Job posting"}`,
         });
       } else {
@@ -231,7 +230,7 @@ export default function CodeChallengeOnboardingImproved() {
     }
 
     setIsLoading(true);
-    toast.loading("🤖 Generating your personalized challenges...", {
+    toast.loading("Generating your personalized challenges...", {
       id: "generating",
     });
 
@@ -242,10 +241,7 @@ export default function CodeChallengeOnboardingImproved() {
       sessionStorage.setItem("onboarding_difficulty", difficulty);
       sessionStorage.setItem("onboarding_completed", "true");
 
-      // Simulate generation time
-      await new Promise((resolve) => setTimeout(resolve, 2000));
-
-      toast.success("✨ Challenges ready!", { id: "generating" });
+      toast.success("Challenges ready!", { id: "generating" });
 
       // Navigate to main challenge page
       router.push("/code-challenge");
@@ -257,13 +253,7 @@ export default function CodeChallengeOnboardingImproved() {
   };
 
   return (
-    <div className="min-h-screen bg-linear-to-br from-background via-primary/5 to-muted/10 relative overflow-hidden">
-      {/* Decorative background */}
-      <div className="absolute inset-0 -z-10">
-        <div className="absolute top-1/4 -left-1/2 w-96 h-96 bg-primary/10 rounded-full blur-3xl" />
-        <div className="absolute bottom-1/4 -right-1/2 w-96 h-96 bg-blue-500/10 rounded-full blur-3xl" />
-      </div>
-
+    <div className="min-h-[calc(100vh-3.5rem)] bg-background">
       <div className="container max-w-2xl mx-auto px-4 py-8 md:py-12">
         {/* Header */}
         <motion.div
@@ -272,11 +262,11 @@ export default function CodeChallengeOnboardingImproved() {
           className="text-center mb-12"
         >
           <div className="inline-flex items-center gap-3 mb-4">
-            <div className="p-3 bg-linear-to-br from-primary to-blue-600 rounded-lg">
-              <Brain className="w-6 h-6 text-white" />
+            <div className="p-3 bg-primary rounded-lg">
+              <Brain className="w-6 h-6 text-primary-foreground" />
             </div>
-            <h1 className="text-4xl md:text-5xl font-bold bg-linear-to-r from-primary to-blue-600 bg-clip-text text-transparent">
-              AI Code Challenge Setup
+            <h1 className="text-3xl md:text-4xl font-bold tracking-tight text-foreground">
+              Code Challenge Setup
             </h1>
           </div>
           <p className="text-lg text-muted-foreground max-w-xl mx-auto">
@@ -400,9 +390,20 @@ export default function CodeChallengeOnboardingImproved() {
                   {uploadMethod === "file" && (
                     <div className="space-y-4">
                       <div
+                        role="button"
+                        tabIndex={isLoading ? -1 : 0}
+                        aria-label="Upload your CV (PDF or Word)"
+                        aria-disabled={isLoading}
                         onClick={() =>
                           !isLoading && fileInputRef.current?.click()
                         }
+                        onKeyDown={(e) => {
+                          if (isLoading) return;
+                          if (e.key === "Enter" || e.key === " ") {
+                            e.preventDefault();
+                            fileInputRef.current?.click();
+                          }
+                        }}
                         className={cn(
                           "border-2 border-dashed rounded-lg p-8 text-center transition-all",
                           isLoading
@@ -688,8 +689,8 @@ export default function CodeChallengeOnboardingImproved() {
               <Card className="border-2">
                 <CardHeader>
                   <div className="flex items-center gap-3">
-                    <div className="p-2 bg-purple-100 dark:bg-purple-950 rounded-lg">
-                      <Sparkles className="w-5 h-5 text-purple-600 dark:text-purple-400" />
+                    <div className="p-2 bg-primary/10 rounded-lg">
+                      <Target className="w-5 h-5 text-primary" />
                     </div>
                     <div>
                       <CardTitle>Select Difficulty Level</CardTitle>
@@ -707,19 +708,19 @@ export default function CodeChallengeOnboardingImproved() {
                       [
                         {
                           level: "Easy" as const,
-                          icon: "🟢",
+                          dotClass: "bg-green-600",
                           description: "Basic algorithms and data structures",
                           focus: "Fundamentals",
                         },
                         {
                           level: "Medium" as const,
-                          icon: "🟡",
+                          dotClass: "bg-yellow-500",
                           description: "Real-world problem solving",
                           focus: "Problem Solving",
                         },
                         {
                           level: "Hard" as const,
-                          icon: "🔴",
+                          dotClass: "bg-red-600",
                           description: "Advanced algorithms and optimization",
                           focus: "Advanced Concepts",
                         },
@@ -735,8 +736,15 @@ export default function CodeChallengeOnboardingImproved() {
                             : "border-muted bg-muted/30 hover:border-muted-foreground/30",
                         )}
                       >
-                        <div className="text-2xl mb-2">{option.icon}</div>
-                        <h4 className="font-semibold mb-1">{option.level}</h4>
+                        <div className="flex items-center gap-2 mb-2">
+                          <span
+                            className={cn(
+                              "h-2.5 w-2.5 rounded-full",
+                              option.dotClass,
+                            )}
+                          />
+                          <h4 className="font-semibold">{option.level}</h4>
+                        </div>
                         <p className="text-xs text-muted-foreground mb-3">
                           {option.description}
                         </p>
@@ -791,7 +799,7 @@ export default function CodeChallengeOnboardingImproved() {
                     onClick={handleGenerateChallenges}
                     disabled={!canGenerate || isLoading}
                     size="lg"
-                    className="w-full bg-linear-to-r from-primary to-blue-600 hover:from-primary/90 hover:to-blue-600/90"
+                    className="w-full"
                   >
                     {isLoading ? (
                       <>
@@ -800,7 +808,7 @@ export default function CodeChallengeOnboardingImproved() {
                       </>
                     ) : (
                       <>
-                        <Sparkles className="w-4 h-4 mr-2" />
+                        <Zap className="w-4 h-4 mr-2" />
                         Generate Personalized Challenges
                       </>
                     )}

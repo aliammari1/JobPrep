@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { use, useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useSession } from "@/lib/auth-client";
 import { Button } from "@/components/ui/button";
@@ -59,24 +59,28 @@ interface SavedInterview {
   createdAt: string;
 }
 
+function safeJsonParse<T>(value: unknown, fallback: T): T {
+  if (value === null || value === undefined) return fallback;
+  if (typeof value !== "string") return value as T;
+  if (!value.trim()) return fallback;
+  try {
+    return JSON.parse(value) as T;
+  } catch {
+    return fallback;
+  }
+}
+
 export default function InterviewDetailPage({
   params,
 }: {
   params: Promise<{ id: string }>;
 }) {
+  const { id: interviewId } = use(params);
   const router = useRouter();
   const { data: session } = useSession();
   const [interview, setInterview] = useState<SavedInterview | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isDeleting, setIsDeleting] = useState(false);
-  const [interviewId, setInterviewId] = useState<string | null>(null);
-
-  // Unwrap params Promise
-  useEffect(() => {
-    params.then((resolvedParams) => {
-      setInterviewId(resolvedParams.id);
-    });
-  }, [params]);
 
   useEffect(() => {
     if (!interviewId) return;
@@ -86,21 +90,56 @@ export default function InterviewDetailPage({
         const response = await fetch(`/api/save-interview/${interviewId}`);
         if (response.ok) {
           const data = await response.json();
-          // Parse JSON strings
-          const parsedInterview = {
-            ...data.interview,
+          const raw = data.interview;
+          const parsedConversationRaw = safeJsonParse<
+            ConversationItem[] | { questions?: ConversationItem[] }
+          >(raw?.conversationLog, []);
+          const logItems: ConversationItem[] = Array.isArray(
+            parsedConversationRaw,
+          )
+            ? parsedConversationRaw
+            : Array.isArray(parsedConversationRaw?.questions)
+              ? parsedConversationRaw.questions
+              : [];
+
+          const relationalItems: ConversationItem[] = Array.isArray(
+            raw?.mockQuestions,
+          )
+            ? raw.mockQuestions.map(
+                (q: {
+                  questionText: string;
+                  idealAnswer?: string | null;
+                  userAnswer?: string | null;
+                  score?: number | null;
+                  feedback?: string | null;
+                }) => ({
+                  question: {
+                    question: q.questionText,
+                    idealAnswer: q.idealAnswer ?? undefined,
+                  },
+                  userAnswer: q.userAnswer ?? "",
+                  evaluation: {
+                    score: q.score ?? 0,
+                    feedback: q.feedback ?? "",
+                  },
+                }),
+              )
+            : [];
+
+          const parsedTopics = Array.isArray(raw?.topics)
+            ? raw.topics
+            : safeJsonParse<string[]>(raw?.topics, []);
+
+          const parsedInterview: SavedInterview = {
+            ...raw,
+            topics: parsedTopics,
             conversationLog:
-              typeof data.interview.conversationLog === "string"
-                ? JSON.parse(data.interview.conversationLog)
-                : data.interview.conversationLog,
-            feedback:
-              typeof data.interview.feedback === "string"
-                ? JSON.parse(data.interview.feedback)
-                : data.interview.feedback,
-            specificScores:
-              typeof data.interview.specificScores === "string"
-                ? JSON.parse(data.interview.specificScores)
-                : data.interview.specificScores,
+              relationalItems.length > 0 ? relationalItems : logItems,
+            feedback: safeJsonParse<Record<string, any>>(raw?.feedback, {}),
+            specificScores: safeJsonParse<Record<string, any>>(
+              raw?.specificScores,
+              {},
+            ),
           };
           setInterview(parsedInterview);
         } else {
@@ -165,8 +204,8 @@ export default function InterviewDetailPage({
         },
         statistics: {
           totalQuestions: interview.conversationLog.length,
-          averageScore: String(interview.specificScores.totalScore || 0),
-          percentage: String(interview.specificScores.percentage || 0),
+          averageScore: String(interview.specificScores?.totalScore || 0),
+          percentage: String(interview.specificScores?.percentage || 0),
         },
       };
 
@@ -213,7 +252,7 @@ export default function InterviewDetailPage({
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-linear-to-br from-background via-background to-muted/20 flex items-center justify-center">
+      <div className="min-h-[calc(100vh-3.5rem)] bg-background flex items-center justify-center">
         <Icons.spinner className="h-8 w-8 animate-spin text-muted-foreground" />
       </div>
     );
@@ -221,7 +260,7 @@ export default function InterviewDetailPage({
 
   if (!interview) {
     return (
-      <div className="min-h-screen bg-linear-to-br from-background via-background to-muted/20 flex items-center justify-center">
+      <div className="min-h-[calc(100vh-3.5rem)] bg-background flex items-center justify-center">
         <Card className="max-w-md">
           <CardHeader>
             <CardTitle>Interview Not Found</CardTitle>
@@ -244,7 +283,7 @@ export default function InterviewDetailPage({
   const feedback = interview.feedback;
 
   return (
-    <div className="min-h-screen bg-linear-to-br from-background via-background to-muted/20">
+    <div className="min-h-[calc(100vh-3.5rem)] bg-background">
       <div className="container mx-auto p-4 md:p-8 max-w-6xl">
         {/* Header */}
         <div className="mb-8">

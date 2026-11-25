@@ -1,25 +1,25 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
 import { motion } from "framer-motion";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Slider } from "@/components/ui/slider";
 import {
-  Pen,
-  Eraser,
-  Square,
   Circle,
+  Download,
+  Eraser,
+  MousePointer,
+  Palette,
+  Pen,
+  Redo,
+  Share,
+  Square,
   Triangle,
   Type,
   Undo,
-  Redo,
-  Download,
-  Share,
-  Palette,
-  MousePointer,
 } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Slider } from "@/components/ui/slider";
 import { cn } from "@/lib/utils";
 
 interface Point {
@@ -161,7 +161,7 @@ export function WhiteboardCollaboration({
           const start = element.points[0];
           const end = element.points[element.points.length - 1];
           const radius = Math.sqrt(
-            Math.pow(end.x - start.x, 2) + Math.pow(end.y - start.y, 2),
+            (end.x - start.x) ** 2 + (end.y - start.y) ** 2,
           );
           ctx.beginPath();
           ctx.arc(start.x, start.y, radius, 0, 2 * Math.PI);
@@ -347,6 +347,9 @@ export function WhiteboardCollaboration({
               <button
                 key={color}
                 onClick={() => setCurrentColor(color)}
+                aria-label={`Pen color ${color}`}
+                aria-pressed={currentColor === color}
+                title={`Pen color ${color}`}
                 className={cn(
                   "w-6 h-6 rounded-full border-2 transition-all",
                   currentColor === color

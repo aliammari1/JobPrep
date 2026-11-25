@@ -3,6 +3,7 @@ import { toast } from "sonner";
 
 interface SubmitSolutionParams {
   challengeId: string;
+  applicationId?: string;
   language: string;
   code: string;
   testResults: any[];

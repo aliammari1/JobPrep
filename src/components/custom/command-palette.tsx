@@ -183,7 +183,7 @@ export function CommandPalette() {
     },
     {
       id: "security",
-      label: "Security Settings",
+      label: "Security settings",
       description: "Security and privacy",
       icon: <Shield className="w-4 h-4" />,
       href: "/settings/security",

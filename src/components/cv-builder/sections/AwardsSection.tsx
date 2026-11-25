@@ -1,12 +1,12 @@
 "use client";
 
-import { useCVStore } from "@/store/cv-store";
+import { Plus, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Card } from "@/components/ui/card";
-import { Plus, Trash2 } from "lucide-react";
+import { useCVStore } from "@/store/cv-store";
 
 export function AwardsSection() {
   const { cvData, addAward, updateAward, removeAward } = useCVStore();
@@ -48,6 +48,7 @@ export function AwardsSection() {
                     variant="ghost"
                     size="icon"
                     onClick={() => removeAward(award.id)}
+                    aria-label="Remove award"
                   >
                     <Trash2 className="h-4 w-4 text-destructive" />
                   </Button>
@@ -55,7 +56,7 @@ export function AwardsSection() {
 
                 <div className="grid gap-4 md:grid-cols-2">
                   <div>
-                    <Label>Award Title *</Label>
+                    <Label className="mb-2">Award Title *</Label>
                     <Input
                       value={award.title}
                       onChange={(e) =>
@@ -66,7 +67,7 @@ export function AwardsSection() {
                   </div>
 
                   <div>
-                    <Label>Issuer *</Label>
+                    <Label className="mb-2">Issuer *</Label>
                     <Input
                       value={award.issuer}
                       onChange={(e) =>
@@ -77,7 +78,7 @@ export function AwardsSection() {
                   </div>
 
                   <div>
-                    <Label>Date</Label>
+                    <Label className="mb-2">Date</Label>
                     <Input
                       type="month"
                       value={award.date}
@@ -89,7 +90,7 @@ export function AwardsSection() {
                 </div>
 
                 <div>
-                  <Label>Description (Optional)</Label>
+                  <Label className="mb-2">Description (Optional)</Label>
                   <Textarea
                     value={award.description}
                     onChange={(e) =>

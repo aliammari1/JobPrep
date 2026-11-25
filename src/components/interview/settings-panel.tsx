@@ -128,7 +128,7 @@ export function SettingsPanel({ onClose }: SettingsPanelProps) {
             Cancel
           </Button>
           <Button onClick={handleSave} className="flex-1">
-            Save Settings
+            Save settings
           </Button>
         </div>
       </CardContent>

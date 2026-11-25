@@ -1,22 +1,22 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { Panel, Group, Separator } from "react-resizable-panels";
-import { EditorPanel } from "./EditorPanel";
-import { PreviewPanel } from "./PreviewPanel";
-import { Button } from "@/components/ui/button";
 import {
-  Save,
-  Sparkles,
-  Linkedin,
-  Undo2,
-  Redo2,
-  Download,
-  Brain,
   BarChart3,
-  GripVertical,
+  Brain,
+  Download,
   Edit3,
+  Linkedin,
+  Redo2,
+  Save,
+  Target,
+  Undo2,
 } from "lucide-react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { useEffect, useState } from "react";
+import { useHotkeys } from "react-hotkeys-hook";
+import { toast } from "sonner";
+import { Button } from "@/components/ui/button";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Tooltip,
@@ -24,19 +24,85 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { AISuggestionPanel } from "./AISuggestionPanel";
-import { SkillsGapAnalyzer } from "./SkillsGapAnalyzer";
 import { useCVStore } from "@/store/cv-store";
-import { toast } from "sonner";
-import { useSearchParams } from "next/navigation";
-import { useHotkeys } from "react-hotkeys-hook";
+import { AISuggestionPanel } from "./AISuggestionPanel";
+import { ATSMatcherPanel } from "./ATSMatcherPanel";
+import { EditorPanel } from "./EditorPanel";
+import { ExportPanel } from "./ExportPanel";
+import { PreviewPanel } from "./PreviewPanel";
+import { SkillsGapAnalyzer } from "./SkillsGapAnalyzer";
 
 export function CanvaLayout() {
   const [activeTab, setActiveTab] = useState("editor");
+  const [isExporting, setIsExporting] = useState(false);
 
   const { cvData, settings, canUndo, canRedo, undo, redo } = useCVStore();
+  const router = useRouter();
   const searchParams = useSearchParams();
+  const [applicationsList, setApplicationsList] = useState<
+    { id: string; company: string; role: string }[]
+  >([]);
+
+  useEffect(() => {
+    let active = true;
+    fetch("/api/applications", { cache: "no-store" })
+      .then((res) => (res.ok ? res.json() : null))
+      .then((json) => {
+        if (active && Array.isArray(json?.applications)) {
+          setApplicationsList(json.applications);
+        }
+      })
+      .catch(() => {});
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  // Open ATS Matcher and hydrate saved CV from PostgreSQL when launched with ?applicationId=...
+  useEffect(() => {
+    const applicationId = searchParams.get("applicationId");
+    if (applicationId) {
+      setActiveTab("ats-matcher");
+    }
+
+    let active = true;
+    const url = applicationId
+      ? `/api/cv/save?applicationId=${encodeURIComponent(applicationId)}`
+      : "/api/cv/save";
+
+    fetch(url, { cache: "no-store" })
+      .then((res) => (res.ok ? res.json() : null))
+      .then((json) => {
+        if (!active || !Array.isArray(json?.cvs) || json.cvs.length === 0) {
+          return;
+        }
+        const latest = json.cvs[0] as {
+          title?: string;
+          content?: { cvData?: Record<string, unknown> } | Record<string, unknown>;
+        };
+        const payload =
+          latest.content &&
+          typeof latest.content === "object" &&
+          "cvData" in latest.content &&
+          latest.content.cvData
+            ? latest.content.cvData
+            : latest.content;
+
+        if (payload && typeof payload === "object") {
+          useCVStore.getState().importData(payload as Parameters<ReturnType<typeof useCVStore.getState>["importData"]>[0]);
+          if (applicationId && latest.title) {
+            toast.success(`Loaded "${latest.title}" from PostgreSQL`);
+          }
+        }
+      })
+      .catch(() => {
+        // Non-blocking DB hydration
+      });
+
+    return () => {
+      active = false;
+    };
+  }, [searchParams]);
 
   // Keyboard shortcuts
   useHotkeys("mod+z", () => canUndo() && undo());
@@ -258,6 +324,8 @@ export function CanvaLayout() {
   }
 
   const handleDownload = async () => {
+    if (isExporting) return;
+    setIsExporting(true);
     const loadingToast = toast.loading("Generating PDF...");
     try {
       const normalized = normalizeCV(cvData);
@@ -310,20 +378,48 @@ export function CanvaLayout() {
       const message =
         error instanceof Error ? error.message : "Failed to download PDF";
       toast.error(message);
+    } finally {
+      setIsExporting(false);
     }
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
     localStorage.setItem(
       "cv-data-backup",
       JSON.stringify({ cvData, settings }),
     );
-    toast.success("CV saved successfully!");
+    const applicationId = searchParams.get("applicationId") || undefined;
+    const title =
+      cvData.personalInfo.title?.trim() ||
+      cvData.personalInfo.fullName?.trim() ||
+      "Tailored CV";
+
+    try {
+      const res = await fetch("/api/cv/save", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          title,
+          content: { cvData, settings },
+          applicationId,
+        }),
+      });
+      if (!res.ok) {
+        throw new Error("Failed to sync CV to database");
+      }
+      toast.success(
+        applicationId
+          ? "CV saved and linked to your target role."
+          : "CV saved to your account.",
+      );
+    } catch {
+      toast.success("CV saved locally.");
+    }
   };
 
   return (
     <TooltipProvider>
-      <div className="flex h-screen flex-col bg-background">
+      <div className="flex h-[calc(100vh-3.5rem)] flex-col bg-background">
         {/* Minimal Top Toolbar */}
         <div className="flex items-center justify-between border-b px-6 py-3 bg-background/95 backdrop-blur">
           <div className="flex items-center gap-6">
@@ -333,6 +429,30 @@ export function CanvaLayout() {
                 Build your professional resume
               </p>
             </div>
+
+            {/* Target Role Switcher */}
+            {applicationsList.length > 0 && (
+              <select
+                aria-label="Tailor CV for target role"
+                value={searchParams.get("applicationId") ?? ""}
+                onChange={(e) => {
+                  const id = e.target.value;
+                  router.replace(
+                    id
+                      ? `/cv-builder?applicationId=${encodeURIComponent(id)}`
+                      : "/cv-builder",
+                  );
+                }}
+                className="h-8 max-w-[220px] rounded-md border border-border bg-background px-2.5 text-xs text-foreground"
+              >
+                <option value="">General CV</option>
+                {applicationsList.map((app) => (
+                  <option key={app.id} value={app.id}>
+                    {app.company} · {app.role}
+                  </option>
+                ))}
+              </select>
+            )}
 
             {/* History Controls */}
             <div className="flex items-center gap-1 border-l pl-6">
@@ -385,17 +505,23 @@ export function CanvaLayout() {
               <Save className="mr-2 h-4 w-4" />
               Save
             </Button>
-            <Button size="sm" onClick={handleDownload} className="bg-primary">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleDownload}
+              disabled={isExporting}
+            >
               <Download className="mr-2 h-4 w-4" />
-              Export PDF
+              {isExporting ? "Exporting..." : "Quick PDF"}
             </Button>
+            <ExportPanel />
           </div>
         </div>
 
         {/* Main Content - 2 Panel Layout */}
-        <Group orientation="horizontal" className="flex-1">
+        <div className="flex min-h-0 flex-1 overflow-hidden">
           {/* Left Panel - Vertical Tabs + Content */}
-          <Panel defaultSize={45} minSize={30} maxSize={70}>
+          <div className="h-full w-[45%] min-w-[420px] shrink-0 overflow-hidden">
             <Tabs
               value={activeTab}
               onValueChange={setActiveTab}
@@ -436,6 +562,20 @@ export function CanvaLayout() {
                 <Tooltip>
                   <TooltipTrigger asChild>
                     <TabsTrigger
+                      value="ats-matcher"
+                      className="w-full aspect-square p-0 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
+                    >
+                      <Target className="h-5 w-5" />
+                    </TabsTrigger>
+                  </TooltipTrigger>
+                  <TooltipContent side="right">
+                    <p>ATS JD Matcher</p>
+                  </TooltipContent>
+                </Tooltip>
+
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <TabsTrigger
                       value="skills-gap"
                       className="w-full aspect-square p-0 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
                     >
@@ -443,7 +583,7 @@ export function CanvaLayout() {
                     </TabsTrigger>
                   </TooltipTrigger>
                   <TooltipContent side="right">
-                    <p>Skills Gap</p>
+                    <p>Analytics</p>
                   </TooltipContent>
                 </Tooltip>
               </TabsList>
@@ -469,6 +609,17 @@ export function CanvaLayout() {
               </TabsContent>
 
               <TabsContent
+                value="ats-matcher"
+                className="flex-1 h-full m-0 p-0 border-0"
+              >
+                <ScrollArea className="h-full">
+                  <div className="p-4">
+                    <ATSMatcherPanel />
+                  </div>
+                </ScrollArea>
+              </TabsContent>
+
+              <TabsContent
                 value="skills-gap"
                 className="flex-1 h-full m-0 p-0 border-0"
               >
@@ -479,21 +630,18 @@ export function CanvaLayout() {
                 </ScrollArea>
               </TabsContent>
             </Tabs>
-          </Panel>
+          </div>
 
           {/* Resizer Handle */}
-          <Separator className="group relative w-1 cursor-col-resize bg-border hover:bg-primary/50 transition-colors data-resize-handle-active:bg-primary">
-            <div className="absolute inset-y-0 -left-2 -right-2" />
-            <GripVertical className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
-          </Separator>
+          <div className="relative w-1 shrink-0 bg-border" aria-hidden="true" />
 
           {/* Preview Panel - Right Side */}
-          <Panel defaultSize={55} minSize={30}>
-            <div className="h-full overflow-auto bg-linear-to-br from-muted/5 to-muted/20">
+          <div className="h-full min-w-0 flex-1 overflow-hidden">
+            <div className="h-full overflow-auto bg-muted/20">
               <PreviewPanel />
             </div>
-          </Panel>
-        </Group>
+          </div>
+        </div>
       </div>
     </TooltipProvider>
   );

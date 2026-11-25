@@ -1,33 +1,52 @@
-import { ReactNode } from "react";
 import { cn } from "@/lib/utils";
 
 interface WorkflowStepProps {
   number: number;
   title: string;
   description: string;
-  icon: ReactNode;
+  inverted?: boolean;
+  className?: string;
 }
 
 export function WorkflowStep({
   number,
   title,
   description,
-  icon,
+  inverted = false,
+  className,
 }: WorkflowStepProps) {
+  const formatted = String(number).padStart(2, "0");
+
   return (
     <div
       className={cn(
-        "relative flex flex-col gap-3 p-6 rounded-xl border bg-card/50 backdrop-blur-sm shadow-sm hover:shadow-md transition",
+        "flex flex-col gap-3 border-t pt-5",
+        inverted ? "border-white/15" : "border-border",
+        className,
       )}
     >
-      <div className="flex items-center gap-3">
-        <div className="size-10 flex items-center justify-center rounded-full bg-primary/10 text-primary font-semibold ring-1 ring-primary/20">
-          {number}
-        </div>
-        <div className="text-primary/80">{icon}</div>
-        <h4 className="font-semibold tracking-tight text-base">{title}</h4>
-      </div>
-      <p className="text-sm text-muted-foreground leading-relaxed pl-1">
+      <span
+        className={cn(
+          "font-display text-sm font-bold tabular-nums",
+          inverted ? "text-[#60a5fa]" : "text-primary",
+        )}
+      >
+        {formatted}
+      </span>
+      <h3
+        className={cn(
+          "font-display text-xl font-semibold tracking-tight",
+          inverted ? "text-white" : "text-foreground",
+        )}
+      >
+        {title}
+      </h3>
+      <p
+        className={cn(
+          "text-sm leading-relaxed",
+          inverted ? "text-white/65" : "text-muted-foreground",
+        )}
+      >
         {description}
       </p>
     </div>

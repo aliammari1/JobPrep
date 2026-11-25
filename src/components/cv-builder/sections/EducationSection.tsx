@@ -1,12 +1,12 @@
 "use client";
 
-import { useCVStore } from "@/store/cv-store";
+import { Plus, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Card } from "@/components/ui/card";
-import { Plus, Trash2 } from "lucide-react";
+import { useCVStore } from "@/store/cv-store";
 
 export function EducationSection() {
   const { cvData, addEducation, updateEducation, removeEducation } =
@@ -52,6 +52,7 @@ export function EducationSection() {
                     variant="ghost"
                     size="icon"
                     onClick={() => removeEducation(edu.id)}
+                    aria-label="Remove education entry"
                   >
                     <Trash2 className="h-4 w-4 text-destructive" />
                   </Button>
@@ -59,7 +60,7 @@ export function EducationSection() {
 
                 <div className="grid gap-4 md:grid-cols-2">
                   <div>
-                    <Label>Degree *</Label>
+                    <Label className="mb-2">Degree *</Label>
                     <Input
                       value={edu.degree}
                       onChange={(e) =>
@@ -70,7 +71,7 @@ export function EducationSection() {
                   </div>
 
                   <div>
-                    <Label>Institution *</Label>
+                    <Label className="mb-2">Institution *</Label>
                     <Input
                       value={edu.institution}
                       onChange={(e) =>
@@ -81,7 +82,7 @@ export function EducationSection() {
                   </div>
 
                   <div>
-                    <Label>Location</Label>
+                    <Label className="mb-2">Location</Label>
                     <Input
                       value={edu.location}
                       onChange={(e) =>
@@ -92,7 +93,7 @@ export function EducationSection() {
                   </div>
 
                   <div>
-                    <Label>GPA</Label>
+                    <Label className="mb-2">GPA</Label>
                     <Input
                       value={edu.gpa}
                       onChange={(e) =>
@@ -103,7 +104,7 @@ export function EducationSection() {
                   </div>
 
                   <div>
-                    <Label>Start Date</Label>
+                    <Label className="mb-2">Start Date</Label>
                     <Input
                       type="month"
                       value={edu.startDate}
@@ -114,7 +115,7 @@ export function EducationSection() {
                   </div>
 
                   <div>
-                    <Label>End Date</Label>
+                    <Label className="mb-2">End Date</Label>
                     <Input
                       type="month"
                       value={edu.endDate}
@@ -126,7 +127,7 @@ export function EducationSection() {
                 </div>
 
                 <div>
-                  <Label>Description (Optional)</Label>
+                  <Label className="mb-2">Description (Optional)</Label>
                   <Textarea
                     value={edu.description}
                     onChange={(e) =>

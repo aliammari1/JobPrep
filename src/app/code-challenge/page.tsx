@@ -1,54 +1,34 @@
 "use client";
 
-import { useEffect, useRef, useCallback, useMemo } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { useCodeExecution } from "@/hooks/use-code-execution";
-import { useChallenges } from "@/hooks/use-challenges";
-import { useSubmissions } from "@/hooks/use-submissions";
-import { useGenerateChallenges } from "@/hooks/use-generate-challenges";
-import { useAutoSave } from "@/hooks/use-auto-save";
-import { useAPIRequest, invalidateAPICache } from "@/hooks/use-api-request";
+import dynamic from "next/dynamic";
+import { motion } from "framer-motion";
+import { AlertCircle } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
-import { useTheme } from "next-themes";
-import {
-  Trophy,
-  Target,
-  Keyboard,
-  Sparkles,
-  Brain,
-  FileText,
-  Briefcase,
-  AlertCircle,
-} from "lucide-react";
-import { cn } from "@/lib/utils";
-import {
-  AnimatedContainer,
-  StaggeredContainer,
-  StaggeredItem,
-} from "@/components/ui/animated";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
-import { CodeEditorEnhanced } from "@/components/code-challenge/CodeEditorEnhanced";
+import { Skeleton } from "@/components/ui/skeleton";
+
+const CodeEditorEnhanced = dynamic(
+  () =>
+    import("@/components/code-challenge/CodeEditorEnhanced").then(
+      (m) => m.CodeEditorEnhanced,
+    ),
+  {
+    ssr: false,
+    loading: () => <Skeleton className="min-h-[420px] w-full rounded-lg" />,
+  },
+);
 import { ProblemPanel } from "@/components/code-challenge/ProblemPanel";
 import { TestResultsPanel } from "@/components/code-challenge/TestResultsPanel";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import { invalidateAPICache, useAPIRequest } from "@/hooks/use-api-request";
+import { useAutoSave } from "@/hooks/use-auto-save";
+import { useChallenges } from "@/hooks/use-challenges";
+import { useCodeExecution } from "@/hooks/use-code-execution";
+import { useGenerateChallenges } from "@/hooks/use-generate-challenges";
+import { useSubmissions } from "@/hooks/use-submissions";
 import { useCodeChallengeStore } from "@/store/code-challenge-store";
 
 interface TestCase {
@@ -104,15 +84,6 @@ public:
 }`,
 };
 
-const LANGUAGES = [
-  { value: "javascript", label: "JavaScript" },
-  { value: "python", label: "Python" },
-  { value: "java", label: "Java" },
-  { value: "cpp", label: "C++" },
-  { value: "typescript", label: "TypeScript" },
-  { value: "go", label: "Go" },
-];
-
 /**
  * Refactored Code Challenge Arena with optimized state management
  * - Zustand for centralized state
@@ -122,19 +93,47 @@ const LANGUAGES = [
  * - Single-source-of-truth for code and state
  */
 export default function CodeChallengeArena() {
+  const router = useRouter();
   const { executeCode, isExecuting } = useCodeExecution();
   const {
-    currentChallenge,
-    fetchChallenge,
     isLoading: isChallengeLoading,
   } = useChallenges();
   const { submitSolution, isSubmitting } = useSubmissions();
-  const { generateChallenges, isGenerating, generatedChallenges } =
-    useGenerateChallenges();
-  const { theme } = useTheme();
+  const { generateChallenges, isGenerating } = useGenerateChallenges();
 
   // Use Zustand store for centralized state
   const store = useCodeChallengeStore();
+  const [recentSubmissions, setRecentSubmissions] = useState<
+    {
+      id: string;
+      title: string;
+      language: string;
+      status: string;
+      testsPassed: number | null;
+      totalTests: number | null;
+      createdAt: string;
+    }[]
+  >([]);
+
+  const loadRecentSubmissions = useCallback(async () => {
+    try {
+      const res = await fetch("/api/submissions?limit=6", {
+        cache: "no-store",
+      });
+      if (res.ok) {
+        const json = await res.json();
+        if (Array.isArray(json?.submissions)) {
+          setRecentSubmissions(json.submissions);
+        }
+      }
+    } catch {
+      // Non-blocking
+    }
+  }, []);
+
+  useEffect(() => {
+    void loadRecentSubmissions();
+  }, [loadRecentSubmissions]);
 
   // API request hooks for deduplication
   const { execute: executeAutoSave } = useAPIRequest(
@@ -213,19 +212,10 @@ export default function CodeChallengeArena() {
     return () => clearInterval(interval);
   }, [store.isTimerRunning]);
 
-  // Initialize on mount
+  // Initialize on mount — load existing PostgreSQL challenges before forcing onboarding
   useEffect(() => {
     const onboardingCompleted = sessionStorage.getItem("onboarding_completed");
     const hasVisited = localStorage.getItem("code_challenge_visited");
-
-    if (!hasVisited && !onboardingCompleted) {
-      window.location.href = "/code-challenge/onboarding";
-      return;
-    }
-
-    localStorage.setItem("code_challenge_visited", "true");
-
-    // Load onboarding data
     const onboardingCv = sessionStorage.getItem("onboarding_cv");
     const onboardingJob = sessionStorage.getItem("onboarding_job");
     const onboardingDifficulty = sessionStorage.getItem(
@@ -233,6 +223,7 @@ export default function CodeChallengeArena() {
     );
 
     if (onboardingCv && onboardingJob) {
+      localStorage.setItem("code_challenge_visited", "true");
       store.setCvText(onboardingCv);
       store.setJobDescriptionText(onboardingJob);
       const difficulty = (onboardingDifficulty || "Medium") as
@@ -242,10 +233,31 @@ export default function CodeChallengeArena() {
       if (onboardingDifficulty) {
         store.setSelectedDifficulty(difficulty);
       }
-
-      // Auto-generate with error handling and retry
       generateChallengesWithRetry(onboardingCv, onboardingJob, difficulty);
+      return;
     }
+
+    // Check if the user already has challenges stored in PostgreSQL before redirecting to onboarding
+    fetch("/api/challenges", { cache: "no-store" })
+      .then((res) => (res.ok ? res.json() : null))
+      .then((json) => {
+        const list = Array.isArray(json?.challenges) ? json.challenges : [];
+        if (list.length > 0) {
+          localStorage.setItem("code_challenge_visited", "true");
+          store.setGeneratedChallenges(list);
+          if (!store.currentChallenge) {
+            store.setCurrentChallenge(list[0]);
+            store.setCurrentChallengeIndex(0);
+          }
+        } else if (!hasVisited && !onboardingCompleted) {
+          router.replace("/code-challenge/onboarding");
+        }
+      })
+      .catch(() => {
+        if (!hasVisited && !onboardingCompleted) {
+          router.replace("/code-challenge/onboarding");
+        }
+      });
   }, []);
 
   // Generate challenges with retry logic
@@ -259,7 +271,7 @@ export default function CodeChallengeArena() {
 
     const attemptGenerate = async () => {
       try {
-        toast.loading("🤖 Generating your personalized challenges...", {
+        toast.loading("Generating your personalized challenges...", {
           id: "auto-generate",
         });
 
@@ -288,7 +300,7 @@ export default function CodeChallengeArena() {
             );
           }
 
-          toast.success("✨ Challenges ready!", { id: "auto-generate" });
+          toast.success("Challenges ready!", { id: "auto-generate" });
           // Clean up all onboarding data from sessionStorage
           sessionStorage.removeItem("onboarding_cv");
           sessionStorage.removeItem("onboarding_job");
@@ -354,7 +366,7 @@ export default function CodeChallengeArena() {
       );
 
       if (metrics.passedTests === metrics.totalTests) {
-        toast.success("All tests passed! 🎉");
+        toast.success("All tests passed!");
       } else {
         toast.warning(
           `${metrics.passedTests}/${metrics.totalTests} tests passed`,
@@ -439,19 +451,26 @@ export default function CodeChallengeArena() {
     ],
   );
 
+  const resetCode = () => {
+    const starterCode =
+      challenge?.starterCode?.[store.selectedLanguage] ||
+      DEFAULT_CODE[store.selectedLanguage as keyof typeof DEFAULT_CODE];
+    store.setCode(store.selectedLanguage, starterCode || "");
+  };
+
   const isLoading = isChallengeLoading || isGenerating;
 
   if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-linear-to-br from-background via-primary/5 to-muted/10">
+      <div className="min-h-[calc(100vh-3.5rem)] flex items-center justify-center bg-background">
         <div className="text-center space-y-4">
           <motion.div
             animate={{ rotate: 360 }}
             transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-            className="w-16 h-16 border-4 border-primary border-t-transparent rounded-full mx-auto"
+            className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full mx-auto"
           />
           <h2 className="text-2xl font-bold">
-            {isGenerating ? "🤖 Generating Challenges" : "Loading..."}
+            {isGenerating ? "Generating challenges..." : "Loading..."}
           </h2>
         </div>
       </div>
@@ -460,12 +479,20 @@ export default function CodeChallengeArena() {
 
   if (!challenge) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <Card>
-          <CardContent className="pt-6 text-center">
-            <AlertCircle className="w-12 h-12 mx-auto mb-4 text-muted-foreground/50" />
-            <h2 className="text-xl font-bold mb-2">No Challenge Available</h2>
-            <Button onClick={() => {}}>Generate Challenges</Button>
+      <div className="min-h-[calc(100vh-3.5rem)] flex items-center justify-center bg-background p-4">
+        <Card className="max-w-md w-full">
+          <CardContent className="pt-6 text-center space-y-4">
+            <AlertCircle className="w-12 h-12 mx-auto text-muted-foreground/50" />
+            <div>
+              <h2 className="text-xl font-bold mb-1">No Challenge Loaded</h2>
+              <p className="text-sm text-muted-foreground">
+                Configure your resume and target job to generate personalized
+                coding challenges.
+              </p>
+            </div>
+            <Button onClick={() => router.push("/code-challenge/onboarding")}>
+              Generate Challenges
+            </Button>
           </CardContent>
         </Card>
       </div>
@@ -473,87 +500,95 @@ export default function CodeChallengeArena() {
   }
 
   return (
-    <div className="min-h-screen bg-background">
-      <div className="container max-w-7xl mx-auto py-6 px-4">
-        {/* Header */}
-        <div className="flex justify-between items-center mb-6">
-          <div>
-            <h1 className="text-3xl font-bold">{challenge.title}</h1>
-            <Badge className="mt-2">{challenge.difficulty}</Badge>
+    <div className="min-h-[calc(100vh-3.5rem)] bg-background">
+      <div className="container mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-6 md:py-8">
+        {/* Header + Challenge Switcher */}
+        <div className="mb-6 space-y-4">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <h1 className="font-display text-3xl font-bold tracking-tight">
+                {challenge.title}
+              </h1>
+              <Badge className="mt-2">{challenge.difficulty}</Badge>
+            </div>
+            <div className="flex flex-wrap items-center gap-3 text-sm text-muted-foreground">
+              {store.timeElapsed > 0 && (
+                <span className="tabular-nums">
+                  Time: {Math.floor(store.timeElapsed / 60)}:
+                  {String(store.timeElapsed % 60).padStart(2, "0")}
+                </span>
+              )}
+              {hasUnsavedChanges && (
+                <span className="text-xs font-medium text-primary">
+                  Unsaved changes…
+                </span>
+              )}
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => router.push("/code-challenge/onboarding")}
+              >
+                New Challenge Set
+              </Button>
+            </div>
           </div>
-          <div className="text-sm text-muted-foreground">
-            {store.timeElapsed > 0 && (
-              <p>
-                Time: {Math.floor(store.timeElapsed / 60)}:
-                {String(store.timeElapsed % 60).padStart(2, "0")}
-              </p>
-            )}
-            {hasUnsavedChanges && (
-              <p className="text-yellow-600">Unsaved changes...</p>
-            )}
-          </div>
+
+          {store.generatedChallenges.length > 1 && (
+            <div className="flex flex-wrap items-center gap-2">
+              {store.generatedChallenges.map((item, idx) => {
+                const active = item.id === challenge.id;
+                return (
+                  <Button
+                    key={item.id}
+                    type="button"
+                    size="sm"
+                    variant={active ? "default" : "outline"}
+                    onClick={() => {
+                      store.setCurrentChallenge(item);
+                      store.setCurrentChallengeIndex(idx);
+                    }}
+                    className="h-8 text-xs"
+                  >
+                    {idx + 1}. {item.title}
+                  </Button>
+                );
+              })}
+            </div>
+          )}
         </div>
 
         {/* Main Content */}
-        <div className="grid grid-cols-2 gap-6 mb-6">
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-2 mb-6">
           {/* Left: Problem */}
           <ProblemPanel challenge={challenge} />
 
           {/* Right: Editor */}
           <div className="space-y-4">
-            <Card>
-              <CardHeader>
-                <CardTitle>Code Editor</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <Select
-                  value={store.selectedLanguage}
-                  onValueChange={handleLanguageChange}
-                >
-                  <SelectTrigger className="mb-4">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {LANGUAGES.map((lang) => (
-                      <SelectItem key={lang.value} value={lang.value}>
-                        {lang.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-
-                <CodeEditorEnhanced
-                  code={store.code[store.selectedLanguage] || ""}
-                  onCodeChange={(code) =>
-                    store.setCode(store.selectedLanguage, code)
-                  }
-                  selectedLanguage={store.selectedLanguage}
-                  onLanguageChange={handleLanguageChange}
-                  onRun={runCode}
-                  isRunning={store.isRunning}
-                  hasUnsavedChanges={hasUnsavedChanges}
-                  executionMetrics={store.executionMetrics}
-                />
-
-                <div className="mt-4 space-y-2">
-                  <Button
-                    onClick={runCode}
-                    disabled={isExecuting}
-                    className="w-full"
-                  >
-                    {isExecuting ? "Running..." : "Run Code (Ctrl+Enter)"}
-                  </Button>
-                  <Button
-                    onClick={handleSubmit}
-                    disabled={isSubmitting}
-                    variant="default"
-                    className="w-full"
-                  >
-                    {isSubmitting ? "Submitting..." : "Submit Solution"}
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
+            <CodeEditorEnhanced
+              code={store.code[store.selectedLanguage] || ""}
+              onCodeChange={(code) =>
+                store.setCode(store.selectedLanguage, code)
+              }
+              selectedLanguage={store.selectedLanguage}
+              onLanguageChange={handleLanguageChange}
+              onRun={runCode}
+              onReset={resetCode}
+              isRunning={store.isRunning || isExecuting}
+              hasUnsavedChanges={hasUnsavedChanges}
+              showConsole={store.showConsole}
+              onToggleConsole={store.setShowConsole}
+              consoleOutput={store.consoleOutput}
+              executionMetrics={store.executionMetrics}
+            />
+            <Button
+              onClick={handleSubmit}
+              disabled={isSubmitting}
+              variant="default"
+              className="w-full"
+            >
+              {isSubmitting ? "Submitting..." : "Submit Solution"}
+            </Button>
           </div>
         </div>
 
@@ -563,6 +598,55 @@ export default function CodeChallengeArena() {
             testResults={store.testResults}
             metrics={store.executionMetrics}
           />
+        )}
+
+        {/* Recent PostgreSQL Submissions */}
+        {recentSubmissions.length > 0 && (
+          <Card className="mt-6 shadow-none">
+            <CardContent className="p-5">
+              <div className="mb-3 flex items-center justify-between">
+                <h2 className="font-display text-base font-semibold text-foreground">
+                  Recent Submissions ({recentSubmissions.length})
+                </h2>
+                <span className="text-xs text-muted-foreground">
+                  Persisted in PostgreSQL
+                </span>
+              </div>
+              <div className="divide-y divide-border/70">
+                {recentSubmissions.map((sub) => (
+                  <div
+                    key={sub.id}
+                    className="flex flex-wrap items-center justify-between gap-2 py-2.5 text-xs first:pt-0 last:pb-0"
+                  >
+                    <div className="min-w-0">
+                      <p className="truncate font-medium text-foreground">
+                        {sub.title}
+                      </p>
+                      <p className="text-muted-foreground tabular-nums">
+                        {sub.language} ·{" "}
+                        {new Date(sub.createdAt).toLocaleDateString()}
+                      </p>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      {sub.totalTests != null && (
+                        <span className="text-muted-foreground tabular-nums">
+                          {sub.testsPassed ?? 0}/{sub.totalTests} tests
+                        </span>
+                      )}
+                      <Badge
+                        variant={
+                          sub.status === "passed" ? "default" : "secondary"
+                        }
+                        className="capitalize text-[11px]"
+                      >
+                        {sub.status}
+                      </Badge>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
         )}
       </div>
     </div>

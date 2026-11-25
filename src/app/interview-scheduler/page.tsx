@@ -1,50 +1,52 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import { useSession } from "@/lib/auth-client";
-import type { Interview } from "@/generated/prisma";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Progress } from "@/components/ui/progress";
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import { AnimatePresence, motion } from "framer-motion";
 import {
-  Calendar,
-  Clock,
-  Users,
-  Video,
-  Phone,
-  MapPin,
-  Globe,
-  Plus,
-  Edit3,
-  Trash2,
-  Settings,
+  AlertCircle,
+  BarChart3,
   Bell,
-  Filter,
-  Search,
+  Calendar,
+  CalendarDays,
+  Check,
+  CheckCircle2,
+  Clock,
+  Hourglass,
   Download,
+  Edit3,
+  Filter,
+  Globe,
+  MapPin,
+  MessageSquare,
+  Phone,
+  Plus,
+  Search,
+  Settings,
+  Timer,
+  Trash2,
+  TrendingUp,
   Upload,
   UserPlus,
-  CalendarDays,
-  Timer,
-  MessageSquare,
-  CheckCircle2,
-  AlertCircle,
-  Zap,
-  BarChart3,
-  TrendingUp,
+  Users,
+  Video,
   X,
+  Zap,
 } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { useEffect, useRef, useState } from "react";
 import {
   AnimatedContainer,
   StaggeredContainer,
   StaggeredItem,
 } from "@/components/ui/animated";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Progress } from "@/components/ui/progress";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import type { Interview } from "@/generated/prisma/client";
+import { useSession } from "@/lib/auth-client";
+import { cn } from "@/lib/utils";
 
 interface TimeSlot {
   time: string;
@@ -427,7 +429,7 @@ function InterviewScheduler() {
 
   return (
     <div className="min-h-screen bg-background">
-      <div className="container mx-auto p-6 space-y-8">
+      <div className="container mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-6 md:py-8 space-y-8">
         {/* Success/Error Messages */}
         <AnimatePresence>
           {successMessage && (
@@ -456,9 +458,9 @@ function InterviewScheduler() {
 
         {/* Header */}
         <AnimatedContainer>
-          <div className="flex items-center justify-between">
+          <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
             <div>
-              <h1 className="text-4xl font-bold text-foreground">
+              <h1 className="text-3xl md:text-4xl font-bold tracking-tight text-foreground">
                 Interview Scheduler
               </h1>
               <p className="text-muted-foreground mt-2">
@@ -472,7 +474,7 @@ function InterviewScheduler() {
                 className="flex items-center gap-2"
               >
                 <Plus className="w-4 h-4" />
-                Schedule Interview
+                Schedule interview
               </Button>
               <Button
                 variant="outline"
@@ -491,7 +493,7 @@ function InterviewScheduler() {
               >
                 <Globe className="w-4 h-4" />
                 {calendarConnected
-                  ? "Calendar Connected ✓"
+                  ? "Calendar connected"
                   : "Sync Google Calendar"}
               </Button>
               {calendarConnected && (
@@ -536,13 +538,14 @@ function InterviewScheduler() {
                   className="flex items-center gap-2"
                 >
                   <Calendar className="h-4 w-4" />
-                  Sync Both Ways
+                  Sync both ways
                 </Button>
               )}
               <Button
                 variant="outline"
                 size="icon"
                 onClick={() => setShowSettingsModal(true)}
+                aria-label="Calendar settings"
               >
                 <Settings className="w-4 h-4" />
               </Button>
@@ -570,11 +573,13 @@ function InterviewScheduler() {
                     </div>
                   </div>
                   <div className="mt-4 flex items-center gap-4 text-xs">
-                    <span className="text-primary">
-                      ✓ {dayStats.confirmed} Confirmed
+                    <span className="inline-flex items-center gap-1 text-primary">
+                      <Check className="h-3 w-3" />
+                      {dayStats.confirmed} Confirmed
                     </span>
-                    <span className="text-secondary">
-                      ⧖ {dayStats.pending} Pending
+                    <span className="inline-flex items-center gap-1 text-muted-foreground">
+                      <Hourglass className="h-3 w-3" />
+                      {dayStats.pending} Pending
                     </span>
                   </div>
                 </CardContent>
@@ -589,12 +594,12 @@ function InterviewScheduler() {
                       <p className="text-sm font-medium text-muted-foreground">
                         This Week
                       </p>
-                      <p className="text-3xl font-bold text-secondary">
+                      <p className="text-3xl font-bold tabular-nums text-primary">
                         {getWeekStats()}
                       </p>
                     </div>
                     <div className="w-12 h-12 bg-secondary/10 rounded-lg flex items-center justify-center">
-                      <BarChart3 className="w-6 h-6 text-secondary" />
+                      <BarChart3 className="w-6 h-6 text-muted-foreground" />
                     </div>
                   </div>
                   <div className="mt-4">
@@ -616,12 +621,12 @@ function InterviewScheduler() {
                       <p className="text-sm font-medium text-muted-foreground">
                         Success Rate
                       </p>
-                      <p className="text-3xl font-bold text-accent">
+                      <p className="text-3xl font-bold tabular-nums text-primary">
                         {stats.successRate}%
                       </p>
                     </div>
                     <div className="w-12 h-12 bg-accent/10 rounded-lg flex items-center justify-center">
-                      <CheckCircle2 className="w-6 h-6 text-accent" />
+                      <CheckCircle2 className="w-6 h-6 text-muted-foreground" />
                     </div>
                   </div>
                   <div className="mt-4">
@@ -639,8 +644,8 @@ function InterviewScheduler() {
                       <p className="text-sm font-medium text-muted-foreground">
                         Avg Duration
                       </p>
-                      <p className="text-3xl font-bold text-primary">
-                        {stats.avgDuration}min
+                      <p className="text-3xl font-bold tabular-nums text-primary">
+                        {stats.avgDuration > 0 ? `${stats.avgDuration} min` : "—"}
                       </p>
                     </div>
                     <div className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center">
@@ -693,8 +698,12 @@ function InterviewScheduler() {
                           initial={{ opacity: 0, x: -20 }}
                           animate={{ opacity: 1, x: 0 }}
                           transition={{ delay: index * 0.02 }}
+                          role="button"
+                          tabIndex={slot.available ? 0 : -1}
+                          aria-label={`Schedule interview at ${slot.time}${slot.available ? "" : " (unavailable)"}`}
+                          aria-disabled={!slot.available}
                           className={cn(
-                            "flex items-stretch rounded-lg border-2 transition-all cursor-pointer",
+                            "flex items-stretch rounded-lg border-2 transition-all cursor-pointer select-none",
                             slot.available
                               ? "border-border bg-background hover:border-primary hover:bg-primary/5"
                               : "border-primary bg-card",
@@ -704,9 +713,25 @@ function InterviewScheduler() {
                             setNewInterviewForm((f) => ({
                               ...f,
                               time: slot.time,
-                              date: selectedDate.toISOString().slice(0, 10),
+                              scheduledAt: selectedDate
+                                .toISOString()
+                                .slice(0, 10),
                             }));
                             setShowNewInterviewModal(true);
+                          }}
+                          onKeyDown={(e) => {
+                            if (!slot.available) return;
+                            if (e.key === "Enter" || e.key === " ") {
+                              e.preventDefault();
+                              setNewInterviewForm((f) => ({
+                                ...f,
+                                time: slot.time,
+                                scheduledAt: selectedDate
+                                  .toISOString()
+                                  .slice(0, 10),
+                              }));
+                              setShowNewInterviewModal(true);
+                            }
                           }}
                         >
                           <div className="w-20 bg-card px-4 py-4 flex items-center justify-center border-r border-border font-semibold text-foreground">
@@ -764,8 +789,8 @@ function InterviewScheduler() {
                   )}
 
                   {selectedView === "week" && (
-                    <div className="space-y-6">
-                      <div className="grid grid-cols-7 gap-3 text-center">
+                    <div className="space-y-6 overflow-x-auto pb-2">
+                      <div className="grid min-w-[640px] grid-cols-7 gap-3 text-center">
                         {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map(
                           (day) => (
                             <div
@@ -778,7 +803,7 @@ function InterviewScheduler() {
                         )}
                       </div>
 
-                      <div className="grid grid-cols-7 gap-3">
+                      <div className="grid min-w-[640px] grid-cols-7 gap-3">
                         {Array.from({ length: 7 }, (_, i) => {
                           const date = new Date(selectedDate);
                           date.setDate(
@@ -877,7 +902,7 @@ function InterviewScheduler() {
                         </div>
                       </div>
 
-                      <div className="grid grid-cols-7 gap-2 text-center mb-2">
+                      <div className="grid min-w-[640px] grid-cols-7 gap-2 text-center mb-2">
                         {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map(
                           (day) => (
                             <div
@@ -890,7 +915,7 @@ function InterviewScheduler() {
                         )}
                       </div>
 
-                      <div className="grid grid-cols-7 gap-2">
+                      <div className="grid min-w-[640px] grid-cols-7 gap-2">
                         {Array.from({ length: 42 }, (_, i) => {
                           const firstDay = new Date(
                             selectedDate.getFullYear(),
@@ -930,9 +955,19 @@ function InterviewScheduler() {
                                   : "border-border/30 bg-muted/20 opacity-50",
                                 dayInterviews.length > 0 && "border-primary/50",
                               )}
+                              role="button"
+                              tabIndex={0}
+                              aria-label={`View ${date.toDateString()}`}
                               onClick={() => {
                                 setSelectedDate(date);
                                 setSelectedView("day");
+                              }}
+                              onKeyDown={(e) => {
+                                if (e.key === "Enter" || e.key === " ") {
+                                  e.preventDefault();
+                                  setSelectedDate(date);
+                                  setSelectedView("day");
+                                }
                               }}
                             >
                               <div
@@ -1030,7 +1065,7 @@ function InterviewScheduler() {
                           className="relative w-full max-w-2xl bg-background rounded-lg p-6 shadow-lg border border-border"
                         >
                           <h3 className="text-lg font-semibold mb-3">
-                            Schedule New Interview
+                            Schedule new interview
                           </h3>
 
                           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
@@ -1105,7 +1140,7 @@ function InterviewScheduler() {
                                   if (formErrors.scheduledAt) {
                                     setFormErrors((prev) => ({
                                       ...prev,
-                                      date: "",
+                                      scheduledAt: "",
                                     }));
                                   }
                                 }}
@@ -1321,6 +1356,18 @@ function InterviewScheduler() {
                                     candidateId: session.user.id,
                                     interviewerId: session.user.id,
                                     scheduledAt: scheduledDate.toISOString(),
+                                    time: newInterviewForm.time,
+                                    duration: newInterviewForm.duration,
+                                    type: newInterviewForm.type,
+                                    status: newInterviewForm.status,
+                                    candidateName:
+                                      newInterviewForm.candidateName,
+                                    position: newInterviewForm.position,
+                                    candidateEmail:
+                                      newInterviewForm.candidateEmail,
+                                    candidatePhone:
+                                      newInterviewForm.candidatePhone,
+                                    notes: newInterviewForm.notes,
                                     isAIInterviewer: false,
                                     allowRecording: true,
                                     settings: {
@@ -1334,6 +1381,7 @@ function InterviewScheduler() {
                                       notes: newInterviewForm.notes,
                                       type: newInterviewForm.type,
                                       duration: newInterviewForm.duration,
+                                      time: newInterviewForm.time,
                                     },
                                   };
 
@@ -1598,12 +1646,11 @@ function InterviewScheduler() {
                     variant="outline"
                     className="w-full justify-start"
                     onClick={() => {
-                      // Navigate to candidate creation
-                      window.location.href = "/candidate-profiles";
+                      window.location.href = "/interview-room";
                     }}
                   >
-                    <UserPlus className="w-4 h-4 mr-2" />
-                    Add Candidate
+                    <Video className="w-4 h-4 mr-2" />
+                    Open Interview Room
                   </Button>
                   <Button
                     variant="outline"
@@ -1776,11 +1823,11 @@ function InterviewScheduler() {
                             );
                           case "confirmation":
                             return (
-                              <CheckCircle2 className="w-4 h-4 text-secondary mt-0.5" />
+                              <CheckCircle2 className="w-4 h-4 text-primary mt-0.5" />
                             );
                           case "completion":
                             return (
-                              <CheckCircle2 className="w-4 h-4 text-accent mt-0.5" />
+                              <CheckCircle2 className="w-4 h-4 text-primary mt-0.5" />
                             );
                           default:
                             return (
@@ -1830,7 +1877,7 @@ function InterviewScheduler() {
 
         {/* MODALS */}
 
-        {/* Edit Interview Modal */}
+        {/* Edit interview Modal */}
         <AnimatePresence>
           {showEditModal && editingInterview && (
             <motion.div
@@ -1857,7 +1904,7 @@ function InterviewScheduler() {
                 className="relative w-full max-w-2xl bg-background rounded-lg p-6 shadow-lg border border-border"
               >
                 <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-lg font-semibold">Edit Interview</h3>
+                  <h3 className="text-lg font-semibold">Edit interview</h3>
                   <Button
                     variant="ghost"
                     size="icon"
@@ -2052,12 +2099,23 @@ function InterviewScheduler() {
                             body: JSON.stringify({
                               status: editingInterview.status,
                               scheduledAt: scheduledDate.toISOString(),
+                              time: editingInterview.time,
+                              duration: editingInterview.duration,
+                              type: editingInterview.type,
+                              candidateName: editingInterview.candidateName,
+                              position: editingInterview.position,
+                              candidateEmail: editingInterview.candidateEmail,
+                              candidatePhone: editingInterview.candidatePhone,
+                              notes: editingInterview.notes,
                               settings: {
                                 candidateName: editingInterview.candidateName,
                                 position: editingInterview.position,
                                 candidateEmail: editingInterview.candidateEmail,
                                 candidatePhone: editingInterview.candidatePhone,
                                 notes: editingInterview.notes,
+                                type: editingInterview.type,
+                                duration: editingInterview.duration,
+                                time: editingInterview.time,
                               },
                             }),
                           },
@@ -2193,7 +2251,7 @@ function InterviewScheduler() {
                 className="relative w-full max-w-sm bg-background rounded-lg p-6 shadow-lg border border-border"
               >
                 <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-lg font-semibold">Filter Interviews</h3>
+                  <h3 className="text-lg font-semibold">Filter interviews</h3>
                   <Button
                     variant="ghost"
                     size="icon"
@@ -2256,7 +2314,7 @@ function InterviewScheduler() {
                 className="relative w-full max-w-2xl bg-background rounded-lg p-6 shadow-lg border border-border"
               >
                 <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-lg font-semibold">Interview Notes</h3>
+                  <h3 className="text-lg font-semibold">Interview notes</h3>
                   <Button
                     variant="ghost"
                     size="icon"
@@ -2294,10 +2352,7 @@ function InterviewScheduler() {
                             method: "PATCH",
                             headers: { "Content-Type": "application/json" },
                             body: JSON.stringify({
-                              settings: {
-                                ...interview,
-                                notes: notesContent,
-                              },
+                              notes: notesContent,
                             }),
                           },
                         );
@@ -2355,7 +2410,7 @@ function InterviewScheduler() {
                 className="relative w-full max-w-sm bg-background rounded-lg p-6 shadow-lg border border-border"
               >
                 <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-lg font-semibold">Interview Settings</h3>
+                  <h3 className="text-lg font-semibold">Interview settings</h3>
                   <Button
                     variant="ghost"
                     size="icon"
@@ -2421,11 +2476,7 @@ function InterviewScheduler() {
                                 );
                               } else {
                                 // Connect
-                                const response = await fetch(
-                                  "/api/calendar/sync?action=authorize",
-                                );
-                                const { authUrl } = await response.json();
-                                window.location.href = authUrl;
+                                window.location.href = "/api/google/oauth";
                               }
                               setTimeout(() => setSuccessMessage(null), 5000);
                             } catch (error) {
@@ -2439,11 +2490,24 @@ function InterviewScheduler() {
                           {calendarConnected ? "Disconnect" : "Connect"}
                         </Button>
                       </div>
-                      <div className="flex items-center justify-between">
-                        <Label>Auto-sync interviews to calendar</Label>
+                      <div className="flex items-center justify-between gap-3">
+                        <div>
+                          <Label>Auto-sync interviews to calendar</Label>
+                          {!calendarConnected && (
+                            <p className="text-xs text-muted-foreground">
+                              Connect your calendar above to enable auto-sync.
+                            </p>
+                          )}
+                        </div>
                         <input
                           type="checkbox"
-                          className="w-4 h-4"
+                          aria-label="Auto-sync interviews to calendar"
+                          title={
+                            calendarConnected
+                              ? "Auto-sync interviews to calendar"
+                              : "Connect your calendar to enable auto-sync"
+                          }
+                          className="h-4 w-4 shrink-0"
                           defaultChecked={calendarConnected}
                           disabled={!calendarConnected}
                         />
@@ -2482,7 +2546,7 @@ function InterviewScheduler() {
                       setShowSettingsModal(false);
                     }}
                   >
-                    Save Settings
+                    Save settings
                   </Button>
                 </div>
               </motion.div>

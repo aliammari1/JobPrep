@@ -1,21 +1,21 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import { useCVStore } from "@/store/cv-store";
-import { Card } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { ScrollArea } from "@/components/ui/scroll-area";
+import { AnimatePresence, motion } from "framer-motion";
 import {
-  Sparkles,
   AlertCircle,
+  Brain,
   CheckCircle2,
+  ChevronRight,
   Lightbulb,
   TrendingUp,
   X,
-  ChevronRight,
 } from "lucide-react";
+import { useEffect, useState } from "react";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { useCVStore } from "@/store/cv-store";
 
 interface Suggestion {
   id: string;
@@ -201,10 +201,11 @@ export function AISuggestionPanel() {
     return (
       <Button
         onClick={() => setIsOpen(true)}
-        className="fixed right-4 top-20 z-40 shadow-lg"
+        aria-label="Open AI suggestions"
+        className="fixed right-4 top-16 z-40 shadow-lg"
         size="icon"
       >
-        <Sparkles className="h-4 w-4" />
+        <Brain className="h-4 w-4" />
       </Button>
     );
   }
@@ -214,22 +215,27 @@ export function AISuggestionPanel() {
       initial={{ x: 400, opacity: 0 }}
       animate={{ x: 0, opacity: 1 }}
       exit={{ x: 400, opacity: 0 }}
-      className="fixed right-4 top-16 z-40 w-80 h-[calc(100vh-5rem)]"
+      className="fixed right-4 top-16 z-40 w-80 max-w-[calc(100vw-2rem)] h-[calc(100vh-5rem)]"
     >
       <Card className="h-full flex flex-col shadow-2xl border-2">
         {/* Header */}
-        <div className="p-4 border-b flex items-center justify-between bg-linear-to-r from-purple-50 to-blue-50 dark:from-purple-950/20 dark:to-blue-950/20">
+        <div className="p-4 border-b flex items-center justify-between bg-muted/40">
           <div className="flex items-center gap-2">
-            <Sparkles className="h-5 w-5 text-purple-600" />
+            <Brain className="h-5 w-5 text-primary" />
             <h3 className="font-semibold">AI Suggestions</h3>
           </div>
-          <Button variant="ghost" size="icon" onClick={() => setIsOpen(false)}>
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => setIsOpen(false)}
+            aria-label="Close AI suggestions"
+          >
             <X className="h-4 w-4" />
           </Button>
         </div>
 
         {/* Score Circle */}
-        <div className="p-6 border-b bg-white dark:bg-gray-950">
+        <div className="p-6 border-b bg-card">
           <div className="flex items-center justify-center">
             <div className="relative">
               <svg className="w-32 h-32 transform -rotate-90">

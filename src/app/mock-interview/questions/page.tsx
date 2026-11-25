@@ -1,11 +1,23 @@
 "use client";
 
-import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  AlertCircle,
+  BookOpen,
+  Calendar,
+  ChevronRight,
+  Clock,
+  Loader,
+  Search,
+  Target,
+  TrendingUp,
+} from "lucide-react";
+import { useEffect, useState } from "react";
+import { toast } from "sonner";
+import { FullPageAnswersView } from "@/components/interview/FullPageAnswersView";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Dialog,
   DialogContent,
@@ -13,19 +25,8 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import {
-  Calendar,
-  Clock,
-  Target,
-  ChevronRight,
-  Search,
-  Loader,
-  AlertCircle,
-  BookOpen,
-  TrendingUp,
-} from "lucide-react";
-import { FullPageAnswersView } from "@/components/interview/FullPageAnswersView";
-import { toast } from "sonner";
+import { Input } from "@/components/ui/input";
+import { useSession } from "@/lib/auth-client";
 
 interface InterviewSession {
   id: string;
@@ -37,9 +38,11 @@ interface InterviewSession {
   feedback: string;
   specificScores: string | null;
   startedAt: string;
-  completedAt: string;
+  completedAt: string | null;
   createdAt: string;
   questions?: any[];
+  mockQuestions?: any[];
+  application?: { id: string; company: string; role: string } | null;
 }
 
 interface ParsedInterview {
@@ -53,6 +56,7 @@ interface ParsedInterview {
 }
 
 export default function QuestionsPage() {
+  const { data: session, isPending: isSessionLoading } = useSession();
   const [interviews, setInterviews] = useState<InterviewSession[]>([]);
   const [parsedInterviews, setParsedInterviews] = useState<ParsedInterview[]>(
     [],
@@ -65,8 +69,15 @@ export default function QuestionsPage() {
   const [showFullView, setShowFullView] = useState(false);
 
   useEffect(() => {
+    if (isSessionLoading) return;
+    if (!session?.user) {
+      setInterviews([]);
+      setParsedInterviews([]);
+      setLoading(false);
+      return;
+    }
     fetchInterviews();
-  }, []);
+  }, [isSessionLoading, session?.user]);
 
   const fetchInterviews = async () => {
     try {
@@ -74,6 +85,11 @@ export default function QuestionsPage() {
       const response = await fetch("/api/save-interview");
 
       if (!response.ok) {
+        if (response.status === 401) {
+          setInterviews([]);
+          setParsedInterviews([]);
+          return;
+        }
         throw new Error("Failed to fetch interviews");
       }
 
@@ -82,53 +98,64 @@ export default function QuestionsPage() {
 
       // Parse interviews
       const parsed = (data.interviews || []).map(
-        (session: InterviewSession) => {
-          let questions = [];
+        (interviewSession: InterviewSession) => {
+          let questions: any[] = [];
           let candidateName = "";
-          let jobTitle = "";
-          let companyName = "";
+          let jobTitle = interviewSession.application?.role || "";
+          let companyName = interviewSession.application?.company || "";
           let feedback = null;
           let specificScores = null;
 
-          // Try to get questions from the database questions array first
-          if (
-            session.questions &&
-            Array.isArray(session.questions) &&
-            session.questions.length > 0
-          ) {
-            questions = session.questions;
-            console.log("Using database questions:", questions.length);
-          } else {
-            // Fall back to parsing from conversationLog
+          // Parse metadata from conversationLog safely
+          if (interviewSession.conversationLog) {
             try {
-              const conversationData = JSON.parse(session.conversationLog);
-              questions = conversationData.questions || conversationData || [];
-              candidateName = conversationData.candidateName || "";
-              jobTitle = conversationData.jobTitle || "";
-              companyName = conversationData.companyName || "";
-              console.log(
-                "Using parsed conversation log questions:",
-                questions.length,
+              const conversationData = JSON.parse(
+                interviewSession.conversationLog,
               );
-            } catch (e) {
-              console.error("Error parsing conversation log:", e);
+              candidateName = conversationData?.candidateName || "";
+              jobTitle = conversationData?.jobTitle || "";
+              companyName = conversationData?.companyName || "";
+              if (Array.isArray(conversationData?.questions)) {
+                questions = conversationData.questions;
+              } else if (Array.isArray(conversationData)) {
+                questions = conversationData;
+              }
+            } catch {
+              // Ignore malformed conversationLog JSON
             }
           }
 
-          try {
-            feedback = JSON.parse(session.feedback);
-          } catch (e) {
-            console.error("Error parsing feedback:", e);
+          // Prefer relational database questions if present
+          const dbQuestions =
+            interviewSession.questions && interviewSession.questions.length > 0
+              ? interviewSession.questions
+              : interviewSession.mockQuestions &&
+                  interviewSession.mockQuestions.length > 0
+                ? interviewSession.mockQuestions
+                : null;
+
+          if (dbQuestions && Array.isArray(dbQuestions)) {
+            questions = dbQuestions;
           }
 
-          try {
-            specificScores = JSON.parse(session.specificScores || "{}");
-          } catch (e) {
-            console.error("Error parsing specific scores:", e);
+          if (interviewSession.feedback) {
+            try {
+              feedback = JSON.parse(interviewSession.feedback);
+            } catch {
+              feedback = interviewSession.feedback;
+            }
+          }
+
+          if (interviewSession.specificScores) {
+            try {
+              specificScores = JSON.parse(interviewSession.specificScores);
+            } catch {
+              specificScores = null;
+            }
           }
 
           return {
-            session,
+            session: interviewSession,
             questions,
             candidateName,
             jobTitle,
@@ -169,8 +196,10 @@ export default function QuestionsPage() {
     setShowFullView(true);
   };
 
-  const formatDate = (dateString: string) => {
+  const formatDate = (dateString: string | null) => {
+    if (!dateString) return "—";
     const date = new Date(dateString);
+    if (Number.isNaN(date.getTime())) return "—";
     return date.toLocaleDateString("en-US", {
       month: "short",
       day: "numeric",
@@ -181,24 +210,24 @@ export default function QuestionsPage() {
   };
 
   const getScoreColor = (score: number | null) => {
-    if (score === null) return "text-gray-500";
-    if (score >= 8) return "text-emerald-600";
-    if (score >= 6) return "text-amber-600";
-    return "text-rose-600";
+    if (score === null) return "text-muted-foreground";
+    if (score >= 8) return "text-emerald-700 dark:text-emerald-400";
+    if (score >= 6) return "text-amber-700 dark:text-amber-400";
+    return "text-rose-700 dark:text-rose-400";
   };
 
   const getScoreBgColor = (score: number | null) => {
-    if (score === null) return "bg-gray-100";
-    if (score >= 8) return "bg-emerald-100";
-    if (score >= 6) return "bg-amber-100";
-    return "bg-rose-100";
+    if (score === null) return "bg-muted";
+    if (score >= 8) return "bg-emerald-500/15";
+    if (score >= 6) return "bg-amber-500/15";
+    return "bg-rose-500/15";
   };
 
   // Transform database questions to FullPageAnswersView format
   const transformQuestionsForDisplay = (dbQuestions: any[]) => {
-    return dbQuestions.map((q: any) => ({
+    return dbQuestions.map((q: any, idx: number) => ({
       question: {
-        id: q.order || 0,
+        id: q.order || idx + 1,
         type: q.questionType || "technical",
         question: q.questionText || "",
         idealAnswer: q.idealAnswer || "",
@@ -206,11 +235,11 @@ export default function QuestionsPage() {
       },
       userAnswer: q.userAnswer || "",
       evaluation: q.evaluation || {
-        score: 0,
-        strengths: [],
-        weaknesses: [],
-        suggestions: [],
-        feedback: "",
+        score: q.score ?? 0,
+        strengths: q.strengths || [],
+        weaknesses: q.weaknesses || [],
+        suggestions: q.suggestions || [],
+        feedback: q.feedback || "",
         keyPointsCovered: [],
         keyPointsMissed: [],
       },
@@ -309,11 +338,18 @@ export default function QuestionsPage() {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: index * 0.05 }}
               >
-                <Card className="h-full hover:shadow-lg transition-shadow cursor-pointer border-border overflow-hidden">
+                <Card className="h-full hover:shadow-lg transition-shadow cursor-pointer border-border overflow-hidden select-none focus-within:ring-2 focus-within:ring-ring/60">
                   <CardHeader className="pb-3">
                     <div className="flex items-start justify-between mb-2">
                       <div className="flex-1">
-                        <CardTitle className="text-lg line-clamp-2">
+                        <CardTitle
+                          className="text-lg line-clamp-2"
+                          title={
+                            interview.jobTitle ||
+                            interview.session.topics[0] ||
+                            "Untitled Interview"
+                          }
+                        >
                           {interview.jobTitle ||
                             interview.session.topics[0] ||
                             "Untitled Interview"}

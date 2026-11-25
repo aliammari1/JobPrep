@@ -1,77 +1,72 @@
 import Link from "next/link";
-import { Github, Twitter, Linkedin, Mail } from "lucide-react";
+import { BrandMark } from "@/components/brand/brand-mark";
 
 const footerLinks = {
-  product: [
-    { label: "Features", href: "/features" },
-    { label: "Pricing", href: "/pricing" },
-    { label: "Dashboard", href: "/dashboard" },
-    { label: "Changelog", href: "#" },
+  practice: [
+    { label: "Mock Interview", href: "/mock-interview" },
+    { label: "Question Bank", href: "/mock-interview/questions" },
+    { label: "Code Challenge", href: "/code-challenge" },
+    { label: "Interview Room", href: "/interview-room" },
+  ],
+  career: [
+    { label: "CV Builder", href: "/cv-builder" },
+    { label: "Cover Letters", href: "/cover-letter" },
+    { label: "Interview Scheduler", href: "/interview-scheduler" },
+    { label: "Recordings", href: "/recordings" },
   ],
   company: [
+    { label: "Features", href: "/features" },
+    { label: "Pricing", href: "/pricing" },
     { label: "About", href: "/about" },
     { label: "Contact", href: "/contact" },
-    { label: "Careers", href: "#" },
-    { label: "Blog", href: "#" },
-  ],
-  resources: [
-    { label: "Documentation", href: "#" },
-    { label: "Help Center", href: "#" },
-    { label: "Community", href: "#" },
-    { label: "API", href: "#" },
-  ],
-  legal: [
-    { label: "Privacy", href: "#" },
-    { label: "Terms", href: "#" },
-    { label: "Security", href: "#" },
-    { label: "Cookies", href: "#" },
   ],
 };
 
-const socialLinks = [
-  { icon: Twitter, href: "#", label: "Twitter" },
-  { icon: Github, href: "#", label: "GitHub" },
-  { icon: Linkedin, href: "#", label: "LinkedIn" },
-  { icon: Mail, href: "/contact", label: "Email" },
-];
-
 export function LandingFooter() {
   return (
-    <footer className="border-t bg-muted/50">
-      <div className="container mx-auto px-4 py-12">
-        <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-5">
+    <footer className="border-t border-border bg-muted/35">
+      <div className="mx-auto max-w-6xl px-4 py-14 sm:px-6 lg:px-8">
+        <div className="grid gap-10 md:grid-cols-2 lg:grid-cols-12">
           {/* Brand */}
-          <div className="lg:col-span-1">
-            <Link href="/" className="flex items-center space-x-2 mb-4">
-              <div className="h-8 w-8 rounded-lg bg-linear-to-br from-primary to-primary/60 flex items-center justify-center">
-                <span className="text-white font-bold text-lg">J</span>
-              </div>
-              <span className="font-bold text-lg">JobPrep AI</span>
-            </Link>
-            <p className="text-sm text-muted-foreground mb-4">
-              AI-powered interview preparation platform helping you land your
-              dream job.
+          <div className="lg:col-span-5 space-y-4">
+            <BrandMark href="/" size="md" />
+            <p className="max-w-sm text-sm leading-relaxed text-muted-foreground">
+              An interview preparation and career studio built for calm,
+              repeatable practice. Bring your own AI provider key or run fully
+              offline with local models.
             </p>
-            <div className="flex space-x-3">
-              {socialLinks.map((social) => (
-                <a
-                  key={social.label}
-                  href={social.href}
-                  aria-label={social.label}
-                  className="p-2 rounded-md hover:bg-accent transition-colors"
-                >
-                  <social.icon className="h-5 w-5 text-muted-foreground hover:text-foreground" />
-                </a>
-              ))}
-            </div>
+            <p className="text-xs font-medium text-muted-foreground/80">
+              Self-hostable · BYOK · Local Ollama ready
+            </p>
           </div>
 
-          {/* Product */}
-          <div>
-            <h3 className="font-semibold mb-3">Product</h3>
-            <ul className="space-y-2">
-              {footerLinks.product.map((link) => (
-                <li key={link.label}>
+          {/* Practice */}
+          <div className="lg:col-span-2">
+            <h3 className="font-display text-sm font-semibold text-foreground mb-3.5">
+              Practice
+            </h3>
+            <ul className="space-y-2.5">
+              {footerLinks.practice.map((link) => (
+                <li key={link.href}>
+                  <Link
+                    href={link.href}
+                    className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+                  >
+                    {link.label}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          {/* Career Tools */}
+          <div className="lg:col-span-3">
+            <h3 className="font-display text-sm font-semibold text-foreground mb-3.5">
+              Career Studio
+            </h3>
+            <ul className="space-y-2.5">
+              {footerLinks.career.map((link) => (
+                <li key={link.href}>
                   <Link
                     href={link.href}
                     className="text-sm text-muted-foreground hover:text-foreground transition-colors"
@@ -84,45 +79,13 @@ export function LandingFooter() {
           </div>
 
           {/* Company */}
-          <div>
-            <h3 className="font-semibold mb-3">Company</h3>
-            <ul className="space-y-2">
+          <div className="lg:col-span-2">
+            <h3 className="font-display text-sm font-semibold text-foreground mb-3.5">
+              Product
+            </h3>
+            <ul className="space-y-2.5">
               {footerLinks.company.map((link) => (
-                <li key={link.label}>
-                  <Link
-                    href={link.href}
-                    className="text-sm text-muted-foreground hover:text-foreground transition-colors"
-                  >
-                    {link.label}
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </div>
-
-          {/* Resources */}
-          <div>
-            <h3 className="font-semibold mb-3">Resources</h3>
-            <ul className="space-y-2">
-              {footerLinks.resources.map((link) => (
-                <li key={link.label}>
-                  <Link
-                    href={link.href}
-                    className="text-sm text-muted-foreground hover:text-foreground transition-colors"
-                  >
-                    {link.label}
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </div>
-
-          {/* Legal */}
-          <div>
-            <h3 className="font-semibold mb-3">Legal</h3>
-            <ul className="space-y-2">
-              {footerLinks.legal.map((link) => (
-                <li key={link.label}>
+                <li key={link.href}>
                   <Link
                     href={link.href}
                     className="text-sm text-muted-foreground hover:text-foreground transition-colors"
@@ -135,10 +98,19 @@ export function LandingFooter() {
           </div>
         </div>
 
-        <div className="mt-12 pt-8 border-t">
-          <p className="text-center text-sm text-muted-foreground">
-            © {new Date().getFullYear()} JobPrep AI. All rights reserved.
-          </p>
+        <div className="mt-12 flex flex-col items-center justify-between gap-4 border-t border-border pt-6 text-xs text-muted-foreground sm:flex-row">
+          <p>© {new Date().getFullYear()} JobPrep. All rights reserved.</p>
+          <div className="flex items-center gap-5">
+            <Link href="/dashboard" className="hover:text-foreground transition-colors">
+              Dashboard
+            </Link>
+            <Link href="/sign-in" className="hover:text-foreground transition-colors">
+              Sign in
+            </Link>
+            <Link href="/contact" className="hover:text-foreground transition-colors">
+              Support
+            </Link>
+          </div>
         </div>
       </div>
     </footer>

@@ -1,34 +1,34 @@
 "use client";
 
-import { useState } from "react";
 import { motion } from "framer-motion";
-import Link from "next/link";
-import { usePathname } from "next/navigation";
-import { Button } from "@/components/ui/button";
 import {
-  LayoutDashboard,
-  Brain,
-  Mic,
-  Code2,
-  Video,
-  Calendar,
-  User,
-  Target,
   BarChart3,
-  MessageSquare,
+  BookOpen,
+  Brain,
   Building2,
-  Settings,
+  Calendar,
+  Code2,
   HelpCircle,
+  LayoutDashboard,
   LogOut,
   Menu,
+  MessageSquare,
+  Mic,
+  Settings,
+  Share2,
+  Star,
+  Target,
+  Timer,
+  Trophy,
+  User,
+  Video,
   X,
   Zap,
-  Star,
-  Trophy,
-  Timer,
-  Share2,
-  BookOpen,
 } from "lucide-react";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
 const navigationItems = [
@@ -152,6 +152,8 @@ export function InterviewNavigation() {
         size="icon"
         className="fixed top-4 left-4 z-50 lg:hidden"
         onClick={() => setIsOpen(!isOpen)}
+        aria-label={isOpen ? "Close navigation menu" : "Open navigation menu"}
+        aria-expanded={isOpen}
       >
         {isOpen ? <X className="w-4 h-4" /> : <Menu className="w-4 h-4" />}
       </Button>

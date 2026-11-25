@@ -1,10 +1,10 @@
 "use client";
 
-import { useCVStore } from "@/store/cv-store";
+import { Plus, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Card } from "@/components/ui/card";
 import {
   Select,
   SelectContent,
@@ -12,7 +12,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Plus, Trash2 } from "lucide-react";
+import { useCVStore } from "@/store/cv-store";
 
 export function LanguagesSection() {
   const { cvData, addLanguage, updateLanguage, removeLanguage } = useCVStore();
@@ -52,6 +52,7 @@ export function LanguagesSection() {
                     variant="ghost"
                     size="icon"
                     onClick={() => removeLanguage(lang.id)}
+                    aria-label="Remove language"
                   >
                     <Trash2 className="h-4 w-4 text-destructive" />
                   </Button>
@@ -59,7 +60,7 @@ export function LanguagesSection() {
 
                 <div className="grid gap-4 md:grid-cols-2">
                   <div>
-                    <Label>Language *</Label>
+                    <Label className="mb-2">Language *</Label>
                     <Input
                       value={lang.language}
                       onChange={(e) =>
@@ -70,7 +71,7 @@ export function LanguagesSection() {
                   </div>
 
                   <div>
-                    <Label>Proficiency Level *</Label>
+                    <Label className="mb-2">Proficiency Level *</Label>
                     <Select
                       value={lang.proficiency}
                       onValueChange={(

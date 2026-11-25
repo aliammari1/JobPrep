@@ -1,19 +1,80 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
-import { useRouter } from "next/navigation";
-import { motion, AnimatePresence } from "framer-motion";
+import dynamic from "next/dynamic";
+import { AnimatePresence, motion } from "framer-motion";
+import {
+  AlertTriangle,
+  Award,
+  BarChart3,
+  BookOpen,
+  Brain,
+  Camera,
+  CameraOff,
+  CheckCircle2,
+  ChevronRight,
+  Clock,
+  Coffee,
+  Download,
+  Edit,
+  Eye,
+  FileText,
+  Flag,
+  Heart,
+  History,
+  Lightbulb,
+  Link as LinkIcon,
+  Loader2,
+  Maximize,
+  MessageCircle,
+  MessageSquare,
+  Mic,
+  MicOff,
+  Minimize,
+  Pause,
+  Play,
+  RefreshCw,
+  RotateCcw,
+  Settings,
+  Share,
+  Square,
+  Star,
+  Target,
+  ThumbsDown,
+  ThumbsUp,
+  TrendingUp,
+  Upload,
+  User,
+  Users,
+  Video,
+  Volume2,
+  VolumeX,
+  Zap,
+} from "lucide-react";
 import Image from "next/image";
-import { useSession } from "@/lib/auth-client";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Progress } from "@/components/ui/progress";
+import { useRouter } from "next/navigation";
+import { useEffect, useRef, useState } from "react";
+const HeyGenAvatar = dynamic(
+  () => import("@/components/interview/HeyGenAvatar"),
+  { ssr: false, loading: () => null },
+);
+
+const QuestionDetailedView = dynamic(
+  () =>
+    import("@/components/interview/QuestionDetailedView").then(
+      (m) => m.QuestionDetailedView,
+    ),
+  { ssr: false },
+);
+import { SpeechPacingCoach } from "@/components/interview/SpeechPacingCoach";
+import {
+  AnimatedContainer,
+  StaggeredContainer,
+  StaggeredItem,
+} from "@/components/ui/animated";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { Label } from "@/components/ui/label";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Dialog,
   DialogContent,
@@ -22,62 +83,14 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { QuestionDetailedView } from "@/components/interview/QuestionDetailedView";
-import {
-  Play,
-  Pause,
-  RotateCcw,
-  Clock,
-  Target,
-  Star,
-  Brain,
-  TrendingUp,
-  CheckCircle2,
-  AlertTriangle,
-  MessageSquare,
-  Video,
-  Mic,
-  MicOff,
-  Camera,
-  CameraOff,
-  Settings,
-  Award,
-  BarChart3,
-  Users,
-  Lightbulb,
-  Zap,
-  Eye,
-  Volume2,
-  VolumeX,
-  Maximize,
-  Minimize,
-  RefreshCw,
-  BookOpen,
-  FileText,
-  Download,
-  Share,
-  Heart,
-  ThumbsUp,
-  ThumbsDown,
-  Flag,
-  Coffee,
-  User,
-  Upload,
-  Link as LinkIcon,
-  Loader2,
-  Edit,
-  ChevronRight,
-  MessageCircle,
-  Square,
-  History,
-} from "lucide-react";
+import { ExpandableText } from "@/components/ui/expandable-text";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Progress } from "@/components/ui/progress";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Textarea } from "@/components/ui/textarea";
+import { useSession } from "@/lib/auth-client";
 import { cn } from "@/lib/utils";
-import {
-  AnimatedContainer,
-  StaggeredContainer,
-  StaggeredItem,
-} from "@/components/ui/animated";
-import HeyGenAvatar from "@/components/interview/HeyGenAvatar";
 
 interface MockSession {
   id: string;
@@ -184,6 +197,9 @@ export default function MockInterview() {
   const [jobDescriptionText, setJobDescriptionText] = useState("");
   const [jobTitle, setJobTitle] = useState("");
   const [companyName, setCompanyName] = useState("");
+  const [linkedApplicationId, setLinkedApplicationId] = useState<string | null>(
+    null,
+  );
   const [linkedinUrl, setLinkedinUrl] = useState("");
   const [jobDescriptionFile, setJobDescriptionFile] = useState<File | null>(
     null,
@@ -214,6 +230,52 @@ export default function MockInterview() {
   const [isTranscribing, setIsTranscribing] = useState(false);
   const recognitionRef = useRef<SpeechRecognition | null>(null);
   const isRecordingRef = useRef(false);
+
+  // Pre-fill setup from /applications deep-link (?applicationId=...&role=...&company=...)
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const params = new URLSearchParams(window.location.search);
+    const appId = params.get("applicationId");
+    const roleParam = params.get("role");
+    const companyParam = params.get("company");
+
+    if (roleParam) setJobTitle(roleParam);
+    if (companyParam) setCompanyName(companyParam);
+    if (appId) setLinkedApplicationId(appId);
+    if (roleParam || companyParam || appId) {
+      setShowSetup(true);
+    }
+
+    if (appId) {
+      fetch(`/api/applications/${appId}`, { cache: "no-store" })
+        .then((res) => (res.ok ? res.json() : null))
+        .then((json) => {
+          const app = json?.application as
+            | { role?: string; company?: string; jobDescription?: string }
+            | undefined;
+          if (!app) return;
+          if (app.role) setJobTitle(app.role);
+          if (app.company) setCompanyName(app.company);
+          if (app.jobDescription) {
+            setJobDescriptionText(app.jobDescription);
+            // Extract key technical terms so skillsText is pre-populated and ready for 1-click generation
+            const extractedSkills = app.jobDescription
+              .match(
+                /\b(TypeScript|JavaScript|React|Next\.js|Node\.js|PostgreSQL|Prisma|Redis|Kafka|Go|Rust|Python|Docker|Kubernetes|Cloudflare|Workers|WebSockets|IndexedDB|GraphQL|SQL|AWS|GCP|Sentry|OpenTelemetry|gRPC|HTTP\/3|CI\/CD|System Design)\b/gi,
+              );
+            if (extractedSkills && extractedSkills.length > 0) {
+              const unique = Array.from(
+                new Set(extractedSkills.map((s) => s.trim())),
+              );
+              setSkillsText((prev) => prev || unique.join(", "));
+            }
+          }
+        })
+        .catch(() => {
+          // Optional prefill fetch
+        });
+    }
+  }, []);
 
   // Initialize Web Speech API on mount
   useEffect(() => {
@@ -576,7 +638,7 @@ export default function MockInterview() {
       case "beginner":
         return "bg-primary/10 text-primary dark:bg-primary/20 dark:text-primary/80";
       case "intermediate":
-        return "bg-secondary/10 text-secondary dark:bg-secondary/20 dark:text-secondary/80";
+        return "bg-secondary text-secondary-foreground";
       case "advanced":
         return "bg-destructive/10 text-destructive dark:bg-destructive/20 dark:text-destructive/80";
       default:
@@ -1079,6 +1141,38 @@ export default function MockInterview() {
       setShowFinalReport(true);
       setIsSessionActive(false);
       setSessionComplete(true);
+
+      // Persist completed AI mock session to PostgreSQL (linked to JobApplication if present)
+      const totalScore = evaluatedResults.reduce(
+        (sum: number, r) => sum + (r.evaluation?.score || 0),
+        0,
+      );
+      const avgOutOf100 =
+        evaluatedResults.length > 0
+          ? Math.round((totalScore / evaluatedResults.length) * 10)
+          : null;
+      void fetch("/api/save-interview", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          sessionType: "mock-interview",
+          topics: [jobTitle, companyName].filter(Boolean),
+          duration: Math.max(
+            1,
+            Math.round(
+              evaluatedResults.reduce((s, r) => s + (r.timeSpent || 0), 0) / 60,
+            ),
+          ),
+          feedback: data.assessment,
+          improvementAreas: data.assessment?.developmentAreas ?? [],
+          overallScore: avgOutOf100,
+          questions: evaluatedResults,
+          candidateName: session?.user?.name || undefined,
+          jobTitle: jobTitle || undefined,
+          companyName: companyName || undefined,
+          applicationId: linkedApplicationId || undefined,
+        }),
+      }).catch(() => {});
     } catch (error) {
       console.error("Error generating final assessment:", error);
 
@@ -1137,15 +1231,15 @@ export default function MockInterview() {
       <div className="min-h-screen bg-linear-to-br from-primary/20 via-primary/10 to-secondary/10 flex items-center justify-center p-6">
         <div className="max-w-2xl w-full">
           <Card className="bg-background/80 backdrop-blur-xl border-border shadow-2xl">
-            <CardContent className="p-12 text-center space-y-8">
+            <CardContent className="p-6 sm:p-8 lg:p-12 text-center space-y-6 sm:space-y-8">
               {/* Animated Icon */}
-              <div className="relative w-32 h-32 mx-auto">
+              <div className="relative w-20 h-20 sm:w-32 sm:h-32 mx-auto">
                 <div
                   className="absolute inset-0 bg-linear-to-r from-primary to-secondary rounded-full animate-spin"
                   style={{ animationDuration: "3s" }}
                 />
                 <div className="absolute inset-2 bg-linear-to-br from-background to-muted rounded-full flex items-center justify-center">
-                  <Brain className="w-16 h-16 text-primary animate-pulse" />
+                  <Brain className="w-10 h-10 sm:w-16 sm:h-16 text-primary animate-pulse" />
                 </div>
               </div>
 
@@ -1258,15 +1352,15 @@ export default function MockInterview() {
                 {/* Celebration Badge */}
                 <div className="relative inline-block">
                   <div className="absolute inset-0 bg-linear-to-r from-primary/40 to-secondary/40 blur-3xl opacity-50 animate-pulse" />
-                  <div className="relative w-32 h-32 bg-linear-to-br from-primary/20 to-secondary/20 dark:from-primary/30 dark:to-secondary/30 rounded-full flex items-center justify-center mx-auto border-4 border-white dark:border-gray-800 shadow-2xl">
-                    <Award className="w-16 h-16 text-primary dark:text-primary" />
+                  <div className="relative w-20 h-20 sm:w-32 sm:h-32 bg-linear-to-br from-primary/20 to-secondary/20 dark:from-primary/30 dark:to-secondary/30 rounded-full flex items-center justify-center mx-auto border-4 border-white dark:border-gray-800 shadow-2xl">
+                    <Award className="w-10 h-10 sm:w-16 sm:h-16 text-primary dark:text-primary" />
                   </div>
                 </div>
 
                 {/* Title */}
                 <div className="space-y-3">
-                  <h1 className="text-5xl md:text-6xl font-bold bg-linear-to-b from-foreground to-muted-foreground/70 bg-clip-text text-transparent">
-                    Interview Complete! 🎉
+                  <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold bg-linear-to-b from-foreground to-muted-foreground/70 bg-clip-text text-transparent">
+                    Interview complete
                   </h1>
                   <p className="text-xl text-gray-600 dark:text-gray-300 max-w-2xl mx-auto leading-relaxed">
                     {finalAssessment.summary}
@@ -1316,7 +1410,7 @@ export default function MockInterview() {
                     </CardTitle>
                   </CardHeader>
                   <CardContent className="relative pb-8">
-                    <div className="text-6xl font-bold mb-3">
+                    <div className="text-4xl sm:text-5xl lg:text-6xl font-bold mb-3">
                       {stats.percentage}%
                     </div>
                     <div className="inline-block px-4 py-1.5 bg-white/20 backdrop-blur-sm rounded-full text-sm font-semibold">
@@ -1335,7 +1429,7 @@ export default function MockInterview() {
                     </CardTitle>
                   </CardHeader>
                   <CardContent className="relative pb-8">
-                    <div className="text-6xl font-bold mb-3">
+                    <div className="text-4xl sm:text-5xl lg:text-6xl font-bold mb-3">
                       {finalAssessment.confidenceLevel}%
                     </div>
                     <p className="text-white/80 text-sm">Analysis Certainty</p>
@@ -1478,7 +1572,7 @@ export default function MockInterview() {
             <div className="flex gap-4 justify-center">
               <Button onClick={() => window.location.reload()}>
                 <RefreshCw className="w-4 h-4 mr-2" />
-                Start New Interview
+                Start new interview
               </Button>
             </div>
           </div>
@@ -1495,7 +1589,7 @@ export default function MockInterview() {
               <div className="w-20 h-20 bg-primary/10 dark:bg-primary/20 rounded-full flex items-center justify-center mx-auto">
                 <CheckCircle2 className="w-10 h-10 text-primary" />
               </div>
-              <h1 className="text-4xl font-bold">Interview Complete!</h1>
+              <h1 className="text-4xl font-bold">Interview complete</h1>
               <p className="text-muted-foreground">
                 Great job! Here's your detailed performance analysis.
               </p>
@@ -1510,8 +1604,11 @@ export default function MockInterview() {
                   <CardTitle>Overall Performance</CardTitle>
                 </CardHeader>
                 <CardContent className="text-center space-y-4">
-                  <div className="relative w-32 h-32 mx-auto">
-                    <svg className="w-32 h-32 transform -rotate-90">
+                  <div className="relative w-20 h-20 sm:w-32 sm:h-32 mx-auto">
+                    <svg
+                      className="h-auto w-full -rotate-90"
+                      viewBox="0 0 128 128"
+                    >
                       <circle
                         cx="64"
                         cy="64"
@@ -1537,7 +1634,7 @@ export default function MockInterview() {
                       />
                     </svg>
                     <div className="absolute inset-0 flex items-center justify-center">
-                      <span className="text-3xl font-bold text-primary">
+                      <span className="text-xl sm:text-3xl font-bold text-primary">
                         {aiFeedback.overall}%
                       </span>
                     </div>
@@ -1732,7 +1829,7 @@ export default function MockInterview() {
               {/* Premium Stats Bar */}
               <Card className="bg-linear-to-br from-primary/10 via-primary/5 to-transparent border-muted ring-1 ring-primary/20 shadow-lg hover:shadow-xl transition">
                 <CardContent className="p-6">
-                  <div className="grid grid-cols-4 gap-6">
+                  <div className="grid grid-cols-2 gap-4 lg:grid-cols-4 lg:gap-6">
                     {/* Progress with circular indicator */}
                     <div className="flex items-center gap-4">
                       <div className="relative w-16 h-16">
@@ -1769,10 +1866,10 @@ export default function MockInterview() {
                         </div>
                       </div>
                       <div>
-                        <p className="text-white/80 text-xs uppercase tracking-wider mb-1">
+                        <p className="text-muted-foreground text-xs uppercase tracking-wider mb-1">
                           Progress
                         </p>
-                        <p className="text-white font-bold text-2xl">
+                        <p className="text-foreground font-bold text-xl sm:text-2xl">
                           {currentQuestionIndex}/{generatedQuestions.length}
                         </p>
                       </div>
@@ -1780,14 +1877,14 @@ export default function MockInterview() {
 
                     {/* Time Spent */}
                     <div className="flex items-center gap-3">
-                      <div className="p-3 bg-white/20 rounded-xl backdrop-blur-sm">
-                        <Clock className="w-7 h-7 text-white" />
+                      <div className="p-3 bg-primary/15 rounded-xl backdrop-blur-sm">
+                        <Clock className="w-7 h-7 text-primary" />
                       </div>
                       <div>
-                        <p className="text-white/80 text-xs uppercase tracking-wider mb-1">
+                        <p className="text-muted-foreground text-xs uppercase tracking-wider mb-1">
                           Time
                         </p>
-                        <p className="text-white font-bold text-2xl">
+                        <p className="text-foreground font-bold text-xl sm:text-2xl">
                           {Math.floor(questionTime / 60)}:
                           {(questionTime % 60).toString().padStart(2, "0")}
                         </p>
@@ -1796,14 +1893,14 @@ export default function MockInterview() {
 
                     {/* Questions Completed */}
                     <div className="flex items-center gap-3">
-                      <div className="p-3 bg-white/20 rounded-xl backdrop-blur-sm">
-                        <CheckCircle2 className="w-7 h-7 text-white" />
+                      <div className="p-3 bg-primary/15 rounded-xl backdrop-blur-sm">
+                        <CheckCircle2 className="w-7 h-7 text-primary" />
                       </div>
                       <div>
-                        <p className="text-white/80 text-xs uppercase tracking-wider mb-1">
+                        <p className="text-muted-foreground text-xs uppercase tracking-wider mb-1">
                           Completed
                         </p>
-                        <p className="text-white font-bold text-2xl">
+                        <p className="text-foreground font-bold text-xl sm:text-2xl">
                           {currentQuestionIndex}
                         </p>
                       </div>
@@ -1811,14 +1908,14 @@ export default function MockInterview() {
 
                     {/* Questions Remaining */}
                     <div className="flex items-center gap-3">
-                      <div className="p-3 bg-white/20 rounded-xl backdrop-blur-sm">
-                        <Target className="w-7 h-7 text-white" />
+                      <div className="p-3 bg-primary/15 rounded-xl backdrop-blur-sm">
+                        <Target className="w-7 h-7 text-primary" />
                       </div>
                       <div>
-                        <p className="text-white/80 text-xs uppercase tracking-wider mb-1">
+                        <p className="text-muted-foreground text-xs uppercase tracking-wider mb-1">
                           Remaining
                         </p>
-                        <p className="text-white font-bold text-2xl">
+                        <p className="text-foreground font-bold text-xl sm:text-2xl">
                           {generatedQuestions.length - currentQuestionIndex}
                         </p>
                       </div>
@@ -1910,7 +2007,7 @@ export default function MockInterview() {
                             <span className="text-xs font-semibold text-muted-foreground uppercase">
                               Remaining
                             </span>
-                            <span className="text-lg font-bold text-secondary">
+                            <span className="text-lg font-bold tabular-nums text-foreground">
                               {generatedQuestions.length - currentQuestionIndex}
                             </span>
                           </div>
@@ -2098,6 +2195,13 @@ export default function MockInterview() {
                         </div>
                       </div>
 
+                      {/* Live Speech Pacing & Local AI Coach */}
+                      <SpeechPacingCoach
+                        transcript={currentAnswer}
+                        elapsedSeconds={questionTime}
+                        question={currentQuestion?.question || ""}
+                      />
+
                       {/* Action Buttons */}
                       <div className="flex flex-col gap-2">
                         <Button
@@ -2188,21 +2292,21 @@ export default function MockInterview() {
       <div className="min-h-screen bg-linear-to-br from-background via-primary/5 to-muted/10 relative overflow-hidden">
         <div className="absolute inset-0 -z-10 bg-linear-to-br from-primary/5 via-primary/10 to-transparent" />
 
-        <div className="py-16 px-6 md:px-8">
+        <div className="py-8 md:py-10 px-4 sm:px-6">
           <div className="max-w-3xl mx-auto">
             {/* Back Button */}
             <button
               onClick={() => setShowSetup(false)}
-              className="mb-12 inline-flex items-center gap-2 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
+              className="mb-8 inline-flex items-center gap-2 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
             >
               <ChevronRight className="w-4 h-4 rotate-180" />
               Back to Interview
             </button>
 
             {/* Header Section */}
-            <div className="mb-16 space-y-4">
-              <h1 className="text-5xl md:text-6xl font-bold tracking-tight bg-linear-to-b from-foreground to-muted-foreground/70 bg-clip-text text-transparent">
-                Setup Your Interview
+            <div className="mb-8 md:mb-10 space-y-3">
+              <h1 className="text-3xl md:text-4xl font-bold tracking-tight bg-linear-to-b from-foreground to-muted-foreground/70 bg-clip-text text-transparent">
+                Set up your interview
               </h1>
               <p className="text-lg text-muted-foreground max-w-xl leading-relaxed">
                 Customize your mock interview experience by providing a few key
@@ -2212,7 +2316,7 @@ export default function MockInterview() {
             </div>
 
             {/* Step Indicator - More Prominent */}
-            <div className="mb-16">
+            <div className="mb-8 md:mb-10">
               <div className="flex items-center justify-between gap-2">
                 {[1, 2, 3].map((step, idx) => (
                   <div key={step} className="flex items-center flex-1">
@@ -2253,7 +2357,7 @@ export default function MockInterview() {
             </div>
 
             {/* Step Content - Larger Cards with Better Spacing */}
-            <div className="mb-16">
+            <div className="mb-8 md:mb-10">
               {/* Step 1: Question Types */}
               {setupStep === 1 && (
                 <motion.div
@@ -2304,7 +2408,7 @@ export default function MockInterview() {
                                 ),
                               )
                             }
-                            className="text-center text-3xl font-bold border-2 border-muted hover:border-primary/60 focus:border-primary transition h-16"
+                            className="text-center text-lg font-semibold border-2 border-muted hover:border-primary/60 focus:border-primary transition h-12"
                           />
                           <p className="text-xs text-muted-foreground text-center">
                             0-40 questions
@@ -2333,7 +2437,7 @@ export default function MockInterview() {
                                 ),
                               )
                             }
-                            className="text-center text-3xl font-bold border-2 border-muted hover:border-primary/60 focus:border-primary transition h-16"
+                            className="text-center text-lg font-semibold border-2 border-muted hover:border-primary/60 focus:border-primary transition h-12"
                           />
                           <p className="text-xs text-muted-foreground text-center">
                             0-40 questions
@@ -2434,9 +2538,11 @@ export default function MockInterview() {
                             <CheckCircle2 className="w-5 h-5 text-primary" />
                             Job Description Loaded
                           </p>
-                          <p className="text-sm text-muted-foreground line-clamp-4">
-                            {jobDescriptionText.substring(0, 400)}...
-                          </p>
+                          <ExpandableText
+                            text={jobDescriptionText}
+                            clampLines={4}
+                            className="text-muted-foreground"
+                          />
                         </motion.div>
                       )}
                     </CardContent>
@@ -2514,9 +2620,11 @@ export default function MockInterview() {
                             <CheckCircle2 className="w-5 h-5 text-primary" />
                             Skills & Experience Loaded
                           </p>
-                          <p className="text-sm text-muted-foreground line-clamp-4">
-                            {skillsText.substring(0, 400)}...
-                          </p>
+                          <ExpandableText
+                            text={skillsText}
+                            clampLines={4}
+                            className="text-muted-foreground"
+                          />
                         </motion.div>
                       )}
                     </CardContent>
@@ -2530,7 +2638,7 @@ export default function MockInterview() {
               <Button
                 variant="outline"
                 onClick={() => setSetupStep(Math.max(1, setupStep - 1))}
-                className="flex-1 h-14 text-base font-semibold border-2"
+                className="flex-1 h-11 text-base font-semibold border-2"
                 disabled={setupStep === 1}
               >
                 ← Previous
@@ -2538,7 +2646,7 @@ export default function MockInterview() {
               {setupStep < 3 && (
                 <Button
                   onClick={() => setSetupStep(setupStep + 1)}
-                  className="flex-1 h-14 text-base font-semibold bg-primary hover:bg-primary/90"
+                  className="flex-1 h-11 text-base font-semibold bg-primary hover:bg-primary/90"
                 >
                   Next →
                 </Button>
@@ -2554,7 +2662,7 @@ export default function MockInterview() {
                     technicalQuestions + behavioralQuestions < 5 ||
                     technicalQuestions + behavioralQuestions > 50
                   }
-                  className="flex-1 h-14 text-base font-semibold bg-primary hover:bg-primary/90"
+                  className="flex-1 h-11 text-base font-semibold bg-primary hover:bg-primary/90"
                 >
                   {isGeneratingQuestions ? (
                     <>
@@ -2564,7 +2672,7 @@ export default function MockInterview() {
                   ) : (
                     <>
                       <Play className="w-5 h-5 mr-2" />
-                      Start Interview
+                      Start interview
                     </>
                   )}
                 </Button>
@@ -2578,70 +2686,96 @@ export default function MockInterview() {
 
   // Landing page before interview starts
   return (
-    <div className="min-h-screen bg-linear-to-br from-background via-primary/5 to-muted/10 relative overflow-hidden flex items-center justify-center p-6">
-      <div className="absolute inset-0 -z-10 bg-linear-to-br from-primary/5 via-primary/10 to-transparent" />
-      <div className="max-w-2xl w-full">
-        <AnimatedContainer>
-          <Card className="border shadow-lg bg-linear-to-br from-background to-muted/40 border-muted hover:border-primary/60 transition">
-            <CardContent className="p-12 text-center space-y-8">
-              {/* Icon */}
-              <div className="w-24 h-24 mx-auto rounded-full flex items-center justify-center bg-primary/10 dark:bg-primary/20 p-4 ring-1 ring-primary/20">
-                <Image
-                  src="/icons/one_logo.png"
-                  alt="JobPrep Logo"
-                  width={80}
-                  height={80}
-                  className="object-contain"
-                />
-              </div>
+    <div className="mx-auto flex min-h-[calc(100vh-3.5rem)] max-w-4xl items-center justify-center p-6 lg:p-10">
+      <Card className="w-full overflow-hidden border border-border bg-card py-0 shadow-none">
+        <div className="grid lg:grid-cols-12">
+          {/* Left: Crisp Black + Blue Studio Intro */}
+          <div className="flex flex-col justify-between bg-[oklch(0.115_0.012_258)] p-7 text-white lg:col-span-5 lg:p-8">
+            <div className="space-y-4">
+              <p className="text-xs font-semibold text-[#60a5fa]">
+                Practice mode
+              </p>
+              <h1 className="font-display text-3xl font-semibold leading-tight tracking-tight text-white">
+                Mock Interview Simulator
+              </h1>
+              <p className="text-sm leading-relaxed text-white/70">
+                Rehearse realistic behavioral and technical prompts with
+                structured per-answer rubric feedback and pacing cues.
+              </p>
+            </div>
+            <p className="mt-8 text-xs text-white/55">
+              Voice or text · Instant scoring · Saved to history
+            </p>
+          </div>
 
-              {/* Title */}
+          {/* Right: Session Overview & Start */}
+          <div className="flex flex-col justify-between p-7 lg:col-span-7 lg:p-8">
+            <div className="space-y-4">
+              <p className="text-xs font-semibold text-muted-foreground">
+                Included in every session
+              </p>
               <div className="space-y-3">
-                <h1 className="text-5xl font-bold bg-linear-to-b from-foreground to-muted-foreground/70 bg-clip-text text-transparent">
-                  Mock Interview Simulator
-                </h1>
-                <p className="text-lg text-muted-foreground">
-                  Practice with AI-powered interviewers and get instant feedback
-                </p>
+                <div className="flex items-start gap-3 rounded-lg border border-border bg-background p-3.5">
+                  <span className="grid size-8 shrink-0 place-items-center rounded-md bg-accent text-accent-foreground">
+                    <Brain className="size-4" />
+                  </span>
+                  <div>
+                    <p className="text-sm font-semibold text-foreground">
+                      Adaptive AI Interviewer
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      Calibrated to your target role, seniority, and interview
+                      format.
+                    </p>
+                  </div>
+                </div>
+                <div className="flex items-start gap-3 rounded-lg border border-border bg-background p-3.5">
+                  <span className="grid size-8 shrink-0 place-items-center rounded-md bg-accent text-accent-foreground">
+                    <MessageSquare className="size-4" />
+                  </span>
+                  <div>
+                    <p className="text-sm font-semibold text-foreground">
+                      Structured Answer Rubric
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      See strengths, missed key points, and concrete phrasing
+                      suggestions.
+                    </p>
+                  </div>
+                </div>
+                <div className="flex items-start gap-3 rounded-lg border border-border bg-background p-3.5">
+                  <span className="grid size-8 shrink-0 place-items-center rounded-md bg-accent text-accent-foreground">
+                    <BarChart3 className="size-4" />
+                  </span>
+                  <div>
+                    <p className="text-sm font-semibold text-foreground">
+                      End-of-Session Summary
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      Overall readiness score and recommended focus areas for
+                      next time.
+                    </p>
+                  </div>
+                </div>
               </div>
+            </div>
 
-              {/* Features */}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
-                <div className="flex flex-col items-center gap-2 p-4 rounded-lg bg-primary/10 dark:bg-primary/20 ring-1 ring-primary/20">
-                  <Brain className="w-6 h-6 text-primary" />
-                  <span className="font-medium">AI Interviewer</span>
-                </div>
-                <div className="flex flex-col items-center gap-2 p-4 rounded-lg bg-secondary/10 dark:bg-secondary/20 ring-1 ring-secondary/20">
-                  <MessageSquare className="w-6 h-6 text-secondary-foreground" />
-                  <span className="font-medium">Real-time Feedback</span>
-                </div>
-                <div className="flex flex-col items-center gap-2 p-4 rounded-lg bg-accent/10 dark:bg-accent/20 ring-1 ring-accent/20">
-                  <BarChart3 className="w-6 h-6 text-accent-foreground" />
-                  <span className="font-medium">Performance Analytics</span>
-                </div>
-              </div>
-
-              {/* Start Button */}
+            <div className="mt-7 pt-2">
               <Button
                 size="lg"
                 onClick={() => {
                   setShowSetup(true);
                   setSetupStep(1);
                 }}
-                className="w-full h-14 text-lg"
+                className="h-11 w-full text-sm font-semibold"
               >
-                <Play className="w-6 h-6 mr-2" />
-                Start Interview
+                <Play className="size-4" />
+                Configure &amp; start interview
               </Button>
-
-              {/* Additional Info */}
-              <p className="text-xs text-muted-foreground">
-                Click the button above to begin your mock interview session
-              </p>
-            </CardContent>
-          </Card>
-        </AnimatedContainer>
-      </div>
+            </div>
+          </div>
+        </div>
+      </Card>
     </div>
   );
 }

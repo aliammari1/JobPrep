@@ -1,25 +1,25 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
 import StreamingAvatar, {
   AvatarQuality,
   StreamingEvents,
   TaskType,
   VoiceChatTransport,
 } from "@heygen/streaming-avatar";
+import {
+  Loader2,
+  Mic,
+  MicOff,
+  Play,
+  Send,
+  Square,
+  Volume2,
+  VolumeX,
+} from "lucide-react";
+import { useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import {
-  Mic,
-  MicOff,
-  Volume2,
-  VolumeX,
-  Play,
-  Square,
-  Send,
-  Loader2,
-} from "lucide-react";
 
 interface HeyGenAvatarProps {
   avatarId?: string;
@@ -538,7 +538,12 @@ export default function HeyGenAvatar({
           {/* Voice Chat Controls */}
           {isVoiceChatActive && (
             <div className="flex gap-2">
-              <Button onClick={toggleMute} variant="outline" size="icon">
+              <Button
+                onClick={toggleMute}
+                variant="outline"
+                size="icon"
+                aria-label={isMuted ? "Unmute microphone" : "Mute microphone"}
+              >
                 {isMuted ? (
                   <MicOff className="w-4 h-4" />
                 ) : (

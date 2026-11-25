@@ -1,19 +1,18 @@
 "use client";
 
-import { useState, useCallback, useRef, useEffect } from "react";
-import { useCVStore } from "@/store/cv-store";
+import { FileDown, Maximize2, Palette, ZoomIn, ZoomOut } from "lucide-react";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
-import { ZoomIn, ZoomOut, Maximize2, FileDown } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { ModernTemplate } from "./templates/ModernTemplate";
+import { useTextSelection } from "@/hooks/useTextSelection";
+import { useCVStore } from "@/store/cv-store";
+import { CustomizePanel } from "./CustomizePanel";
+import { TemplateSelector } from "./TemplateSelector";
+import { TextSelectionToolbar } from "./TextSelectionToolbar";
 import { ClassicTemplate } from "./templates/ClassicTemplate";
 import { MinimalTemplate } from "./templates/MinimalTemplate";
-import { TextSelectionToolbar } from "./TextSelectionToolbar";
-import { useTextSelection } from "@/hooks/useTextSelection";
-import { toast } from "sonner";
-import { Palette } from "lucide-react";
-import { TemplateSelector } from "./TemplateSelector";
-import { CustomizePanel } from "./CustomizePanel";
+import { ModernTemplate } from "./templates/ModernTemplate";
 
 export function PreviewPanel() {
   const { cvData, settings } = useCVStore();
@@ -124,6 +123,7 @@ export function PreviewPanel() {
               size="icon"
               onClick={handleZoomOut}
               title="Zoom Out"
+              aria-label="Zoom out"
             >
               <ZoomOut className="h-4 w-4" />
             </Button>
@@ -135,6 +135,7 @@ export function PreviewPanel() {
               size="icon"
               onClick={handleZoomIn}
               title="Zoom In"
+              aria-label="Zoom in"
             >
               <ZoomIn className="h-4 w-4" />
             </Button>
@@ -143,6 +144,7 @@ export function PreviewPanel() {
               size="icon"
               onClick={handleFitToPage}
               title="Reset Zoom"
+              aria-label="Reset zoom"
             >
               <Maximize2 className="h-4 w-4" />
             </Button>

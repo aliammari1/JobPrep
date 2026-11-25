@@ -40,6 +40,12 @@ import {
   Check,
   Zap,
   Crown,
+  Video,
+  Bot,
+  Code2,
+  FileText,
+  Mail,
+  TriangleAlert,
 } from "lucide-react";
 import { formatDate } from "date-fns";
 import { useState } from "react";
@@ -97,31 +103,31 @@ export function SubscriptionManager() {
       label: "Interviews",
       current: usage?.interviews || 0,
       limit: plan.limits.interviews,
-      icon: "📝",
+      icon: Video,
     },
     {
       label: "AI Mock Sessions",
       current: usage?.aiMockSessions || 0,
       limit: plan.limits.aiMockSessions,
-      icon: "🤖",
+      icon: Bot,
     },
     {
       label: "Code Challenges",
       current: usage?.codeChallenges || 0,
       limit: plan.limits.codeChallenges,
-      icon: "💻",
+      icon: Code2,
     },
     {
       label: "CVs",
       current: usage?.cvs || 0,
       limit: plan.limits.cvs,
-      icon: "📄",
+      icon: FileText,
     },
     {
       label: "Cover Letters",
       current: usage?.coverLetters || 0,
       limit: plan.limits.coverLetters,
-      icon: "✉️",
+      icon: Mail,
     },
   ];
 
@@ -149,7 +155,10 @@ export function SubscriptionManager() {
           <CardTitle className="flex items-center justify-between">
             <span>Current Subscription</span>
             <Badge className={getStatusColor(subscription.status)}>
-              {subscription.status}
+              {subscription.tier === "FREE" && subscription.status === "INACTIVE"
+                ? "Free"
+                : subscription.status.charAt(0) +
+                  subscription.status.slice(1).toLowerCase()}
             </Badge>
           </CardTitle>
         </CardHeader>
@@ -190,9 +199,12 @@ export function SubscriptionManager() {
           </div>
 
           {isPastDue && (
-            <div className="rounded-lg bg-yellow-500/10 p-4 text-sm text-yellow-600 dark:text-yellow-400 border border-yellow-500/20">
-              ⚠️ Your payment is past due. Please update your payment method to
-              continue using premium features.
+            <div className="flex items-start gap-2 rounded-lg bg-yellow-500/10 p-4 text-sm text-yellow-600 dark:text-yellow-400 border border-yellow-500/20">
+              <TriangleAlert className="mt-0.5 h-4 w-4 shrink-0" />
+              <span>
+                Your payment is past due. Update your payment method to
+                continue using premium features.
+              </span>
             </div>
           )}
 
@@ -227,38 +239,55 @@ export function SubscriptionManager() {
             Usage This Month
           </CardTitle>
           <CardDescription>
-            {subscription.tier === "FREE"
-              ? "You're on the free plan. Upgrade to unlock more features."
-              : "Your current usage and limits"}
+            {subscription.tier === "FREE" ? (
+              <>
+                You&apos;re on the free plan.{" "}
+                <a href="#plans" className="font-medium text-primary hover:underline">
+                  Upgrade to unlock more features
+                </a>
+                .
+              </>
+            ) : (
+              "Your current usage and limits"
+            )}
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
           {usageItems.map((item) => {
             const isUnlimited = item.limit === -1;
-            const percentage = isUnlimited
-              ? 0
-              : (item.current / item.limit) * 100;
-            const isNearLimit = percentage >= 80 && !isUnlimited;
-            const isExceeded = item.current > item.limit && !isUnlimited;
+            const notIncluded = item.limit === 0;
+            const percentage =
+              isUnlimited || notIncluded
+                ? 0
+                : (item.current / item.limit) * 100;
+            const isNearLimit =
+              percentage >= 80 && !isUnlimited && !notIncluded;
+            const isExceeded =
+              item.current > item.limit && !isUnlimited && !notIncluded;
+            const Icon = item.icon;
 
             return (
               <div key={item.label} className="space-y-3">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <span className="text-lg">{item.icon}</span>
-                    <span className="font-medium">{item.label}</span>
+                <div className="flex items-center justify-between gap-3">
+                  <div className="flex min-w-0 items-center gap-3">
+                    <span className="grid size-8 shrink-0 place-items-center rounded-lg bg-muted">
+                      <Icon className="size-4 text-muted-foreground" />
+                    </span>
+                    <span className="truncate font-medium">{item.label}</span>
                   </div>
                   <span
-                    className={`font-semibold ${isExceeded ? "text-red-600 dark:text-red-400" : isNearLimit ? "text-orange-600 dark:text-orange-400" : ""}`}
+                    className={`shrink-0 font-semibold tabular-nums ${isExceeded ? "text-red-600 dark:text-red-400" : isNearLimit ? "text-orange-600 dark:text-orange-400" : notIncluded ? "text-muted-foreground" : ""}`}
                   >
-                    {item.current} / {isUnlimited ? "∞" : item.limit}
+                    {notIncluded
+                      ? "Not included"
+                      : `${item.current} / ${isUnlimited ? "∞" : item.limit}`}
                   </span>
                 </div>
-                {!isUnlimited && (
+                {!isUnlimited && !notIncluded && (
                   <div className="space-y-1">
                     <Progress
                       value={Math.min(percentage, 100)}
-                      className={isExceeded || isNearLimit ? "h-2" : "h-2"}
+                      className="h-2"
                     />
                     {isNearLimit && !isExceeded && (
                       <p className="text-xs text-orange-600 dark:text-orange-400">
@@ -266,8 +295,9 @@ export function SubscriptionManager() {
                       </p>
                     )}
                     {isExceeded && (
-                      <p className="text-xs text-red-600 dark:text-red-400">
-                        ⚠️ Limit exceeded by {item.current - item.limit}
+                      <p className="flex items-center gap-1 text-xs text-red-600 dark:text-red-400">
+                        <TriangleAlert className="h-3 w-3" />
+                        Limit exceeded by {item.current - item.limit}
                       </p>
                     )}
                   </div>
@@ -279,9 +309,9 @@ export function SubscriptionManager() {
       </Card>
 
       {/* Plan Selection */}
-      <Card>
+      <Card id="plans" className="scroll-mt-6">
         <CardHeader>
-          <CardTitle>Upgrade Your Plan</CardTitle>
+          <CardTitle>Upgrade your plan</CardTitle>
           <CardDescription>
             Choose the plan that works best for you
           </CardDescription>

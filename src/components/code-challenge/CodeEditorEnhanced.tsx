@@ -194,7 +194,7 @@ export function CodeEditorEnhanced({
                   onClick={onRun}
                   disabled={isRunning}
                   size="sm"
-                  className="gap-1 bg-linear-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white h-9"
+                  className="gap-1 bg-primary hover:bg-primary/90 text-primary-foreground h-9"
                 >
                   {isRunning ? (
                     <>

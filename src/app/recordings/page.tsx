@@ -1,36 +1,44 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import {
+  ArrowUpRight,
+  Calendar,
+  Clock,
+  Download,
+  FileText,
+  FileVideo,
+  Filter,
+  Info,
+  Loader2,
+  Play,
+  Search,
+  SortAsc,
+  SortDesc,
+  Trash2,
+  User,
+  Video,
+  X,
+} from "lucide-react";
+import Link from "next/link";
+import { useEffect, useState } from "react";
+import { toast } from "sonner";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
+  CardDescription,
   CardHeader,
   CardTitle,
-  CardDescription,
 } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Input } from "@/components/ui/input";
 import {
-  Video,
-  Download,
-  Play,
-  Trash2,
-  Search,
-  Calendar,
-  Clock,
-  User,
-  Loader2,
-  FileVideo,
-  Filter,
-  SortAsc,
-  SortDesc,
-  Info,
-  X,
-} from "lucide-react";
-import { toast } from "sonner";
-import { useSession } from "@/lib/auth-client";
-import { Alert, AlertDescription } from "@/components/ui/alert";
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
 import {
   Select,
   SelectContent,
@@ -38,12 +46,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+import { useSession } from "@/lib/auth-client";
 
 interface Recording {
   id: string;
@@ -60,8 +63,19 @@ interface Recording {
 }
 
 export default function RecordingsPage() {
-  const { data: session } = useSession();
+  const { data: session, isPending: isSessionLoading } = useSession();
   const [recordings, setRecordings] = useState<Recording[]>([]);
+  const [savedTranscripts, setSavedTranscripts] = useState<
+    {
+      id: string;
+      sessionType: string;
+      duration: number;
+      overallScore: number | null;
+      createdAt: string;
+      application?: { company: string; role: string } | null;
+      mockQuestions?: { id: string }[];
+    }[]
+  >([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [sortBy, setSortBy] = useState<"date" | "name" | "duration">("date");
@@ -75,27 +89,33 @@ export default function RecordingsPage() {
   const [isVideoDialogOpen, setIsVideoDialogOpen] = useState(false);
 
   useEffect(() => {
+    if (isSessionLoading) return;
+    if (!session?.user) {
+      setRecordings([]);
+      setLoading(false);
+      return;
+    }
     fetchRecordings();
-  }, []);
+  }, [isSessionLoading, session?.user]);
 
   const fetchRecordings = async () => {
     setLoading(true);
     try {
-      const response = await fetch("/api/recordings");
-      if (response.ok) {
-        const data = await response.json();
-        console.log("Fetched recordings:", {
-          count: data.recordings?.length || 0,
-          recordings: data.recordings?.map((r: Recording) => ({
-            id: r.id.slice(0, 8),
-            roomName: r.roomName,
-            status: r.status,
-            hasUrl: !!r.fileUrl,
-          })),
-        });
+      const [recRes, txRes] = await Promise.all([
+        fetch("/api/recordings", { cache: "no-store" }),
+        fetch("/api/save-interview", { cache: "no-store" }),
+      ]);
+      if (recRes.ok) {
+        const data = await recRes.json();
         setRecordings(data.recordings || []);
-      } else {
+      } else if (recRes.status !== 401) {
         toast.error("Failed to fetch recordings");
+      }
+      if (txRes.ok) {
+        const txData = await txRes.json();
+        setSavedTranscripts(
+          Array.isArray(txData.interviews) ? txData.interviews : [],
+        );
       }
     } catch (error) {
       console.error("Error fetching recordings:", error);
@@ -151,7 +171,7 @@ export default function RecordingsPage() {
     const k = 1024;
     const sizes = ["Bytes", "KB", "MB", "GB"];
     const i = Math.floor(Math.log(bytes) / Math.log(k));
-    return Math.round((bytes / Math.pow(k, i)) * 100) / 100 + " " + sizes[i];
+    return Math.round((bytes / k ** i) * 100) / 100 + " " + sizes[i];
   };
 
   const formatDuration = (seconds: number) => {
@@ -196,13 +216,6 @@ export default function RecordingsPage() {
       return sortOrder === "asc" ? comparison : -comparison;
     });
 
-  console.log("Filtered recordings:", {
-    total: recordings.length,
-    filtered: filteredRecordings.length,
-    filterStatus,
-    searchQuery,
-  });
-
   if (loading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
@@ -216,22 +229,81 @@ export default function RecordingsPage() {
 
   return (
     <div className="min-h-screen bg-background">
-      <div className="container mx-auto p-6 space-y-6">
+      <div className="container mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-6 md:py-8 space-y-6">
         {/* Header */}
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <h1 className="text-3xl font-bold text-foreground">
+            <h1 className="text-3xl md:text-4xl font-bold tracking-tight text-foreground">
               Interview Recordings
             </h1>
             <p className="text-muted-foreground mt-1">
               View and manage your interview recordings
             </p>
           </div>
-          <Badge variant="secondary" className="text-lg px-4 py-2">
-            <FileVideo className="w-5 h-5 mr-2" />
-            {recordings.length} Recordings
-          </Badge>
+          <div className="flex items-center gap-2">
+            <Badge variant="secondary" className="text-sm px-3 py-1.5 w-fit">
+              <FileText className="w-4 h-4 mr-1.5" />
+              {savedTranscripts.length} Transcripts
+            </Badge>
+            <Badge variant="secondary" className="text-sm px-3 py-1.5 w-fit">
+              <FileVideo className="w-4 h-4 mr-1.5" />
+              {recordings.length} Videos
+            </Badge>
+          </div>
         </div>
+
+        {/* Saved Mock Interview Transcripts (from PostgreSQL AIMockSession) */}
+        {savedTranscripts.length > 0 && (
+          <Card className="shadow-none">
+            <CardHeader className="pb-3">
+              <CardTitle className="font-display text-lg">
+                Saved Mock Interview Transcripts
+              </CardTitle>
+              <CardDescription>
+                Full Q&amp;A rubrics and AI scores persisted in PostgreSQL
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+              {savedTranscripts.slice(0, 9).map((item) => (
+                <Link
+                  key={item.id}
+                  href={`/saved-interviews/${item.id}`}
+                  className="group flex flex-col justify-between gap-2 rounded-xl border border-border bg-background p-4 transition-colors hover:border-primary/40 hover:bg-muted/40"
+                >
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="min-w-0">
+                      <p className="truncate text-sm font-semibold text-foreground group-hover:text-primary">
+                        {item.application
+                          ? `${item.application.role}`
+                          : `${item.sessionType || "Mock"} Interview`}
+                      </p>
+                      <p className="truncate text-xs text-muted-foreground">
+                        {item.application
+                          ? item.application.company
+                          : `${item.mockQuestions?.length ?? 0} questions`}
+                      </p>
+                    </div>
+                    {item.overallScore !== null && (
+                      <Badge
+                        variant="outline"
+                        className="shrink-0 border-primary/30 bg-primary/10 text-xs text-primary tabular-nums"
+                      >
+                        {Math.round(item.overallScore)}/100
+                      </Badge>
+                    )}
+                  </div>
+                  <div className="flex items-center justify-between text-[11px] text-muted-foreground tabular-nums">
+                    <span>
+                      {new Date(item.createdAt).toLocaleDateString()} ·{" "}
+                      {item.duration}m
+                    </span>
+                    <ArrowUpRight className="size-3.5 group-hover:text-primary" />
+                  </div>
+                </Link>
+              ))}
+            </CardContent>
+          </Card>
+        )}
 
         {/* Info Alert about Recording Storage */}
         {recordings.some((r) => r.status === "no-recording") && (
@@ -264,7 +336,9 @@ export default function RecordingsPage() {
 
               <Select
                 value={sortBy}
-                onValueChange={(value: any) => setSortBy(value)}
+                onValueChange={(value) =>
+                  setSortBy(value as "date" | "name" | "duration")
+                }
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Sort by" />
@@ -279,7 +353,15 @@ export default function RecordingsPage() {
               <div className="flex gap-2">
                 <Select
                   value={filterStatus}
-                  onValueChange={(value: any) => setFilterStatus(value)}
+                  onValueChange={(value) =>
+                    setFilterStatus(
+                      value as
+                        | "all"
+                        | "completed"
+                        | "in-progress"
+                        | "no-recording",
+                    )
+                  }
                 >
                   <SelectTrigger className="flex-1">
                     <SelectValue placeholder="Filter" />

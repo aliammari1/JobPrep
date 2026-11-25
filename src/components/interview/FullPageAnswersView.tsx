@@ -1,18 +1,18 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
 import { motion } from "framer-motion";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import {
+  AlertTriangle,
+  CheckCircle2,
   ChevronLeft,
   ChevronRight,
-  CheckCircle2,
-  AlertTriangle,
   Lightbulb,
   X,
 } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 interface QuestionResult {
   question: {
@@ -138,6 +138,7 @@ export function FullPageAnswersView({
           variant="ghost"
           size="icon"
           onClick={onClose}
+          aria-label="Close answers review"
           className="h-10 w-10"
         >
           <X className="h-6 w-6" />
@@ -147,17 +148,17 @@ export function FullPageAnswersView({
       {/* Stats Bar */}
       <div className="bg-muted border-b border-border px-6 py-4 flex items-center gap-8">
         <div className="flex items-center gap-3">
-          <CheckCircle2 className="w-5 h-5 text-accent" />
+          <CheckCircle2 className="w-5 h-5 text-green-600 dark:text-green-400" />
           <span className="text-sm font-semibold text-foreground">
             Strong:{" "}
-            <span className="text-accent font-bold">{strongAnswers}</span>
+            <span className="text-green-600 dark:text-green-400 font-bold">{strongAnswers}</span>
           </span>
         </div>
         <div className="flex items-center gap-3">
-          <AlertTriangle className="w-5 h-5 text-accent" />
+          <AlertTriangle className="w-5 h-5 text-amber-600 dark:text-amber-400" />
           <span className="text-sm font-semibold text-foreground">
             Average:{" "}
-            <span className="text-accent font-bold">{averageAnswers}</span>
+            <span className="text-amber-600 dark:text-amber-400 font-bold">{averageAnswers}</span>
           </span>
         </div>
         <div className="flex items-center gap-3">
@@ -189,6 +190,7 @@ export function FullPageAnswersView({
               variant="ghost"
               size="icon"
               onClick={goToPrevious}
+              aria-label="Previous answer"
               className="absolute left-4 z-10 h-12 w-12 rounded-full bg-card shadow-xl hover:bg-secondary border border-border text-primary"
             >
               <ChevronLeft className="h-6 w-6" />
@@ -258,7 +260,7 @@ export function FullPageAnswersView({
                     {result.evaluation?.strengths &&
                       result.evaluation.strengths.length > 0 && (
                         <div className="space-y-2 bg-accent/10 border-l-4 border-accent p-4 rounded">
-                          <h4 className="font-bold text-accent flex items-center gap-2">
+                          <h4 className="font-bold text-green-700 dark:text-green-400 flex items-center gap-2">
                             <CheckCircle2 className="w-5 h-5" />
                             Strengths
                           </h4>
@@ -268,7 +270,7 @@ export function FullPageAnswersView({
                                 key={i}
                                 className="text-sm text-foreground flex gap-2"
                               >
-                                <span className="text-accent font-bold">✓</span>
+                                <span className="text-green-700 dark:text-green-400 font-bold">✓</span>
                                 <span>{s}</span>
                               </li>
                             ))}
@@ -347,6 +349,7 @@ export function FullPageAnswersView({
               variant="ghost"
               size="icon"
               onClick={goToNext}
+              aria-label="Next answer"
               className="absolute right-4 z-10 h-12 w-12 rounded-full bg-card shadow-xl hover:bg-secondary border border-border text-primary"
             >
               <ChevronRight className="h-6 w-6" />
@@ -362,6 +365,8 @@ export function FullPageAnswersView({
             <motion.button
               key={index}
               onClick={() => scrollToCard(index)}
+              aria-label={`Go to answer ${index + 1}`}
+              aria-current={index === currentIndex}
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
               className={`shrink-0 px-3 py-2 rounded-lg font-semibold text-sm transition-all ${

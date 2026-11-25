@@ -1,21 +1,13 @@
 "use client";
 
-import { useCVStore } from "@/store/cv-store";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { Card } from "@/components/ui/card";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Plus, Trash2, GripVertical, X } from "lucide-react";
 import {
-  DndContext,
   closestCenter,
+  DndContext,
+  type DragEndEvent,
   KeyboardSensor,
   PointerSensor,
   useSensor,
   useSensors,
-  DragEndEvent,
 } from "@dnd-kit/core";
 import {
   arrayMove,
@@ -25,7 +17,15 @@ import {
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
+import { GripVertical, Plus, Trash2, X } from "lucide-react";
 import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { useCVStore } from "@/store/cv-store";
 
 interface SortableExperienceItemProps {
   exp: any;
@@ -94,6 +94,7 @@ function SortableExperienceItem({
             variant="ghost"
             size="icon"
             onClick={() => removeExperience(exp.id)}
+            aria-label="Remove experience entry"
           >
             <Trash2 className="h-4 w-4 text-destructive" />
           </Button>
@@ -101,7 +102,7 @@ function SortableExperienceItem({
 
         <div className="grid gap-4 md:grid-cols-2">
           <div>
-            <Label>Job Title *</Label>
+            <Label className="mb-2">Job Title *</Label>
             <Input
               value={exp.title}
               onChange={(e) =>
@@ -112,7 +113,7 @@ function SortableExperienceItem({
           </div>
 
           <div>
-            <Label>Company *</Label>
+            <Label className="mb-2">Company *</Label>
             <Input
               value={exp.company}
               onChange={(e) =>
@@ -123,7 +124,7 @@ function SortableExperienceItem({
           </div>
 
           <div>
-            <Label>Location</Label>
+            <Label className="mb-2">Location</Label>
             <Input
               value={exp.location}
               onChange={(e) =>
@@ -134,7 +135,7 @@ function SortableExperienceItem({
           </div>
 
           <div>
-            <Label>Start Date</Label>
+            <Label className="mb-2">Start Date</Label>
             <Input
               type="month"
               value={exp.startDate}
@@ -145,7 +146,7 @@ function SortableExperienceItem({
           </div>
 
           <div>
-            <Label>End Date</Label>
+            <Label className="mb-2">End Date</Label>
             <Input
               type="month"
               value={exp.endDate}
@@ -184,6 +185,7 @@ function SortableExperienceItem({
                   type="button"
                   onClick={() => handleRemoveBullet(idx)}
                   className="hover:text-destructive p-1"
+                  aria-label="Remove bullet point"
                 >
                   <X className="h-4 w-4" />
                 </button>
@@ -201,7 +203,7 @@ function SortableExperienceItem({
                 })
               }
               placeholder="Add description bullet point"
-              onKeyPress={(e) => {
+              onKeyDown={(e) => {
                 if (e.key === "Enter") {
                   e.preventDefault();
                   handleAddBullet(exp.id);

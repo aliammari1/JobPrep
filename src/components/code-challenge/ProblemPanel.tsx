@@ -1,23 +1,23 @@
 "use client";
 
-import { useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { AnimatePresence, motion } from "framer-motion";
 import {
-  Eye,
-  EyeOff,
-  Copy,
   ChevronDown,
   ChevronUp,
+  Copy,
+  Eye,
+  EyeOff,
   Lightbulb,
   Target,
   Zap,
 } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { useState } from "react";
 import { toast } from "sonner";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { cn } from "@/lib/utils";
 
 interface Challenge {
   id: string;
@@ -54,10 +54,14 @@ export function ProblemPanel({
   if (isLoading) {
     return (
       <Card className="h-full flex items-center justify-center">
-        <div className="text-center">
-          <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4" />
-          <p className="text-sm text-muted-foreground">Loading challenge...</p>
-        </div>
+        <CardContent>
+          <div className="text-center">
+            <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4" />
+            <p className="text-sm text-muted-foreground">
+              Loading challenge...
+            </p>
+          </div>
+        </CardContent>
       </Card>
     );
   }
@@ -65,10 +69,14 @@ export function ProblemPanel({
   if (!challenge) {
     return (
       <Card className="h-full flex items-center justify-center">
-        <div className="text-center">
-          <Target className="w-12 h-12 text-muted-foreground/50 mx-auto mb-4" />
-          <p className="text-sm text-muted-foreground">No challenge selected</p>
-        </div>
+        <CardContent>
+          <div className="text-center">
+            <Target className="w-12 h-12 text-muted-foreground/50 mx-auto mb-4" />
+            <p className="text-sm text-muted-foreground">
+              No challenge selected
+            </p>
+          </div>
+        </CardContent>
       </Card>
     );
   }
@@ -189,7 +197,7 @@ export function ProblemPanel({
             </TabsContent>
 
             {/* Examples Tab */}
-            <TabsContent value="examples" className="mt-6 space-y-4">
+            <TabsContent value="examples" className="mt-4 space-y-4">
               {challenge.examples.map((example, index) => (
                 <motion.div
                   key={index}
@@ -198,6 +206,9 @@ export function ProblemPanel({
                   transition={{ delay: index * 0.1 }}
                 >
                   <Card
+                    role="button"
+                    tabIndex={0}
+                    aria-expanded={expandedExample === index}
                     className={cn(
                       "cursor-pointer transition-colors hover:bg-muted/50",
                       expandedExample === index && "ring-2 ring-primary",
@@ -205,6 +216,14 @@ export function ProblemPanel({
                     onClick={() =>
                       setExpandedExample(expandedExample === index ? -1 : index)
                     }
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" || e.key === " ") {
+                        e.preventDefault();
+                        setExpandedExample(
+                          expandedExample === index ? -1 : index,
+                        );
+                      }
+                    }}
                   >
                     <CardHeader className="pb-3">
                       <div className="flex items-center justify-between gap-2">
@@ -226,7 +245,7 @@ export function ProblemPanel({
                           animate={{ opacity: 1, height: "auto" }}
                           exit={{ opacity: 0, height: 0 }}
                         >
-                          <CardContent className="border-t space-y-3">
+                          <CardContent className="border-t pt-4 space-y-3">
                             {/* Input */}
                             <div>
                               <div className="flex items-center justify-between mb-2">

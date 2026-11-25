@@ -1,21 +1,21 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
+import { AnimatePresence, motion } from "framer-motion";
 import {
   Mic,
   MicOff,
-  Video,
-  VideoOff,
   Phone,
   PhoneOff,
   Settings,
+  Video,
+  VideoOff,
   Volume2,
   VolumeX,
 } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 
 interface VideoCallInterfaceProps {
@@ -111,6 +111,9 @@ export function VideoCallInterface({
                   variant="ghost"
                   size="icon"
                   onClick={onToggleAudio}
+                  aria-label={
+                    isAudioEnabled ? "Mute microphone" : "Unmute microphone"
+                  }
                   className={cn(
                     "rounded-full h-12 w-12 transition-colors",
                     isAudioEnabled
@@ -129,6 +132,9 @@ export function VideoCallInterface({
                   variant="ghost"
                   size="icon"
                   onClick={onToggleVideo}
+                  aria-label={
+                    isVideoEnabled ? "Turn camera off" : "Turn camera on"
+                  }
                   className={cn(
                     "rounded-full h-12 w-12 transition-colors",
                     isVideoEnabled
@@ -147,6 +153,7 @@ export function VideoCallInterface({
                   variant="ghost"
                   size="icon"
                   onClick={onToggleMute}
+                  aria-label={isMuted ? "Unmute audio" : "Mute audio"}
                   className="rounded-full h-12 w-12 bg-white/20 hover:bg-white/30 text-white"
                 >
                   {isMuted ? (
@@ -160,6 +167,7 @@ export function VideoCallInterface({
                   variant="ghost"
                   size="icon"
                   onClick={onSettings}
+                  aria-label="Call settings"
                   className="rounded-full h-12 w-12 bg-white/20 hover:bg-white/30 text-white"
                 >
                   <Settings className="w-5 h-5" />
@@ -169,6 +177,7 @@ export function VideoCallInterface({
                   variant="destructive"
                   size="icon"
                   onClick={onEndCall}
+                  aria-label="End call"
                   className="rounded-full h-12 w-12 bg-red-500 hover:bg-red-600"
                 >
                   <PhoneOff className="w-5 h-5" />
@@ -181,8 +190,17 @@ export function VideoCallInterface({
         {/* Tap to show controls overlay */}
         {!showControls && (
           <div
+            role="button"
+            tabIndex={0}
+            aria-label="Show call controls"
             className="absolute inset-0 z-10 cursor-pointer"
             onClick={() => setShowControls(true)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" || e.key === " ") {
+                e.preventDefault();
+                setShowControls(true);
+              }
+            }}
           />
         )}
       </CardContent>

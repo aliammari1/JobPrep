@@ -1,19 +1,19 @@
 "use client";
 
-import { useState, useRef } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
+import { AnimatePresence, motion } from "framer-motion";
 import {
+  BookOpen,
   ChevronLeft,
   ChevronRight,
-  BookOpen,
-  Target,
-  Lightbulb,
   GripHorizontal,
+  Lightbulb,
+  Target,
   X,
 } from "lucide-react";
+import { useRef, useState } from "react";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 interface TemplateQuestion {
   id: number;
@@ -169,7 +169,7 @@ export function SwipeableQuestionsCard({
         {/* Swipeable Card Container */}
         <div
           ref={containerRef}
-          className="relative h-[500px] cursor-grab active:cursor-grabbing bg-white dark:bg-slate-900 rounded-lg"
+          className="relative h-[60vh] max-h-[500px] min-h-[380px] cursor-grab active:cursor-grabbing bg-white dark:bg-slate-900 rounded-lg"
           onMouseDown={handleMouseDown}
           onMouseMove={handleMouseMove}
           onMouseUp={handleMouseUp}

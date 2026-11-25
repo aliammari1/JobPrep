@@ -1,11 +1,11 @@
 "use client";
 
-import { useCVStore } from "@/store/cv-store";
+import { Plus, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Card } from "@/components/ui/card";
-import { Plus, Trash2 } from "lucide-react";
+import { useCVStore } from "@/store/cv-store";
 
 export function CertificationsSection() {
   const { cvData, addCertification, updateCertification, removeCertification } =
@@ -48,6 +48,7 @@ export function CertificationsSection() {
                     variant="ghost"
                     size="icon"
                     onClick={() => removeCertification(cert.id)}
+                    aria-label="Remove certification"
                   >
                     <Trash2 className="h-4 w-4 text-destructive" />
                   </Button>
@@ -55,7 +56,7 @@ export function CertificationsSection() {
 
                 <div className="grid gap-4 md:grid-cols-2">
                   <div>
-                    <Label>Certification Name *</Label>
+                    <Label className="mb-2">Certification Name *</Label>
                     <Input
                       value={cert.name}
                       onChange={(e) =>
@@ -66,7 +67,7 @@ export function CertificationsSection() {
                   </div>
 
                   <div>
-                    <Label>Issuing Organization *</Label>
+                    <Label className="mb-2">Issuing Organization *</Label>
                     <Input
                       value={cert.issuer}
                       onChange={(e) =>
@@ -77,7 +78,7 @@ export function CertificationsSection() {
                   </div>
 
                   <div>
-                    <Label>Date Obtained</Label>
+                    <Label className="mb-2">Date Obtained</Label>
                     <Input
                       type="month"
                       value={cert.date}
@@ -88,7 +89,7 @@ export function CertificationsSection() {
                   </div>
 
                   <div>
-                    <Label>Credential URL</Label>
+                    <Label className="mb-2">Credential URL</Label>
                     <Input
                       value={cert.url}
                       onChange={(e) =>

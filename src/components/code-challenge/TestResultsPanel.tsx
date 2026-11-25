@@ -1,20 +1,20 @@
 "use client";
 
-import { useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Progress } from "@/components/ui/progress";
+import { AnimatePresence, motion } from "framer-motion";
 import {
-  CheckCircle2,
-  XCircle,
-  Clock,
   AlertCircle,
+  CheckCircle2,
   ChevronDown,
   ChevronUp,
+  Clock,
+  XCircle,
 } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { useState } from "react";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Progress } from "@/components/ui/progress";
+import { cn } from "@/lib/utils";
 
 interface TestCase {
   id: string;
@@ -61,7 +61,7 @@ export function TestResultsPanel({
   if (testResults.length === 0) {
     return (
       <Card className="border-dashed">
-        <CardContent className="flex flex-col items-center justify-center py-12">
+        <CardContent className="flex flex-col items-center justify-center p-8">
           <AlertCircle className="w-12 h-12 text-muted-foreground/50 mb-4" />
           <p className="text-muted-foreground text-center">
             Run your code to see test results
@@ -164,6 +164,9 @@ export function TestResultsPanel({
               transition={{ delay: index * 0.05 }}
             >
               <Card
+                role="button"
+                tabIndex={0}
+                aria-expanded={expandedTestIds.has(test.id)}
                 className={cn(
                   "cursor-pointer transition-colors hover:bg-muted/50",
                   test.passed
@@ -178,6 +181,18 @@ export function TestResultsPanel({
                     newExpanded.add(test.id);
                   }
                   setExpandedTestIds(newExpanded);
+                }}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" || e.key === " ") {
+                    e.preventDefault();
+                    const newExpanded = new Set(expandedTestIds);
+                    if (newExpanded.has(test.id)) {
+                      newExpanded.delete(test.id);
+                    } else {
+                      newExpanded.add(test.id);
+                    }
+                    setExpandedTestIds(newExpanded);
+                  }
                 }}
               >
                 <CardHeader className="pb-3">
@@ -230,7 +245,7 @@ export function TestResultsPanel({
                           <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
                             Input
                           </label>
-                          <code className="block mt-2 p-3 bg-muted rounded text-sm font-mono overflow-auto max-h-24">
+                          <code className="block mt-2 p-3 bg-muted rounded text-sm font-mono overflow-auto max-h-24 whitespace-pre-wrap">
                             {test.input}
                           </code>
                         </div>
@@ -240,7 +255,7 @@ export function TestResultsPanel({
                           <label className="text-xs font-semibold text-green-600 dark:text-green-400 uppercase tracking-wide">
                             Expected Output
                           </label>
-                          <code className="block mt-2 p-3 bg-green-50 dark:bg-green-950/20 border border-green-200 dark:border-green-900/30 rounded text-sm font-mono overflow-auto max-h-24">
+                          <code className="block mt-2 p-3 bg-green-50 dark:bg-green-950/20 border border-green-200 dark:border-green-900/30 rounded text-sm font-mono overflow-auto max-h-24 whitespace-pre-wrap">
                             {test.expectedOutput}
                           </code>
                         </div>
@@ -260,7 +275,7 @@ export function TestResultsPanel({
                             </label>
                             <code
                               className={cn(
-                                "block mt-2 p-3 rounded text-sm font-mono overflow-auto max-h-24",
+                                "block mt-2 p-3 rounded text-sm font-mono overflow-auto max-h-24 whitespace-pre-wrap",
                                 test.passed
                                   ? "bg-green-50 dark:bg-green-950/20 border border-green-200 dark:border-green-900/30"
                                   : "bg-red-50 dark:bg-red-950/20 border border-red-200 dark:border-red-900/30",

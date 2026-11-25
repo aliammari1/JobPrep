@@ -1,558 +1,396 @@
 "use client";
 
-import { useState } from "react";
-import Link from "next/link";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { motion } from "framer-motion";
-import {
-  Brain,
-  Code2,
-  Video,
-  BarChart3,
-  Users,
+  ArrowRight,
+  BookOpen,
   Calendar,
-  Zap,
-  Target,
-  CheckCircle,
-  Star,
+  Check,
+  Code2,
+  FileEdit,
+  FileText,
+  Gauge,
+  Globe,
+  Headphones,
+  MessageSquare,
   Mic,
   Monitor,
-  BookOpen,
-  Award,
   Play,
-  ArrowRight,
-  Sparkles,
-  TrendingUp,
-  Clock,
-  MessageSquare,
   Shield,
-  FileText,
-  Headphones,
-  Globe,
-  Settings,
+  Target,
+  Users,
+  Video,
 } from "lucide-react";
+import Link from "next/link";
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 const featureCategories = [
-  {
-    id: "ai-powered",
-    label: "AI-Powered",
-    icon: Brain,
-    color: "from-purple-500 to-pink-500",
-  },
-  {
-    id: "interview-formats",
-    label: "Interview Formats",
-    icon: Video,
-    color: "from-blue-500 to-cyan-500",
-  },
-  {
-    id: "analytics",
-    label: "Analytics & Insights",
-    icon: BarChart3,
-    color: "from-green-500 to-emerald-500",
-  },
-  {
-    id: "collaboration",
-    label: "Collaboration",
-    icon: Users,
-    color: "from-orange-500 to-red-500",
-  },
+  { id: "practice", label: "AI Practice", icon: Target },
+  { id: "formats", label: "Interview Formats", icon: Video },
+  { id: "documents", label: "Career Studio", icon: FileEdit },
+  { id: "workflow", label: "Planning & Review", icon: Calendar },
 ];
 
 const features = {
-  "ai-powered": [
+  practice: [
     {
-      title: "Adaptive Prep Coach",
+      title: "Mock Interview Simulator",
       description:
-        "Get personalized interview coaching that evolves with your progress. Our AI analyzes your performance and creates dynamic practice plans tailored to your skill gaps.",
-      icon: Target,
+        "Rehearse behavioral, technical, and leadership interviews with structured follow-up questions calibrated to your target role.",
+      icon: Gauge,
+      href: "/mock-interview",
       benefits: [
-        "Personalized learning paths",
-        "Real-time skill gap analysis",
-        "Adaptive difficulty levels",
-        "Custom practice schedules",
+        "Role- and seniority-specific question sets",
+        "Voice or text response capture",
+        "Structured rubric scoring per answer",
+        "Actionable improvement notes after each turn",
       ],
-      stats: { label: "Improvement Rate", value: "85%" },
     },
     {
-      title: "AI Interview Bot",
+      title: "AI Question Bank",
       description:
-        "Practice with an intelligent AI interviewer that mimics real interview scenarios. Get instant feedback and improve your responses in a safe environment.",
-      icon: Brain,
+        "Generate focused question sets directly from a job description or competency area so every drill targets real gaps.",
+      icon: BookOpen,
+      href: "/mock-interview/questions",
       benefits: [
-        "Natural conversation flow",
-        "Industry-specific questions",
-        "Behavioral question analysis",
-        "Technical deep-dives",
+        "Technical and behavioral tracks",
+        "Ideal answer outlines and key points",
+        "Difficulty calibration by level",
+        "Reusable saved templates",
       ],
-      stats: { label: "Practice Sessions", value: "50K+" },
     },
     {
       title: "Smart Feedback Engine",
       description:
-        "Receive comprehensive, actionable feedback on every aspect of your interview performance, from technical accuracy to communication style.",
+        "Inspect every response across clarity, structure, technical accuracy, and pacing — without vague generic praise.",
       icon: MessageSquare,
+      href: "/mock-interview",
       benefits: [
-        "Answer quality scoring",
-        "Communication insights",
-        "Body language analysis",
-        "Tone and pace feedback",
+        "Key points covered vs. missed",
+        "STAR narrative pacing cues",
+        "Concrete phrasing suggestions",
+        "Session-over-session comparison",
       ],
-      stats: { label: "Feedback Points", value: "100+" },
     },
     {
-      title: "Performance Predictions",
+      title: "BYOK & Local Models",
       description:
-        "AI-powered predictions help you understand your readiness level and identify areas that need more practice before the real interview.",
-      icon: TrendingUp,
+        "Connect your own Anthropic, OpenAI, or Gemini key, or point JobPrep at a local Ollama model for completely offline prep.",
+      icon: Shield,
+      href: "/dashboard",
       benefits: [
-        "Readiness scoring",
-        "Confidence tracking",
-        "Success probability",
-        "Improvement trends",
+        "Zero vendor lock-in",
+        "Full offline support via Ollama",
+        "Transparent provider selection",
+        "Export or purge session history anytime",
       ],
-      stats: { label: "Accuracy Rate", value: "92%" },
     },
   ],
-  "interview-formats": [
+  formats: [
     {
-      title: "Video Interviews",
+      title: "Interactive Interview Room",
       description:
-        "Full-featured video interview platform with HD recording, screen sharing, and real-time collaboration tools for the complete interview experience.",
+        "Simulate real remote panels with video, screen sharing, collaborative whiteboard, and live session controls.",
       icon: Video,
+      href: "/interview-room",
       benefits: [
-        "HD video & audio",
-        "Screen sharing",
-        "Live transcription",
+        "Real-time audio & video rooms",
+        "Screen sharing and whiteboard",
         "Multi-participant support",
+        "In-session evaluation notes",
       ],
-      stats: { label: "Video Quality", value: "1080p" },
     },
     {
-      title: "Voice Interviews",
+      title: "Code Challenge Arena",
       description:
-        "Perfect your phone interview skills with voice-only practice sessions. Focus on verbal communication without visual distractions.",
-      icon: Mic,
-      benefits: [
-        "Phone interview simulation",
-        "Voice clarity analysis",
-        "Pace & rhythm feedback",
-        "Filler word detection",
-      ],
-      stats: { label: "Voice Sessions", value: "25K+" },
-    },
-    {
-      title: "Code Challenges",
-      description:
-        "Real-time coding environment supporting 15+ programming languages with instant execution, debugging tools, and performance metrics.",
+        "Practice timed algorithmic and practical coding problems in a clean editor with syntax highlighting and test output.",
       icon: Code2,
+      href: "/code-challenge",
       benefits: [
-        "15+ languages supported",
-        "Real-time code execution",
-        "Built-in debugger",
-        "Performance profiling",
+        "JavaScript, Python, Java, and C++ support",
+        "Instant test case verification",
+        "Clean split-pane problem & editor layout",
+        "Time-boxed practice mode",
       ],
-      stats: { label: "Code Runs", value: "100K+" },
     },
     {
-      title: "Mock Simulator",
+      title: "Voice & Spoken Rehearsal",
       description:
-        "Experience realistic interview pressure with our advanced simulator that replicates actual interview conditions and time constraints.",
+        "Practice answering out loud to sharpen cadence, eliminate filler habits, and build calm delivery under time pressure.",
+      icon: Mic,
+      href: "/mock-interview",
+      benefits: [
+        "Speech-to-text transcription",
+        "Spoken clarity and structure review",
+        "Hands-free phone-screen rehearsal",
+        "Review transcripts alongside scores",
+      ],
+    },
+    {
+      title: "Timed Loop Simulation",
+      description:
+        "Run end-to-end interview loops with realistic time constraints so the actual interview feels familiar.",
       icon: Monitor,
+      href: "/mock-interview",
       benefits: [
-        "Realistic time pressure",
-        "Randomized questions",
-        "Stress level monitoring",
-        "Performance under pressure",
+        "Per-question countdown timers",
+        "Randomized follow-up probes",
+        "Full-session summary report",
+        "Saved history for later review",
       ],
-      stats: { label: "Completion Rate", value: "94%" },
     },
   ],
-  analytics: [
+  documents: [
     {
-      title: "Performance Analytics",
+      title: "CV & Resume Builder",
       description:
-        "Comprehensive performance tracking with detailed metrics, trends, and insights to help you understand and improve your interview skills.",
-      icon: BarChart3,
+        "Compose crisp, ATS-readable resumes with live preview, reorderable sections, and one-click PDF export.",
+      icon: FileEdit,
+      href: "/cv-builder",
       benefits: [
-        "Progress tracking",
-        "Skill heat maps",
-        "Performance trends",
-        "Comparative analytics",
+        "Multiple clean editorial templates",
+        "Real-time visual preview",
+        "Import existing resumes (PDF / DOCX)",
+        "AI-assisted bullet refinement",
       ],
-      stats: { label: "Data Points", value: "500+" },
     },
     {
-      title: "Interview Insights",
+      title: "Cover Letter Generator",
       description:
-        "Deep dive into your interview data with AI-powered insights that reveal patterns, strengths, and opportunities for improvement.",
-      icon: Sparkles,
-      benefits: [
-        "Pattern recognition",
-        "Strength identification",
-        "Weakness analysis",
-        "Actionable recommendations",
-      ],
-      stats: { label: "Insights Generated", value: "10K+" },
-    },
-    {
-      title: "Skill Assessment",
-      description:
-        "Comprehensive evaluation across technical and soft skills with industry benchmarking to see how you stack up against peers.",
-      icon: Award,
-      benefits: [
-        "Technical skill scoring",
-        "Soft skills evaluation",
-        "Industry benchmarks",
-        "Certification readiness",
-      ],
-      stats: { label: "Skills Assessed", value: "200+" },
-    },
-    {
-      title: "Progress Reports",
-      description:
-        "Beautiful, shareable progress reports that showcase your improvement journey and highlight your strengths to potential employers.",
+        "Draft grounded, role-specific cover letters tied directly to your actual experience and the target job description.",
       icon: FileText,
+      href: "/cover-letter",
       benefits: [
-        "PDF export",
-        "Share with employers",
-        "Achievement badges",
-        "Timeline visualization",
+        "Tailored to specific job postings",
+        "Tone and length controls",
+        "Clean copy & export workflow",
+        "No fabricated claims",
       ],
-      stats: { label: "Reports Generated", value: "15K+" },
     },
   ],
-  collaboration: [
-    {
-      title: "Team Evaluation",
-      description:
-        "Collaborative interview evaluation with multiple reviewers, consensus building, and shared decision-making for hiring teams.",
-      icon: Users,
-      benefits: [
-        "Multi-reviewer support",
-        "Consensus building",
-        "Score aggregation",
-        "Decision workflows",
-      ],
-      stats: { label: "Team Members", value: "5K+" },
-    },
+  workflow: [
     {
       title: "Interview Scheduler",
       description:
-        "Smart scheduling with calendar integration, automated reminders, and timezone handling for seamless interview coordination.",
+        "Organize upcoming mock sessions and real company loops with calendar exports and prep reminders.",
       icon: Calendar,
+      href: "/interview-scheduler",
       benefits: [
-        "Calendar sync",
-        "Automated reminders",
-        "Timezone conversion",
-        "Availability matching",
+        "Calendar sync and iCal export",
+        "Structured pre-interview checklists",
+        "Clear upcoming timeline",
+        "Timezone-safe scheduling",
       ],
-      stats: { label: "Interviews Scheduled", value: "30K+" },
     },
     {
-      title: "Replay Center",
+      title: "Recordings & Replay",
       description:
-        "Review past interviews with advanced playback controls, annotations, and timestamp markers for detailed analysis.",
+        "Revisit past interview recordings to spot habits, refine explanations, and track tangible progress over time.",
       icon: Play,
+      href: "/recordings",
       benefits: [
-        "Playback controls",
-        "Annotation tools",
-        "Timestamp markers",
-        "Clip sharing",
+        "Organized session archive",
+        "Quick playback and review",
+        "Paired with rubric evaluations",
+        "Private to your workspace",
       ],
-      stats: { label: "Hours Recorded", value: "10K+" },
     },
     {
-      title: "Question Builder",
+      title: "Team & Peer Practice",
       description:
-        "Create and manage custom interview questions with templates, categories, and difficulty levels for consistent interviewing.",
-      icon: BookOpen,
+        "Coordinate mock interviews with peers, mentors, or hiring teams in shared rooms with structured rubrics.",
+      icon: Users,
+      href: "/settings/team",
       benefits: [
-        "Custom questions",
-        "Question templates",
-        "Category organization",
-        "Difficulty ratings",
+        "Shared workspace management",
+        "Consistent evaluation criteria",
+        "Role-based access controls",
+        "Clean review handoff",
       ],
-      stats: { label: "Questions Created", value: "50K+" },
     },
   ],
 };
 
-const containerVariants = {
-  hidden: { opacity: 0 },
-  visible: {
-    opacity: 1,
-    transition: {
-      staggerChildren: 0.1,
-    },
+const INTEGRATIONS = [
+  {
+    icon: Calendar,
+    title: "Calendar Sync",
+    description: "Google Calendar and standard iCal export for interview loops.",
   },
-};
-
-const itemVariants = {
-  hidden: { opacity: 0, y: 20 },
-  visible: { opacity: 1, y: 0 },
-};
+  {
+    icon: Video,
+    title: "LiveKit Rooms",
+    description: "Low-latency video, audio, and screen sharing built in.",
+  },
+  {
+    icon: Shield,
+    title: "Passkeys & 2FA",
+    description: "Modern Better Auth security with passkeys, TOTP, and sessions.",
+  },
+  {
+    icon: Globe,
+    title: "Multi-Provider AI",
+    description: "Switch freely between Anthropic, OpenAI, Gemini, or Ollama.",
+  },
+  {
+    icon: FileText,
+    title: "PDF & Document Import",
+    description: "Import existing CVs and export print-ready PDFs cleanly.",
+  },
+  {
+    icon: Headphones,
+    title: "Self-Hostable Stack",
+    description: "Standard Next.js + PostgreSQL deployment with Docker Compose.",
+  },
+];
 
 export default function FeaturesPage() {
-  const [activeTab, setActiveTab] = useState("ai-powered");
+  const [activeTab, setActiveTab] = useState("practice");
 
   return (
-    <div className="flex flex-col min-h-screen">
-      {/* Hero Section */}
-      <section className="relative pt-20 pb-16 px-4 sm:px-8 md:px-12 overflow-hidden">
-        <div className="absolute inset-0 -z-10 bg-linear-to-br from-primary/10 via-primary/5 to-transparent" />
-        <div className="absolute inset-0 -z-10 bg-grid-white/10" />
-
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
-          className="max-w-5xl mx-auto text-center"
-        >
-          <Badge
-            variant="outline"
-            className="mb-6 backdrop-blur-sm border-primary/20"
-          >
-            <Sparkles className="h-3 w-3 mr-1" />
-            Complete Feature Set
-          </Badge>
-          <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold tracking-tight bg-linear-to-b from-foreground via-foreground to-foreground/70 bg-clip-text text-transparent">
-            Everything You Need to Excel
-          </h1>
-          <p className="mt-6 text-lg md:text-xl text-muted-foreground max-w-3xl mx-auto leading-relaxed">
-            Our comprehensive platform provides cutting-edge tools and
-            AI-powered insights to transform your interview preparation
-            experience.
-          </p>
-
-          {/* Stats Bar */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.2, duration: 0.5 }}
-            className="mt-12 grid grid-cols-2 md:grid-cols-4 gap-6 max-w-4xl mx-auto"
-          >
-            {[
-              { label: "Active Features", value: "50+" },
-              { label: "AI Models", value: "12" },
-              { label: "Integrations", value: "25+" },
-              { label: "Languages", value: "15+" },
-            ].map((stat) => (
-              <div key={stat.label} className="text-center">
-                <div className="text-3xl md:text-4xl font-bold text-primary">
-                  {stat.value}
-                </div>
-                <div className="text-sm text-muted-foreground mt-1">
-                  {stat.label}
-                </div>
-              </div>
-            ))}
-          </motion.div>
-        </motion.div>
+    <div className="flex flex-col">
+      {/* Header */}
+      <section className="border-b border-border/80 bg-background">
+        <div className="mx-auto max-w-6xl px-4 py-16 sm:px-6 sm:py-24 lg:px-8">
+          <div className="max-w-3xl">
+            <h1 className="font-display text-4xl font-bold leading-[1.08] tracking-[-0.025em] text-foreground sm:text-5xl">
+              Practical tools for every stage of your job search
+            </h1>
+            <p className="mt-5 text-base leading-relaxed text-muted-foreground sm:text-lg">
+              From daily mock drills and coding challenges to live video rooms
+              and ATS-ready resumes — designed to work together without clutter.
+            </p>
+          </div>
+        </div>
       </section>
 
-      {/* Feature Categories Tabs */}
-      <section className="px-4 sm:px-8 md:px-12 py-16 bg-muted/50">
-        <div className="max-w-7xl mx-auto">
+      {/* Categorized Capabilities */}
+      <section className="border-b border-border bg-muted/35 py-16 sm:py-20">
+        <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
           <Tabs
             value={activeTab}
             onValueChange={setActiveTab}
             className="w-full"
           >
-            <TabsList className="grid w-full grid-cols-2 lg:grid-cols-4 mb-12 h-auto gap-2">
+            <TabsList className="mb-10 grid h-auto w-full grid-cols-2 gap-1.5 rounded-xl border border-border bg-card p-1.5 sm:grid-cols-4">
               {featureCategories.map((category) => (
                 <TabsTrigger
                   key={category.id}
                   value={category.id}
-                  className="flex flex-col items-center gap-2 py-4 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
+                  className="flex items-center justify-center gap-2 rounded-lg py-2.5 text-sm font-medium data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
                 >
-                  <category.icon className="h-5 w-5" />
-                  <span className="text-xs sm:text-sm font-medium">
-                    {category.label}
-                  </span>
+                  <category.icon className="size-4" />
+                  <span>{category.label}</span>
                 </TabsTrigger>
               ))}
             </TabsList>
 
             {Object.entries(features).map(([categoryId, categoryFeatures]) => (
               <TabsContent key={categoryId} value={categoryId}>
-                <motion.div
-                  variants={containerVariants}
-                  initial="hidden"
-                  animate="visible"
-                  className="grid gap-6 md:grid-cols-2"
-                >
-                  {categoryFeatures.map((feature, idx) => (
-                    <motion.div
-                      key={`${categoryId}-${idx}`}
-                      variants={itemVariants}
+                <div className="grid gap-5 md:grid-cols-2">
+                  {categoryFeatures.map((feature) => (
+                    <div
+                      key={feature.title}
+                      className="flex flex-col justify-between rounded-2xl border border-border bg-card p-6 transition-colors hover:border-primary/50 sm:p-7"
                     >
-                      <Card className="h-full hover:shadow-xl transition-all duration-300 border-2 hover:border-primary/50 group">
-                        <CardHeader>
-                          <div className="flex items-start justify-between mb-4">
-                            <div className="p-3 rounded-xl bg-linear-to-br from-primary/10 to-primary/5 group-hover:from-primary/20 group-hover:to-primary/10 transition-all">
-                              <feature.icon className="h-6 w-6 text-primary" />
-                            </div>
-                            <Badge
-                              variant="secondary"
-                              className="font-mono text-xs"
+                      <div>
+                        <div className="grid size-9 place-items-center rounded-lg border border-primary/15 bg-accent text-accent-foreground">
+                          <feature.icon className="size-4" />
+                        </div>
+                        <h2 className="mt-4 font-display text-xl font-semibold tracking-tight text-foreground">
+                          {feature.title}
+                        </h2>
+                        <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
+                          {feature.description}
+                        </p>
+                        <ul className="mt-5 space-y-2 border-t border-border pt-4">
+                          {feature.benefits.map((benefit) => (
+                            <li
+                              key={benefit}
+                              className="flex items-start gap-2 text-sm text-foreground/85"
                             >
-                              {feature.stats.label}
-                              <span className="ml-2 font-bold text-primary">
-                                {feature.stats.value}
-                              </span>
-                            </Badge>
-                          </div>
-                          <CardTitle className="text-xl group-hover:text-primary transition-colors">
-                            {feature.title}
-                          </CardTitle>
-                          <CardDescription className="text-base leading-relaxed mt-2">
-                            {feature.description}
-                          </CardDescription>
-                        </CardHeader>
-                        <CardContent>
-                          <div className="space-y-2 mb-4">
-                            {feature.benefits.map((benefit, benefitIdx) => (
-                              <div
-                                key={benefitIdx}
-                                className="flex items-center gap-2 text-sm"
-                              >
-                                <CheckCircle className="h-4 w-4 text-primary shrink-0" />
-                                <span className="text-muted-foreground">
-                                  {benefit}
-                                </span>
-                              </div>
-                            ))}
-                          </div>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            className="w-full group-hover:bg-primary group-hover:text-primary-foreground transition-all"
-                          >
-                            Learn More
-                            <ArrowRight className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform" />
-                          </Button>
-                        </CardContent>
-                      </Card>
-                    </motion.div>
+                              <Check className="mt-0.5 size-4 shrink-0 text-primary" />
+                              <span>{benefit}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                      <div className="mt-6 pt-2">
+                        <Link
+                          href={feature.href}
+                          className="inline-flex items-center gap-1.5 text-sm font-semibold text-primary hover:underline"
+                        >
+                          Open workspace
+                          <ArrowRight className="size-3.5" />
+                        </Link>
+                      </div>
+                    </div>
                   ))}
-                </motion.div>
+                </div>
               </TabsContent>
             ))}
           </Tabs>
         </div>
       </section>
 
-      {/* Integration Section */}
-      <section className="px-4 sm:px-8 md:px-12 py-16">
-        <div className="max-w-6xl mx-auto">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl md:text-4xl font-bold mb-4">
-              Seamless Integrations
-            </h2>
-            <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-              Connect with your favorite tools and platforms for a unified
-              workflow
-            </p>
-          </div>
+      {/* Architecture & Integrations */}
+      <section className="mx-auto w-full max-w-6xl px-4 py-20 sm:px-6 sm:py-24 lg:px-8">
+        <div className="mb-12 max-w-2xl">
+          <h2 className="font-display text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
+            Built to fit your workflow
+          </h2>
+          <p className="mt-2 text-base text-muted-foreground">
+            Standard protocols, modern authentication, and pluggable AI
+            providers.
+          </p>
+        </div>
 
-          <div className="grid md:grid-cols-3 gap-6">
-            {[
-              {
-                icon: Calendar,
-                title: "Calendar Sync",
-                description:
-                  "Google Calendar, Outlook, and Apple Calendar integration",
-              },
-              {
-                icon: Video,
-                title: "Video Platforms",
-                description: "Zoom, Teams, and Meet for virtual interviews",
-              },
-              {
-                icon: Shield,
-                title: "SSO & Security",
-                description:
-                  "Enterprise-grade authentication and data protection",
-              },
-              {
-                icon: Globe,
-                title: "ATS Integration",
-                description: "Connect with major applicant tracking systems",
-              },
-              {
-                icon: FileText,
-                title: "Export & Reports",
-                description: "PDF, CSV, and API access for custom workflows",
-              },
-              {
-                icon: Headphones,
-                title: "24/7 Support",
-                description: "Dedicated support team and comprehensive docs",
-              },
-            ].map((integration) => (
-              <Card
-                key={integration.title}
-                className="text-center hover:shadow-lg transition-shadow"
-              >
-                <CardHeader>
-                  <div className="mx-auto p-4 rounded-full bg-primary/10 w-fit mb-4">
-                    <integration.icon className="h-6 w-6 text-primary" />
-                  </div>
-                  <CardTitle className="text-lg">{integration.title}</CardTitle>
-                  <CardDescription>{integration.description}</CardDescription>
-                </CardHeader>
-              </Card>
-            ))}
-          </div>
+        <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+          {INTEGRATIONS.map((item) => (
+            <div
+              key={item.title}
+              className="rounded-2xl border border-border bg-card p-6"
+            >
+              <div className="grid size-9 place-items-center rounded-lg border border-primary/15 bg-accent text-accent-foreground">
+                <item.icon className="size-4" />
+              </div>
+              <h3 className="mt-4 font-display text-lg font-semibold tracking-tight text-foreground">
+                {item.title}
+              </h3>
+              <p className="mt-1.5 text-sm leading-relaxed text-muted-foreground">
+                {item.description}
+              </p>
+            </div>
+          ))}
         </div>
       </section>
 
-      {/* CTA Section */}
-      <section className="px-4 sm:px-8 md:px-12 py-20 bg-linear-to-br from-primary/10 via-primary/5 to-transparent">
-        <div className="max-w-4xl mx-auto text-center">
-          <motion.div
-            initial={{ opacity: 0, scale: 0.95 }}
-            whileInView={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.5 }}
-            viewport={{ once: true }}
-          >
-            <h2 className="text-3xl md:text-5xl font-bold mb-6">
-              Ready to Experience the Difference?
-            </h2>
-            <p className="text-lg md:text-xl text-muted-foreground mb-8">
-              Join thousands of successful candidates who transformed their
-              interview skills
-            </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Button asChild size="lg" className="text-lg px-8">
+      {/* Closing CTA */}
+      <section className="border-t border-border bg-muted/25">
+        <div className="mx-auto max-w-6xl px-4 py-20 sm:px-6 lg:px-8">
+          <div className="flex flex-col items-start justify-between gap-8 lg:flex-row lg:items-center">
+            <div className="max-w-xl">
+              <h2 className="font-display text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
+                Start practicing in minutes
+              </h2>
+              <p className="mt-3 text-base text-muted-foreground">
+                Create a free account to access mock interviews, coding
+                challenges, and the CV Builder — no credit card required.
+              </p>
+            </div>
+            <div className="flex flex-wrap items-center gap-3">
+              <Button asChild size="lg" className="h-11 px-6">
                 <Link href="/sign-up">
-                  Start Free Trial
-                  <ArrowRight className="ml-2 h-5 w-5" />
+                  Get started free
+                  <ArrowRight className="size-4" />
                 </Link>
               </Button>
-              <Button
-                asChild
-                variant="outline"
-                size="lg"
-                className="text-lg px-8"
-              >
-                <Link href="/pricing">View Pricing</Link>
+              <Button asChild variant="outline" size="lg" className="h-11 px-5">
+                <Link href="/pricing">View pricing</Link>
               </Button>
             </div>
-            <p className="mt-6 text-sm text-muted-foreground">
-              No credit card required • 14-day free trial • Cancel anytime
-            </p>
-          </motion.div>
+          </div>
         </div>
       </section>
     </div>

@@ -1,19 +1,20 @@
 "use client";
 
-import { useState, useRef } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
+import { AnimatePresence, motion } from "framer-motion";
 import {
+  AlertTriangle,
+  CheckCircle2,
   ChevronLeft,
   ChevronRight,
-  CheckCircle2,
-  AlertTriangle,
-  Lightbulb,
   GripHorizontal,
+  Lightbulb,
   X,
 } from "lucide-react";
+import { useRef, useState } from "react";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { ExpandableText } from "@/components/ui/expandable-text";
 
 interface QuestionResult {
   question: {
@@ -172,7 +173,7 @@ export function SwipeableResultsCard({
         {/* Swipeable Card Container */}
         <div
           ref={containerRef}
-          className="relative h-[600px] cursor-grab active:cursor-grabbing bg-white dark:bg-slate-900 rounded-lg"
+          className="relative h-[70vh] max-h-[600px] min-h-[420px] cursor-grab active:cursor-grabbing bg-white dark:bg-slate-900 rounded-lg"
           onMouseDown={handleMouseDown}
           onMouseMove={handleMouseMove}
           onMouseUp={handleMouseUp}
@@ -235,9 +236,10 @@ export function SwipeableResultsCard({
               <div className="space-y-3">
                 <h3 className="font-semibold text-foreground">✍️ Your Answer</h3>
                 <div className="p-4 bg-blue-50 dark:bg-blue-950/30 rounded-lg border-l-4 border-blue-600">
-                  <p className="text-foreground leading-relaxed whitespace-pre-wrap text-sm line-clamp-6">
-                    {currentResult?.userAnswer || "No answer provided"}
-                  </p>
+                  <ExpandableText
+                    text={currentResult?.userAnswer || "No answer provided"}
+                    className="text-foreground"
+                  />
                 </div>
               </div>
 
@@ -247,10 +249,13 @@ export function SwipeableResultsCard({
                   ✅ Ideal Answer
                 </h3>
                 <div className="p-4 bg-green-50 dark:bg-green-950/30 rounded-lg border-l-4 border-green-600">
-                  <p className="text-foreground leading-relaxed whitespace-pre-wrap text-sm line-clamp-6">
-                    {currentResult?.question?.idealAnswer ||
-                      "Sample answer not available"}
-                  </p>
+                  <ExpandableText
+                    text={
+                      currentResult?.question?.idealAnswer ||
+                      "Sample answer not available"
+                    }
+                    className="text-foreground"
+                  />
                 </div>
               </div>
 
@@ -320,7 +325,7 @@ export function SwipeableResultsCard({
             disabled={currentIndex === 0}
             whileHover={{ scale: 1.1 }}
             whileTap={{ scale: 0.95 }}
-            className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-14 z-10 p-3 rounded-full bg-primary text-primary-foreground hover:bg-primary/90 disabled:opacity-40 disabled:cursor-not-allowed transition-all shadow-lg"
+            className="absolute left-2 top-1/2 -translate-y-1/2 z-10 p-3 rounded-full bg-primary text-primary-foreground hover:bg-primary/90 disabled:opacity-40 disabled:cursor-not-allowed transition-all shadow-lg sm:-translate-x-14 sm:left-0"
           >
             <ChevronLeft className="w-6 h-6" />
           </motion.button>
@@ -330,7 +335,7 @@ export function SwipeableResultsCard({
             disabled={currentIndex === interviewResults.length - 1}
             whileHover={{ scale: 1.1 }}
             whileTap={{ scale: 0.95 }}
-            className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-14 z-10 p-3 rounded-full bg-primary text-primary-foreground hover:bg-primary/90 disabled:opacity-40 disabled:cursor-not-allowed transition-all shadow-lg"
+            className="absolute right-2 top-1/2 -translate-y-1/2 z-10 p-3 rounded-full bg-primary text-primary-foreground hover:bg-primary/90 disabled:opacity-40 disabled:cursor-not-allowed transition-all shadow-lg sm:translate-x-14 sm:right-0"
           >
             <ChevronRight className="w-6 h-6" />
           </motion.button>

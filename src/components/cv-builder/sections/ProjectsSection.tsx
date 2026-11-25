@@ -1,13 +1,13 @@
 "use client";
 
-import { useCVStore } from "@/store/cv-store";
+import { Plus, Trash2, X } from "lucide-react";
+import { useState } from "react";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Card } from "@/components/ui/card";
-import { Plus, Trash2, X } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
-import { useState } from "react";
+import { useCVStore } from "@/store/cv-store";
 
 export function ProjectsSection() {
   const { cvData, addProject, updateProject, removeProject } = useCVStore();
@@ -98,13 +98,14 @@ export function ProjectsSection() {
                     variant="ghost"
                     size="icon"
                     onClick={() => removeProject(project.id)}
+                    aria-label="Remove project"
                   >
                     <Trash2 className="h-4 w-4 text-destructive" />
                   </Button>
                 </div>
 
                 <div>
-                  <Label>Project Name *</Label>
+                  <Label className="mb-2">Project Name *</Label>
                   <Input
                     value={project.name}
                     onChange={(e) =>
@@ -128,6 +129,7 @@ export function ProjectsSection() {
                           type="button"
                           onClick={() => handleRemoveBullet(project.id, idx)}
                           className="hover:text-destructive p-1"
+                          aria-label="Remove item"
                         >
                           <X className="h-4 w-4" />
                         </button>
@@ -145,7 +147,7 @@ export function ProjectsSection() {
                         })
                       }
                       placeholder="Add description bullet point"
-                      onKeyPress={(e) => {
+                      onKeyDown={(e) => {
                         if (e.key === "Enter") {
                           e.preventDefault();
                           handleAddBullet(project.id);
@@ -172,6 +174,7 @@ export function ProjectsSection() {
                           type="button"
                           onClick={() => handleRemoveTech(project.id, idx)}
                           className="ml-1 hover:text-destructive"
+                          aria-label="Remove item"
                         >
                           <X className="h-3 w-3" />
                         </button>
@@ -189,7 +192,7 @@ export function ProjectsSection() {
                         })
                       }
                       placeholder="Add technology"
-                      onKeyPress={(e) => {
+                      onKeyDown={(e) => {
                         if (e.key === "Enter") {
                           e.preventDefault();
                           handleAddTech(project.id);
@@ -208,7 +211,7 @@ export function ProjectsSection() {
 
                 <div className="grid gap-4 md:grid-cols-2">
                   <div>
-                    <Label>Live URL</Label>
+                    <Label className="mb-2">Live URL</Label>
                     <Input
                       value={project.url}
                       onChange={(e) =>
@@ -219,7 +222,7 @@ export function ProjectsSection() {
                   </div>
 
                   <div>
-                    <Label>GitHub URL</Label>
+                    <Label className="mb-2">GitHub URL</Label>
                     <Input
                       value={project.github}
                       onChange={(e) =>

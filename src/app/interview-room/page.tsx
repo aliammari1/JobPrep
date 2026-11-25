@@ -1,5 +1,6 @@
 "use client";
 
+import dynamic from "next/dynamic";
 import { useState, useEffect, useRef, useCallback } from "react";
 import {
   Card,
@@ -52,7 +53,6 @@ import {
   Check,
   Plus,
   LogIn,
-  Sparkles,
   Mic,
   MicOff,
   Videotape,
@@ -68,12 +68,6 @@ import { cn } from "@/lib/utils";
 import { useInterviewStore } from "@/hooks/use-interview-store";
 import { useAITranscription } from "@/hooks/use-ai-transcription";
 import { useSession } from "@/lib/auth-client";
-import {
-  LiveKitRoom,
-  VideoConference,
-  RoomAudioRenderer,
-} from "@livekit/components-react";
-import "@livekit/components-styles";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -92,6 +86,22 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+
+const InterviewLiveKitConference = dynamic(
+  () =>
+    import("@/components/interview/interview-livekit-conference").then(
+      (m) => m.InterviewLiveKitConference,
+    ),
+  {
+    ssr: false,
+    loading: () => (
+      <div className="flex h-[50vh] items-center justify-center text-muted-foreground">
+        <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+        Loading video…
+      </div>
+    ),
+  },
+);
 
 /**
  * Render the InterviewRoom UI and manage room lifecycle, media setup, real-time chat/files, browser recording, AI transcription/insights, and interview persistence.
@@ -278,8 +288,12 @@ export default function InterviewRoom() {
       setIsLoadingToken(false);
     };
 
-    if (!isLoadingSession && session?.user) {
-      initializeRoom();
+    if (!isLoadingSession) {
+      if (session?.user) {
+        initializeRoom();
+      } else {
+        setIsLoadingToken(false);
+      }
     }
   }, [isLoadingSession, session, hasJoined]);
 
@@ -318,7 +332,12 @@ export default function InterviewRoom() {
   }, [hasJoined, roomName, session]);
 
   // Handle joining room from form
-  const handleJoinRoom = async () => {
+  const handleJoinRoom = async (
+    overrideMode?: "create" | "join",
+    overrideRoomName?: string,
+  ) => {
+    const activeMode = overrideMode ?? joinMode;
+
     // Check media permissions first
     if (!hasMediaPermissions && !mediaPermissionsChecked) {
       toast.error("Please test your media setup first", {
@@ -338,15 +357,16 @@ export default function InterviewRoom() {
 
     // Validate room name based on mode
     let finalRoomName: string;
-    if (joinMode === "create") {
-      finalRoomName = generatedRoomCode || generateRoomName();
+    if (activeMode === "create") {
+      finalRoomName = overrideRoomName || generatedRoomCode || generateRoomName();
     } else {
+      const candidateRoom = overrideRoomName ?? formRoomName;
       // Join mode - must have a room code
-      if (!formRoomName || !formRoomName.trim()) {
+      if (!candidateRoom || !candidateRoom.trim()) {
         toast.error("Please enter or paste the room code");
         return;
       }
-      finalRoomName = formRoomName.trim();
+      finalRoomName = candidateRoom.trim();
     }
 
     setRoomName(finalRoomName);
@@ -380,7 +400,7 @@ export default function InterviewRoom() {
         );
 
         // Persist interview to database if user is logged in and creating a room
-        if (session?.user?.id && joinMode === "create") {
+        if (session?.user?.id && activeMode === "create") {
           try {
             const interviewResponse = await fetch("/api/interviews", {
               method: "POST",
@@ -410,7 +430,7 @@ export default function InterviewRoom() {
         }
 
         toast.success(
-          `${joinMode === "create" ? "Room created" : "Joined room"} successfully!`,
+          `${activeMode === "create" ? "Room created" : "Joined room"} successfully!`,
         );
       } else {
         const error = await response.text();
@@ -435,24 +455,13 @@ export default function InterviewRoom() {
   };
 
   const handleShareViaEmail = () => {
-    console.log("handleShareViaEmail called");
-    console.log("showEmailDialog before:", showEmailDialog);
-    console.log("generatedRoomCode:", generatedRoomCode);
-    console.log("roomName:", roomName);
-
     const roomCode = generatedRoomCode || roomName || generateRoomName();
     const roomLink = `${window.location.origin}/interview-room?room=${roomCode}&name=`;
-
-    console.log("roomCode:", roomCode);
-    console.log("roomLink:", roomLink);
 
     // Pre-fill the message
     const message = `Hi,\n\nYou're invited to join an interview room.\n\nRoom Code: ${roomCode}\nRoom Link: ${roomLink}\n\nClick the link above or enter the room code to join the interview room.\n\nLooking forward to speaking with you!`;
     setEmailMessage(message);
     setShowEmailDialog(true);
-
-    console.log("showEmailDialog after:", true);
-    console.log("emailMessage:", message);
   };
 
   const handleSendEmail = async () => {
@@ -1157,7 +1166,7 @@ export default function InterviewRoom() {
     return (
       <>
         {renderDialogs()}
-        <div className="min-h-screen bg-linear-to-br from-background via-background to-primary/5 flex items-center justify-center">
+        <div className="min-h-screen bg-background flex items-center justify-center">
           <Card className="max-w-md w-full mx-4">
             <CardContent className="pt-6">
               <div className="flex flex-col items-center justify-center space-y-4">
@@ -1189,12 +1198,12 @@ export default function InterviewRoom() {
     return (
       <>
         {renderDialogs()}
-        <div className="min-h-screen bg-linear-to-br from-background via-background to-primary/5 flex items-center justify-center p-4">
+        <div className="min-h-screen bg-background flex items-center justify-center p-4">
           <div className="w-full max-w-4xl space-y-6">
             {/* Header */}
             <div className="text-center space-y-3">
               <div className="inline-flex items-center gap-2 px-4 py-2 bg-primary/10 rounded-full">
-                <Sparkles className="w-4 h-4 text-primary" />
+                <Video className="w-4 h-4 text-primary" />
                 <span className="text-sm font-medium text-primary">
                   AI-Powered Interview Platform
                 </span>
@@ -1262,7 +1271,7 @@ export default function InterviewRoom() {
                     <Button
                       onClick={() => {
                         setJoinMode("create");
-                        handleJoinRoom();
+                        handleJoinRoom("create");
                       }}
                       disabled={isLoadingToken}
                       className="w-full h-11"
@@ -1293,10 +1302,7 @@ export default function InterviewRoom() {
                       <Button
                         variant="outline"
                         size="sm"
-                        onClick={() => {
-                          console.log("Email button clicked!");
-                          handleShareViaEmail();
-                        }}
+                        onClick={handleShareViaEmail}
                       >
                         <Mail className="w-4 h-4 mr-2" />
                         Email
@@ -1347,7 +1353,7 @@ export default function InterviewRoom() {
                       onKeyDown={(e) => {
                         if (e.key === "Enter") {
                           setJoinMode("join");
-                          handleJoinRoom();
+                          handleJoinRoom("join", formRoomName);
                         }
                       }}
                     />
@@ -1356,7 +1362,7 @@ export default function InterviewRoom() {
                   <Button
                     onClick={() => {
                       setJoinMode("join");
-                      handleJoinRoom();
+                      handleJoinRoom("join", formRoomName);
                     }}
                     disabled={!formRoomName.trim() || isLoadingToken}
                     className="w-full h-11"
@@ -1384,14 +1390,12 @@ export default function InterviewRoom() {
                       <div className="space-y-1">
                         {recentRooms.map((room) => (
                           <button
+                            type="button"
                             key={room}
                             onClick={() => {
                               setFormRoomName(room);
                               setJoinMode("join");
-                              // Auto-join the room
-                              setTimeout(() => {
-                                handleJoinRoom();
-                              }, 0);
+                              handleJoinRoom("join", room);
                             }}
                             className="w-full text-left px-3 py-2 text-sm font-mono bg-secondary/50 hover:bg-secondary rounded-lg transition-colors"
                           >
@@ -1542,7 +1546,7 @@ export default function InterviewRoom() {
                     </div>
                   )}
                   {isAIAnalyzing && (
-                    <div className="flex items-center gap-1 text-purple-400">
+                    <div className="flex items-center gap-1 text-primary">
                       <Brain className="w-4 h-4 animate-pulse" />
                       AI Analyzing...
                     </div>
@@ -1593,24 +1597,13 @@ export default function InterviewRoom() {
               className={`${showSettings ? "lg:col-span-3" : "lg:col-span-3"} space-y-4`}
             >
               <div className="bg-card rounded-lg p-4 h-full border border-border">
-                <LiveKitRoom
-                  video={true}
-                  audio={true}
+                <InterviewLiveKitConference
                   token={token}
                   serverUrl={serverUrl}
-                  data-lk-theme="default"
-                  style={{ height: "calc(100vh - 300px)" }}
                   onConnected={() => {
-                    console.log("Connected to room");
                     setCallDuration(0);
                   }}
-                  onDisconnected={() => {
-                    console.log("Disconnected from room");
-                  }}
                 >
-                  <VideoConference />
-                  <RoomAudioRenderer />
-
                   {/* Custom Controls */}
                   <div className="flex items-center justify-center gap-4 mt-4 p-4 bg-background rounded-lg border border-border">
                     <Button
@@ -1674,7 +1667,7 @@ export default function InterviewRoom() {
                       End Call
                     </Button>
                   </div>
-                </LiveKitRoom>
+                </InterviewLiveKitConference>
               </div>
             </div>
 
@@ -1881,7 +1874,7 @@ export default function InterviewRoom() {
                       <Card className="flex-1 bg-card border-border">
                         <CardHeader>
                           <CardTitle className="flex items-center gap-2 text-sm text-foreground">
-                            <Brain className="w-4 h-4 text-purple-400" />
+                            <Brain className="w-4 h-4 text-primary" />
                             AI Insights
                           </CardTitle>
                         </CardHeader>
@@ -2028,145 +2021,6 @@ export default function InterviewRoom() {
               )}
             </div>
           </div>
-
-          {/* End Call Confirmation Dialog */}
-          <AlertDialog
-            open={showEndCallConfirm}
-            onOpenChange={setShowEndCallConfirm}
-          >
-            <AlertDialogContent>
-              <AlertDialogHeader>
-                <AlertDialogTitle>End Interview Session?</AlertDialogTitle>
-                <AlertDialogDescription>
-                  Are you sure you want to leave this interview room?
-                  {isRecording && " Your recording will be stopped."} This
-                  action cannot be undone.
-                </AlertDialogDescription>
-              </AlertDialogHeader>
-              <AlertDialogFooter>
-                <AlertDialogCancel>Stay in Room</AlertDialogCancel>
-                <AlertDialogAction
-                  className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                  onClick={async () => {
-                    if (isRecording) {
-                      await stopLiveKitRecording();
-                    }
-
-                    // Persist interview data to database before leaving
-                    const interviewId = localStorage.getItem(
-                      `interview_${roomName}`,
-                    );
-                    if (interviewId && session?.user?.id) {
-                      try {
-                        await fetch("/api/interviews", {
-                          method: "PATCH",
-                          headers: { "Content-Type": "application/json" },
-                          body: JSON.stringify({
-                            interviewId,
-                            status: "completed",
-                            completedAt: new Date().toISOString(),
-                            duration: Math.floor(callDuration / 60), // Convert seconds to minutes
-                            ...(recordingUrl && {
-                              videoRecordingUrl: recordingUrl,
-                            }),
-                          }),
-                        });
-                        toast.success("Interview data saved successfully");
-                      } catch (error) {
-                        console.error("Failed to save interview data:", error);
-                        toast.error("Failed to save interview data");
-                      }
-                    }
-
-                    toast.info("Left interview room");
-                    // Navigate back or close
-                    window.location.href = "/dashboard";
-                  }}
-                >
-                  End Call
-                </AlertDialogAction>
-              </AlertDialogFooter>
-            </AlertDialogContent>
-          </AlertDialog>
-
-          {/* Email Invitation Dialog */}
-          <Dialog open={showEmailDialog} onOpenChange={setShowEmailDialog}>
-            <DialogContent className="sm:max-w-[500px] z-[9999]">
-              <DialogHeader>
-                <DialogTitle className="flex items-center gap-2">
-                  <Mail className="h-5 w-5" />
-                  Send Interview Invitation
-                </DialogTitle>
-                <DialogDescription>
-                  Share this interview room with others via email
-                </DialogDescription>
-              </DialogHeader>
-
-              <div className="space-y-4 py-4">
-                <div className="space-y-2">
-                  <Label htmlFor="email-recipient">Recipient Email</Label>
-                  <Input
-                    id="email-recipient"
-                    type="email"
-                    placeholder="colleague@example.com"
-                    value={emailRecipient}
-                    onChange={(e) => setEmailRecipient(e.target.value)}
-                    disabled={isSendingEmail}
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="email-message">Personal Message</Label>
-                  <Textarea
-                    id="email-message"
-                    placeholder="Add a personal message..."
-                    value={emailMessage}
-                    onChange={(e) => setEmailMessage(e.target.value)}
-                    rows={6}
-                    disabled={isSendingEmail}
-                  />
-                </div>
-
-                <div className="rounded-lg border bg-muted/50 p-3 space-y-2">
-                  <div className="flex items-center gap-2 text-sm">
-                    <Badge variant="secondary" className="font-mono">
-                      {generatedRoomCode || roomName || "Room Code"}
-                    </Badge>
-                  </div>
-                  <p className="text-xs text-muted-foreground">
-                    Recipients will receive the room code and a direct link to
-                    join
-                  </p>
-                </div>
-              </div>
-
-              <DialogFooter>
-                <Button
-                  variant="outline"
-                  onClick={() => setShowEmailDialog(false)}
-                  disabled={isSendingEmail}
-                >
-                  Cancel
-                </Button>
-                <Button
-                  onClick={handleSendEmail}
-                  disabled={isSendingEmail || !emailRecipient}
-                >
-                  {isSendingEmail ? (
-                    <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Sending...
-                    </>
-                  ) : (
-                    <>
-                      <Send className="mr-2 h-4 w-4" />
-                      Send Invitation
-                    </>
-                  )}
-                </Button>
-              </DialogFooter>
-            </DialogContent>
-          </Dialog>
         </div>
       </div>
     </>

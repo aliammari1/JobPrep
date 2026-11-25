@@ -34,7 +34,9 @@ export function ClassicTemplate({ cvData, settings }: TemplateProps) {
         </p>
 
         <div className="text-sm text-gray-600">
-          {personalInfo.email && <span>{personalInfo.email}</span>}
+          {personalInfo.email && (
+            <span className="break-all">{personalInfo.email}</span>
+          )}
           {personalInfo.phone && <span> • {personalInfo.phone}</span>}
           {personalInfo.location && <span> • {personalInfo.location}</span>}
         </div>

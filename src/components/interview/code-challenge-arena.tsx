@@ -1,10 +1,22 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
+import { AnimatePresence, motion } from "framer-motion";
+import {
+  CheckCircle2,
+  Clock,
+  Code,
+  FileText,
+  Pause,
+  Play,
+  RotateCcw,
+  Settings,
+  Terminal,
+  Zap,
+} from "lucide-react";
+import { useEffect, useState } from "react";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import {
   Select,
@@ -13,18 +25,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import {
-  Play,
-  Pause,
-  RotateCcw,
-  Settings,
-  Code,
-  FileText,
-  CheckCircle2,
-  Clock,
-  Zap,
-  Terminal,
-} from "lucide-react";
 import { cn } from "@/lib/utils";
 
 // Mock Monaco Editor (since we have it in dependencies)
@@ -98,6 +98,7 @@ interface CodeChallengeArenaProps {
   onSubmit?: (code: string, language: string) => void;
   onTest?: (code: string, language: string) => void;
   className?: string;
+  isSubmitting?: boolean;
 }
 
 export function CodeChallengeArena({
@@ -105,6 +106,7 @@ export function CodeChallengeArena({
   onSubmit,
   onTest,
   className,
+  isSubmitting = false,
 }: CodeChallengeArenaProps) {
   const [selectedLanguage, setSelectedLanguage] = useState("javascript");
   const [code, setCode] = useState("");
@@ -360,9 +362,16 @@ export function CodeChallengeArena({
                 )}
                 Run Tests
               </Button>
-              <Button onClick={handleSubmit}>
-                <CheckCircle2 className="w-4 h-4 mr-2" />
-                Submit
+              <Button
+                onClick={handleSubmit}
+                disabled={isRunning || isSubmitting}
+              >
+                {isSubmitting ? (
+                  <span className="w-4 h-4 mr-2 animate-spin rounded-full border-2 border-current border-t-transparent" />
+                ) : (
+                  <CheckCircle2 className="w-4 h-4 mr-2" />
+                )}
+                {isSubmitting ? "Submitting..." : "Submit"}
               </Button>
             </div>
           </div>

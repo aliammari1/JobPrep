@@ -1,6 +1,9 @@
 "use client";
 
+import { Plus, Trash2 } from "lucide-react";
 import { useState } from "react";
+import { toast } from "sonner";
+import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
@@ -8,12 +11,9 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { toast } from "sonner";
-import { Trash2, Plus } from "lucide-react";
 
 export interface Template {
   id: string;
@@ -211,13 +211,18 @@ export function TemplateManager({
                     variant="ghost"
                     size="sm"
                     onClick={() => handleDeleteTemplate(template.id)}
+                    aria-label="Delete template"
+                    title="Delete template"
                     className="h-6 w-6 p-0"
                   >
                     <Trash2 className="w-3 h-3" />
                   </Button>
                 )}
               </div>
-              <p className="text-xs text-muted-foreground mb-2 line-clamp-2">
+              <p
+                className="text-xs text-muted-foreground mb-2 line-clamp-2"
+                title={template.content}
+              >
                 {template.content}
               </p>
               <Button

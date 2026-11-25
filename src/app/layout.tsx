@@ -1,20 +1,42 @@
 import type { Metadata, Viewport } from "next";
+import {
+  DM_Sans,
+  JetBrains_Mono,
+  Outfit,
+} from "next/font/google";
 import "./globals.css";
 import { AppLayout } from "@/components/layout/app-layout";
-import { ThemeProvider } from "@/components/theme-provider";
+import { DeferredClientWidgets } from "@/components/providers/deferred-client-widgets";
 import { ReactQueryProvider } from "@/components/providers/query-client-provider";
-import { Toaster } from "sonner";
-import { OfflineDetector } from "@/components/custom/offline-detector";
+import { ThemeProvider } from "@/components/theme-provider";
+
+const dmSans = DM_Sans({
+  subsets: ["latin"],
+  variable: "--font-sans",
+  display: "swap",
+});
+
+const outfit = Outfit({
+  subsets: ["latin"],
+  variable: "--font-display",
+  display: "swap",
+});
+
+const jetbrainsMono = JetBrains_Mono({
+  subsets: ["latin"],
+  variable: "--font-mono",
+  display: "swap",
+});
 
 export const metadata: Metadata = {
-  title: "JobPrep AI - Advanced Interview Platform",
+  title: "JobPrep — Interview Practice & Career Studio",
   description:
-    "AI-powered interview platform with collaborative evaluation, real-time insights, and comprehensive analytics",
+    "Run realistic mock interviews, get structured feedback on every answer, build tailored resumes, and track your readiness. Bring your own AI key or run offline.",
   manifest: "/manifest.json",
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",
-    title: "JobPrep AI",
+    title: "JobPrep",
   },
   icons: {
     icon: [
@@ -38,8 +60,11 @@ export const metadata: Metadata = {
 export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
-  maximumScale: 1,
-  themeColor: "#000000",
+  maximumScale: 5,
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#fcfdff" },
+    { media: "(prefers-color-scheme: dark)", color: "#090b10" },
+  ],
 };
 
 export default function RootLayout({
@@ -48,8 +73,12 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" suppressHydrationWarning>
-      <body className="antialiased">
+    <html
+      lang="en"
+      suppressHydrationWarning
+      className={`${dmSans.variable} ${outfit.variable} ${jetbrainsMono.variable}`}
+    >
+      <body className="font-sans antialiased bg-background text-foreground">
         <ThemeProvider
           attribute="class"
           defaultTheme="system"
@@ -58,8 +87,7 @@ export default function RootLayout({
         >
           <ReactQueryProvider>
             <AppLayout>{children}</AppLayout>
-            <Toaster position="top-right" richColors expand={true} />
-            <OfflineDetector />
+            <DeferredClientWidgets />
           </ReactQueryProvider>
         </ThemeProvider>
       </body>

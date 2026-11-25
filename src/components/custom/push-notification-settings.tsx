@@ -98,7 +98,7 @@ export function PushNotificationSettings({
             <p
               className={cn(
                 "flex items-center gap-2 text-sm",
-                isSubscribed ? "text-green-600" : "text-gray-500",
+                isSubscribed ? "text-green-600" : "text-muted-foreground",
               )}
             >
               {isSubscribed ? (
@@ -141,7 +141,7 @@ export function PushNotificationSettings({
 
         {/* Error Message */}
         {error && (
-          <div className="flex items-start gap-3 rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-700">
+          <div className="flex items-start gap-3 rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-700 dark:bg-red-900/20 dark:text-red-400">
             <AlertCircle className="mt-0.5 h-5 w-5 shrink-0" />
             <div>{error}</div>
           </div>
@@ -149,11 +149,11 @@ export function PushNotificationSettings({
 
         {/* Features List */}
         {isSubscribed && (
-          <div className="space-y-3 rounded-lg bg-green-50 p-4">
-            <p className="text-sm font-medium text-green-900">
+          <div className="space-y-3 rounded-lg bg-green-50 p-4 dark:bg-green-900/20">
+            <p className="text-sm font-medium text-green-900 dark:text-green-300">
               You'll be notified about:
             </p>
-            <ul className="space-y-2 text-sm text-green-700">
+            <ul className="space-y-2 text-sm text-green-700 dark:text-green-300">
               <li className="flex items-center gap-2">
                 <span className="h-1.5 w-1.5 rounded-full bg-green-600" />
                 Interview reminders and schedule changes
@@ -209,7 +209,7 @@ export function PushNotificationSettings({
         )}
 
         {/* Info Box */}
-        <div className="rounded-lg bg-blue-50 p-4 text-sm text-blue-700">
+        <div className="rounded-lg bg-blue-50 p-4 text-sm text-blue-700 dark:bg-blue-900/20 dark:text-blue-400">
           <p className="font-medium">💡 Tip:</p>
           <p className="mt-1">
             Push notifications work even when the app is closed or running in

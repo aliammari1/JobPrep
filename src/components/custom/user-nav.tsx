@@ -28,7 +28,7 @@ export function UserNav() {
   if (isPending) {
     return (
       <div className="flex items-center gap-2">
-        <div className="h-8 w-8 rounded-full bg-muted animate-pulse" />
+        <div className="h-10 w-10 rounded-full bg-muted animate-pulse" />
       </div>
     );
   }
@@ -37,10 +37,10 @@ export function UserNav() {
     return (
       <div className="flex items-center gap-2">
         <Link href="/sign-in">
-          <Button variant="ghost">Sign In</Button>
+          <Button variant="ghost">Sign in</Button>
         </Link>
         <Link href="/sign-up">
-          <Button>Sign Up</Button>
+          <Button>Sign up</Button>
         </Link>
       </div>
     );
@@ -115,7 +115,7 @@ export function UserNav() {
         </DropdownMenuItem>
         <DropdownMenuSeparator />
         <DropdownMenuItem
-          className="cursor-pointer text-red-600 focus:text-red-600"
+          className="cursor-pointer text-destructive focus:text-destructive"
           onClick={handleSignOut}
         >
           <Icons.logout className="mr-2 h-4 w-4" />

@@ -1,8 +1,8 @@
 "use client";
 
-import { CVData, CVSettings } from "@/store/cv-store";
-import { Mail, Phone, MapPin, Globe, Linkedin, Github } from "lucide-react";
+import { Github, Globe, Linkedin, Mail, MapPin, Phone } from "lucide-react";
 import Image from "next/image";
+import type { CVData, CVSettings } from "@/store/cv-store";
 
 interface TemplateProps {
   cvData: CVData;
@@ -40,8 +40,13 @@ export function ModernTemplate({ cvData, settings }: TemplateProps) {
             >
               <Image
                 src={personalInfo.photo}
-                alt="Profile"
+                alt={
+                  personalInfo.fullName
+                    ? `${personalInfo.fullName} profile photo`
+                    : "Profile photo"
+                }
                 fill
+                sizes="96px"
                 className="object-cover"
               />
             </div>
@@ -59,11 +64,11 @@ export function ModernTemplate({ cvData, settings }: TemplateProps) {
             {personalInfo.title || "Professional Title"}
           </p>
 
-          <div className="flex flex-wrap gap-4 text-sm text-gray-600">
+          <div className="flex flex-wrap gap-x-4 gap-y-1 text-sm text-gray-600">
             {personalInfo.email && (
-              <div className="flex items-center gap-1">
-                <Mail className="h-4 w-4" />
-                {personalInfo.email}
+              <div className="flex min-w-0 items-center gap-1">
+                <Mail className="h-4 w-4 shrink-0" />
+                <span className="break-all">{personalInfo.email}</span>
               </div>
             )}
             {personalInfo.phone && (
@@ -91,9 +96,9 @@ export function ModernTemplate({ cvData, settings }: TemplateProps) {
               </div>
             )}
             {personalInfo.website && (
-              <div className="flex items-center gap-1">
-                <Globe className="h-4 w-4" />
-                Website
+              <div className="flex min-w-0 items-center gap-1">
+                <Globe className="h-4 w-4 shrink-0" />
+                <span className="break-all">{personalInfo.website}</span>
               </div>
             )}
           </div>

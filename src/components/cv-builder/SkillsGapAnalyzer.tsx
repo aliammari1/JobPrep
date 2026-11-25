@@ -17,7 +17,7 @@ import {
   ExternalLink,
   BookOpen,
   Clock,
-  Sparkles,
+  Lightbulb,
   Zap,
   Brain,
 } from "lucide-react";
@@ -164,7 +164,7 @@ export function SkillsGapAnalyzer() {
               </>
             ) : (
               <>
-                <Sparkles className="mr-2 h-4 w-4" />
+                <Target className="mr-2 h-4 w-4" />
                 Analyze Skills Gap
               </>
             )}
@@ -288,7 +288,7 @@ export function SkillsGapAnalyzer() {
                 <div className="space-y-4">
                   <div className="flex items-center justify-between">
                     <h4 className="font-semibold flex items-center gap-2">
-                      <BookOpen className="h-5 w-5 text-purple-600" />
+                      <BookOpen className="h-5 w-5 text-primary" />
                       Recommended Learning Path
                     </h4>
                     <div className="flex items-center gap-2 text-sm text-muted-foreground">
@@ -388,11 +388,11 @@ export function SkillsGapAnalyzer() {
 
       {/* Tips */}
       {!fullAnalysis && (
-        <Card className="p-4 bg-purple-500/5 border-purple-500/20">
+        <Card className="p-4 bg-primary/5 border-primary/20">
           <div className="flex items-start gap-3">
-            <Sparkles className="h-5 w-5 text-purple-500 mt-0.5 shrink-0" />
+            <Lightbulb className="h-5 w-5 text-primary mt-0.5 shrink-0" />
             <div className="flex-1 text-sm space-y-1">
-              <p className="font-medium text-purple-700 dark:text-purple-400">
+              <p className="font-medium text-foreground">
                 Pro Tip: Get the Best Analysis
               </p>
               <ul className="text-muted-foreground text-xs space-y-1 list-disc list-inside">

@@ -1,7 +1,9 @@
 "use client";
 
+import { Eye, EyeOff, Layers, Palette, Type } from "lucide-react";
 import { useState } from "react";
-import { useCVStore } from "@/store/cv-store";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
 import {
   Dialog,
   DialogContent,
@@ -10,13 +12,11 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Switch } from "@/components/ui/switch";
-import { Palette, Type, Layers, Eye, EyeOff } from "lucide-react";
-import { Card } from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useCVStore } from "@/store/cv-store";
 
 interface Section {
   id: string;
@@ -160,7 +160,7 @@ export function CustomizePanel() {
                 {templates.map((template) => (
                   <Card
                     key={template.id}
-                    className={`p-4 cursor-pointer transition-all ${
+                    className={`p-4 cursor-pointer transition-all focus-within:ring-2 focus-within:ring-ring/60 ${
                       settings.template === template.id
                         ? "ring-2 ring-primary shadow-md"
                         : "hover:shadow-sm"
@@ -251,7 +251,7 @@ export function CustomizePanel() {
                 value="inter"
                 onValueChange={(value) => console.log("Font changed:", value)}
               >
-                <div className="grid gap-3">
+                <div className="grid gap-4">
                   {fonts.map((font) => (
                     <Card
                       key={font.id}
@@ -283,7 +283,7 @@ export function CustomizePanel() {
                   })
                 }
               >
-                <div className="grid gap-3">
+                <div className="grid gap-4">
                   <Card className="p-4">
                     <div className="flex items-center gap-4">
                       <RadioGroupItem value="small" id="small" />
@@ -331,7 +331,7 @@ export function CustomizePanel() {
                   })
                 }
               >
-                <div className="grid gap-3">
+                <div className="grid gap-4">
                   {spacingOptions.map((option) => (
                     <Card
                       key={option.id}
