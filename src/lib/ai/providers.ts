@@ -12,32 +12,46 @@
  *   2. adding an entry to `PROVIDERS`,
  *   3. listing its models in `AI_MODELS`.
  */
+import "./env-guard";
 import { createAnthropic } from "@ai-sdk/anthropic";
 import { createOpenAI } from "@ai-sdk/openai";
 import { createOpenAICompatible } from "@ai-sdk/openai-compatible";
 import type { LanguageModel } from "ai";
 
-export type AIProviderId = "anthropic" | "openai" | "gemini" | "ollama";
+export type AIProviderId =
+  | "pollinations"
+  | "anthropic"
+  | "openai"
+  | "gemini"
+  | "ollama";
 
 export interface AIModelDescriptor {
-  /** Stable id used by the API + UI, e.g. "anthropic:claude-haiku-4-5". */
+  /** Stable id used by the API + UI, e.g. "pollinations:gpt-oss-20b". */
   id: string;
   provider: AIProviderId;
   /** The provider-native model name passed to the SDK. */
   model: string;
   label: string;
-  /** Whether the provider can run without a cloud API key (local Ollama). */
+  /** Whether the provider can run without a cloud API key (Pollinations free or local Ollama). */
   local: boolean;
 }
 
 /**
  * Default coach model. Configurable via AI_COACH_DEFAULT_MODEL.
- * Uses claude-haiku-4-5 — fast + inexpensive for interactive coaching.
+ * Defaults to Pollinations' free keyless OpenAI-compatible lane so JobPrep
+ * works out of the box with zero API keys configured.
  */
 export const DEFAULT_MODEL_ID =
-  process.env.AI_COACH_DEFAULT_MODEL || "anthropic:claude-haiku-4-5";
+  process.env.AI_COACH_DEFAULT_MODEL || "pollinations:gpt-oss-20b";
 
 export const AI_MODELS: AIModelDescriptor[] = [
+  {
+    id: "pollinations:gpt-oss-20b",
+    provider: "pollinations",
+    model: "gpt-oss-20b",
+    label: "Pollinations · GPT-OSS 20B (Free, no key)",
+    local: true,
+  },
   {
     id: "anthropic:claude-haiku-4-5",
     provider: "anthropic",
@@ -115,6 +129,16 @@ export function resolveModel(
   const { provider, model } = parseModelId(modelId);
 
   switch (provider) {
+    case "pollinations": {
+      const pollinations = createOpenAICompatible({
+        name: "pollinations",
+        baseURL:
+          process.env.POLLINATIONS_BASE_URL ||
+          "https://text.pollinations.ai/openai",
+        apiKey: process.env.POLLINATIONS_API_KEY || "anonymous",
+      });
+      return pollinations(model);
+    }
     case "anthropic": {
       const anthropic = createAnthropic({
         apiKey: process.env.ANTHROPIC_API_KEY,
@@ -124,7 +148,10 @@ export function resolveModel(
     case "openai": {
       const openai = createOpenAI({
         apiKey: process.env.OPENAI_API_KEY,
-        baseURL: process.env.OPENAI_BASE_URL,
+        // AI SDK v4 rejects an empty-string baseURL, and `.env` files
+        // commonly carry `OPENAI_BASE_URL=` (empty). Fall back to the
+        // provider default unless a real URL is configured.
+        baseURL: process.env.OPENAI_BASE_URL || undefined,
       });
       return openai(model);
     }

@@ -114,7 +114,7 @@ export const emailTemplates = {
                 <table role="presentation" style="width: 600px; border-collapse: collapse; background-color: #ffffff; border-radius: 8px; overflow: hidden;">
                   <tr>
                     <td style="padding: 40px 30px; text-align: center; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
-                      <h1 style="margin: 0; color: #ffffff; font-size: 28px;">Verify Your Email</h1>
+                      <h1 style="margin: 0; color: #ffffff; font-size: 28px;">Verify your email</h1>
                     </td>
                   </tr>
                   <tr>
@@ -159,7 +159,7 @@ export const emailTemplates = {
         </body>
       </html>
     `,
-    text: `Verify your email address by clicking this link: ${url}`,
+    text: `Verify your email address using this link: ${url}`,
   }),
 
   resetPassword: (url: string, userName?: string) => ({

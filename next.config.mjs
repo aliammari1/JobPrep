@@ -24,6 +24,28 @@ const scriptSrc = [
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   outputFileTracingRoot: process.cwd(),
+  serverExternalPackages: ["pdf-parse", "@napi-rs/canvas"],
+  experimental: {
+    // Trim barrel imports in dev (and prod) so pages compile only the icons
+    // and components they use instead of all of lucide-react / framer-motion
+    // / date-fns / recharts on every navigation.
+    optimizePackageImports: [
+      "lucide-react",
+      "framer-motion",
+      "date-fns",
+      "recharts",
+      "embla-carousel-react",
+      "cmdk",
+      "vaul",
+      "sonner",
+      "react-day-picker",
+      "@dnd-kit/core",
+      "@dnd-kit/sortable",
+      "@dnd-kit/utilities",
+      "@livekit/components-react",
+      "@tanstack/react-query",
+    ],
+  },
   images: {
     remotePatterns: [
       { protocol: "https", hostname: "models.readyplayer.me" },
@@ -53,10 +75,10 @@ const nextConfig = {
               "default-src 'self'",
               scriptSrc,
               "style-src 'self' 'unsafe-inline'",
-              "img-src 'self' data: blob: https://models.readyplayer.me https://cdn.jsdelivr.net https://media.licdn.com",
+              "img-src 'self' data: blob: https://models.readyplayer.me https://cdn.jsdelivr.net https://media.licdn.com https://*.r2.dev",
               "font-src 'self' data:",
-              "connect-src 'self' https://models.readyplayer.me https://cdn.jsdelivr.net wss://*.livekit.cloud https://*.livekit.cloud https://api.heygen.com wss://api.heygen.com https://*.cloud.appwrite.io",
-              "media-src 'self' blob: https://*.cloud.appwrite.io",
+              "connect-src 'self' https://models.readyplayer.me https://cdn.jsdelivr.net wss://*.livekit.cloud https://*.livekit.cloud https://api.heygen.com wss://api.heygen.com https://*.cloud.appwrite.io https://*.r2.dev",
+              "media-src 'self' blob: https://*.cloud.appwrite.io https://*.r2.dev",
               "worker-src 'self' blob:",
               "child-src 'self' blob:",
               "frame-src 'self' https://models.readyplayer.me",
@@ -73,6 +95,13 @@ const nextConfig = {
 // inert at runtime unless SENTRY_DSN is configured; source-map upload only runs
 // when SENTRY_AUTH_TOKEN is present (so CI/local builds without it are fine).
 const config = withSerwist(nextConfig);
+
+if (process.env.CLOUDFLARE_DEV === "1") {
+  const { initOpenNextCloudflareForDev } = await import(
+    "@opennextjs/cloudflare"
+  );
+  initOpenNextCloudflareForDev();
+}
 
 export default withSentryConfig(config, {
   silent: true,

@@ -84,6 +84,11 @@ export const env = createEnv({
     JUDGE0_API_KEY: z.string().optional(),
     PISTON_API_URL: z.string().url().optional(),
     USE_RAPID_API: z.enum(["true", "false"]).optional(),
+
+    // --- Web Push (planned; sender returns 501 until wired) ---
+    VAPID_PUBLIC_KEY: z.string().optional(),
+    VAPID_PRIVATE_KEY: z.string().optional(),
+    VAPID_SUBJECT: z.string().optional(),
   },
 
   /**
@@ -91,6 +96,7 @@ export const env = createEnv({
    */
   client: {
     NEXT_PUBLIC_APP_URL: z.string().url().optional(),
+    NEXT_PUBLIC_GOOGLE_AUTH_ENABLED: z.enum(["true", "false"]).optional(),
     NEXT_PUBLIC_LIVEKIT_URL: z.string().optional(),
     NEXT_PUBLIC_SIMLI_API_KEY: z.string().optional(),
     NEXT_PUBLIC_SIMLI_FACE_ID: z.string().optional(),
@@ -157,7 +163,12 @@ export const env = createEnv({
     JUDGE0_API_KEY: process.env.JUDGE0_API_KEY,
     PISTON_API_URL: process.env.PISTON_API_URL,
     USE_RAPID_API: process.env.USE_RAPID_API,
+    VAPID_PUBLIC_KEY: process.env.VAPID_PUBLIC_KEY,
+    VAPID_PRIVATE_KEY: process.env.VAPID_PRIVATE_KEY,
+    VAPID_SUBJECT: process.env.VAPID_SUBJECT,
     NEXT_PUBLIC_APP_URL: process.env.NEXT_PUBLIC_APP_URL,
+    NEXT_PUBLIC_GOOGLE_AUTH_ENABLED:
+      process.env.NEXT_PUBLIC_GOOGLE_AUTH_ENABLED,
     NEXT_PUBLIC_LIVEKIT_URL: process.env.NEXT_PUBLIC_LIVEKIT_URL,
     NEXT_PUBLIC_SIMLI_API_KEY: process.env.NEXT_PUBLIC_SIMLI_API_KEY,
     NEXT_PUBLIC_SIMLI_FACE_ID: process.env.NEXT_PUBLIC_SIMLI_FACE_ID,

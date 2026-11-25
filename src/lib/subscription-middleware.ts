@@ -1,14 +1,14 @@
 "use server";
 
-import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
+import type { SubscriptionTier } from "@/generated/prisma/client";
+import { auth } from "@/lib/auth";
 import prisma from "@/lib/prisma";
 import {
-  getPlanByTier,
   canAccessFeature,
   checkLimit,
+  getPlanByTier,
 } from "@/lib/subscription-plans";
-import type { SubscriptionTier } from "@/generated/prisma";
 
 export async function getCurrentSubscription() {
   const session = await auth.api.getSession({

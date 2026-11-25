@@ -1,0 +1,36 @@
+# JobPrep local development infrastructure.
+#
+# Provides the services `next dev` needs that aren't part of the repo:
+# PostgreSQL (required — Prisma + Better Auth). Everything else the app
+# integrates with (Upstash, Stripe, LiveKit, AI providers) is SaaS/BYOK and
+# configured via `.env`, not composed here.
+#
+# Usage:
+#   bun run db:up     # start postgres in the background
+#   bun run db:down   # stop it (data persists in the `pgdata` volume)
+#   bunx prisma migrate deploy   # apply migrations (first run)
+#   bun run dev                  # start the app
+#
+# Version pins mirror CI (.github/workflows/ci.yml): postgres:16-alpine.
+
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: jobprep-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: jobprep
+      POSTGRES_PASSWORD: jobprep
+      POSTGRES_DB: jobprep
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U jobprep -d jobprep"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  pgdata:

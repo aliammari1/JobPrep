@@ -1,17 +1,17 @@
-// @ts-expect-error - types resolved once @opennextjs/cloudflare is installed.
 import { defineCloudflareConfig } from "@opennextjs/cloudflare";
 
 /**
- * OpenNext (Cloudflare) configuration.
+ * OpenNext (Cloudflare) configuration for JobPrep.
  *
- * Builds the Next.js app into a Cloudflare Worker. The adapter and Wrangler
- * are committed development dependencies; use `bun run cf:*` scripts so CI
- * and local builds execute the lockfile's exact dependency graph.
+ * Builds the Next.js 15 App Router app into a Cloudflare Worker.
+ * Run `bun run cf:build` to compile and `bun run cf:preview` to test locally
+ * on workerd.
  *
- * Note: the Python LiveKit/Simli avatar agent in functions/ is a long-running
- * container workload and CANNOT run on Workers — deploy it separately (small
- * container/VM). Only the Next.js app targets Cloudflare here.
+ * Note: the Python LiveKit/Simli avatar agent in `functions/` is a long-running
+ * container workload and runs separately (Docker / Fly / Railway).
  */
 export default defineCloudflareConfig({
-  // Default incremental cache. Swap for an R2/KV-backed cache for production.
+  // Default incremental cache. To enable R2 incremental caching in production,
+  // bind `NEXT_INC_CACHE_R2_BUCKET` in `wrangler.jsonc` and pass:
+  // incrementalCache: r2IncrementalCache
 });

@@ -11,39 +11,36 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-
     "cf:build": "opennextjs-cloudflare build",
     "cf:preview": "opennextjs-cloudflare preview",
     "cf:deploy": "opennextjs-cloudflare deploy",
     "cf:upload": "opennextjs-cloudflare upload",
-
     "lint": "biome check",
     "lint:ci": "biome ci",
     "lint:strict": "biome lint src/env.ts src/lib/rate-limit.ts src/lib/ai src/instrumentation.ts src/instrumentation-client.ts src/app/error.tsx src/app/global-error.tsx sentry.server.config.ts sentry.edge.config.ts",
-
     "format": "biome format --write",
     "format:check": "biome format",
-
     "typecheck": "node --max-old-space-size=4096 node_modules/typescript/bin/tsc --noEmit",
-
     "test": "vitest run",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
     "test:e2e": "playwright test",
-
     "openapi:generate": "tsx scripts/generate-openapi.ts",
-
     "prisma:generate": "prisma generate",
     "prisma:studio": "prisma studio",
     "prisma:migrate": "prisma migrate dev",
     "prisma:seed": "prisma db seed",
-
+    "db:up": "docker compose up -d db",
+    "db:down": "docker compose stop db",
+    "db:logs": "docker compose logs -f db",
+    "db:seed-demo": "bun scripts/seed-demo-admin.ts",
     "postinstall": "prisma generate"
   },
   "dependencies": {
-    "@ai-sdk/anthropic": "^3.0.13",
-    "@ai-sdk/openai": "^3.0.10",
-    "@ai-sdk/openai-compatible": "^2.0.10",
+    "@ai-sdk/anthropic": "4.0.79",
+    "@ai-sdk/openai": "4.0.92",
+    "@ai-sdk/openai-compatible": "3.0.68",
+    "@ai-sdk/otel": "1.0.138",
     "@better-auth/passkey": "1.6.33",
     "@better-fetch/fetch": "1.3.1",
     "@codemirror/lang-cpp": "^6.0.3",
@@ -55,9 +52,11 @@
     "@dnd-kit/sortable": "^10.0.0",
     "@dnd-kit/utilities": "^3.2.2",
     "@heygen/streaming-avatar": "2.1.0",
+    "@hookform/resolvers": "^5.9.1",
     "@livekit/components-react": "^2.9.17",
     "@livekit/components-styles": "^1.2.0",
-    "@prisma/client": "^6.19.2",
+    "@prisma/adapter-pg": "7.10.0",
+    "@prisma/client": "7.10.0",
     "@radix-ui/react-accordion": "^1.2.12",
     "@radix-ui/react-alert-dialog": "^1.1.15",
     "@radix-ui/react-aspect-ratio": "^1.1.8",
@@ -93,7 +92,7 @@
     "@upstash/ratelimit": "^2.0.8",
     "@upstash/redis": "^1.38.0",
     "@vercel/otel": "^2.1.3",
-    "ai": "^6.0.35",
+    "ai": "7.0.138",
     "axios": "^1.13.2",
     "better-auth": "1.6.33",
     "class-variance-authority": "^0.7.1",
@@ -101,6 +100,8 @@
     "cmdk": "^1.1.1",
     "codemirror": "^6.0.2",
     "date-fns": "^4.1.0",
+    "docx": "^9.16.0",
+    "dotenv": "^18.0.7",
     "embla-carousel-react": "^8.6.0",
     "framer-motion": "^12.26.2",
     "googleapis": "^170.0.0",
@@ -116,7 +117,9 @@
     "next": "15.5.27",
     "next-themes": "^0.4.6",
     "nodemailer": "^9.1.1",
-    "prisma": "^6.19.2",
+    "pdf-parse": "^2.4.5",
+    "pg": "^8.23.1",
+    "prisma": "7.10.0",
     "qrcode": "^1.5.4",
     "react": "19.3.0",
     "react-day-picker": "^9.13.0",
@@ -131,7 +134,6 @@
     "sonner": "^2.0.7",
     "stripe": "^20.1.2",
     "tailwind-merge": "^3.4.0",
-    "unpdf": "^1.4.0",
     "vaul": "^1.1.2",
     "zod": "^4.3.5",
     "zustand": "^5.0.10"
@@ -139,13 +141,14 @@
   "devDependencies": {
     "@axe-core/playwright": "^4.11.3",
     "@biomejs/biome": "2.5.15",
-    "@opennextjs/cloudflare": "1.20.13",
+    "@opennextjs/cloudflare": "1.20.18",
     "@playwright/test": "^1.49.0",
     "@scalar/nextjs-api-reference": "^0.4.0",
     "@tailwindcss/postcss": "^4.1.18",
     "@testing-library/jest-dom": "^6.6.3",
     "@types/dom-speech-recognition": "^0.0.12",
     "@types/node": "^20.19.29",
+    "@types/pg": "^8.23.1",
     "@types/qrcode": "^1.5.6",
     "@types/react": "^19.2.8",
     "@types/react-dom": "^19.2.3",
@@ -161,9 +164,6 @@
     "vitest": "^2.1.8",
     "wrangler": "4.129.1"
   },
-  "prisma": {
-    "seed": "tsx prisma/seed.ts"
-  },
   "overrides": {
     "protobufjs": "^7.6.1",
     "postcss": "^8.5.18",
@@ -178,6 +178,6 @@
     "@simplewebauthn/server": "^13.3.2",
     "@babel/core": "^7.29.6",
     "fflate": "^0.8.3",
-    "@ai-sdk/provider-utils": "^4.0.33"
+    "@ai-sdk/provider-utils": "^5.0.59"
   }
 }

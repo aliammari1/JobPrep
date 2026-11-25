@@ -2,6 +2,7 @@
 
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
+import { useSession } from "@/lib/auth-client";
 
 export interface SubscriptionData {
   tier: "FREE" | "MONTHLY" | "YEARLY";
@@ -11,8 +12,10 @@ export interface SubscriptionData {
 }
 
 export function useSubscription() {
+  const { data: session } = useSession();
+
   return useQuery<SubscriptionData>({
-    queryKey: ["subscription"],
+    queryKey: ["subscription", session?.user?.id],
     queryFn: async () => {
       const response = await fetch("/api/subscription");
       if (!response.ok) {
@@ -26,6 +29,7 @@ export function useSubscription() {
           : null,
       };
     },
+    enabled: Boolean(session?.user),
     staleTime: 30 * 1000, // 30 seconds
     refetchOnWindowFocus: true,
     refetchOnMount: true,
@@ -85,8 +89,10 @@ export function useManageBilling() {
 }
 
 export function useUsageStats() {
+  const { data: session } = useSession();
+
   return useQuery({
-    queryKey: ["usage-stats"],
+    queryKey: ["usage-stats", session?.user?.id],
     queryFn: async () => {
       const response = await fetch("/api/subscription/usage");
       if (!response.ok) {
@@ -94,6 +100,7 @@ export function useUsageStats() {
       }
       return response.json();
     },
+    enabled: Boolean(session?.user),
     staleTime: 30 * 1000, // 30 seconds
     refetchOnWindowFocus: true,
     refetchOnMount: true,

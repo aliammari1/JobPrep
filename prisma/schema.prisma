@@ -1,11 +1,10 @@
 generator client {
-  provider = "prisma-client-js"
+  provider = "prisma-client"
   output   = "../src/generated/prisma"
 }
 
 datasource db {
   provider = "postgresql"
-  url      = env("DATABASE_URL")
 }
 
 model User {
@@ -49,6 +48,8 @@ model User {
   codeDrafts               CodeDraft[]           @relation("UserCodeDrafts")
   cvs                      CV[]                  @relation("UserCVs")
   integrationTokens        IntegrationToken[]    @relation("IntegrationTokens")
+  jobApplications          JobApplication[]      @relation("UserJobApplications")
+  systemDesignSessions     SystemDesignSession[] @relation("UserSystemDesignSessions")
 
   @@map("user")
 }
@@ -303,13 +304,16 @@ model Interview {
   reminderSent       Boolean               @default(false)
   time               String?
   type               String                @default("video")
+  applicationId      String?
   candidate          User                  @relation("CandidateInterviews", fields: [candidateId], references: [id], onDelete: Cascade)
   interviewer        User?                 @relation("InterviewerSessions", fields: [interviewerId], references: [id])
   template           InterviewTemplate     @relation(fields: [templateId], references: [id], onDelete: Cascade)
+  application        JobApplication?       @relation("ApplicationInterviews", fields: [applicationId], references: [id], onDelete: SetNull)
   analytics          InterviewAnalytics[]
   evaluations        InterviewEvaluation[]
   responses          InterviewResponse[]
 
+  @@index([applicationId])
   @@map("interview")
 }
 
@@ -404,6 +408,7 @@ model CandidateProfile {
 model AIMockSession {
   id               String          @id @default(cuid())
   userId           String
+  applicationId    String?
   sessionType      String
   aiPersonality    String
   difficultyLevel  String
@@ -418,8 +423,10 @@ model AIMockSession {
   completedAt      DateTime?
   createdAt        DateTime        @default(now())
   user             User            @relation("AIMockSessions", fields: [userId], references: [id], onDelete: Cascade)
+  application      JobApplication? @relation("ApplicationMockSessions", fields: [applicationId], references: [id], onDelete: SetNull)
   mockQuestions    MockQuestion[]
 
+  @@index([applicationId])
   @@map("ai_mock_session")
 }
 
@@ -455,39 +462,45 @@ model LinkedInImportSession {
 }
 
 model CoverLetter {
-  id        String   @id @default(cuid())
-  userId    String
-  title     String
-  content   String
-  jobTitle  String?
-  company   String?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id            String          @id @default(cuid())
+  userId        String
+  applicationId String?
+  title         String
+  content       String
+  jobTitle      String?
+  company       String?
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
+  user          User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  application   JobApplication? @relation("ApplicationCoverLetters", fields: [applicationId], references: [id], onDelete: SetNull)
 
   @@index([userId])
+  @@index([applicationId])
   @@index([createdAt])
   @@map("cover_letter")
 }
 
 model CodeSubmission {
-  id           String   @id @default(cuid())
-  userId       String
-  challengeId  String?  // Optional reference to the challenge
-  title        String
-  description  String?
-  language     String
-  code         String
-  testsPassed  Int?
-  totalTests   Int?
-  status       String   @default("submitted") // submitted, passed, failed
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
-  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  challenge    Challenge? @relation(fields: [challengeId], references: [id], onDelete: SetNull)
+  id            String          @id @default(cuid())
+  userId        String
+  challengeId   String? // Optional reference to the challenge
+  applicationId String?
+  title         String
+  description   String?
+  language      String
+  code          String
+  testsPassed   Int?
+  totalTests    Int?
+  status        String          @default("submitted") // submitted, passed, failed
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
+  user          User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  challenge     Challenge?      @relation(fields: [challengeId], references: [id], onDelete: SetNull)
+  application   JobApplication? @relation("ApplicationCodeSubmissions", fields: [applicationId], references: [id], onDelete: SetNull)
 
   @@index([userId])
   @@index([challengeId])
+  @@index([applicationId])
   @@index([createdAt])
   @@map("code_submission")
 }
@@ -533,16 +546,19 @@ model CodeDraft {
 }
 
 model CV {
-  id        String   @id @default(cuid())
-  userId    String
-  title     String
-  content   String   @db.Text
-  fileUrl   String?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  user      User     @relation("UserCVs", fields: [userId], references: [id], onDelete: Cascade)
+  id            String          @id @default(cuid())
+  userId        String
+  applicationId String?
+  title         String
+  content       String          @db.Text
+  fileUrl       String?
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
+  user          User            @relation("UserCVs", fields: [userId], references: [id], onDelete: Cascade)
+  application   JobApplication? @relation("ApplicationCVs", fields: [applicationId], references: [id], onDelete: SetNull)
 
   @@index([userId])
+  @@index([applicationId])
   @@index([createdAt])
   @@map("cv")
 }
@@ -565,4 +581,52 @@ model IntegrationToken {
   @@index([userId])
   @@index([provider])
   @@map("integration_token")
+}
+
+
+model JobApplication {
+  id                   String                @id @default(cuid())
+  userId               String
+  company              String
+  role                 String
+  location             String?
+  jobUrl               String?
+  salaryRange          String?
+  stage                String                @default("saved")
+  jobDescription       String                @default("")
+  atsScore             Int?
+  notes                String?
+  createdAt            DateTime              @default(now())
+  updatedAt            DateTime              @updatedAt
+  user                 User                  @relation("UserJobApplications", fields: [userId], references: [id], onDelete: Cascade)
+  cvs                  CV[]                  @relation("ApplicationCVs")
+  coverLetters         CoverLetter[]         @relation("ApplicationCoverLetters")
+  mockSessions         AIMockSession[]       @relation("ApplicationMockSessions")
+  interviews           Interview[]           @relation("ApplicationInterviews")
+  codeSubmissions      CodeSubmission[]      @relation("ApplicationCodeSubmissions")
+  systemDesignSessions SystemDesignSession[] @relation("ApplicationSystemDesigns")
+
+  @@index([userId])
+  @@index([userId, stage])
+  @@map("job_application")
+}
+
+model SystemDesignSession {
+  id            String          @id @default(cuid())
+  userId        String
+  applicationId String?
+  title         String
+  prompt        String
+  nodesJson     String
+  edgesJson     String
+  critiqueJson  String?
+  score         Int?
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
+  user          User            @relation("UserSystemDesignSessions", fields: [userId], references: [id], onDelete: Cascade)
+  application   JobApplication? @relation("ApplicationSystemDesigns", fields: [applicationId], references: [id], onDelete: SetNull)
+
+  @@index([userId])
+  @@index([applicationId])
+  @@map("system_design_session")
 }
