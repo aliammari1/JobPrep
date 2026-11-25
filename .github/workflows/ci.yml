@@ -363,7 +363,10 @@ jobs:
 
   e2e:
     name: Playwright E2E
-    runs-on: ubuntu-latest
+    # Playwright 1.60 cannot provision browsers on Ubuntu 26.04. Pin a runner
+    # image that is supported by the locked Playwright version instead of
+    # drifting with `ubuntu-latest`.
+    runs-on: ubuntu-24.04
     timeout-minutes: 30
 
     needs:
@@ -443,7 +446,12 @@ jobs:
 
       - name: Show Worker preview log on failure
         if: ${{ failure() }}
-        run: cat "$RUNNER_TEMP/opennext-preview.log"
+        run: |
+          if [[ -f "$RUNNER_TEMP/opennext-preview.log" ]]; then
+            cat "$RUNNER_TEMP/opennext-preview.log"
+          else
+            echo "No Worker preview log was produced (failure occurred before startup)."
+          fi
 
 
   # ===========================================================================
