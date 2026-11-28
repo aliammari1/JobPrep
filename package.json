@@ -133,7 +133,7 @@
   "devDependencies": {
     "@aws-sdk/client-s3": "3.984.0",
     "@axe-core/playwright": "^4.11.3",
-    "@biomejs/biome": "2.5.15",
+    "@biomejs/biome": "2.6.9",
     "@opennextjs/cloudflare": "1.20.18",
     "@playwright/test": "^1.49.0",
     "@scalar/nextjs-api-reference": "^0.12.0",
