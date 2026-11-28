@@ -1,7 +1,7 @@
-import { NextRequest, NextResponse } from "next/server";
-import prisma from "@/lib/prisma";
-import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
+import { type NextRequest, NextResponse } from "next/server";
+import { auth } from "@/lib/auth";
+import prisma from "@/lib/prisma";
 
 // GET /api/interviews/[id] - Get a specific interview
 export async function GET(
@@ -144,7 +144,6 @@ export async function PATCH(
       startedAt,
       completedAt,
       interviewerId,
-      videoRecordingUrl,
       audioRecordingUrl,
       aiAnalysisReport,
       overallScore,
@@ -183,8 +182,6 @@ export async function PATCH(
     if (startedAt) updateData.startedAt = new Date(startedAt);
     if (completedAt) updateData.completedAt = new Date(completedAt);
     if (interviewerId !== undefined) updateData.interviewerId = interviewerId;
-    if (videoRecordingUrl !== undefined)
-      updateData.videoRecordingUrl = videoRecordingUrl;
     if (audioRecordingUrl !== undefined)
       updateData.audioRecordingUrl = audioRecordingUrl;
     if (aiAnalysisReport !== undefined)

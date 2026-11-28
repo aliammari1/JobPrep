@@ -118,7 +118,10 @@ export function CustomizePanel() {
           Customize
         </Button>
       </DialogTrigger>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+      <DialogContent
+        mobileSheet
+        className="max-h-[calc(100dvh-2rem)] max-w-[calc(100%-1.5rem)] overflow-y-auto p-4 sm:max-w-4xl sm:p-6"
+      >
         <DialogHeader>
           <DialogTitle>Customize Your Resume</DialogTitle>
           <DialogDescription>
@@ -127,21 +130,21 @@ export function CustomizePanel() {
         </DialogHeader>
 
         <Tabs defaultValue="template" className="mt-4">
-          <TabsList className="grid w-full grid-cols-4">
+          <TabsList className="grid h-auto w-full grid-cols-2 gap-1 sm:grid-cols-4 [&>button]:min-h-9 [&>button]:px-1.5 [&>button]:text-xs">
             <TabsTrigger value="template">
-              <Layers className="mr-2 h-4 w-4" />
+              <Layers className="hidden size-4 sm:block" />
               Template
             </TabsTrigger>
             <TabsTrigger value="colors">
-              <Palette className="mr-2 h-4 w-4" />
+              <Palette className="hidden size-4 sm:block" />
               Colors
             </TabsTrigger>
             <TabsTrigger value="typography">
-              <Type className="mr-2 h-4 w-4" />
-              Typography
+              <Type className="hidden size-4 sm:block" />
+              Type
             </TabsTrigger>
             <TabsTrigger value="sections">
-              <Eye className="mr-2 h-4 w-4" />
+              <Eye className="hidden size-4 sm:block" />
               Sections
             </TabsTrigger>
           </TabsList>
@@ -198,9 +201,10 @@ export function CustomizePanel() {
           <TabsContent value="colors" className="space-y-6 mt-6">
             <div>
               <Label className="text-base mb-4 block">Primary Color</Label>
-              <div className="grid grid-cols-4 gap-3">
+              <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
                 {colorPresets.map((color) => (
                   <button
+                    type="button"
                     key={color.value}
                     onClick={() => updateSettings({ colorScheme: color.value })}
                     className={`group relative h-20 rounded-lg border-2 transition-all ${

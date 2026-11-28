@@ -1,59 +1,61 @@
 import { PrismaPg } from "@prisma/adapter-pg";
 import { Pool } from "pg";
 import { PrismaClient } from "../generated/prisma/client";
+import { cloudflareContext } from "./cloudflare";
 
-const globalForPrisma = global as unknown as {
-  prisma: PrismaClient | undefined;
-  __prismaPool: Pool | undefined;
+const local = globalThis as typeof globalThis & {
+  jobprepPrisma?: PrismaClient;
+  __jobprepPrismaCleanup?: WeakMap<object, () => Promise<void>>;
 };
+const workerClients = new WeakMap<object, PrismaClient>();
+local.__jobprepPrismaCleanup ??= new WeakMap<object, () => Promise<void>>();
 
-function getConnectionString(): string | undefined {
-  return process.env.POSTGRES_PRISMA_URL || process.env.DATABASE_URL;
-}
-
-// Validate database URLs before creating client
-if (!getConnectionString()) {
-  console.warn(
-    "⚠️  Warning: Neither POSTGRES_PRISMA_URL nor DATABASE_URL is set. " +
-      "Database operations will fail. Please set one of these environment variables.",
-  );
-}
-
-function getPool(): Pool {
-  if (!globalForPrisma.__prismaPool) {
-    // `pg` owns pooling in Prisma 7 (Prisma v6 engine defaults no longer
-    // apply). `max` keeps serverless/edge usage bounded; Hyperdrive manages
-    // pooling at the edge, so this is the app-level ceiling, not the only pool.
-    // Cloudflare Hyperdrive: wire its connection string into DATABASE_URL /
-    // POSTGRES_PRISMA_URL — no code change needed (see docs/DEPLOYMENT.md).
-    globalForPrisma.__prismaPool = new Pool({
-      connectionString: getConnectionString(),
-      max: Number(process.env.PG_POOL_MAX || 10),
-      // `pg` has no connection timeout by default (0); restore a v6-like
-      // 5s ceiling so misconfigured DBs fail fast instead of hanging.
-      connectionTimeoutMillis: Number(
-        process.env.PG_CONNECTION_TIMEOUT_MS || 5000,
-      ),
-    });
-  }
-  return globalForPrisma.__prismaPool;
-}
-
-function createPrismaClient(): PrismaClient {
-  const adapter = new PrismaPg(getPool());
+function createClient(connectionString: string | undefined, worker: boolean) {
+  const pool = new Pool({
+    connectionString,
+    max: worker ? 1 : Number(process.env.PG_POOL_MAX || 10),
+    connectionTimeoutMillis: Number(
+      process.env.PG_CONNECTION_TIMEOUT_MS || 5000,
+    ),
+    ...(worker ? { idleTimeoutMillis: 500, allowExitOnIdle: true } : {}),
+  });
   return new PrismaClient({
-    adapter,
-    log:
-      process.env.NODE_ENV === "development"
-        ? ["query", "error", "warn"]
-        : ["error"],
+    adapter: new PrismaPg(pool, { disposeExternalPool: true }),
+    log: process.env.NODE_ENV === "development" ? ["error", "warn"] : ["error"],
   });
 }
 
-const prisma = globalForPrisma.prisma ?? createPrismaClient();
-
-if (process.env.NODE_ENV !== "production") {
-  globalForPrisma.prisma = prisma;
+function clientForRequest(): PrismaClient {
+  const request = cloudflareContext();
+  if (request) {
+    const client = workerClients.get(request.ctx);
+    if (client) return client;
+    const connectionString =
+      request.env.HYPERDRIVE?.connectionString ??
+      process.env.POSTGRES_PRISMA_URL ??
+      process.env.DATABASE_URL;
+    const newClient = createClient(connectionString, true);
+    workerClients.set(request.ctx, newClient);
+    local.__jobprepPrismaCleanup?.set(request.ctx, () =>
+      newClient.$disconnect(),
+    );
+    return newClient;
+  }
+  local.jobprepPrisma ??= createClient(
+    process.env.POSTGRES_PRISMA_URL ?? process.env.DATABASE_URL,
+    false,
+  );
+  return local.jobprepPrisma;
 }
+
+// Better Auth and route modules import Prisma during build. Resolve the
+// request-bound Hyperdrive connection when an operation actually runs.
+const prisma = new Proxy({} as PrismaClient, {
+  get(_target, key) {
+    const client = clientForRequest();
+    const value = Reflect.get(client, key, client);
+    return typeof value === "function" ? value.bind(client) : value;
+  },
+});
 
 export default prisma;

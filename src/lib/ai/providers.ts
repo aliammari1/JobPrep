@@ -1,40 +1,38 @@
 /**
- * Provider-agnostic AI registry for the JobPrep AI Coach.
+ * Unified AI SDK v7 Provider Registry for JobPrep.
  *
- * JobPrep's AI features were previously hard-wired to a local Ollama endpoint.
- * This module consolidates model selection behind the Vercel AI SDK so any
- * route can resolve a language model by a single `model id` string and the user
- * (or env config) can swap providers — Claude, GPT, Gemini, or a local Ollama —
- * without touching call sites.
- *
- * Adding a provider only requires:
- *   1. installing its `@ai-sdk/*` package,
- *   2. adding an entry to `PROVIDERS`,
- *   3. listing its models in `AI_MODELS`.
+ * Combines T3Code's `ModelManifest` catalog with Vercel AI SDK v7's native
+ * `createProviderRegistry` so every AI route resolves any `<provider>:<model>`
+ * id (or alias) through a single typed registry — supporting Anthropic,
+ * OpenAI, Gemini, OpenRouter (300+ models on 1 BYOK key), Ollama (local),
+ * Pollinations (free keyless), and any custom OpenAI-compatible gateway
+ * (Portkey / LiteLLM / vLLM).
  */
 import "./env-guard";
 import { createAnthropic } from "@ai-sdk/anthropic";
 import { createOpenAI } from "@ai-sdk/openai";
 import { createOpenAICompatible } from "@ai-sdk/openai-compatible";
-import type { LanguageModel } from "ai";
+import { createProviderRegistry, type LanguageModel } from "ai";
+import {
+  AI_PROVIDER_IDS,
+  type AIProviderId,
+  BUNDLED_MODEL_MANIFEST,
+  findManifestModel,
+  getCurrentManifest,
+  isProviderConfigured,
+  type ModelManifestEntry,
+  type ModelTier,
+} from "./model-manifest";
 
-export type AIProviderId =
-  | "pollinations"
-  | "anthropic"
-  | "openai"
-  | "gemini"
-  | "ollama";
+export type { AIProviderId, ModelTier } from "./model-manifest";
+export {
+  getCurrentManifest,
+  isProviderConfigured,
+  refreshModelManifest,
+  resolveModelCatalog,
+} from "./model-manifest";
 
-export interface AIModelDescriptor {
-  /** Stable id used by the API + UI, e.g. "pollinations:gpt-oss-20b". */
-  id: string;
-  provider: AIProviderId;
-  /** The provider-native model name passed to the SDK. */
-  model: string;
-  label: string;
-  /** Whether the provider can run without a cloud API key (Pollinations free or local Ollama). */
-  local: boolean;
-}
+export type AIModelDescriptor = ModelManifestEntry;
 
 /**
  * Default coach model. Configurable via AI_COACH_DEFAULT_MODEL.
@@ -42,143 +40,163 @@ export interface AIModelDescriptor {
  * works out of the box with zero API keys configured.
  */
 export const DEFAULT_MODEL_ID =
-  process.env.AI_COACH_DEFAULT_MODEL || "pollinations:gpt-oss-20b";
+  process.env.AI_COACH_DEFAULT_MODEL || BUNDLED_MODEL_MANIFEST.defaults.chat;
 
-export const AI_MODELS: AIModelDescriptor[] = [
-  {
-    id: "pollinations:gpt-oss-20b",
-    provider: "pollinations",
-    model: "gpt-oss-20b",
-    label: "Pollinations · GPT-OSS 20B (Free, no key)",
-    local: true,
-  },
-  {
-    id: "anthropic:claude-haiku-4-5",
-    provider: "anthropic",
-    model: "claude-haiku-4-5",
-    label: "Claude Haiku 4.5 (fast)",
-    local: false,
-  },
-  {
-    id: "anthropic:claude-sonnet-4-5",
-    provider: "anthropic",
-    model: "claude-sonnet-4-5",
-    label: "Claude Sonnet 4.5 (balanced)",
-    local: false,
-  },
-  {
-    id: "openai:gpt-4o-mini",
-    provider: "openai",
-    model: "gpt-4o-mini",
-    label: "GPT-4o mini",
-    local: false,
-  },
-  {
-    id: "openai:gpt-4o",
-    provider: "openai",
-    model: "gpt-4o",
-    label: "GPT-4o",
-    local: false,
-  },
-  {
-    id: "gemini:gemini-2.0-flash",
-    provider: "gemini",
-    model: "gemini-2.0-flash",
-    label: "Gemini 2.0 Flash",
-    local: false,
-  },
-  {
-    id: "ollama:llama3.2",
-    provider: "ollama",
-    model: "llama3.2",
-    label: "Ollama · Llama 3.2 (local / self-host)",
-    local: true,
-  },
-];
+/**
+ * Fast/lightweight model for low-latency tasks (titles, hints, quick parsing).
+ * Configurable via AI_COACH_SMALL_MODEL; falls back to DEFAULT_MODEL_ID.
+ */
+export const SMALL_MODEL_ID =
+  process.env.AI_COACH_SMALL_MODEL || DEFAULT_MODEL_ID;
 
-/** Parse a model id of the form "<provider>:<model>". */
+export const AI_MODELS: AIModelDescriptor[] = BUNDLED_MODEL_MANIFEST.models;
+
+const SUPPORTED_PROVIDERS = new Set<string>(AI_PROVIDER_IDS);
+const DYNAMIC_MODEL_PROVIDERS = new Set<AIProviderId>([
+  "openrouter",
+  "ollama",
+  "gateway",
+]);
+
+/** Parse a model id of the form "<provider>:<model>" (or resolve a manifest alias). */
 export function parseModelId(modelId: string): {
   provider: AIProviderId;
   model: string;
 } {
-  const idx = modelId.indexOf(":");
+  const aliased = findManifestModel(modelId);
+  const canonical = aliased ? aliased.id : modelId;
+
+  const idx = canonical.indexOf(":");
   if (idx === -1) {
     throw new Error(
       `Invalid model id "${modelId}". Expected "<provider>:<model>".`,
     );
   }
-  const provider = modelId.slice(0, idx) as AIProviderId;
-  const model = modelId.slice(idx + 1);
+  const provider = canonical.slice(0, idx);
+  const model = canonical.slice(idx + 1);
   if (!model) {
     throw new Error(`Invalid model id "${modelId}". Missing model name.`);
   }
-  return { provider, model };
+  if (!SUPPORTED_PROVIDERS.has(provider)) {
+    throw new Error(`Unsupported AI provider: "${provider}".`);
+  }
+  return { provider: provider as AIProviderId, model };
 }
 
 export function isKnownModel(modelId: string): boolean {
-  return AI_MODELS.some((m) => m.id === modelId);
+  const manifest = getCurrentManifest();
+  if (
+    manifest.models.some(
+      (m) => m.id === modelId || m.aliases?.includes(modelId),
+    )
+  ) {
+    return true;
+  }
+
+  // Allow any `<provider>:<model>` slug for dynamic routers (OpenRouter, Ollama, Gateway)
+  try {
+    const { provider } = parseModelId(modelId);
+    return DYNAMIC_MODEL_PROVIDERS.has(provider);
+  } catch {
+    return false;
+  }
 }
 
 /**
- * Resolve a `LanguageModel` instance for a given model id, wiring the correct
- * provider + credentials from the environment.
+ * Build a Vercel AI SDK v7 `ProviderRegistry` wired to current env credentials.
  */
-export function resolveModel(
-  modelId: string = DEFAULT_MODEL_ID,
-): LanguageModel {
-  const { provider, model } = parseModelId(modelId);
+export function getProviderRegistry() {
+  const isLocalOllama = !process.env.OLLAMA_API_KEY;
 
-  switch (provider) {
-    case "pollinations": {
-      const pollinations = createOpenAICompatible({
+  return createProviderRegistry(
+    {
+      pollinations: createOpenAICompatible({
         name: "pollinations",
         baseURL:
           process.env.POLLINATIONS_BASE_URL ||
           "https://text.pollinations.ai/openai",
         apiKey: process.env.POLLINATIONS_API_KEY || "anonymous",
-      });
-      return pollinations(model);
-    }
-    case "anthropic": {
-      const anthropic = createAnthropic({
+      }),
+      anthropic: createAnthropic({
         apiKey: process.env.ANTHROPIC_API_KEY,
-      });
-      return anthropic(model);
-    }
-    case "openai": {
-      const openai = createOpenAI({
+      }),
+      openai: createOpenAI({
         apiKey: process.env.OPENAI_API_KEY,
-        // AI SDK v4 rejects an empty-string baseURL, and `.env` files
-        // commonly carry `OPENAI_BASE_URL=` (empty). Fall back to the
-        // provider default unless a real URL is configured.
         baseURL: process.env.OPENAI_BASE_URL || undefined,
-      });
-      return openai(model);
-    }
-    case "gemini": {
-      // Gemini exposes an OpenAI-compatible endpoint.
-      const gemini = createOpenAICompatible({
+      }),
+      gemini: createOpenAICompatible({
         name: "gemini",
         baseURL:
           process.env.GEMINI_BASE_URL ||
           "https://generativelanguage.googleapis.com/v1beta/openai",
         apiKey: process.env.GEMINI_API_KEY || process.env.GOOGLE_API_KEY || "",
-      });
-      return gemini(model);
-    }
-    case "ollama": {
-      const isLocal = !process.env.OLLAMA_API_KEY;
-      const ollama = createOpenAICompatible({
+      }),
+      openrouter: createOpenAICompatible({
+        name: "openrouter",
+        baseURL:
+          process.env.OPENROUTER_BASE_URL || "https://openrouter.ai/api/v1",
+        apiKey: process.env.OPENROUTER_API_KEY || "",
+        headers: {
+          "HTTP-Referer":
+            process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000",
+          "X-Title": process.env.APP_NAME || "JobPrep",
+        },
+      }),
+      ollama: createOpenAICompatible({
         name: "ollama",
         baseURL:
           process.env.OLLAMA_HOST ||
-          (isLocal ? "http://localhost:11434/v1" : "https://ollama.com/v1"),
+          (isLocalOllama
+            ? "http://localhost:11434/v1"
+            : "https://ollama.com/v1"),
         apiKey: process.env.OLLAMA_API_KEY || "ollama",
-      });
-      return ollama(model);
-    }
-    default: {
-      throw new Error(`Unsupported AI provider: "${provider}".`);
-    }
+      }),
+      gateway: createOpenAICompatible({
+        name: "gateway",
+        baseURL:
+          process.env.CF_AI_GATEWAY_URL ||
+          process.env.AI_GATEWAY_BASE_URL ||
+          "http://localhost:8787/v1",
+        apiKey:
+          process.env.CF_AI_GATEWAY_TOKEN ||
+          process.env.AI_GATEWAY_API_KEY ||
+          "gateway",
+      }),
+    },
+    { separator: ":" },
+  );
+}
+
+/**
+ * Pick the best configured model for a requested tier ("fast" | "balanced" | "reasoning").
+ * Respects explicit env defaults first, then selects the first configured model
+ * in the manifest matching that tier, and falls back to `DEFAULT_MODEL_ID`.
+ */
+export function resolveModelIdForTier(tier: ModelTier = "balanced"): string {
+  if (tier === "fast" && process.env.AI_COACH_SMALL_MODEL) {
+    return process.env.AI_COACH_SMALL_MODEL;
   }
+  if (process.env.AI_COACH_DEFAULT_MODEL) {
+    return process.env.AI_COACH_DEFAULT_MODEL;
+  }
+
+  const manifest = getCurrentManifest();
+  const preferred = manifest.models.find(
+    (m) => m.tier === tier && !m.local && isProviderConfigured(m.provider),
+  );
+  if (preferred) return preferred.id;
+
+  return tier === "fast" ? SMALL_MODEL_ID : DEFAULT_MODEL_ID;
+}
+
+/**
+ * Resolve a Vercel AI SDK `LanguageModel` instance for any `<provider>:<model>`
+ * id (or manifest alias) through `createProviderRegistry`.
+ */
+export function resolveModel(
+  modelId: string = DEFAULT_MODEL_ID,
+): LanguageModel {
+  const { provider, model } = parseModelId(modelId);
+  const registry = getProviderRegistry();
+  return registry.languageModel(`${provider}:${model}`);
 }

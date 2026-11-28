@@ -1,5 +1,5 @@
-import { NextRequest, NextResponse } from "next/server";
 import { betterFetch } from "@better-fetch/fetch";
+import { type NextRequest, NextResponse } from "next/server";
 
 interface SessionUser {
   id: string;

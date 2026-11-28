@@ -1,10 +1,9 @@
 "use client";
 
-import { useSearchParams } from "next/navigation";
-import { useEffect } from "react";
 import { useQueryClient } from "@tanstack/react-query";
+import { useSearchParams } from "next/navigation";
+import { Suspense, useEffect } from "react";
 import { toast } from "sonner";
-import { Suspense } from "react";
 
 function BillingPageContent({ children }: { children: React.ReactNode }) {
   const searchParams = useSearchParams();

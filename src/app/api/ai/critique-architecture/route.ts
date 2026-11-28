@@ -5,6 +5,7 @@ import { generateStructured } from "@/lib/ai/generate";
 import {
   DEFAULT_MODEL_ID,
   isKnownModel,
+  isProviderConfigured,
   parseModelId,
 } from "@/lib/ai/providers";
 import { auth } from "@/lib/auth";
@@ -47,25 +48,7 @@ type CritiqueResult = z.infer<typeof critiqueOutputSchema>;
 function hasProviderCredentials(modelId: string): boolean {
   try {
     const { provider } = parseModelId(modelId);
-    switch (provider) {
-      case "pollinations":
-        return true;
-      case "anthropic":
-        return Boolean(process.env.ANTHROPIC_API_KEY?.trim());
-      case "openai":
-        return Boolean(process.env.OPENAI_API_KEY?.trim());
-      case "gemini":
-        return Boolean(
-          process.env.GEMINI_API_KEY?.trim() ||
-            process.env.GOOGLE_API_KEY?.trim(),
-        );
-      case "ollama":
-        return Boolean(
-          process.env.OLLAMA_API_KEY?.trim() || process.env.OLLAMA_HOST?.trim(),
-        );
-      default:
-        return false;
-    }
+    return isProviderConfigured(provider);
   } catch {
     return false;
   }

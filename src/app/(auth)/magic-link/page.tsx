@@ -1,14 +1,14 @@
 "use client";
 
+import Link from "next/link";
 import { useState } from "react";
-import { authClient } from "@/lib/auth-client";
 import { AuthShell } from "@/components/auth/auth-shell";
+import { Icons } from "@/components/custom/icons";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Icons } from "@/components/custom/icons";
-import Link from "next/link";
+import { authClient } from "@/lib/auth-client";
 
 export default function MagicLinkPage() {
   const [email, setEmail] = useState("");

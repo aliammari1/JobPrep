@@ -1,8 +1,8 @@
 "use client";
 
-import dynamic from "next/dynamic";
 import { motion } from "framer-motion";
 import { AlertCircle } from "lucide-react";
+import dynamic from "next/dynamic";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
@@ -18,6 +18,7 @@ const CodeEditorEnhanced = dynamic(
     loading: () => <Skeleton className="min-h-[420px] w-full rounded-lg" />,
   },
 );
+
 import { ProblemPanel } from "@/components/code-challenge/ProblemPanel";
 import { TestResultsPanel } from "@/components/code-challenge/TestResultsPanel";
 import { Badge } from "@/components/ui/badge";
@@ -460,7 +461,7 @@ export default function CodeChallengeArena() {
 
   if (isLoading) {
     return (
-      <div className="min-h-[calc(100vh-3.5rem)] flex items-center justify-center bg-background">
+      <div className="min-h-full flex items-center justify-center bg-background">
         <div className="text-center space-y-4">
           <motion.div
             animate={{ rotate: 360 }}
@@ -477,7 +478,7 @@ export default function CodeChallengeArena() {
 
   if (!challenge) {
     return (
-      <div className="min-h-[calc(100vh-3.5rem)] flex items-center justify-center bg-background p-4">
+      <div className="min-h-full flex items-center justify-center bg-background p-4">
         <Card className="max-w-md w-full">
           <CardContent className="pt-6 text-center space-y-4">
             <AlertCircle className="w-12 h-12 mx-auto text-muted-foreground/50" />
@@ -498,13 +499,13 @@ export default function CodeChallengeArena() {
   }
 
   return (
-    <div className="min-h-[calc(100vh-3.5rem)] bg-background">
+    <div className="min-h-full bg-background">
       <div className="container mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-6 md:py-8">
         {/* Header + Challenge Switcher */}
         <div className="mb-6 space-y-4">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div>
-              <h1 className="font-display text-3xl font-bold tracking-tight">
+              <h1 className="sr-only font-display lg:not-sr-only lg:text-3xl lg:font-bold lg:tracking-tight">
                 {challenge.title}
               </h1>
               <Badge className="mt-2">{challenge.difficulty}</Badge>

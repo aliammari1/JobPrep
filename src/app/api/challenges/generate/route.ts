@@ -1,9 +1,9 @@
-import { NextRequest, NextResponse } from "next/server";
-import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
-import { generateStructuredOutputRetry } from "@/lib/ollama-client";
-import prisma from "@/lib/prisma";
+import { type NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
+import { generateStructured, resolveRequestModel } from "@/lib/ai/generate";
+import { auth } from "@/lib/auth";
+import prisma from "@/lib/prisma";
 
 // Define the challenge schema for structured output
 const challengeSchema = z.object({
@@ -71,6 +71,7 @@ export async function POST(req: NextRequest) {
       jobDescription,
       difficulty = "Medium",
       count = 3,
+      model,
     } = await req.json();
 
     if (!cvData || !jobDescription) {
@@ -79,6 +80,8 @@ export async function POST(req: NextRequest) {
         { status: 400 },
       );
     }
+
+    const modelId = resolveRequestModel(model, "reasoning");
 
     // Extract relevant skills from CV and job description
     const cvSkills = extractSkills(cvData);
@@ -139,14 +142,15 @@ Job: ${jobDescription.substring(0, 500)}
 
 Return ONLY the JSON object. Start with { and end with }. No other text.`;
 
-    console.log("🤖 Generating challenges with Ollama (Vercel AI SDK)...");
-
-    const result = await generateStructuredOutputRetry(
+    const result = await generateStructured({
       prompt,
-      challengeSchema,
-      systemPrompt,
-      3,
-    );
+      schema: challengeSchema,
+      instructions: systemPrompt,
+      modelId,
+      tier: "reasoning",
+      functionId: "challenges-generate",
+      maxRetries: 3,
+    });
 
     console.log(
       `✅ Generated ${result.challenges.length} challenges successfully`,

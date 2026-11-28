@@ -1,9 +1,9 @@
-import { NextRequest, NextResponse } from "next/server";
+import { headers } from "next/headers";
+import { type NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import prisma from "@/lib/prisma";
-import { stripe, STRIPE_CONFIG } from "@/lib/stripe";
+import { STRIPE_CONFIG, stripe } from "@/lib/stripe";
 import { SUBSCRIPTION_PLANS } from "@/lib/subscription-plans";
-import { headers } from "next/headers";
 
 export async function POST(request: NextRequest) {
   try {

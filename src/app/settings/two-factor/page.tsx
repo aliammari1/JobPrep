@@ -1,8 +1,13 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useSession, authClient } from "@/lib/auth-client";
+import QRCode from "qrcode";
+import { useEffect, useState } from "react";
+import { PasswordConfirmDialog } from "@/components/custom/confirm-dialog";
+import { Icons } from "@/components/custom/icons";
+import { UserNav } from "@/components/custom/user-nav";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -13,13 +18,9 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Icons } from "@/components/custom/icons";
-import { Switch } from "@/components/ui/switch";
-import QRCode from "qrcode";
-import Link from "next/link";
-import { UserNav } from "@/components/custom/user-nav";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Switch } from "@/components/ui/switch";
+import { authClient, useSession } from "@/lib/auth-client";
 
 export default function TwoFactorPage() {
   const router = useRouter();
@@ -48,39 +49,58 @@ export default function TwoFactorPage() {
     }
   }, [session]);
 
-  const handleEnable2FA = async () => {
+  const [passwordAction, setPasswordAction] = useState<
+    "enable" | "disable" | null
+  >(null);
+
+  const handleEnable2FA = () => {
+    setError(null);
+    setPasswordAction("enable");
+  };
+
+  const handleDisable2FA = () => {
+    setError(null);
+    setPasswordAction("disable");
+  };
+
+  const handlePasswordConfirm = async (password: string) => {
     setError(null);
     setIsLoading(true);
 
     try {
-      const result = await authClient.twoFactor.enable({
-        password: prompt("Enter your password to enable 2FA:") || "",
-      });
-
-      if (result.error) {
-        setError(result.error.message || "Failed to enable 2FA");
-        setIsLoading(false);
-        return;
-      }
-
-      const totpURI = result.data?.totpURI;
-      const backupCodes = result.data?.backupCodes;
-
-      if (totpURI) {
-        const qr = await QRCode.toDataURL(totpURI);
-        setQrCode(qr);
-        // Extract secret from URI for display
-        const secretMatch = totpURI.match(/secret=([A-Z2-7]+)/);
-        if (secretMatch) {
-          setSecret(secretMatch[1]);
+      if (passwordAction === "enable") {
+        const result = await authClient.twoFactor.enable({ password });
+        if (result.error) {
+          setError(result.error.message || "Failed to enable 2FA");
+          return;
         }
+        const totpURI = result.data?.totpURI;
+        const nextBackupCodes = result.data?.backupCodes;
+        if (totpURI) {
+          const qr = await QRCode.toDataURL(totpURI);
+          setQrCode(qr);
+          const secretMatch = totpURI.match(/secret=([A-Z2-7]+)/);
+          if (secretMatch) setSecret(secretMatch[1]);
+        }
+        if (nextBackupCodes) setBackupCodes(nextBackupCodes);
+        setPasswordAction(null);
+      } else if (passwordAction === "disable") {
+        const result = await authClient.twoFactor.disable({ password });
+        if (result.error) {
+          setError(result.error.message || "Failed to disable 2FA");
+          return;
+        }
+        setSuccess("2FA disabled successfully");
+        setTwoFactorEnabled(false);
+        setBackupCodes([]);
+        setPasswordAction(null);
       }
-
-      if (backupCodes) {
-        setBackupCodes(backupCodes);
-      }
-    } catch (err) {
-      setError("Failed to enable 2FA");
+    } catch {
+      setError(
+        passwordAction === "enable"
+          ? "Failed to enable 2FA"
+          : "Failed to disable 2FA",
+      );
     } finally {
       setIsLoading(false);
     }
@@ -105,46 +125,8 @@ export default function TwoFactorPage() {
       setTwoFactorEnabled(true);
       setQrCode("");
       setVerificationCode("");
-    } catch (err) {
+    } catch {
       setError("Failed to verify code");
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handleDisable2FA = async () => {
-    if (
-      !confirm(
-        "Are you sure you want to disable 2FA? This will make your account less secure.",
-      )
-    ) {
-      return;
-    }
-
-    setError(null);
-    setIsLoading(true);
-
-    try {
-      const password = prompt("Enter your password to disable 2FA:");
-      if (!password) {
-        setIsLoading(false);
-        return;
-      }
-
-      const result = await authClient.twoFactor.disable({
-        password,
-      });
-
-      if (result.error) {
-        setError(result.error.message || "Failed to disable 2FA");
-        return;
-      }
-
-      setSuccess("2FA disabled successfully");
-      setTwoFactorEnabled(false);
-      setBackupCodes([]);
-    } catch (err) {
-      setError("Failed to disable 2FA");
     } finally {
       setIsLoading(false);
     }
@@ -152,11 +134,9 @@ export default function TwoFactorPage() {
 
   if (isPending || isCheckingStatus) {
     return (
-      <div className="min-h-screen bg-linear-to-br from-background via-background to-muted/20">
-        <div className="container mx-auto p-4 md:p-8 max-w-4xl">
-          <Skeleton className="h-12 w-full mb-4" />
-          <Skeleton className="h-64 w-full" />
-        </div>
+      <div className="space-y-4">
+        <Skeleton className="h-12 w-full" />
+        <Skeleton className="h-64 w-full" />
       </div>
     );
   }
@@ -166,47 +146,15 @@ export default function TwoFactorPage() {
   }
 
   return (
-    <div className="min-h-screen bg-linear-to-br from-background via-background to-muted/20">
-      <div className="container mx-auto p-4 md:p-8 max-w-4xl">
-        <div className="mb-8">
-          <div className="flex items-center justify-between mb-4">
-            <Link href="/dashboard">
-              <Button variant="ghost" size="sm">
-                <Icons.arrowLeft className="mr-2 h-4 w-4" />
-                Back to Dashboard
-              </Button>
-            </Link>
-            <UserNav />
-          </div>
-          <h1 className="text-4xl font-bold">Two-Factor Authentication</h1>
-          <p className="text-muted-foreground mt-2">
+    <div className="min-w-0">
+      <div className="space-y-6">
+        <div>
+          <h1 className="sr-only font-display lg:not-sr-only lg:text-3xl lg:font-semibold lg:tracking-tight">
+            Two-Factor Authentication
+          </h1>
+          <p className="text-sm text-muted-foreground lg:mt-1">
             Add an extra layer of security to your account
           </p>
-        </div>
-
-        {/* Navigation Tabs */}
-        <div className="flex gap-4 mb-6 overflow-x-auto pb-2">
-          <Link href="/settings/profile">
-            <Button variant="outline">Profile</Button>
-          </Link>
-          <Link href="/settings/security">
-            <Button variant="outline">Security</Button>
-          </Link>
-          <Link href="/settings/sessions">
-            <Button variant="outline">Sessions</Button>
-          </Link>
-          <Link href="/settings/two-factor">
-            <Button variant="default">Two-Factor</Button>
-          </Link>
-          <Link href="/settings/passkeys">
-            <Button variant="outline">Passkeys</Button>
-          </Link>
-          <Link href="/settings/connected-accounts">
-            <Button variant="outline">Connected</Button>
-          </Link>
-          <Link href="/settings/phone">
-            <Button variant="outline">Phone</Button>
-          </Link>
         </div>
 
         {error && (
@@ -321,7 +269,7 @@ export default function TwoFactorPage() {
                 </AlertDescription>
               </Alert>
               <div className="p-4 bg-muted rounded-lg">
-                <div className="grid grid-cols-2 gap-2">
+                <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
                   {backupCodes.map((code, index) => (
                     <code key={index} className="text-sm font-mono">
                       {code}
@@ -329,7 +277,7 @@ export default function TwoFactorPage() {
                   ))}
                 </div>
               </div>
-              <div className="grid grid-cols-2 gap-3 mt-4">
+              <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2">
                 <Button
                   variant="outline"
                   onClick={() => {
@@ -378,6 +326,26 @@ export default function TwoFactorPage() {
           )}
         </Card>
       </div>
+      <PasswordConfirmDialog
+        open={passwordAction !== null}
+        onOpenChange={(open) => {
+          if (!open) setPasswordAction(null);
+        }}
+        title={
+          passwordAction === "disable"
+            ? "Disable two-factor authentication"
+            : "Enable two-factor authentication"
+        }
+        description={
+          passwordAction === "disable"
+            ? "Disabling 2FA reduces account security. Enter your current password to confirm."
+            : "Enter your current password to generate a 2FA authenticator setup code."
+        }
+        confirmLabel={passwordAction === "disable" ? "Disable 2FA" : "Continue"}
+        destructive={passwordAction === "disable"}
+        isLoading={isLoading}
+        onConfirm={handlePasswordConfirm}
+      />
     </div>
   );
 }

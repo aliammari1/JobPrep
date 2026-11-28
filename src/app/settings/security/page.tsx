@@ -1,11 +1,13 @@
 "use client";
 
-import { useState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useSession, authClient } from "@/lib/auth-client";
+import { useState } from "react";
+import { PasswordConfirmDialog } from "@/components/custom/confirm-dialog";
+import { Icons } from "@/components/custom/icons";
+import { UserNav } from "@/components/custom/user-nav";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import {
   Card,
   CardContent,
@@ -13,13 +15,12 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Icons } from "@/components/custom/icons";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
-import { Switch } from "@/components/ui/switch";
-import Link from "next/link";
-import { UserNav } from "@/components/custom/user-nav";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Switch } from "@/components/ui/switch";
+import { authClient, useSession } from "@/lib/auth-client";
 
 export default function SecuritySettingsPage() {
   const router = useRouter();
@@ -37,11 +38,9 @@ export default function SecuritySettingsPage() {
 
   if (isPending) {
     return (
-      <div className="min-h-screen bg-linear-to-br from-background via-background to-muted/20">
-        <div className="container mx-auto p-4 md:p-8 max-w-4xl">
-          <Skeleton className="h-12 w-full mb-4" />
-          <Skeleton className="h-64 w-full" />
-        </div>
+      <div className="space-y-4">
+        <Skeleton className="h-12 w-full" />
+        <Skeleton className="h-64 w-full" />
       </div>
     );
   }
@@ -102,79 +101,50 @@ export default function SecuritySettingsPage() {
     }
   };
 
+  const [showDisable2FADialog, setShowDisable2FADialog] = useState(false);
+
   const handleToggle2FA = async () => {
     setError(null);
     setSuccess(null);
 
     if (!twoFactorEnabled) {
-      // Enable 2FA - redirect to setup page
-      router.push("/settings/two-factor/setup");
+      router.push("/settings/two-factor");
     } else {
-      // Disable 2FA
-      try {
-        const result = await authClient.twoFactor.disable({
-          password: prompt("Enter your password to disable 2FA:") || "",
-        });
+      setShowDisable2FADialog(true);
+    }
+  };
 
-        if (result.error) {
-          setError(result.error.message || "Failed to disable 2FA");
-        } else {
-          setTwoFactorEnabled(false);
-          setSuccess("Two-factor authentication disabled");
-        }
-      } catch (err) {
-        setError(
-          err instanceof Error ? err.message : "An unexpected error occurred",
-        );
+  const handleConfirmDisable2FA = async (password: string) => {
+    setIsLoading(true);
+    try {
+      const result = await authClient.twoFactor.disable({ password });
+
+      if (result.error) {
+        setError(result.error.message || "Failed to disable 2FA");
+      } else {
+        setTwoFactorEnabled(false);
+        setSuccess("Two-factor authentication disabled");
+        setShowDisable2FADialog(false);
       }
+    } catch (err) {
+      setError(
+        err instanceof Error ? err.message : "An unexpected error occurred",
+      );
+    } finally {
+      setIsLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen bg-linear-to-br from-background via-background to-muted/20">
-      <div className="container mx-auto p-4 md:p-8 max-w-4xl">
-        {/* Header */}
-        <div className="mb-8">
-          <div className="flex items-center justify-between mb-4">
-            <Link href="/dashboard">
-              <Button variant="ghost" size="sm">
-                <Icons.arrowLeft className="mr-2 h-4 w-4" />
-                Back to Dashboard
-              </Button>
-            </Link>
-            <UserNav />
-          </div>
-          <h1 className="text-3xl md:text-4xl font-bold tracking-tight">
-            Security settings
+    <div className="min-w-0">
+      <div className="space-y-6">
+        <div>
+          <h1 className="sr-only font-display lg:not-sr-only lg:text-3xl lg:font-semibold lg:tracking-tight">
+            Security Settings
           </h1>
-          <p className="text-muted-foreground mt-2">
+          <p className="text-sm text-muted-foreground lg:mt-1">
             Manage your password and security preferences
           </p>
-        </div>
-
-        {/* Navigation Tabs */}
-        <div className="flex gap-4 mb-6 overflow-x-auto pb-2">
-          <Link href="/settings/profile">
-            <Button variant="outline">Profile</Button>
-          </Link>
-          <Link href="/settings/security">
-            <Button variant="default">Security</Button>
-          </Link>
-          <Link href="/settings/sessions">
-            <Button variant="outline">Sessions</Button>
-          </Link>
-          <Link href="/settings/two-factor">
-            <Button variant="outline">Two-Factor</Button>
-          </Link>
-          <Link href="/settings/passkeys">
-            <Button variant="outline">Passkeys</Button>
-          </Link>
-          <Link href="/settings/connected-accounts">
-            <Button variant="outline">Connected</Button>
-          </Link>
-          <Link href="/settings/phone">
-            <Button variant="outline">Phone</Button>
-          </Link>
         </div>
 
         {success && (
@@ -352,6 +322,16 @@ export default function SecuritySettingsPage() {
           </CardContent>
         </Card>
       </div>
+      <PasswordConfirmDialog
+        open={showDisable2FADialog}
+        onOpenChange={setShowDisable2FADialog}
+        title="Disable two-factor authentication"
+        description="Enter your current password to disable 2FA on your account."
+        confirmLabel="Disable 2FA"
+        destructive
+        isLoading={isLoading}
+        onConfirm={handleConfirmDisable2FA}
+      />
     </div>
   );
 }

@@ -768,7 +768,10 @@ export function ExportPanel() {
           Export
         </Button>
       </DialogTrigger>
-      <DialogContent className="max-w-3xl">
+      <DialogContent
+        mobileSheet
+        className="max-h-[calc(100dvh-2rem)] max-w-[calc(100%-1.5rem)] overflow-y-auto p-4 sm:max-w-3xl sm:p-6"
+      >
         <DialogHeader>
           <DialogTitle>Export Your Resume</DialogTitle>
           <DialogDescription>
@@ -865,9 +868,6 @@ export function ExportPanel() {
                         {template}
                       </Label>
                     </div>
-                    <div className="mt-3 h-32 bg-muted rounded border flex items-center justify-center text-muted-foreground text-xs">
-                      Template Preview
-                    </div>
                   </Card>
                 ))}
               </div>
@@ -875,7 +875,7 @@ export function ExportPanel() {
           </TabsContent>
         </Tabs>
 
-        <div className="flex items-center justify-between pt-4 border-t">
+        <div className="flex flex-wrap items-center justify-between gap-2 border-t pt-4">
           <Button
             variant="outline"
             onClick={handleEmailExport}

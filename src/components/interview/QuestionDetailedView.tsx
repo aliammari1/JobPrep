@@ -1,16 +1,16 @@
 "use client";
 
+import { CheckCircle2, Download, Eye, Save } from "lucide-react";
+import { useState } from "react";
+import { toast } from "sonner";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Download, Save, CheckCircle2, Eye } from "lucide-react";
-import { useState } from "react";
 import {
-  generateInterviewPDF,
   downloadPDF,
-  InterviewPDFData,
+  generateInterviewPDF,
+  type InterviewPDFData,
 } from "@/lib/pdf-generator";
-import { toast } from "sonner";
 import { FullPageAnswersView } from "./FullPageAnswersView";
 
 interface QuestionDetailedViewProps {

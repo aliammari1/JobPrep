@@ -1,6 +1,6 @@
+import { betterFetch } from "@better-fetch/fetch";
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
-import { betterFetch } from "@better-fetch/fetch";
 
 interface SessionUser {
   id: string;
@@ -18,10 +18,23 @@ interface BetterAuthSession {
   user: SessionUser;
 }
 
-const AUTH_PAGES = ["/sign-in", "/sign-up", "/forgot-password"];
+const AUTH_PAGES = [
+  "/sign-in",
+  "/sign-up",
+  "/forgot-password",
+  "/reset-password",
+  "/email-otp",
+  "/magic-link",
+  "/phone-signin",
+  "/verify-email",
+  "/verify-2fa",
+];
 
 const PROTECTED_ROUTES = [
   "/dashboard",
+  "/more",
+  "/interview",
+  "/saved-interviews",
   "/settings",
   "/profile",
   "/interview-scheduler",

@@ -1,8 +1,8 @@
 "use client";
 
-import { useSubscription } from "./use-subscription";
-import { canAccessFeature, checkLimit } from "@/lib/subscription-plans";
 import type { SubscriptionPlan } from "@/lib/subscription-plans";
+import { canAccessFeature, checkLimit } from "@/lib/subscription-plans";
+import { useSubscription } from "./use-subscription";
 
 export function useFeatureAccess() {
   const { data: subscription, isLoading } = useSubscription();

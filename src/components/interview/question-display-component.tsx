@@ -1,9 +1,9 @@
-import { useMockInterviewStore } from "@/store/mock-interview-store";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { AlertCircle, Clock } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
-import { Clock, AlertCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useMockInterviewStore } from "@/store/mock-interview-store";
 
 export function QuestionDisplayComponent() {
   const { questions, currentQuestionIndex, currentQuestionTime } =

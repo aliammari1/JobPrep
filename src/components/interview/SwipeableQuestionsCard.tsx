@@ -304,7 +304,7 @@ export function SwipeableQuestionsCard({
         </div>
 
         {/* Stats */}
-        <div className="grid grid-cols-3 gap-3 bg-white dark:bg-slate-900 p-4 rounded-lg">
+        <div className="grid grid-cols-1 gap-3 rounded-lg border border-border bg-card p-4 sm:grid-cols-3">
           <div className="text-center">
             <div className="text-2xl font-bold text-primary">
               {questions.filter((q) => q.difficulty === "Easy").length}

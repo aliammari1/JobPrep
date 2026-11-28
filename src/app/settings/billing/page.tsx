@@ -1,7 +1,10 @@
 "use client";
 
-import { SubscriptionManager } from "@/components/custom/subscription-manager";
+import { AlertCircle } from "lucide-react";
+import Link from "next/link";
 import { BillingPageWrapper } from "@/components/custom/billing-page-wrapper";
+import { SubscriptionManager } from "@/components/custom/subscription-manager";
+import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
@@ -9,19 +12,16 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { AlertCircle } from "lucide-react";
-import Link from "next/link";
 
 export default function BillingPage() {
   return (
     <BillingPageWrapper>
-      <div className="container mx-auto max-w-7xl space-y-6 px-4 py-6 sm:px-6 md:py-8 lg:px-8">
+      <div className="space-y-6">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight md:text-4xl">
-            Billing & Subscription
+          <h1 className="sr-only font-display lg:not-sr-only lg:text-3xl lg:font-semibold lg:tracking-tight">
+            Billing &amp; Subscription
           </h1>
-          <p className="text-muted-foreground mt-2">
+          <p className="text-sm text-muted-foreground lg:mt-1">
             Manage your subscription, track your usage, and view your billing
             information
           </p>

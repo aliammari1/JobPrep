@@ -1,8 +1,8 @@
+import { headers } from "next/headers";
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
-import prisma from "@/lib/prisma";
 import { auth } from "@/lib/auth";
-import { headers } from "next/headers";
+import prisma from "@/lib/prisma";
 
 /**
  * Handles POST requests to mark the given interviews as having reminders sent.

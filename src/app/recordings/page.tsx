@@ -22,6 +22,7 @@ import {
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
+import { ConfirmDialog } from "@/components/custom/confirm-dialog";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -81,7 +82,7 @@ export default function RecordingsPage() {
   const [sortBy, setSortBy] = useState<"date" | "name" | "duration">("date");
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
   const [filterStatus, setFilterStatus] = useState<
-    "all" | "completed" | "in-progress" | "no-recording"
+    "all" | "completed" | "migration-required"
   >("all");
   const [selectedRecording, setSelectedRecording] = useState<Recording | null>(
     null,
@@ -125,29 +126,35 @@ export default function RecordingsPage() {
     }
   };
 
-  const handleDownload = async (recording: Recording) => {
-    try {
-      toast.info("Starting download...");
-      window.open(recording.fileUrl, "_blank");
-    } catch (error) {
-      console.error("Error downloading recording:", error);
-      toast.error("Failed to download recording");
-    }
-  };
-
   const handlePlayVideo = (recording: Recording) => {
     setSelectedRecording(recording);
     setIsVideoDialogOpen(true);
   };
 
-  const handleDelete = async (recordingId: string) => {
-    if (
-      !confirm(
-        "Are you sure you want to delete this recording? This action cannot be undone.",
-      )
-    ) {
+  const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null);
+
+  const handleDownload = (recording: Recording) => {
+    if (!recording.fileUrl) {
+      toast.error("Recording file is not available for download.");
       return;
     }
+    const link = document.createElement("a");
+    link.href = recording.fileUrl;
+    link.download = `${recording.roomName || "recording"}.webm`;
+    link.rel = "noopener noreferrer";
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+  };
+
+  const handleDelete = (recordingId: string) => {
+    setPendingDeleteId(recordingId);
+  };
+
+  const confirmDelete = async () => {
+    if (!pendingDeleteId) return;
+    const recordingId = pendingDeleteId;
+    setPendingDeleteId(null);
 
     try {
       const response = await fetch(`/api/recordings/${recordingId}`, {
@@ -158,7 +165,9 @@ export default function RecordingsPage() {
         toast.success("Recording deleted successfully");
         fetchRecordings();
       } else {
-        toast.error("Failed to delete recording");
+        const result = await response.json().catch(() => null);
+        toast.error(result?.error ?? "Failed to delete recording");
+        fetchRecordings();
       }
     } catch (error) {
       console.error("Error deleting recording:", error);
@@ -218,7 +227,7 @@ export default function RecordingsPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
+      <div className="min-h-full bg-background flex items-center justify-center">
         <div className="text-center space-y-4">
           <Loader2 className="w-12 h-12 animate-spin mx-auto text-primary" />
           <p className="text-muted-foreground">Loading recordings...</p>
@@ -228,12 +237,12 @@ export default function RecordingsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-full bg-background">
       <div className="container mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-6 md:py-8 space-y-6">
         {/* Header */}
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <h1 className="text-3xl md:text-4xl font-bold tracking-tight text-foreground">
+            <h1 className="sr-only lg:not-sr-only lg:text-4xl lg:font-bold lg:tracking-tight">
               Interview Recordings
             </h1>
             <p className="text-muted-foreground mt-1">
@@ -263,16 +272,16 @@ export default function RecordingsPage() {
                 Full Q&amp;A rubrics and AI scores persisted in PostgreSQL
               </CardDescription>
             </CardHeader>
-            <CardContent className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+            <CardContent className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
               {savedTranscripts.slice(0, 9).map((item) => (
                 <Link
                   key={item.id}
                   href={`/saved-interviews/${item.id}`}
-                  className="group flex flex-col justify-between gap-2 rounded-xl border border-border bg-background p-4 transition-colors hover:border-primary/40 hover:bg-muted/40"
+                  className="group flex min-w-0 flex-col justify-between gap-2 rounded-xl border border-border bg-background p-4 transition-colors hover:border-primary/40 hover:bg-muted/40"
                 >
                   <div className="flex items-start justify-between gap-2">
                     <div className="min-w-0">
-                      <p className="truncate text-sm font-semibold text-foreground group-hover:text-primary">
+                      <p className="text-sm font-semibold text-foreground group-hover:text-primary">
                         {item.application
                           ? `${item.application.role}`
                           : `${item.sessionType || "Mock"} Interview`}
@@ -305,15 +314,14 @@ export default function RecordingsPage() {
           </Card>
         )}
 
-        {/* Info Alert about Recording Storage */}
-        {recordings.some((r) => r.status === "no-recording") && (
+        {recordings.some(
+          (recording) => recording.status === "migration-required",
+        ) && (
           <Alert>
             <Info className="h-4 w-4" />
             <AlertDescription>
-              Some interviews don't have cloud recordings available. To enable
-              permanent cloud recording storage, configure S3 or Google Cloud
-              Storage in your LiveKit settings. Currently using client-side
-              recording only.
+              Older recordings will be available after their storage transfer
+              has finished.
             </AlertDescription>
           </Alert>
         )}
@@ -355,11 +363,7 @@ export default function RecordingsPage() {
                   value={filterStatus}
                   onValueChange={(value) =>
                     setFilterStatus(
-                      value as
-                        | "all"
-                        | "completed"
-                        | "in-progress"
-                        | "no-recording",
+                      value as "all" | "completed" | "migration-required",
                     )
                   }
                 >
@@ -369,8 +373,9 @@ export default function RecordingsPage() {
                   <SelectContent>
                     <SelectItem value="all">All Status</SelectItem>
                     <SelectItem value="completed">Has Recording</SelectItem>
-                    <SelectItem value="in-progress">In Progress</SelectItem>
-                    <SelectItem value="no-recording">No Recording</SelectItem>
+                    <SelectItem value="migration-required">
+                      Storage transfer pending
+                    </SelectItem>
                   </SelectContent>
                 </Select>
 
@@ -435,16 +440,12 @@ export default function RecordingsPage() {
                     </div>
                     <Badge
                       variant={
-                        recording.status === "completed"
-                          ? "default"
-                          : recording.status === "in-progress"
-                            ? "secondary"
-                            : "outline"
+                        recording.status === "completed" ? "default" : "outline"
                       }
                     >
-                      {recording.status === "no-recording"
-                        ? "No Recording"
-                        : recording.status}
+                      {recording.status === "completed"
+                        ? "Available"
+                        : "Transfer pending"}
                     </Badge>
                   </div>
                 </CardHeader>
@@ -484,25 +485,26 @@ export default function RecordingsPage() {
                           <Play className="w-4 h-4 mr-2" />
                           Play
                         </Button>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => handleDownload(recording)}
-                        >
-                          <Download className="w-4 h-4" />
+                        <Button variant="outline" size="sm" asChild>
+                          <a
+                            href={`${recording.fileUrl}?download=1`}
+                            aria-label="Download recording"
+                          >
+                            <Download className="w-4 h-4" />
+                          </a>
                         </Button>
                       </>
                     ) : (
                       <div className="flex-1 text-center py-2 text-sm text-muted-foreground">
-                        {recording.status === "in-progress"
-                          ? "Interview in progress..."
-                          : "No recording available"}
+                        Playback resumes after storage transfer.
                       </div>
                     )}
                     <Button
                       variant="outline"
                       size="sm"
                       onClick={() => handleDelete(recording.id)}
+                      disabled={recording.status === "migration-required"}
+                      aria-label="Delete recording"
                       className="text-destructive hover:text-destructive"
                     >
                       <Trash2 className="w-4 h-4" />
@@ -516,7 +518,7 @@ export default function RecordingsPage() {
 
         {/* Video Player Dialog */}
         <Dialog open={isVideoDialogOpen} onOpenChange={setIsVideoDialogOpen}>
-          <DialogContent className="max-w-5xl w-full">
+          <DialogContent mobileSheet className="sm:max-w-5xl w-full">
             <DialogHeader>
               <DialogTitle className="flex items-center gap-2">
                 <Video className="w-5 h-5 text-primary" />
@@ -580,6 +582,17 @@ export default function RecordingsPage() {
             </div>
           </DialogContent>
         </Dialog>
+        <ConfirmDialog
+          open={pendingDeleteId !== null}
+          onOpenChange={(open) => {
+            if (!open) setPendingDeleteId(null);
+          }}
+          title="Delete recording"
+          description="Are you sure you want to delete this recording? This action cannot be undone."
+          confirmLabel="Delete"
+          destructive
+          onConfirm={confirmDelete}
+        />
       </div>
     </div>
   );

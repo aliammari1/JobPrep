@@ -1,184 +1,145 @@
 "use client";
 
-import { Mail, Shield, UserPlus } from "lucide-react";
+import { Users } from "lucide-react";
+import { useEffect, useState } from "react";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { Label } from "@/components/ui/label";
+import { authClient } from "@/lib/auth-client";
 
-export default function TeamSettingsPage() {
+interface Member {
+  id: string;
+  role: string;
+  user: { name: string; email: string };
+}
+
+function MemberList({ organizationId }: { organizationId: string }) {
+  const [members, setMembers] = useState<Member[] | null>(null);
+  const [error, setError] = useState<string>();
+
+  useEffect(() => {
+    let active = true;
+    void authClient.organization
+      .getFullOrganization({ query: { organizationId } })
+      .then(({ data, error }) => {
+        if (!active) return;
+        if (!data || error) setError("Could not load team members.");
+        else setMembers(data.members);
+      })
+      .catch(() => {
+        if (active) setError("Could not load team members.");
+      });
+    return () => {
+      active = false;
+    };
+  }, [organizationId]);
+
   return (
-    <div className="container mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-6 md:py-8 space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl md:text-4xl font-bold tracking-tight">
-            Team Management
-          </h1>
-          <p className="text-muted-foreground mt-1">
-            Manage team members, roles, and permissions
+    <Card className="gap-0 py-0 shadow-none">
+      <CardHeader className="py-4">
+        <CardTitle>Members</CardTitle>
+      </CardHeader>
+      <CardContent className="px-0">
+        {error ? (
+          <p role="alert" className="px-5 pb-4 text-sm text-destructive">
+            {error}
           </p>
-        </div>
-        <Button>
-          <UserPlus className="mr-2 h-4 w-4" />
-          Invite Member
-        </Button>
-      </div>
-
-      <Card>
-        <CardHeader>
-          <CardTitle>Invite Team Member</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="flex flex-col gap-2 sm:flex-row">
-            <Input placeholder="email@company.com" className="flex-1" />
-            <Select defaultValue="member">
-              <SelectTrigger className="w-full sm:w-[180px]">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="admin">Admin</SelectItem>
-                <SelectItem value="recruiter">Recruiter</SelectItem>
-                <SelectItem value="member">Member</SelectItem>
-              </SelectContent>
-            </Select>
-            <Button>
-              <Mail className="mr-2 h-4 w-4" />
-              Send Invite
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardHeader>
-          <CardTitle>Team Members (12)</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-3">
-            {[
-              {
-                name: "Alice Johnson",
-                email: "alice@company.com",
-                role: "Admin",
-                status: "Active",
-              },
-              {
-                name: "Bob Smith",
-                email: "bob@company.com",
-                role: "Recruiter",
-                status: "Active",
-              },
-              {
-                name: "Carol White",
-                email: "carol@company.com",
-                role: "Recruiter",
-                status: "Active",
-              },
-              {
-                name: "David Lee",
-                email: "david@company.com",
-                role: "Member",
-                status: "Pending",
-              },
-            ].map((member) => (
-              <Card key={member.email}>
-                <CardContent className="p-4">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      <Avatar>
-                        <AvatarFallback>
-                          {member.name
-                            .split(" ")
-                            .map((n) => n[0])
-                            .join("")}
-                        </AvatarFallback>
-                      </Avatar>
-                      <div>
-                        <p className="font-medium">{member.name}</p>
-                        <p className="text-sm text-muted-foreground">
-                          {member.email}
-                        </p>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <Badge
-                        variant={
-                          member.role === "Admin" ? "default" : "secondary"
-                        }
-                      >
-                        {member.role}
-                      </Badge>
-                      <Badge
-                        variant={
-                          member.status === "Active" ? "default" : "outline"
-                        }
-                      >
-                        {member.status}
-                      </Badge>
-                      <Button size="sm" variant="outline">
-                        <Shield className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardHeader>
-          <CardTitle>Roles & Permissions</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-3">
-            {[
-              {
-                role: "Admin",
-                permissions: "Full access to all features",
-                members: 2,
-              },
-              {
-                role: "Recruiter",
-                permissions: "Can manage interviews and candidates",
-                members: 6,
-              },
-              {
-                role: "Member",
-                permissions: "View-only access to dashboards",
-                members: 4,
-              },
-            ].map((role) => (
-              <div
-                key={role.role}
-                className="flex items-center justify-between p-4 border rounded-lg"
+        ) : !members ? (
+          <p role="status" className="px-5 pb-4 text-sm text-muted-foreground">
+            Loading members…
+          </p>
+        ) : members.length ? (
+          <ul className="divide-y divide-border border-t border-border">
+            {members.map(({ id, role, user }) => (
+              <li
+                key={id}
+                className="flex min-w-0 flex-wrap items-center gap-3 px-4 py-3"
               >
-                <div>
-                  <p className="font-medium">{role.role}</p>
-                  <p className="text-sm text-muted-foreground">
-                    {role.permissions}
+                <Avatar>
+                  <AvatarFallback>
+                    {(user.name || user.email).trim().slice(0, 2).toUpperCase()}
+                  </AvatarFallback>
+                </Avatar>
+                <div className="min-w-0 flex-1">
+                  <p className="font-medium">{user.name}</p>
+                  <p className="text-sm text-muted-foreground [overflow-wrap:anywhere]">
+                    {user.email}
                   </p>
                 </div>
-                <div className="flex items-center gap-3">
-                  <Badge variant="outline">{role.members} members</Badge>
-                  <Button size="sm" variant="ghost">
-                    Edit
-                  </Button>
-                </div>
-              </div>
+                <Badge variant="secondary" className="capitalize">
+                  {role}
+                </Badge>
+              </li>
             ))}
+          </ul>
+        ) : (
+          <p className="px-5 pb-4 text-sm text-muted-foreground">
+            No members to display.
+          </p>
+        )}
+      </CardContent>
+    </Card>
+  );
+}
+
+export default function TeamSettingsPage() {
+  const { data, error, isPending, refetch } = authClient.useListOrganizations();
+  const [selectedId, setSelectedId] = useState("");
+  const selected = data?.find(({ id }) => id === selectedId) ?? data?.[0];
+
+  return (
+    <div className="space-y-5">
+      <h1 className="sr-only font-display lg:not-sr-only lg:text-3xl lg:font-semibold lg:tracking-tight">
+        Team Settings
+      </h1>
+      {isPending ? (
+        <p role="status" className="py-4 text-sm text-muted-foreground">
+          Loading teams…
+        </p>
+      ) : error ? (
+        <div className="space-y-3">
+          <p role="alert" className="text-sm text-destructive">
+            Could not load your teams.
+          </p>
+          <Button variant="outline" onClick={() => void refetch()}>
+            Try again
+          </Button>
+        </div>
+      ) : selected ? (
+        <>
+          <div className="space-y-2">
+            <Label htmlFor="team-selection">Team</Label>
+            <select
+              id="team-selection"
+              value={selected.id}
+              onChange={(event) => setSelectedId(event.target.value)}
+              className="min-h-11 w-full min-w-0 rounded-lg border border-border bg-card px-3"
+            >
+              {data?.map(({ id, name }) => (
+                <option key={id} value={id}>
+                  {name}
+                </option>
+              ))}
+            </select>
           </div>
-        </CardContent>
-      </Card>
+          <MemberList key={selected.id} organizationId={selected.id} />
+        </>
+      ) : (
+        <div className="flex items-start gap-3 py-4">
+          <Users
+            aria-hidden="true"
+            className="mt-1 size-5 shrink-0 text-primary"
+          />
+          <div>
+            <h2 className="font-semibold">No teams yet</h2>
+            <p className="mt-1 text-sm text-muted-foreground">
+              Teams you belong to will appear here.
+            </p>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

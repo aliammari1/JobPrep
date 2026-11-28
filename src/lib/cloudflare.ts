@@ -1,94 +1,93 @@
-/**
- * Cloudflare Workers runtime helpers (Hyperdrive + R2).
- *
- * All helpers degrade gracefully to `null` when running on standard Node.js /
- * Docker / local dev outside a Cloudflare Worker runtime.
- */
+import { getCloudflareContext } from "@opennextjs/cloudflare";
 
-export interface CloudflareHyperdriveBinding {
-  connectionString: string;
-}
-
-export interface CloudflareR2Object {
-  key: string;
-  size: number;
-  etag: string;
-  httpMetadata?: { contentType?: string };
-  arrayBuffer(): Promise<ArrayBuffer>;
-}
-
-export interface CloudflareR2BucketBinding {
-  put(
-    key: string,
-    value: ArrayBuffer | Uint8Array | ReadableStream | string,
-    options?: {
-      httpMetadata?: { contentType?: string };
-      customMetadata?: Record<string, string>;
-    },
-  ): Promise<CloudflareR2Object | null>;
-  get(key: string): Promise<CloudflareR2Object | null>;
-  delete(key: string | string[]): Promise<void>;
-}
-
-export interface JobPrepCloudflareEnv {
-  HYPERDRIVE?: CloudflareHyperdriveBinding;
-  RECORDINGS_BUCKET?: CloudflareR2BucketBinding;
-  R2_PUBLIC_URL?: string;
+interface CloudflareRateLimiter {
+  limit(options: { key: string }): Promise<{ success: boolean }>;
 }
 
 /**
- * Safely retrieve Cloudflare Worker bindings via `@opennextjs/cloudflare` when
- * executing inside a Worker (or `CLOUDFLARE_DEV=1`). Returns `null` on Node.js.
+ * Minimal Cloudflare Workers binding types for `cloudflare-env.d.ts`
+ * (generated with `wrangler types --env-interface CloudflareEnv --include-runtime=false`).
+ * Keeps Workers binding types strict without overriding DOM `Request`/`Response` globals.
  */
-export async function getCloudflareEnv(): Promise<JobPrepCloudflareEnv | null> {
+declare global {
+  interface R2Object {
+    key: string;
+    size: number;
+    etag: string;
+    httpEtag: string;
+    httpMetadata?: { contentType?: string };
+  }
+
+  interface R2ObjectBody extends R2Object {
+    body: ReadableStream<Uint8Array>;
+    arrayBuffer(): Promise<ArrayBuffer>;
+  }
+
+  interface R2Bucket {
+    head(key: string): Promise<R2Object | null>;
+    get(
+      key: string,
+      options?: { range?: { offset?: number; length?: number } },
+    ): Promise<R2ObjectBody | null>;
+    put(
+      key: string,
+      value: ArrayBuffer | Uint8Array | ReadableStream | string | null,
+      options?: {
+        httpMetadata?: { contentType?: string };
+        onlyIf?: { etagDoesNotMatch?: string };
+        customMetadata?: Record<string, string>;
+      },
+    ): Promise<R2Object | null>;
+    delete(keys: string | string[]): Promise<void>;
+  }
+
+  interface Fetcher {
+    fetch(input: RequestInfo | URL, init?: RequestInit): Promise<Response>;
+  }
+
+  type Service<T = unknown> = Fetcher & { readonly __service?: T };
+
+  interface ImagesBinding {
+    input(stream: ReadableStream<Uint8Array>): unknown;
+  }
+
+  interface Hyperdrive {
+    readonly connectionString: string;
+    readonly host: string;
+    readonly port: number;
+    readonly user: string;
+    readonly password: string;
+    readonly database: string;
+  }
+
+  interface CloudflareEnv {
+    AI_RATE_LIMITER?: CloudflareRateLimiter;
+    LIVEKIT_RATE_LIMITER?: CloudflareRateLimiter;
+    DEFAULT_RATE_LIMITER?: CloudflareRateLimiter;
+    CF_AI_GATEWAY_URL?: string;
+  }
+}
+
+/** Local Node.js can start without a Worker context. */
+export function cloudflareContext() {
   try {
-    const mod = await import("@opennextjs/cloudflare");
-    if (typeof mod.getCloudflareContext !== "function") return null;
-    const ctx = await mod.getCloudflareContext({ async: true });
-    return (ctx?.env as JobPrepCloudflareEnv | undefined) ?? null;
-  } catch {
+    return getCloudflareContext();
+  } catch (error) {
+    if (process.env.NEXT_RUNTIME === "edge") throw error;
     return null;
   }
 }
 
 /**
- * Returns the Cloudflare Hyperdrive pooled PostgreSQL connection string if
- * bound, otherwise `null` (falling back to `DATABASE_URL`).
+ * Schedule non-blocking background work (telemetry, cleanup, webhooks) via
+ * Cloudflare Workers `ctx.waitUntil()` when running on the edge, or fire-and-forget
+ * safely in local Node.js.
  */
-export async function getHyperdriveConnectionString(): Promise<string | null> {
-  const env = await getCloudflareEnv();
-  return env?.HYPERDRIVE?.connectionString ?? null;
-}
-
-/**
- * Uploads a recording or exported artifact to Cloudflare R2 if the
- * `RECORDINGS_BUCKET` binding is configured.
- */
-export async function uploadToR2(
-  key: string,
-  data: ArrayBuffer | Uint8Array,
-  contentType: string,
-): Promise<{ key: string; url: string | null } | null> {
-  const env = await getCloudflareEnv();
-  if (!env?.RECORDINGS_BUCKET) return null;
-
-  await env.RECORDINGS_BUCKET.put(key, data, {
-    httpMetadata: { contentType },
-  });
-
-  const baseUrl = env.R2_PUBLIC_URL?.replace(/\/+$/, "");
-  return {
-    key,
-    url: baseUrl ? `${baseUrl}/${key}` : null,
-  };
-}
-
-/**
- * Deletes an object from Cloudflare R2 when the binding is configured.
- */
-export async function deleteFromR2(key: string): Promise<boolean> {
-  const env = await getCloudflareEnv();
-  if (!env?.RECORDINGS_BUCKET) return false;
-  await env.RECORDINGS_BUCKET.delete(key);
-  return true;
+export function runInBackground(task: Promise<unknown>): void {
+  const cf = cloudflareContext();
+  if (cf?.ctx?.waitUntil) {
+    cf.ctx.waitUntil(task.catch(() => {}));
+  } else {
+    void task.catch(() => {});
+  }
 }

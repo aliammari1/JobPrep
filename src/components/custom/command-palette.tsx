@@ -1,7 +1,30 @@
 "use client";
 
-import * as React from "react";
+import {
+  Bell,
+  Briefcase,
+  CalendarCheck,
+  Code2,
+  FileEdit,
+  HelpCircle,
+  Home,
+  Key,
+  Link2,
+  LogOut,
+  Mail,
+  Monitor,
+  Moon,
+  Phone,
+  Shield,
+  Sun,
+  Target,
+  Users,
+  Users2,
+  Video,
+} from "lucide-react";
 import { useRouter } from "next/navigation";
+import { useTheme } from "next-themes";
+import * as React from "react";
 import { useEffect, useState } from "react";
 import {
   Command,
@@ -12,47 +35,15 @@ import {
   CommandList,
   CommandSeparator,
 } from "@/components/ui/command";
-import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import {
-  Home,
-  Target,
-  Video,
-  CalendarCheck,
-  Code2,
-  FileEdit,
-  Mail,
-  Database,
-  Linkedin,
-  CalendarDays,
-  Workflow,
-  Calendar,
-  Settings,
-  Users,
-  Shield,
-  Key,
-  Phone,
-  Link2,
-  Monitor,
-  Bell,
-  Users2,
-  FileText,
-  BarChart3,
-  Brain,
-  Clock,
-  Zap,
-  Briefcase,
-  Search,
-  File,
-  CreditCard,
-  LogOut,
-  HelpCircle,
-  Moon,
-  Sun,
-} from "lucide-react";
-import { useTheme } from "next-themes";
-import { useSession, signOut } from "@/lib/auth-client";
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { signOut, useSession } from "@/lib/auth-client";
 
-interface CommandItem {
+interface PaletteCommand {
   id: string;
   label: string;
   description?: string;
@@ -66,11 +57,11 @@ interface CommandItem {
 export function CommandPalette() {
   const router = useRouter();
   const [open, setOpen] = useState(false);
-  const [mounted, setMounted] = useState(false);
-  const { theme, setTheme } = useTheme();
+  const previousFocus = React.useRef<HTMLElement | null>(null);
+  const { setTheme } = useTheme();
   const { data: session } = useSession();
 
-  const commands: CommandItem[] = [
+  const commands: PaletteCommand[] = [
     // Navigation
     {
       id: "dashboard",
@@ -136,40 +127,21 @@ export function CommandPalette() {
       keywords: ["letter", "cover", "generate"],
     },
     {
-      id: "integrations",
-      label: "Integrations Hub",
-      description: "Manage integrations",
-      icon: <Database className="w-4 h-4" />,
-      href: "/integrations",
-      category: "Integrations",
-      keywords: ["integrate", "connect", "api"],
+      id: "system-design",
+      label: "System Design",
+      description: "Practice designing systems",
+      icon: <Monitor className="size-4" />,
+      href: "/system-design",
+      category: "Interviews",
+      keywords: ["architecture", "whiteboard", "diagram"],
     },
     {
-      id: "linkedin-integration",
-      label: "LinkedIn Integration",
-      description: "Connect LinkedIn",
-      icon: <Linkedin className="w-4 h-4" />,
-      href: "/integrations/linkedin",
-      category: "Integrations",
-      keywords: ["linkedin", "social", "profile"],
-    },
-    {
-      id: "calendar-sync",
-      label: "Google Calendar",
-      description: "Sync with Google Calendar",
-      icon: <CalendarDays className="w-4 h-4" />,
-      href: "/integrations/calendar",
-      category: "Integrations",
-      keywords: ["calendar", "google", "schedule"],
-    },
-    {
-      id: "ats-integration",
-      label: "ATS Integration",
-      description: "Connect ATS system",
-      icon: <Workflow className="w-4 h-4" />,
-      href: "/ats-integration",
-      category: "Integrations",
-      keywords: ["ats", "applicant", "tracking"],
+      id: "applications",
+      label: "Applications & ATS",
+      icon: <Briefcase className="size-4" />,
+      href: "/applications",
+      category: "Career Tools",
+      keywords: ["jobs", "tracker"],
     },
     // Settings
     {
@@ -278,7 +250,7 @@ export function CommandPalette() {
       label: "Help & Support",
       description: "Get help and support",
       icon: <HelpCircle className="w-4 h-4" />,
-      href: "/help",
+      href: "/contact",
       category: "Help",
       keywords: ["help", "support", "faq"],
     },
@@ -302,11 +274,22 @@ export function CommandPalette() {
   }
 
   useEffect(() => {
-    setMounted(true);
-
     const down = (e: KeyboardEvent) => {
-      if (e.key === "k" && (e.metaKey || e.ctrlKey)) {
+      if (
+        e.key.toLowerCase() === "k" &&
+        !e.altKey &&
+        !e.shiftKey &&
+        (e.metaKey || e.ctrlKey)
+      ) {
         e.preventDefault();
+        if (e.repeat) return;
+        const active = document.activeElement;
+        if (
+          active instanceof HTMLElement &&
+          !active.closest('[data-slot="dialog-content"]')
+        ) {
+          previousFocus.current = active;
+        }
         setOpen((open) => !open);
       }
     };
@@ -315,7 +298,7 @@ export function CommandPalette() {
     return () => document.removeEventListener("keydown", down);
   }, []);
 
-  const handleSelect = (command: CommandItem) => {
+  const handleSelect = (command: PaletteCommand) => {
     if (command.href) {
       router.push(command.href);
     } else if (command.action) {
@@ -332,17 +315,30 @@ export function CommandPalette() {
       acc[cmd.category].push(cmd);
       return acc;
     },
-    {} as Record<string, CommandItem[]>,
+    {} as Record<string, PaletteCommand[]>,
   );
-
-  if (!mounted) return null;
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogContent className="overflow-hidden p-0 shadow-lg">
+      <DialogContent
+        className="overflow-hidden p-0 shadow-lg"
+        onCloseAutoFocus={(event) => {
+          if (previousFocus.current?.isConnected) {
+            event.preventDefault();
+            previousFocus.current.focus();
+          }
+          previousFocus.current = null;
+        }}
+      >
         <DialogTitle className="sr-only">Command Palette</DialogTitle>
+        <DialogDescription className="sr-only">
+          Search for a workspace page or command.
+        </DialogDescription>
         <Command className="[&_[cmdk-group-heading]]:px-2 [&_[cmdk-group-heading]]:font-medium [&_[cmdk-group-heading]]:text-xs [&_[cmdk-group-heading]]:text-muted-foreground [&_[cmdk-group]:overflow-hidden [&_[cmdk-group-heading]]:line-clamp-1 [&_[cmdk-item]]:px-2 [&_[cmdk-item]]:py-3 [&_[cmdk-input-wrapper]_svg]:h-5 [&_[cmdk-input-wrapper]_svg]:w-5 [&_[cmdk-input]]:h-12">
-          <CommandInput placeholder="Search commands..." />
+          <CommandInput
+            aria-label="Search commands"
+            placeholder="Search commands..."
+          />
           <CommandList>
             <CommandEmpty>No commands found.</CommandEmpty>
             {Object.entries(groupedCommands).map(([category, items]) => (
@@ -352,6 +348,7 @@ export function CommandPalette() {
                     <CommandItem
                       key={command.id}
                       value={command.id}
+                      keywords={[command.label, ...(command.keywords ?? [])]}
                       onSelect={() => handleSelect(command)}
                       className="cursor-pointer"
                     >

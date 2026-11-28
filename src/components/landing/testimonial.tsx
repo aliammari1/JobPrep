@@ -1,6 +1,6 @@
-import { ReactNode } from "react";
-import { Card } from "@/components/ui/card";
+import type { ReactNode } from "react";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Card } from "@/components/ui/card";
 
 interface TestimonialProps {
   quote: string;

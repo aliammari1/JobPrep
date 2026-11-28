@@ -5,12 +5,12 @@
  * Sends interview confirmation emails to candidates when interview is scheduled
  */
 
-import { NextRequest, NextResponse } from "next/server";
-import prisma from "@/lib/prisma";
-import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
+import { type NextRequest, NextResponse } from "next/server";
+import { auth } from "@/lib/auth";
 import { sendEmail } from "@/lib/email-service";
 import { getConfirmationEmailTemplate } from "@/lib/email-templates";
+import prisma from "@/lib/prisma";
 
 /**
  * HTTP POST handler that sends an interview confirmation email to the candidate and marks the interview as having received a confirmation.

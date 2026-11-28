@@ -5,12 +5,12 @@
  * Sends interview reminder emails to candidates 24 hours before scheduled time
  */
 
-import { NextRequest, NextResponse } from "next/server";
-import prisma from "@/lib/prisma";
-import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
+import { type NextRequest, NextResponse } from "next/server";
+import { auth } from "@/lib/auth";
 import { sendEmail } from "@/lib/email-service";
 import { getReminderEmailTemplate } from "@/lib/email-templates";
+import prisma from "@/lib/prisma";
 
 /**
  * Send interview reminder emails for the authenticated interviewer.

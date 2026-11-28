@@ -1,21 +1,20 @@
 "use client";
 
-import { useState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { authClient } from "@/lib/auth-client";
+import { useState } from "react";
+import { AuthShell } from "@/components/auth/auth-shell";
+import { Icons } from "@/components/custom/icons";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Icons } from "@/components/custom/icons";
-import Link from "next/link";
+  InputOTP,
+  InputOTPGroup,
+  InputOTPSlot,
+} from "@/components/ui/input-otp";
+import { Label } from "@/components/ui/label";
+import { authClient } from "@/lib/auth-client";
 
 export default function EmailOTPPage() {
   const router = useRouter();
@@ -42,7 +41,7 @@ export default function EmailOTPPage() {
       } else {
         setStep("verify");
       }
-    } catch (err) {
+    } catch {
       setError("An unexpected error occurred");
     } finally {
       setIsLoading(false);
@@ -66,7 +65,7 @@ export default function EmailOTPPage() {
         router.push("/dashboard");
         router.refresh();
       }
-    } catch (err) {
+    } catch {
       setError("An unexpected error occurred");
     } finally {
       setIsLoading(false);
@@ -89,7 +88,7 @@ export default function EmailOTPPage() {
         setError(null);
         setResent(true);
       }
-    } catch (err) {
+    } catch {
       setError("An unexpected error occurred");
     } finally {
       setIsLoading(false);
@@ -97,148 +96,146 @@ export default function EmailOTPPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-linear-to-br from-background via-background to-muted/20 p-4">
-      <Card className="w-full max-w-md shadow-xl">
-        <CardHeader className="text-center">
-          <div className="mx-auto mb-4 h-16 w-16 rounded-full bg-primary/10 flex items-center justify-center">
-            <Icons.mail className="h-8 w-8 text-primary" />
-          </div>
-          <CardTitle className="text-3xl">Email OTP Sign In</CardTitle>
-          <CardDescription>
-            {step === "email"
-              ? "Enter your email to receive a one-time code"
-              : "Enter the 6-digit code sent to your email"}
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          {error && (
-            <Alert variant="destructive">
-              <Icons.alertCircle className="h-4 w-4" />
-              <AlertDescription>{error}</AlertDescription>
-            </Alert>
-          )}
+    <AuthShell
+      title={step === "email" ? "Email code sign in" : "Enter your code"}
+      description={
+        step === "email"
+          ? "Enter your email to receive a 6-digit one-time code."
+          : `Enter the 6-digit code we sent to ${email}.`
+      }
+      footer={
+        <div className="space-y-3 text-center text-sm text-muted-foreground">
+          <Link
+            href="/sign-in"
+            className="inline-flex items-center gap-1.5 font-medium text-foreground hover:text-primary"
+          >
+            <Icons.arrowLeft className="size-4" />
+            Back to sign in
+          </Link>
+          <p>
+            Don&apos;t have an account?{" "}
+            <Link
+              href="/sign-up"
+              className="font-semibold text-primary hover:underline"
+            >
+              Sign up
+            </Link>
+          </p>
+        </div>
+      }
+    >
+      <div className="space-y-4">
+        {error && (
+          <Alert variant="destructive">
+            <Icons.alertCircle className="size-4" />
+            <AlertDescription>{error}</AlertDescription>
+          </Alert>
+        )}
 
-          {step === "email" ? (
-            <form onSubmit={handleSendOTP} className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="email">Email</Label>
-                <Input
-                  id="email"
-                  type="email"
-                  placeholder="name@example.com"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  required
-                  className="h-11"
-                />
-              </div>
+        {step === "email" ? (
+          <form onSubmit={handleSendOTP} className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="email">Email</Label>
+              <Input
+                id="email"
+                type="email"
+                placeholder="name@example.com"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+                className="h-11"
+              />
+            </div>
 
-              <Button
-                type="submit"
-                className="w-full h-11"
-                disabled={isLoading}
-              >
-                {isLoading ? (
-                  <>
-                    <Icons.spinner className="mr-2 h-4 w-4 animate-spin" />
-                    Sending...
-                  </>
-                ) : (
-                  <>
-                    <Icons.send className="mr-2 h-4 w-4" />
-                    Send OTP Code
-                  </>
-                )}
-              </Button>
-            </form>
-          ) : (
-            <form onSubmit={handleVerifyOTP} className="space-y-4">
-              <Alert className="border-blue-600 dark:border-blue-400">
-                <Icons.info className="h-4 w-4 text-blue-600 dark:text-blue-400" />
-                <AlertDescription className="text-blue-600 dark:text-blue-400">
-                  A 6-digit code was sent to <strong>{email}</strong>
+            <Button type="submit" className="h-11 w-full" disabled={isLoading}>
+              {isLoading ? (
+                <>
+                  <Icons.spinner className="mr-2 size-4 animate-spin" />
+                  Sending...
+                </>
+              ) : (
+                <>
+                  <Icons.send className="mr-2 size-4" />
+                  Send one-time code
+                </>
+              )}
+            </Button>
+          </form>
+        ) : (
+          <form onSubmit={handleVerifyOTP} className="space-y-4">
+            {resent && (
+              <Alert>
+                <Icons.check className="size-4 text-primary" />
+                <AlertDescription>
+                  A new code has been sent to <strong>{email}</strong>.
                 </AlertDescription>
               </Alert>
+            )}
 
-              {resent && (
-                <Alert className="border-green-600 dark:border-green-400">
-                  <Icons.check className="h-4 w-4 text-green-600 dark:text-green-400" />
-                  <AlertDescription className="text-green-600 dark:text-green-400">
-                    A new code has been sent to <strong>{email}</strong>
-                  </AlertDescription>
-                </Alert>
-              )}
-
-              <div className="space-y-2">
-                <Label htmlFor="otp">Enter Code</Label>
-                <Input
+            <div className="space-y-2">
+              <Label htmlFor="otp">6-digit code</Label>
+              <div className="flex justify-center">
+                <InputOTP
                   id="otp"
-                  type="text"
                   maxLength={6}
-                  placeholder="000000"
+                  inputMode="numeric"
+                  autoComplete="one-time-code"
                   value={otp}
-                  onChange={(e) => setOtp(e.target.value.replace(/\D/g, ""))}
-                  className="h-11 text-center text-2xl tracking-widest font-mono"
-                  required
-                />
-                <p className="text-xs text-muted-foreground text-center">
-                  Code expires in 5 minutes
-                </p>
-              </div>
-
-              <Button
-                type="submit"
-                className="w-full h-11"
-                disabled={otp.length !== 6 || isLoading}
-              >
-                {isLoading ? (
-                  <>
-                    <Icons.spinner className="mr-2 h-4 w-4 animate-spin" />
-                    Verifying...
-                  </>
-                ) : (
-                  "Verify & Sign In"
-                )}
-              </Button>
-
-              <div className="flex items-center justify-between text-sm">
-                <Button
-                  type="button"
-                  variant="link"
-                  className="px-0"
-                  onClick={() => setStep("email")}
-                >
-                  ← Change email
-                </Button>
-                <Button
-                  type="button"
-                  variant="link"
-                  className="px-0"
-                  onClick={handleResendOTP}
+                  onChange={setOtp}
                   disabled={isLoading}
                 >
-                  Resend code
-                </Button>
+                  <InputOTPGroup>
+                    <InputOTPSlot index={0} className="h-12 w-11 text-lg" />
+                    <InputOTPSlot index={1} className="h-12 w-11 text-lg" />
+                    <InputOTPSlot index={2} className="h-12 w-11 text-lg" />
+                    <InputOTPSlot index={3} className="h-12 w-11 text-lg" />
+                    <InputOTPSlot index={4} className="h-12 w-11 text-lg" />
+                    <InputOTPSlot index={5} className="h-12 w-11 text-lg" />
+                  </InputOTPGroup>
+                </InputOTP>
               </div>
-            </form>
-          )}
-
-          <div className="mt-6 space-y-3 text-center text-sm">
-            <Link
-              href="/sign-in"
-              className="block text-primary hover:underline"
-            >
-              ← Back to sign in
-            </Link>
-            <div className="text-muted-foreground">
-              Don't have an account?{" "}
-              <Link href="/sign-up" className="text-primary hover:underline">
-                Sign up
-              </Link>
+              <p className="text-center text-xs text-muted-foreground">
+                Code expires in 5 minutes
+              </p>
             </div>
-          </div>
-        </CardContent>
-      </Card>
-    </div>
+
+            <Button
+              type="submit"
+              className="h-11 w-full"
+              disabled={otp.length !== 6 || isLoading}
+            >
+              {isLoading ? (
+                <>
+                  <Icons.spinner className="mr-2 size-4 animate-spin" />
+                  Verifying...
+                </>
+              ) : (
+                "Verify & sign in"
+              )}
+            </Button>
+
+            <div className="flex items-center justify-between text-sm">
+              <Button
+                type="button"
+                variant="link"
+                className="px-0"
+                onClick={() => setStep("email")}
+              >
+                ← Change email
+              </Button>
+              <Button
+                type="button"
+                variant="link"
+                className="px-0"
+                onClick={handleResendOTP}
+                disabled={isLoading}
+              >
+                Resend code
+              </Button>
+            </div>
+          </form>
+        )}
+      </div>
+    </AuthShell>
   );
 }

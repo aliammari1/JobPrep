@@ -1,13 +1,13 @@
 "use client";
 
-import { useCVStore } from "@/store/cv-store";
+import { Upload } from "lucide-react";
+import Image from "next/image";
+import { useCallback } from "react";
+import { useDropzone } from "react-dropzone";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { useCallback } from "react";
-import { useDropzone } from "react-dropzone";
-import { Upload } from "lucide-react";
-import Image from "next/image";
+import { useCVStore } from "@/store/cv-store";
 
 export function PersonalInfoSection() {
   const { cvData, updatePersonalInfo } = useCVStore();
@@ -27,57 +27,26 @@ export function PersonalInfoSection() {
     [updatePersonalInfo],
   );
 
-  const { getRootProps, getInputProps, isDragActive } = useDropzone({
-    onDrop,
-    accept: { "image/*": [".png", ".jpg", ".jpeg"] },
-    maxFiles: 1,
-  });
+  const { getRootProps, getInputProps, isDragActive, fileRejections } =
+    useDropzone({
+      onDrop,
+      accept: { "image/*": [".png", ".jpg", ".jpeg"] },
+      maxFiles: 1,
+      maxSize: 5 * 1024 * 1024,
+    });
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-5">
       <div>
-        <h2 className="text-xl font-bold mb-2">Personal Information</h2>
+        <h2 className="font-display mb-1 text-2xl font-semibold tracking-tight">
+          Personal information
+        </h2>
         <p className="text-sm text-muted-foreground">
-          Start by adding your basic contact details
+          Contact details shown on your CV.
         </p>
       </div>
 
       <div className="space-y-6">
-        {/* Photo Upload */}
-        <div className="space-y-3">
-          <Label className="text-sm font-semibold">Profile Photo</Label>
-          <div
-            {...getRootProps()}
-            className={`flex h-40 cursor-pointer items-center justify-center rounded-lg border-2 border-dashed transition-all ${
-              isDragActive
-                ? "border-primary bg-primary/10"
-                : "border-muted-foreground/25 hover:border-primary/50 hover:bg-muted/50"
-            }`}
-          >
-            <input {...getInputProps()} />
-            {personalInfo.photo ? (
-              <div className="relative h-full w-40">
-                <Image
-                  src={personalInfo.photo}
-                  alt="Profile"
-                  fill
-                  className="rounded-lg object-cover"
-                />
-              </div>
-            ) : (
-              <div className="text-center px-4">
-                <Upload className="mx-auto h-8 w-8 text-muted-foreground mb-2" />
-                <p className="text-sm font-medium">
-                  Drop photo here or click to upload
-                </p>
-                <p className="text-xs text-muted-foreground mt-1">
-                  PNG, JPG up to 5MB
-                </p>
-              </div>
-            )}
-          </div>
-        </div>
-
         {/* Form Fields */}
         <div className="grid gap-5 md:grid-cols-2">
           <div className="space-y-2">
@@ -86,6 +55,7 @@ export function PersonalInfoSection() {
             </Label>
             <Input
               id="fullName"
+              autoComplete="name"
               value={personalInfo.fullName}
               onChange={(e) => updatePersonalInfo({ fullName: e.target.value })}
               placeholder="John Doe"
@@ -99,6 +69,7 @@ export function PersonalInfoSection() {
             </Label>
             <Input
               id="title"
+              autoComplete="organization-title"
               value={personalInfo.title}
               onChange={(e) => updatePersonalInfo({ title: e.target.value })}
               placeholder="Senior Software Engineer"
@@ -112,6 +83,7 @@ export function PersonalInfoSection() {
             </Label>
             <Input
               id="email"
+              autoComplete="email"
               type="email"
               value={personalInfo.email}
               onChange={(e) => updatePersonalInfo({ email: e.target.value })}
@@ -126,6 +98,8 @@ export function PersonalInfoSection() {
             </Label>
             <Input
               id="phone"
+              type="tel"
+              autoComplete="tel"
               value={personalInfo.phone}
               onChange={(e) => updatePersonalInfo({ phone: e.target.value })}
               placeholder="+1 234 567 8900"
@@ -201,6 +175,49 @@ export function PersonalInfoSection() {
           <p className="mt-1 text-xs text-muted-foreground">
             {personalInfo.summary.length} / 500 characters
           </p>
+        </div>
+        <div className="space-y-2">
+          <div
+            {...getRootProps({
+              role: "button",
+              "aria-label": personalInfo.photo
+                ? "Change profile photo"
+                : "Add profile photo",
+            })}
+            className={`flex cursor-pointer items-center gap-3 rounded-xl border border-dashed p-3 text-sm transition-colors focus-visible:outline-2 focus-visible:outline-ring ${isDragActive ? "border-primary bg-primary/10" : "border-border hover:bg-muted/60"}`}
+          >
+            <input {...getInputProps()} />
+            {personalInfo.photo ? (
+              <div className="relative size-11 shrink-0 overflow-hidden rounded-lg">
+                <Image
+                  src={personalInfo.photo}
+                  alt=""
+                  fill
+                  className="object-cover"
+                />
+              </div>
+            ) : (
+              <Upload
+                className="size-5 shrink-0 text-muted-foreground"
+                aria-hidden="true"
+              />
+            )}
+            <div className="min-w-0">
+              <p className="font-medium">
+                {personalInfo.photo
+                  ? "Change profile photo"
+                  : "Add a profile photo"}
+              </p>
+              <p className="text-xs text-muted-foreground">
+                Optional · PNG or JPG up to 5 MB
+              </p>
+            </div>
+          </div>
+          {fileRejections[0] && (
+            <p role="alert" className="text-sm text-destructive">
+              {fileRejections[0].errors[0]?.message}
+            </p>
+          )}
         </div>
       </div>
     </div>

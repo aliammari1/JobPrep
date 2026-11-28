@@ -1,31 +1,19 @@
 "use client";
 
-import { use, useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
-import { useSession } from "@/lib/auth-client";
-import { Button } from "@/components/ui/button";
 import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { Icons } from "@/components/custom/icons";
-import { Badge } from "@/components/ui/badge";
-import { Separator } from "@/components/ui/separator";
-import {
-  FileText,
-  Download,
+  ArrowLeft,
   Calendar,
   Clock,
-  TrendingUp,
-  ArrowLeft,
-  Trash2,
+  Download,
   Eye,
+  FileText,
+  Trash2,
+  TrendingUp,
 } from "lucide-react";
-import { generateInterviewPDF, downloadPDF } from "@/lib/pdf-generator";
+import { useRouter } from "next/navigation";
+import { use, useEffect, useState } from "react";
 import { toast } from "sonner";
+import { Icons } from "@/components/custom/icons";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -37,7 +25,18 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { ScrollArea } from "@/components/ui/scroll-area";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Separator } from "@/components/ui/separator";
+import { useSession } from "@/lib/auth-client";
+import { downloadPDF, generateInterviewPDF } from "@/lib/pdf-generator";
 
 interface ConversationItem {
   question: string | { question: string; idealAnswer?: string };
@@ -144,12 +143,12 @@ export default function InterviewDetailPage({
           setInterview(parsedInterview);
         } else {
           toast.error("Failed to load interview");
-          router.push("/settings/profile");
+          router.push("/recordings");
         }
       } catch (error) {
         console.error("Error fetching interview:", error);
         toast.error("Failed to load interview");
-        router.push("/settings/profile");
+        router.push("/recordings");
       } finally {
         setIsLoading(false);
       }
@@ -238,7 +237,7 @@ export default function InterviewDetailPage({
 
       if (response.ok) {
         toast.success("Interview deleted successfully");
-        router.push("/settings/profile");
+        router.push("/recordings");
       } else {
         toast.error("Failed to delete interview");
       }
@@ -252,7 +251,7 @@ export default function InterviewDetailPage({
 
   if (isLoading) {
     return (
-      <div className="min-h-[calc(100vh-3.5rem)] bg-background flex items-center justify-center">
+      <div className="min-h-full bg-background flex items-center justify-center">
         <Icons.spinner className="h-8 w-8 animate-spin text-muted-foreground" />
       </div>
     );
@@ -260,7 +259,7 @@ export default function InterviewDetailPage({
 
   if (!interview) {
     return (
-      <div className="min-h-[calc(100vh-3.5rem)] bg-background flex items-center justify-center">
+      <div className="min-h-full bg-background flex items-center justify-center">
         <Card className="max-w-md">
           <CardHeader>
             <CardTitle>Interview Not Found</CardTitle>
@@ -269,9 +268,9 @@ export default function InterviewDetailPage({
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <Button onClick={() => router.push("/settings/profile")}>
+            <Button onClick={() => router.push("/recordings")}>
               <ArrowLeft className="h-4 w-4 mr-2" />
-              Back to Profile
+              Back to Recordings
             </Button>
           </CardContent>
         </Card>
@@ -283,26 +282,26 @@ export default function InterviewDetailPage({
   const feedback = interview.feedback;
 
   return (
-    <div className="min-h-[calc(100vh-3.5rem)] bg-background">
+    <div className="min-h-full bg-background">
       <div className="container mx-auto p-4 md:p-8 max-w-6xl">
         {/* Header */}
         <div className="mb-8">
           <Button
             variant="ghost"
             size="sm"
-            onClick={() => router.push("/settings/profile")}
-            className="mb-4"
+            onClick={() => router.push("/recordings")}
+            className="mb-4 hidden lg:inline-flex"
           >
             <ArrowLeft className="mr-2 h-4 w-4" />
-            Back to Profile
+            Back to Recordings
           </Button>
 
-          <div className="flex items-start justify-between">
+          <div className="flex flex-wrap items-start justify-between gap-3">
             <div>
-              <h1 className="text-4xl font-bold mb-2">
+              <h1 className="mb-2 text-2xl font-bold tracking-tight md:text-4xl">
                 {interview.topics.join(", ") || "Mock Interview"}
               </h1>
-              <div className="flex items-center gap-4 text-muted-foreground">
+              <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-muted-foreground">
                 <div className="flex items-center gap-1">
                   <Calendar className="h-4 w-4" />
                   {new Date(interview.createdAt).toLocaleDateString("en-US", {
@@ -494,7 +493,7 @@ export default function InterviewDetailPage({
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <ScrollArea className="h-[600px] pr-4">
+            <div className="min-w-0">
               <div className="space-y-6">
                 {interview.conversationLog.map((item, index) => {
                   const question =
@@ -508,7 +507,7 @@ export default function InterviewDetailPage({
 
                   return (
                     <div key={index} className="border rounded-lg p-4">
-                      <div className="flex items-start justify-between mb-3">
+                      <div className="flex flex-wrap items-start justify-between gap-3 mb-3">
                         <h4 className="font-semibold text-lg">
                           Question {index + 1}
                         </h4>
@@ -578,7 +577,7 @@ export default function InterviewDetailPage({
                   );
                 })}
               </div>
-            </ScrollArea>
+            </div>
           </CardContent>
         </Card>
       </div>

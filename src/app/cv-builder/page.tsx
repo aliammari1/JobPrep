@@ -29,7 +29,7 @@ export default function CVBuilderPage() {
   }
 
   return (
-    <div className="min-h-full">
+    <div className="h-full min-h-0">
       <Suspense
         fallback={
           <div className="flex h-[70vh] items-center justify-center text-sm text-muted-foreground">

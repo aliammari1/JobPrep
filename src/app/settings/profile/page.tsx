@@ -1,37 +1,21 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
-import { useSession, authClient } from "@/lib/auth-client";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Icons } from "@/components/custom/icons";
-import { Separator } from "@/components/ui/separator";
-import Link from "next/link";
-import { UserNav } from "@/components/custom/user-nav";
-import { Badge } from "@/components/ui/badge";
-import { Skeleton } from "@/components/ui/skeleton";
-import {
-  FileText,
-  Download,
   Calendar,
   Clock,
-  TrendingUp,
+  Download,
   Eye,
+  FileText,
   Trash2,
+  TrendingUp,
 } from "lucide-react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
+import { Icons } from "@/components/custom/icons";
+import { UserNav } from "@/components/custom/user-nav";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -43,6 +27,22 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Separator } from "@/components/ui/separator";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Textarea } from "@/components/ui/textarea";
+import { authClient, useSession } from "@/lib/auth-client";
 
 interface SavedInterview {
   id: string;
@@ -295,11 +295,9 @@ export default function ProfileSettingsPage() {
 
   if (isPending) {
     return (
-      <div className="min-h-screen bg-linear-to-br from-background via-background to-muted/20">
-        <div className="container mx-auto p-4 md:p-8 max-w-4xl">
-          <Skeleton className="h-12 w-full mb-4" />
-          <Skeleton className="h-64 w-full" />
-        </div>
+      <div className="space-y-4">
+        <Skeleton className="h-12 w-full" />
+        <Skeleton className="h-64 w-full" />
       </div>
     );
   }
@@ -359,48 +357,15 @@ export default function ProfileSettingsPage() {
     "U";
 
   return (
-    <div className="min-h-screen bg-linear-to-br from-background via-background to-muted/20">
-      <div className="container mx-auto p-4 md:p-8 max-w-4xl">
-        {/* Header */}
-        <div className="mb-8">
-          <div className="flex items-center justify-between mb-4">
-            <Link href="/dashboard">
-              <Button variant="ghost" size="sm">
-                <Icons.arrowLeft className="mr-2 h-4 w-4" />
-                Back to Dashboard
-              </Button>
-            </Link>
-            <UserNav />
-          </div>
-          <h1 className="text-4xl font-bold">Settings</h1>
-          <p className="text-muted-foreground mt-2">
-            Manage your account settings and preferences
+    <div className="min-w-0">
+      <div className="space-y-6">
+        <div>
+          <h1 className="sr-only font-display lg:not-sr-only lg:text-3xl lg:font-semibold lg:tracking-tight">
+            Profile Settings
+          </h1>
+          <p className="text-sm text-muted-foreground lg:mt-1">
+            Manage your account settings and career profile
           </p>
-        </div>
-
-        {/* Navigation Tabs */}
-        <div className="flex gap-4 mb-6 overflow-x-auto pb-2">
-          <Link href="/settings/profile">
-            <Button variant="default">Profile</Button>
-          </Link>
-          <Link href="/settings/security">
-            <Button variant="outline">Security</Button>
-          </Link>
-          <Link href="/settings/sessions">
-            <Button variant="outline">Sessions</Button>
-          </Link>
-          <Link href="/settings/two-factor">
-            <Button variant="outline">Two-Factor</Button>
-          </Link>
-          <Link href="/settings/passkeys">
-            <Button variant="outline">Passkeys</Button>
-          </Link>
-          <Link href="/settings/connected-accounts">
-            <Button variant="outline">Connected</Button>
-          </Link>
-          <Link href="/settings/phone">
-            <Button variant="outline">Phone</Button>
-          </Link>
         </div>
 
         {success && (

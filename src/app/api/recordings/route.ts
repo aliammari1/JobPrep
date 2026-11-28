@@ -1,156 +1,93 @@
-import { NextRequest, NextResponse } from "next/server";
+import { type NextRequest, NextResponse } from "next/server";
+import type { Prisma } from "@/generated/prisma/client";
 import { auth } from "@/lib/auth";
-import { headers } from "next/headers";
 import prisma from "@/lib/prisma";
 
-export async function GET(req: NextRequest) {
+export async function GET(request: NextRequest) {
   try {
-    const session = await auth.api.getSession({
-      headers: await headers(),
-    });
-
+    const session = await auth.api.getSession({ headers: request.headers });
     if (!session) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const searchParams = req.nextUrl.searchParams;
-    const page = Math.max(
-      1,
-      Number.parseInt(searchParams.get("page") || "1", 10) || 1,
+    const { searchParams } = request.nextUrl;
+    const page = Math.min(
+      1_000_000,
+      Math.max(1, Number.parseInt(searchParams.get("page") ?? "1", 10) || 1),
     );
     const limit = Math.min(
       100,
-      Math.max(1, Number.parseInt(searchParams.get("limit") || "15", 10) || 15),
+      Math.max(1, Number.parseInt(searchParams.get("limit") ?? "15", 10) || 15),
     );
     const skip = (page - 1) * limit;
+    const where: Prisma.InterviewWhereInput = {
+      OR: [
+        { interviewerId: session.user.id },
+        { candidateId: session.user.id },
+      ],
+      videoRecordingUrl: { not: null },
+    };
+    const [total, interviews] = await Promise.all([
+      prisma.interview.count({ where }),
+      prisma.interview.findMany({
+        where,
+        select: {
+          id: true,
+          settings: true,
+          duration: true,
+          createdAt: true,
+          recordingFileName: true,
+          recordingSize: true,
+          recordingObjectKey: true,
+          interviewer: { select: { name: true } },
+          candidate: { select: { name: true } },
+        },
+        orderBy: [{ createdAt: "desc" }, { id: "desc" }],
+        skip,
+        take: limit,
+      }),
+    ]);
 
-    // Get total count for pagination
-    const total = await prisma.interview.count({
-      where: {
-        OR: [
-          { interviewerId: session.user.id },
-          { candidateId: session.user.id },
-        ],
-        videoRecordingUrl: {
-          not: null,
+    return NextResponse.json(
+      {
+        recordings: interviews.map((interview) => {
+          let roomCode: string | undefined;
+          try {
+            const settings = JSON.parse(interview.settings ?? "{}");
+            if (typeof settings?.roomCode === "string")
+              roomCode = settings.roomCode;
+          } catch {
+            // Settings from older sessions may be absent or malformed.
+          }
+          const fileUrl = interview.recordingObjectKey
+            ? `/api/recordings/${encodeURIComponent(interview.id)}`
+            : "";
+          return {
+            id: interview.id,
+            interviewId: interview.id,
+            roomName: roomCode || `Interview ${interview.id.slice(0, 8)}`,
+            fileName: interview.recordingFileName ?? "recording",
+            fileUrl,
+            fileSize: interview.recordingSize ?? 0,
+            duration: (interview.duration ?? 0) * 60,
+            createdAt: interview.createdAt.toISOString(),
+            candidateName: interview.candidate?.name ?? "Unknown",
+            interviewerName: interview.interviewer?.name ?? "Unknown",
+            status: fileUrl ? "completed" : "migration-required",
+          };
+        }),
+        pagination: {
+          total,
+          page,
+          limit,
+          pages: Math.ceil(total / limit),
+          hasMore: skip + limit < total,
         },
       },
-    });
-
-    // Fetch interviews for the current user
-    // Include all completed interviews, even those without cloud recording URLs
-    const interviews = await prisma.interview.findMany({
-      where: {
-        OR: [
-          { interviewerId: session.user.id },
-          { candidateId: session.user.id },
-        ],
-        videoRecordingUrl: {
-          not: null,
-        },
-        // status: {
-        //   in: ["completed", "in-progress"],
-        // },
-      },
-      include: {
-        interviewer: {
-          select: {
-            name: true,
-            email: true,
-          },
-        },
-        candidate: {
-          select: {
-            name: true,
-            email: true,
-          },
-        },
-      },
-      orderBy: {
-        createdAt: "desc",
-      },
-      skip,
-      take: limit,
-    });
-
-    console.log(
-      `Found ${interviews.length} interviews for user ${session.user.id}:`,
-      interviews.map((i) => ({
-        id: i.id.slice(0, 8),
-        status: i.status,
-        hasUrl: !!i.videoRecordingUrl,
-        createdAt: i.createdAt,
-      })),
+      { headers: { "Cache-Control": "private, no-store" } },
     );
-
-    // Transform to recording format
-    const recordings = interviews.map((interview) => {
-      // Parse settings to get roomCode and recording metadata
-      let roomCode = "";
-      let recordingFileSize = 0;
-      let recordingFileId = "";
-
-      try {
-        if (interview.settings) {
-          const settings =
-            typeof interview.settings === "string"
-              ? JSON.parse(interview.settings)
-              : interview.settings;
-          roomCode = settings.roomCode || "";
-          recordingFileSize = settings.recordingFileSize || 0;
-          recordingFileId = settings.recordingFileId || "";
-        }
-      } catch (e) {
-        console.error("Error parsing settings:", e);
-      }
-
-      const recording = {
-        id: interview.id,
-        interviewId: interview.id,
-        roomName: roomCode || `Interview ${interview.id.slice(0, 8)}`,
-        fileName: recordingFileId ? `recording-${interview.id}.webm` : "",
-        fileUrl: interview.videoRecordingUrl || "",
-        fileSize: recordingFileSize,
-        duration: interview.duration ? interview.duration * 60 : 0, // Convert minutes to seconds
-        createdAt: interview.createdAt.toISOString(),
-        candidateName: interview.candidate?.name || "Unknown",
-        interviewerName: interview.interviewer?.name || "Unknown",
-        status: interview.videoRecordingUrl
-          ? "completed"
-          : interview.status === "completed"
-            ? "no-recording"
-            : "in-progress",
-      };
-
-      // Debug log for interviews with recording URLs
-      if (interview.videoRecordingUrl) {
-        console.log("Recording found:", {
-          id: recording.id,
-          roomName: recording.roomName,
-          hasUrl: !!recording.fileUrl,
-          status: recording.status,
-        });
-      }
-
-      return recording;
-    });
-
-    console.log(
-      `Returning ${recordings.length} recordings, ${recordings.filter((r) => r.fileUrl).length} with URLs`,
-    );
-
-    return NextResponse.json({
-      recordings,
-      pagination: {
-        total,
-        page,
-        limit,
-        pages: Math.ceil(total / limit),
-        hasMore: skip + limit < total,
-      },
-    });
   } catch (error) {
-    console.error("Error fetching recordings:", error);
+    console.error("Failed to list recordings", error);
     return NextResponse.json(
       { error: "Failed to fetch recordings" },
       { status: 500 },

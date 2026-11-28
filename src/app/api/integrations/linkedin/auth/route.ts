@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from "next/server";
+import { type NextRequest, NextResponse } from "next/server";
 
 // LinkedIn OAuth Configuration
 const LINKEDIN_CLIENT_ID = process.env.LINKEDIN_CLIENT_ID || "";

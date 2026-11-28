@@ -155,7 +155,7 @@ export default function InterviewHubPage() {
     <div className="mx-auto max-w-6xl space-y-8 p-5 sm:p-6 lg:p-8">
       <div className="flex flex-col gap-4 border-b border-border pb-6 sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <h1 className="font-display text-3xl font-bold tracking-tight text-foreground">
+          <h1 className="font-display text-2xl font-semibold tracking-tight lg:text-3xl lg:font-bold">
             Interview Studio
           </h1>
           <p className="mt-1 text-sm text-muted-foreground">
@@ -164,14 +164,14 @@ export default function InterviewHubPage() {
           </p>
         </div>
 
-        <div className="flex flex-wrap items-center gap-2">
-          <div className="flex items-center gap-2 rounded-lg border border-border bg-card px-3 py-1.5">
-            <Briefcase className="size-3.5 text-primary" />
+        <div className="flex min-w-0 flex-wrap items-center gap-2">
+          <div className="flex min-h-11 w-full min-w-0 items-center gap-2 rounded-lg border border-border bg-card px-3 sm:w-auto sm:max-w-80">
+            <Briefcase className="size-3.5 shrink-0 text-primary" />
             <select
               aria-label="Target role context"
               value={selectedRoleId}
               onChange={(e) => setSelectedRoleId(e.target.value)}
-              className="bg-transparent text-xs font-medium text-foreground focus:outline-none"
+              className="min-w-0 flex-1 truncate bg-transparent text-sm font-medium text-foreground"
             >
               <option value="">General practice (no role)</option>
               {roles.map((r) => (
@@ -187,7 +187,7 @@ export default function InterviewHubPage() {
         </div>
       </div>
 
-      <div className="grid gap-5 md:grid-cols-2">
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
         {tracks.map((track) => {
           const Icon = track.icon;
           return (
@@ -213,7 +213,7 @@ export default function InterviewHubPage() {
                   </CardDescription>
                 </div>
               </CardHeader>
-              <CardContent className="flex flex-wrap items-center gap-2 pt-0">
+              <CardContent className="flex min-w-0 flex-wrap items-center gap-2 pt-0">
                 <Button
                   asChild
                   size="sm"

@@ -1,15 +1,15 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import {
-  LiveKitRoom,
-  VideoConference,
+  ControlBar,
   GridLayout,
+  LiveKitRoom,
   ParticipantTile,
   RoomAudioRenderer,
-  ControlBar,
   useTracks,
+  VideoConference,
 } from "@livekit/components-react";
+import { useEffect, useState } from "react";
 import "@livekit/components-styles";
 import { Track } from "livekit-client";
 import { Loader2 } from "lucide-react";

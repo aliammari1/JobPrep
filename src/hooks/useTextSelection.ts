@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, RefObject } from "react";
+import { type RefObject, useEffect, useState } from "react";
 
 export interface TextSelectionPosition {
   text: string;

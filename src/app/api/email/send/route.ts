@@ -1,6 +1,6 @@
-import { NextRequest, NextResponse } from "next/server";
-import { sendEmail } from "@/lib/email-service";
+import { type NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
+import { sendEmail } from "@/lib/email-service";
 
 const emailSchema = z.object({
   to: z.union([z.string().email(), z.array(z.string().email())]),

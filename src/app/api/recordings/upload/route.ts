@@ -1,153 +1,214 @@
-import { NextRequest, NextResponse } from "next/server";
+import { type NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
-import { headers } from "next/headers";
-import { uploadRecording } from "@/lib/appwrite";
+import { cloudflareContext } from "@/lib/cloudflare";
 import prisma from "@/lib/prisma";
 
-export async function POST(req: NextRequest) {
-  try {
-    const session = await auth.api.getSession({
-      headers: await headers(),
-    });
+declare const FixedLengthStream: {
+  new (length: number): TransformStream<Uint8Array, Uint8Array>;
+};
 
+const MAX_RECORDING_SIZE = 90 * 1024 * 1024;
+const uuid =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+
+export async function POST(request: NextRequest) {
+  try {
+    const session = await auth.api.getSession({ headers: request.headers });
     if (!session) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const formData = await req.formData();
-    const file = formData.get("file") as File;
-    const interviewId = formData.get("interviewId") as string;
-    const roomName = formData.get("roomName") as string;
-
-    console.log("Upload request received:", {
-      fileName: file?.name,
-      fileSize: file?.size,
-      fileType: file?.type,
-      interviewId,
-      roomName,
-    });
-
-    if (!file) {
-      return NextResponse.json({ error: "No file provided" }, { status: 400 });
-    }
-
-    if (!interviewId) {
+    const { searchParams } = request.nextUrl;
+    const interviewId = searchParams.get("interviewId");
+    const uploadId = searchParams.get("uploadId");
+    const size = Number(searchParams.get("size"));
+    const contentType =
+      request.headers.get("content-type")?.split(";")[0] ?? "";
+    if (!interviewId || !uploadId || !uuid.test(uploadId) || !request.body) {
       return NextResponse.json(
-        { error: "Interview ID is required" },
+        { error: "Invalid recording upload" },
+        { status: 400 },
+      );
+    }
+    if (contentType !== "video/webm" && contentType !== "video/mp4") {
+      return NextResponse.json(
+        { error: "Upload a WebM or MP4 recording" },
+        { status: 415 },
+      );
+    }
+    if (!Number.isSafeInteger(size) || size <= 0) {
+      return NextResponse.json(
+        { error: "Invalid recording size" },
+        { status: 400 },
+      );
+    }
+    if (size > MAX_RECORDING_SIZE) {
+      return NextResponse.json(
+        { error: "Recordings must be 90 MiB or smaller" },
+        { status: 413 },
+      );
+    }
+    const contentLength = request.headers.get("content-length");
+    if (contentLength !== null && Number(contentLength) !== size) {
+      return NextResponse.json(
+        { error: "Recording length does not match" },
         { status: 400 },
       );
     }
 
-    // Check if user has permission
-    const interview = await prisma.interview.findUnique({
-      where: { id: interviewId },
+    const participants = [
+      { candidateId: session.user.id },
+      { interviewerId: session.user.id },
+    ];
+    const interview = await prisma.interview.findFirst({
+      where: { id: interviewId, OR: participants },
+      select: {
+        allowRecording: true,
+        recordingObjectKey: true,
+        videoRecordingUrl: true,
+      },
     });
-
     if (!interview) {
       return NextResponse.json(
         { error: "Interview not found" },
         { status: 404 },
       );
     }
-
-    if (
-      interview.candidateId !== session.user.id &&
-      interview.interviewerId !== session.user.id
-    ) {
-      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    if (!interview.allowRecording) {
+      return NextResponse.json(
+        { error: "Recording is disabled for this interview" },
+        { status: 403 },
+      );
+    }
+    if (interview.videoRecordingUrl && !interview.recordingObjectKey) {
+      return NextResponse.json(
+        {
+          error:
+            "The previous recording must be migrated before it can be replaced",
+        },
+        { status: 409 },
+      );
     }
 
-    if (
-      !process.env.NEXT_PUBLIC_APPWRITE_ENDPOINT ||
-      !process.env.NEXT_PUBLIC_APPWRITE_PROJECT_ID ||
-      !process.env.APPWRITE_API_KEY
-    ) {
+    const bucket = cloudflareContext()?.env.RECORDINGS_BUCKET;
+    if (!bucket) {
       return NextResponse.json(
-        { error: "Recording cloud storage is not configured" },
+        { error: "Recording storage is unavailable" },
         { status: 503 },
       );
     }
 
-    // Convert File to Buffer for Appwrite
-    const arrayBuffer = await file.arrayBuffer();
-    const buffer = Buffer.from(arrayBuffer);
+    const extension = contentType === "video/mp4" ? "mp4" : "webm";
+    const key = `recordings/${interviewId}/${uploadId}`;
+    const fileName = `interview-${interviewId}.${extension}`;
+    const fileUrl = `/api/recordings/${encodeURIComponent(interviewId)}`;
+    const success = () =>
+      NextResponse.json({
+        success: true,
+        recording: {
+          fileId: interviewId,
+          fileName,
+          fileSize: size,
+          fileUrl,
+          mimeType: contentType,
+        },
+      });
 
-    console.log("Converted to buffer:", {
-      bufferSize: buffer.length,
-      fileExtension: file.name.split(".").pop(),
-    });
-
-    // Generate a meaningful filename
-    const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
-    const fileName = `recording-${roomName || interviewId}-${timestamp}.${file.name.split(".").pop()}`;
-
-    console.log("Uploading to Appwrite with filename:", fileName);
-
-    // Upload to Appwrite with user-specific permissions
-    const uploadResult = await uploadRecording(buffer, fileName, [
-      `read("user:${session.user.id}")`,
-      `write("user:${session.user.id}")`,
-      `delete("user:${session.user.id}")`,
-    ]);
-
-    console.log("Upload successful:", {
-      fileId: uploadResult.fileId,
-      fileSize: uploadResult.fileSize,
-      fileUrl: uploadResult.fileUrl,
-    });
-
-    // Parse existing settings
-    let existingSettings: any = {};
-    try {
-      if (interview.settings) {
-        existingSettings =
-          typeof interview.settings === "string"
-            ? JSON.parse(interview.settings)
-            : interview.settings;
-      }
-    } catch (e) {
-      console.error("Error parsing existing settings:", e);
+    if (interview.recordingObjectKey !== key) {
+      const deleteAfter = new Date(Date.now() + 24 * 60 * 60 * 1000);
+      await prisma.recordingObjectCleanup.upsert({
+        where: { objectKey: key },
+        create: { objectKey: key, deleteAfter },
+        update: { deleteAfter, attempts: 0 },
+      });
     }
+    let object = await bucket.head(key);
+    if (!object) {
+      const options = {
+        httpMetadata: { contentType },
+        onlyIf: { etagDoesNotMatch: "*" },
+      };
+      if (typeof FixedLengthStream === "undefined") {
+        // Next.js development runs in Node with the local R2 binding proxy.
+        const bytes = await request.arrayBuffer();
+        if (bytes.byteLength !== size) {
+          return NextResponse.json(
+            { error: "Recording length does not match" },
+            { status: 400 },
+          );
+        }
+        object = await bucket.put(key, bytes, options);
+      } else {
+        const stream = new FixedLengthStream(size);
+        const abort = new AbortController();
+        const write = bucket.put(key, stream.readable, options).then(
+          (result: R2Object | null) => {
+            if (!result) abort.abort();
+            return result;
+          },
+          (error: unknown) => {
+            abort.abort();
+            throw error;
+          },
+        );
+        const pipe = request.body.pipeTo(stream.writable, {
+          signal: abort.signal,
+        });
+        const [written, piped] = await Promise.allSettled([write, pipe]);
+        if (written.status === "rejected") throw written.reason;
+        if (written.value && piped.status === "rejected") throw piped.reason;
+        object = written.value;
+      }
+      object ??= await bucket.head(key);
+    } else {
+      await request.body.cancel();
+    }
+    if (
+      object?.size !== size ||
+      object.httpMetadata?.contentType !== contentType
+    ) {
+      return NextResponse.json(
+        { error: "Upload conflicts with an earlier request" },
+        { status: 409 },
+      );
+    }
+    if (interview.recordingObjectKey === key) return success();
 
-    const updatedSettings = {
-      ...existingSettings,
-      recordingFileId: uploadResult.fileId,
-      recordingFileName: uploadResult.fileName,
-      recordingFileSize: uploadResult.fileSize,
-      recordingMimeType: uploadResult.mimeType,
-      roomCode: roomName || existingSettings.roomCode,
-    };
-
-    console.log("Updating interview with:", {
-      interviewId,
-      videoRecordingUrl: uploadResult.fileUrl,
-      settings: updatedSettings,
-    });
-
-    // Update interview with recording URL and metadata
-    const updatedInterview = await prisma.interview.update({
-      where: { id: interviewId },
+    const attached = await prisma.interview.updateMany({
+      where: {
+        id: interviewId,
+        OR: participants,
+        allowRecording: true,
+        recordingObjectKey: interview.recordingObjectKey,
+        videoRecordingUrl: interview.videoRecordingUrl,
+      },
       data: {
-        videoRecordingUrl: uploadResult.fileUrl,
-        settings: JSON.stringify(updatedSettings),
+        videoRecordingUrl: fileUrl,
+        recordingObjectKey: key,
+        recordingFileName: fileName,
+        recordingContentType: contentType,
+        recordingSize: size,
       },
     });
+    if (!attached.count) {
+      const current = await prisma.interview.findUnique({
+        where: { id: interviewId },
+        select: { recordingObjectKey: true },
+      });
+      if (current?.recordingObjectKey === key) {
+        return success();
+      }
+      return NextResponse.json(
+        { error: "The recording changed during upload" },
+        { status: 409 },
+      );
+    }
 
-    console.log("Interview updated successfully:", {
-      id: updatedInterview.id,
-      videoRecordingUrl: updatedInterview.videoRecordingUrl,
-      hasSettings: !!updatedInterview.settings,
-    });
-
-    return NextResponse.json({
-      success: true,
-      recording: uploadResult,
-      message: "Recording uploaded successfully",
-    });
-  } catch (error: any) {
-    console.error("Error uploading recording:", error);
+    return success();
+  } catch (error) {
+    console.error("Recording upload failed", error);
     return NextResponse.json(
-      { error: error.message || "Failed to upload recording" },
+      { error: "Failed to upload recording" },
       { status: 500 },
     );
   }

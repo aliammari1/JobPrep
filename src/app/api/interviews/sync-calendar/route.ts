@@ -1,12 +1,12 @@
-import { NextResponse } from "next/server";
-import prisma from "@/lib/prisma";
-import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
+import { NextResponse } from "next/server";
+import { auth } from "@/lib/auth";
 import {
   createGoogleCalendarEvent,
-  updateGoogleCalendarEvent,
   fetchGoogleCalendarEvents,
+  updateGoogleCalendarEvent,
 } from "@/lib/google-calendar";
+import prisma from "@/lib/prisma";
 
 /**
  * Synchronizes interviews bidirectionally between JobPrep and Google Calendar for the current user.

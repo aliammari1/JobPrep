@@ -1,3 +1,4 @@
+import { initOpenNextCloudflareForDev } from "@opennextjs/cloudflare";
 import { withSentryConfig } from "@sentry/nextjs";
 import withSerwistInit from "@serwist/next";
 
@@ -21,8 +22,28 @@ const scriptSrc = [
   "https://cdn.jsdelivr.net",
 ].join(" ");
 
+const postHogOrigin = process.env.NEXT_PUBLIC_POSTHOG_KEY
+  ? new URL(process.env.NEXT_PUBLIC_POSTHOG_HOST || "https://us.i.posthog.com")
+      .origin
+  : undefined;
+
+const connectSrc = [
+  "connect-src",
+  "'self'",
+  "https://models.readyplayer.me",
+  "https://cdn.jsdelivr.net",
+  "wss://*.livekit.cloud",
+  "https://*.livekit.cloud",
+  "https://api.heygen.com",
+  "wss://api.heygen.com",
+  postHogOrigin,
+]
+  .filter(Boolean)
+  .join(" ");
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  devIndicators: false,
   outputFileTracingRoot: process.cwd(),
   serverExternalPackages: ["pdf-parse", "@napi-rs/canvas"],
   experimental: {
@@ -47,6 +68,8 @@ const nextConfig = {
     ],
   },
   images: {
+    loader: "custom",
+    loaderFile: "./src/lib/cloudflare-image-loader.ts",
     remotePatterns: [
       { protocol: "https", hostname: "models.readyplayer.me" },
       { protocol: "https", hostname: "cdn.jsdelivr.net" },
@@ -77,8 +100,8 @@ const nextConfig = {
               "style-src 'self' 'unsafe-inline'",
               "img-src 'self' data: blob: https://models.readyplayer.me https://cdn.jsdelivr.net https://media.licdn.com https://*.r2.dev",
               "font-src 'self' data:",
-              "connect-src 'self' https://models.readyplayer.me https://cdn.jsdelivr.net wss://*.livekit.cloud https://*.livekit.cloud https://api.heygen.com wss://api.heygen.com https://*.cloud.appwrite.io https://*.r2.dev",
-              "media-src 'self' blob: https://*.cloud.appwrite.io https://*.r2.dev",
+              connectSrc,
+              "media-src 'self' blob:",
               "worker-src 'self' blob:",
               "child-src 'self' blob:",
               "frame-src 'self' https://models.readyplayer.me",
@@ -96,12 +119,7 @@ const nextConfig = {
 // when SENTRY_AUTH_TOKEN is present (so CI/local builds without it are fine).
 const config = withSerwist(nextConfig);
 
-if (process.env.CLOUDFLARE_DEV === "1") {
-  const { initOpenNextCloudflareForDev } = await import(
-    "@opennextjs/cloudflare"
-  );
-  initOpenNextCloudflareForDev();
-}
+initOpenNextCloudflareForDev();
 
 export default withSentryConfig(config, {
   silent: true,

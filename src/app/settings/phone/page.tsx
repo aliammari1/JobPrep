@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
+import { ConfirmDialog } from "@/components/custom/confirm-dialog";
 import { Icons } from "@/components/custom/icons";
 import { UserNav } from "@/components/custom/user-nav";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -172,17 +173,21 @@ export default function PhoneNumberPage() {
     }
   };
 
-  const handleRemovePhoneNumber = async (phoneNumber: string) => {
-    if (!confirm("Are you sure you want to remove this phone number?")) {
-      return;
-    }
+  const [pendingRemovePhone, setPendingRemovePhone] = useState<string | null>(
+    null,
+  );
 
+  const handleRemovePhoneNumber = (phoneNumber: string) => {
+    setPendingRemovePhone(phoneNumber);
+  };
+
+  const confirmRemovePhoneNumber = async () => {
+    if (!pendingRemovePhone) return;
+    setPendingRemovePhone(null);
     setIsLoading(true);
     setError(null);
 
     try {
-      // Note: removePhoneNumber is not available in the current Better Auth phone number plugin
-      // This would need to be implemented server-side or using a different approach
       setError("Removing phone numbers is not yet implemented");
     } catch (err) {
       setError(
@@ -194,65 +199,16 @@ export default function PhoneNumberPage() {
   };
 
   return (
-    <div className="min-h-screen bg-linear-to-br from-background via-background to-muted/20">
-      <div className="container mx-auto max-w-4xl px-4 sm:px-6 lg:px-8 py-6 md:py-8 space-y-8">
-        {/* Header */}
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-4xl font-bold tracking-tight">Phone Numbers</h1>
-            <p className="text-muted-foreground mt-2">
-              Manage your phone numbers for authentication and recovery
-            </p>
-          </div>
-          <UserNav />
+    <div className="min-w-0">
+      <div className="space-y-6">
+        <div>
+          <h1 className="sr-only font-display lg:not-sr-only lg:text-3xl lg:font-semibold lg:tracking-tight">
+            Phone Numbers
+          </h1>
+          <p className="text-sm text-muted-foreground lg:mt-1">
+            Manage your phone numbers for authentication and recovery
+          </p>
         </div>
-
-        {/* Navigation Tabs */}
-        <Tabs defaultValue="phone" className="w-full">
-          <TabsList className="grid w-full grid-cols-7">
-            <TabsTrigger value="profile" asChild className="text-xs sm:text-sm">
-              <Link href="/settings/profile">Profile</Link>
-            </TabsTrigger>
-            <TabsTrigger
-              value="security"
-              asChild
-              className="text-xs sm:text-sm"
-            >
-              <Link href="/settings/security">Security</Link>
-            </TabsTrigger>
-            <TabsTrigger
-              value="sessions"
-              asChild
-              className="text-xs sm:text-sm"
-            >
-              <Link href="/settings/sessions">Sessions</Link>
-            </TabsTrigger>
-            <TabsTrigger
-              value="two-factor"
-              asChild
-              className="text-xs sm:text-sm"
-            >
-              <Link href="/settings/two-factor">Two-Factor</Link>
-            </TabsTrigger>
-            <TabsTrigger
-              value="passkeys"
-              asChild
-              className="text-xs sm:text-sm"
-            >
-              <Link href="/settings/passkeys">Passkeys</Link>
-            </TabsTrigger>
-            <TabsTrigger
-              value="connected-accounts"
-              asChild
-              className="text-xs sm:text-sm"
-            >
-              <Link href="/settings/connected-accounts">Connected</Link>
-            </TabsTrigger>
-            <TabsTrigger value="phone" className="text-xs sm:text-sm">
-              Phone
-            </TabsTrigger>
-          </TabsList>
-        </Tabs>
 
         {error && (
           <Alert variant="destructive">
@@ -416,7 +372,7 @@ export default function PhoneNumberPage() {
 
       {/* Add Phone Dialog */}
       <Dialog open={showAddDialog} onOpenChange={setShowAddDialog}>
-        <DialogContent>
+        <DialogContent mobileSheet>
           <DialogHeader>
             <DialogTitle>Add Phone Number</DialogTitle>
             <DialogDescription>
@@ -456,7 +412,7 @@ export default function PhoneNumberPage() {
 
       {/* Verify Phone Dialog */}
       <Dialog open={showVerifyDialog} onOpenChange={setShowVerifyDialog}>
-        <DialogContent>
+        <DialogContent mobileSheet>
           <DialogHeader>
             <DialogTitle>Verify Phone Number</DialogTitle>
             <DialogDescription>
@@ -505,6 +461,17 @@ export default function PhoneNumberPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+      <ConfirmDialog
+        open={pendingRemovePhone !== null}
+        onOpenChange={(open) => {
+          if (!open) setPendingRemovePhone(null);
+        }}
+        title="Remove phone number"
+        description={`Are you sure you want to remove ${pendingRemovePhone ?? "this phone number"}?`}
+        confirmLabel="Remove"
+        destructive
+        onConfirm={confirmRemovePhoneNumber}
+      />
     </div>
   );
 }

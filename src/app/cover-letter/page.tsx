@@ -419,23 +419,23 @@ export default function CoverLetterPage() {
 
   if (isPending || !session) {
     return (
-      <div className="flex min-h-[calc(100vh-3.5rem)] items-center justify-center bg-background">
+      <div className="flex min-h-full items-center justify-center bg-background">
         <Loader2 className="h-6 w-6 animate-spin text-primary" />
       </div>
     );
   }
 
   return (
-    <div className="min-h-[calc(100vh-3.5rem)] bg-background">
+    <div className="min-h-full bg-background">
       <div className="container mx-auto max-w-4xl px-4 py-8 space-y-6">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between border-b pb-5">
           <div className="flex items-start gap-3">
-            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
+            <div className="hidden size-10 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary lg:flex">
               <FileText className="h-5 w-5" />
             </div>
             <div>
-              <h1 className="text-2xl font-bold tracking-tight text-foreground">
-                Cover Letter Studio
+              <h1 className="sr-only lg:not-sr-only lg:text-2xl lg:font-bold lg:tracking-tight">
+                Cover Letters
               </h1>
               <p className="text-sm text-muted-foreground">
                 Draft, refine, save, and export tailored cover letters
@@ -449,7 +449,7 @@ export default function CoverLetterPage() {
                 aria-label="Link to target role"
                 value={linkedApp?.id ?? ""}
                 onChange={(e) => void handleSwitchRole(e.target.value)}
-                className="h-9 rounded-md border border-border bg-background px-2.5 text-xs text-foreground"
+                className="min-h-11 w-full min-w-0 max-w-full truncate rounded-lg border border-border bg-background px-3 text-sm text-foreground sm:h-9 sm:min-h-0 sm:w-auto sm:max-w-64"
               >
                 <option value="">Standalone letter</option>
                 {applicationsList.map((app) => (
@@ -748,11 +748,11 @@ export default function CoverLetterPage() {
                 export as PDF.
               </CardDescription>
             </CardHeader>
-            <CardContent className="grid gap-2.5 sm:grid-cols-2">
+            <CardContent className="grid grid-cols-1 gap-2.5 sm:grid-cols-2">
               {savedLetters.slice(0, 6).map((item) => (
                 <div
                   key={item.id}
-                  className="flex flex-col justify-between gap-2 rounded-xl border border-border bg-background p-3 transition-colors hover:border-primary/40 hover:bg-muted/40"
+                  className="flex min-w-0 flex-col justify-between gap-2 rounded-xl border border-border bg-background p-3 transition-colors hover:border-primary/40 hover:bg-muted/40"
                 >
                   <button
                     type="button"

@@ -179,7 +179,7 @@ function getNextRoleAction(app: ActiveApplicationItem): {
   }
   return {
     label: "Open dossier",
-    href: "/applications",
+    href: `/applications?role=${encodeURIComponent(app.id)}`,
   };
 }
 
@@ -282,37 +282,39 @@ export default function DashboardPage() {
   const firstName = session.user.name?.split(" ")[0] || "there";
 
   return (
-    <div className="mx-auto max-w-7xl space-y-6 p-5 sm:p-6 lg:p-8">
-      {/* Focused Command Header — Obsidian + Cobalt + White */}
-      <section className="relative overflow-hidden rounded-2xl border border-border bg-[oklch(0.115_0.012_258)] px-6 py-7 text-white sm:px-8">
+    <div className="jobprep-dashboard mx-auto min-w-0 max-w-7xl space-y-5 px-4 py-5 sm:space-y-6 sm:p-6 lg:p-8">
+      <section className="relative overflow-hidden text-foreground sm:rounded-2xl sm:border sm:border-border sm:bg-[oklch(0.115_0.012_258)] sm:px-8 sm:py-7 sm:text-white">
         <div
           aria-hidden="true"
-          className="pointer-events-none absolute -right-24 -top-24 size-72 rounded-full bg-primary/25 blur-3xl"
+          className="pointer-events-none absolute -right-24 -top-24 hidden size-72 rounded-full bg-primary/25 blur-3xl sm:block"
         />
-        <div className="relative flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
+        <div className="relative flex flex-col gap-4 sm:gap-6 lg:flex-row lg:items-center lg:justify-between">
           <div className="max-w-xl space-y-2">
-            <h1 className="font-display text-2xl font-semibold tracking-tight text-white sm:text-3xl">
+            <h1 className="jobprep-dashboard-greeting font-display text-3xl font-semibold tracking-tight">
               {getGreeting()}, {firstName}
             </h1>
-            <p className="text-sm leading-relaxed text-white/75">
+            <p className="text-sm leading-relaxed text-muted-foreground sm:text-white/75">
               {activeApplications.length > 0
-                ? `You are tracking ${metrics?.applicationsCount ?? activeApplications.length} active role${(metrics?.applicationsCount ?? 0) === 1 ? "" : "s"}. Pick up where you left off below.`
+                ? `${metrics?.applicationsCount ?? activeApplications.length} tracked role${(metrics?.applicationsCount ?? activeApplications.length) === 1 ? "" : "s"}`
                 : "Add a target role to connect your CV, cover letter, mock interviews, and system design prep in one place."}
             </p>
-            <div className="flex flex-wrap items-center gap-2.5 pt-2">
-              <Button asChild size="sm" className="h-9 px-4">
+            <div className="flex flex-col gap-2.5 pt-2 sm:flex-row sm:flex-wrap sm:items-center">
+              <Button asChild className="w-full sm:hidden">
+                <Link href="/mock-interview">
+                  <Play className="size-3.5" />
+                  Start mock interview
+                </Link>
+              </Button>
+              <Button asChild className="hidden sm:inline-flex sm:h-9 sm:px-4">
                 <Link href="/applications">
                   <Briefcase className="size-3.5" />
-                  {activeApplications.length > 0
-                    ? "Open role dossiers"
-                    : "Add target role"}
+                  {activeApplications.length > 0 ? "View roles" : "Add a role"}
                 </Link>
               </Button>
               <Button
                 asChild
-                size="sm"
                 variant="outline"
-                className="h-9 border-white/20 bg-white/5 px-4 text-white hover:bg-white/12 hover:text-white"
+                className="hidden sm:inline-flex sm:h-9 sm:border-white/20 sm:bg-white/5 sm:px-4 sm:text-white sm:hover:bg-white/12 sm:hover:text-white"
               >
                 <Link href="/mock-interview">
                   <Play className="size-3.5" />
@@ -323,7 +325,7 @@ export default function DashboardPage() {
                 asChild
                 size="sm"
                 variant="ghost"
-                className="h-9 px-3 text-white/80 hover:bg-white/10 hover:text-white"
+                className="hidden h-9 px-3 text-white/80 hover:bg-white/10 hover:text-white sm:inline-flex"
               >
                 <Link href="/cv-builder">
                   CV Builder
@@ -333,38 +335,43 @@ export default function DashboardPage() {
             </div>
           </div>
 
-          {/* Live PostgreSQL Telemetry Strip (Zero Fake Numbers) */}
-          <div className="grid grid-cols-3 gap-3 rounded-xl border border-white/12 bg-white/[0.04] p-4 backdrop-blur-xs">
+          <div className="jobprep-dashboard-metrics grid min-w-0 grid-cols-3 gap-2 rounded-xl border border-border bg-card p-3 sm:gap-3 sm:border-white/12 sm:bg-white/[0.04] sm:p-4 sm:backdrop-blur-xs">
             <div>
-              <p className="text-[11px] text-white/60">Interviews</p>
-              <p className="mt-1 font-display text-2xl font-semibold text-white tabular-nums">
+              <p className="text-xs text-muted-foreground sm:text-white/60">
+                Interviews
+              </p>
+              <p className="mt-1 font-display text-2xl font-semibold tabular-nums">
                 {loadingStats ? "—" : (metrics?.totalInterviews ?? 0)}
               </p>
-              <p className="text-[11px] text-white/55 tabular-nums">
+              <p className="text-[11px] text-muted-foreground tabular-nums sm:text-white/55">
                 {metrics?.averageScore != null
                   ? `Avg ${metrics.averageScore}/100`
                   : "Not scored yet"}
               </p>
             </div>
             <div>
-              <p className="text-[11px] text-white/60">System Design</p>
-              <p className="mt-1 font-display text-2xl font-semibold text-white tabular-nums">
+              <p className="text-xs text-muted-foreground sm:text-white/60">
+                System design
+              </p>
+              <p className="mt-1 font-display text-2xl font-semibold tabular-nums">
                 {loadingStats ? "—" : (metrics?.systemDesignCount ?? 0)}
               </p>
-              <p className="text-[11px] text-white/55 tabular-nums">
+              <p className="text-[11px] text-muted-foreground tabular-nums sm:text-white/55">
                 {metrics?.avgSystemDesignScore != null
                   ? `Avg ${metrics.avgSystemDesignScore}/100`
                   : "No critiques yet"}
               </p>
             </div>
             <div>
-              <p className="text-[11px] text-white/60">Artifacts</p>
-              <p className="mt-1 font-display text-2xl font-semibold text-[#60a5fa] tabular-nums">
+              <p className="text-xs text-muted-foreground sm:text-white/60">
+                Documents
+              </p>
+              <p className="mt-1 font-display text-2xl font-semibold text-primary tabular-nums sm:text-[#60a5fa]">
                 {loadingStats
                   ? "—"
                   : (metrics?.cvCount ?? 0) + (metrics?.coverLetterCount ?? 0)}
               </p>
-              <p className="text-[11px] text-white/55 tabular-nums">
+              <p className="text-[11px] text-muted-foreground tabular-nums sm:text-white/55">
                 {metrics?.cvCount ?? 0} CV · {metrics?.coverLetterCount ?? 0}{" "}
                 letter
               </p>
@@ -374,26 +381,25 @@ export default function DashboardPage() {
       </section>
 
       {/* Main 12-Column Operational Layout */}
-      <div className="grid gap-6 lg:grid-cols-12">
+      <div className="grid min-w-0 grid-cols-1 gap-6 lg:grid-cols-12">
         {/* Left 8 Columns: Active Role Loops + Unified Practice Log */}
-        <div className="space-y-6 lg:col-span-8">
+        <div className="min-w-0 space-y-6 lg:col-span-8">
           {/* Active Hiring Loops — Every card knows its real Prisma artifact state */}
-          <Card className="shadow-none">
-            <CardHeader className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-              <div>
+          <Card className="jobprep-dashboard-roles gap-3 border-0 bg-transparent py-0 shadow-none sm:gap-6 sm:border sm:bg-card sm:py-6">
+            <CardHeader className="flex flex-wrap items-baseline justify-between gap-2 px-0 sm:px-6">
+              <div className="min-w-0">
                 <CardTitle className="font-display text-lg">
-                  Active hiring loops
+                  Active roles
                 </CardTitle>
-                <CardDescription>
-                  Each role tracks your real CVs, cover letters, mock
-                  interviews, and system designs in PostgreSQL.
+                <CardDescription className="hidden sm:block">
+                  CVs, cover letters, and practice for each role.
                 </CardDescription>
               </div>
               <Button
                 asChild
                 variant="outline"
                 size="sm"
-                className="h-8 gap-1.5 text-xs"
+                className="h-9 gap-1.5 bg-transparent text-xs"
               >
                 <Link href="/applications">
                   <Plus className="size-3.5" />
@@ -401,14 +407,14 @@ export default function DashboardPage() {
                 </Link>
               </Button>
             </CardHeader>
-            <CardContent>
+            <CardContent className="px-0 sm:px-6">
               {loadingStats ? (
                 <div className="space-y-3">
                   <Skeleton className="h-24 rounded-xl" />
                   <Skeleton className="h-24 rounded-xl" />
                 </div>
               ) : activeApplications.length > 0 ? (
-                <div className="space-y-3">
+                <div className="jobprep-dashboard-role-list space-y-2 sm:space-y-3">
                   {activeApplications.map((app) => {
                     const nextStep = getNextRoleAction(app);
                     const artifacts = [
@@ -437,10 +443,10 @@ export default function DashboardPage() {
                     return (
                       <div
                         key={app.id}
-                        className="role-card-container rounded-xl border border-border/80 bg-card p-4 transition-colors hover:border-primary/40"
+                        className="jobprep-dashboard-role role-card-container min-w-0 rounded-xl border border-border/80 bg-card p-3.5 transition-colors hover:border-primary/40 sm:p-4"
                       >
-                        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-                          <div className="flex min-w-0 items-center gap-3.5">
+                        <div className="flex min-w-0 flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                          <div className="flex min-w-0 items-start gap-3 sm:items-center sm:gap-3.5">
                             {typeof app.atsScore === "number" ? (
                               <ProgressRing
                                 value={app.atsScore}
@@ -458,8 +464,8 @@ export default function DashboardPage() {
                             <div className="min-w-0">
                               <div className="flex flex-wrap items-center gap-2">
                                 <Link
-                                  href="/applications"
-                                  className="truncate font-display text-sm font-semibold text-foreground hover:text-primary"
+                                  href={`/applications?role=${encodeURIComponent(app.id)}`}
+                                  className="min-w-0 font-display text-sm font-semibold wrap-anywhere text-foreground hover:text-primary"
                                 >
                                   {app.role}
                                 </Link>
@@ -470,29 +476,40 @@ export default function DashboardPage() {
                                   {app.stage}
                                 </Badge>
                               </div>
-                              <p className="truncate text-xs text-muted-foreground">
+                              <p className="text-xs wrap-anywhere text-muted-foreground">
                                 {app.company}
                                 {app.location ? ` · ${app.location}` : ""}
                               </p>
 
-                              {/* Real Linked Artifact Pills */}
+                              {/* Real Linked Artifact Pills (non-interactive summary on mobile to reduce tap-target clutter; interactive on sm+) */}
                               <div className="mt-2 flex flex-wrap items-center gap-1.5">
                                 {artifacts.map((art) => (
-                                  <Link
-                                    key={art.label}
-                                    href={art.href}
-                                    className={
-                                      art.count > 0
-                                        ? "inline-flex items-center gap-1 rounded-md border border-primary/25 bg-primary/10 px-2 py-0.5 text-[11px] font-medium text-primary"
-                                        : "inline-flex items-center gap-1 rounded-md border border-border bg-muted/40 px-2 py-0.5 text-[11px] text-muted-foreground hover:text-foreground"
-                                    }
-                                  >
-                                    {art.count > 0 && (
-                                      <CheckCircle2 className="size-3" />
-                                    )}
-                                    {art.label}
-                                    {art.count > 0 ? ` (${art.count})` : ""}
-                                  </Link>
+                                  <span key={art.label} className="inline-flex">
+                                    <span
+                                      className={
+                                        art.count > 0
+                                          ? "inline-flex items-center gap-1 rounded-full bg-primary/10 px-2 py-0.5 text-[11px] font-medium text-primary sm:hidden"
+                                          : "inline-flex items-center gap-1 rounded-full bg-muted/60 px-2 py-0.5 text-[11px] text-muted-foreground sm:hidden"
+                                      }
+                                    >
+                                      {art.label}
+                                      {art.count > 0 ? ` (${art.count})` : ""}
+                                    </span>
+                                    <Link
+                                      href={art.href}
+                                      className={
+                                        art.count > 0
+                                          ? "hidden min-h-7 items-center gap-1 rounded-full bg-primary/10 px-2 text-[11px] font-medium text-primary sm:inline-flex"
+                                          : "hidden min-h-7 items-center gap-1 rounded-full bg-muted/60 px-2 text-[11px] text-muted-foreground hover:text-foreground sm:inline-flex"
+                                      }
+                                    >
+                                      {art.count > 0 && (
+                                        <CheckCircle2 className="size-3" />
+                                      )}
+                                      {art.label}
+                                      {art.count > 0 ? ` (${art.count})` : ""}
+                                    </Link>
+                                  </span>
                                 ))}
                               </div>
                             </div>
@@ -501,7 +518,8 @@ export default function DashboardPage() {
                           <Button
                             asChild
                             size="sm"
-                            className="shrink-0 gap-1.5 self-start sm:self-center"
+                            variant="outline"
+                            className="min-h-11 w-full justify-center gap-1.5 text-primary sm:h-10 sm:w-auto sm:border-transparent sm:bg-transparent sm:px-2 sm:hover:bg-accent"
                           >
                             <Link href={nextStep.href}>
                               {nextStep.label}
@@ -555,17 +573,29 @@ export default function DashboardPage() {
                   )
                 }
               >
-                <TabsList className="h-8">
-                  <TabsTrigger value="all" className="px-2.5 text-xs">
+                <TabsList className="h-10 w-full sm:h-8 sm:w-auto">
+                  <TabsTrigger
+                    value="all"
+                    className="flex-1 px-2.5 text-xs sm:flex-none"
+                  >
                     All
                   </TabsTrigger>
-                  <TabsTrigger value="mock" className="px-2.5 text-xs">
+                  <TabsTrigger
+                    value="mock"
+                    className="flex-1 px-2.5 text-xs sm:flex-none"
+                  >
                     Mock
                   </TabsTrigger>
-                  <TabsTrigger value="system-design" className="px-2.5 text-xs">
+                  <TabsTrigger
+                    value="system-design"
+                    className="flex-1 px-2.5 text-xs sm:flex-none"
+                  >
                     Design
                   </TabsTrigger>
-                  <TabsTrigger value="code" className="px-2.5 text-xs">
+                  <TabsTrigger
+                    value="code"
+                    className="flex-1 px-2.5 text-xs sm:flex-none"
+                  >
                     Code
                   </TabsTrigger>
                 </TabsList>
@@ -626,7 +656,7 @@ export default function DashboardPage() {
         </div>
 
         {/* Right 4 Columns: 6-Week Real Cadence + Progressive Disclosure Tools */}
-        <div className="space-y-6 lg:col-span-4">
+        <div className="min-w-0 space-y-6 lg:col-span-4">
           {/* Practice Cadence */}
           <Card className="shadow-none">
             <CardHeader className="pb-2">

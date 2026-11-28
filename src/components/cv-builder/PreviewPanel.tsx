@@ -1,201 +1,109 @@
 "use client";
 
-import { FileDown, Maximize2, Palette, ZoomIn, ZoomOut } from "lucide-react";
-import { useCallback, useEffect, useRef, useState } from "react";
-import { toast } from "sonner";
+import { Maximize2, Minus, Plus } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { useTextSelection } from "@/hooks/useTextSelection";
 import { useCVStore } from "@/store/cv-store";
 import { CustomizePanel } from "./CustomizePanel";
-import { TemplateSelector } from "./TemplateSelector";
-import { TextSelectionToolbar } from "./TextSelectionToolbar";
+import styles from "./cv-workspace.module.css";
 import { ClassicTemplate } from "./templates/ClassicTemplate";
 import { MinimalTemplate } from "./templates/MinimalTemplate";
 import { ModernTemplate } from "./templates/ModernTemplate";
 
+const paperWidth = (210 * 96) / 25.4;
+const paperHeight = (297 * 96) / 25.4;
+
+const templates = {
+  modern: ModernTemplate,
+  classic: ClassicTemplate,
+  minimal: MinimalTemplate,
+};
+
 export function PreviewPanel() {
   const { cvData, settings } = useCVStore();
-  const [zoomLevel, setZoomLevel] = useState(100);
-  const [isLoading, setIsLoading] = useState(false);
-  const [showCustomizePanel, setShowCustomizePanel] = useState(false);
+  const [zoom, setZoom] = useState(1);
+  const [availableWidth, setAvailableWidth] = useState(0);
+  const [contentHeight, setContentHeight] = useState(paperHeight);
+  const viewportRef = useRef<HTMLDivElement>(null);
+  const paperRef = useRef<HTMLDivElement>(null);
 
-  const scrollWrapperRef = useRef<HTMLDivElement>(null);
-  const contentRef = useRef<HTMLDivElement>(null);
-  const selection = useTextSelection(scrollWrapperRef);
-
-  // Measured (unscaled) height of the content in px
-  const [contentHeight, setContentHeight] = useState<number>(0);
-
-  // Observe content height so scrolling works when content grows or shrinks
   useEffect(() => {
-    if (!contentRef.current) return;
-    const el = contentRef.current;
-    const ro = new ResizeObserver(() => {
-      setContentHeight(el.offsetHeight);
+    const viewport = viewportRef.current;
+    const paper = paperRef.current;
+    if (!viewport || !paper) return;
+
+    const observer = new ResizeObserver(() => {
+      const width = viewport.clientWidth;
+      const height = paper.offsetHeight;
+      if (width > 0) setAvailableWidth(width - 24);
+      if (height > 0) setContentHeight(height);
     });
-    ro.observe(el);
-    // Initial measure
-    setContentHeight(el.offsetHeight);
-    return () => ro.disconnect();
-  }, [cvData, settings.template]);
+    observer.observe(viewport);
+    observer.observe(paper);
+    return () => observer.disconnect();
+  }, []);
 
-  const handleZoomIn = useCallback(
-    () => setZoomLevel((p) => Math.min(p + 10, 200)),
-    [],
-  );
-  const handleZoomOut = useCallback(
-    () => setZoomLevel((p) => Math.max(p - 10, 50)),
-    [],
-  );
-  const handleFitToPage = useCallback(() => setZoomLevel(100), []);
-
-  const handleTextAction = async (action: string, text: string) => {
-    switch (action) {
-      case "ai-enhance":
-        toast.loading("Enhancing text with AI...");
-        setTimeout(() => {
-          toast.dismiss();
-          toast.success("Text enhanced!");
-        }, 1000);
-        break;
-      case "bold":
-        document.execCommand("bold");
-        toast.success("Applied bold formatting");
-        break;
-      case "italic":
-        document.execCommand("italic");
-        toast.success("Applied italic formatting");
-        break;
-      case "translate":
-        toast.loading("Translating text...");
-        setTimeout(() => {
-          toast.dismiss();
-          toast.success("Text translated!");
-        }, 1000);
-        break;
-      case "expand":
-        toast.loading("Expanding text...");
-        setTimeout(() => {
-          toast.dismiss();
-          toast.success("Text expanded!");
-        }, 1000);
-        break;
-      case "shorten":
-        toast.loading("Shortening text...");
-        setTimeout(() => {
-          toast.dismiss();
-          toast.success("Text shortened!");
-        }, 1000);
-        break;
-      case "copy":
-        await navigator.clipboard.writeText(text);
-        toast.success("Copied to clipboard!");
-        break;
-    }
-  };
-
-  const renderTemplate = () => {
-    switch (settings.template) {
-      case "modern":
-        return <ModernTemplate cvData={cvData} settings={settings} />;
-      case "classic":
-        return <ClassicTemplate cvData={cvData} settings={settings} />;
-      case "minimal":
-        return <MinimalTemplate cvData={cvData} settings={settings} />;
-      default:
-        return <ModernTemplate cvData={cvData} settings={settings} />;
-    }
-  };
-
-  const scale = zoomLevel / 100;
-  const scaledHeight = contentHeight * scale; // placeholder area height
+  const fit = Math.min(1, (availableWidth || paperWidth) / paperWidth);
+  const scale = fit * zoom;
+  const Template = templates[settings.template] ?? ModernTemplate;
 
   return (
-    <div className="flex h-full flex-col relative">
-      {/* Toolbar */}
-      <div className="flex items-center justify-between border-b px-4 py-2">
-        <div className="flex items-center gap-2">
-          <span className="text-sm text-muted-foreground">Preview</span>
-          <div className="flex items-center gap-1">
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={handleZoomOut}
-              title="Zoom Out"
-              aria-label="Zoom out"
-            >
-              <ZoomOut className="h-4 w-4" />
-            </Button>
-            <span className="min-w-[60px] text-center text-sm">
-              {zoomLevel}%
-            </span>
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={handleZoomIn}
-              title="Zoom In"
-              aria-label="Zoom in"
-            >
-              <ZoomIn className="h-4 w-4" />
-            </Button>
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={handleFitToPage}
-              title="Reset Zoom"
-              aria-label="Reset zoom"
-            >
-              <Maximize2 className="h-4 w-4" />
-            </Button>
-          </div>
-        </div>
-
-        <div className="flex items-center gap-2">
-          <CustomizePanel />
-        </div>
+    <div className={styles.preview}>
+      <div className={styles.previewBar}>
+        <span className={styles.paperLabel}>A4 preview</span>
+        <fieldset className={styles.zoomControls}>
+          <legend className="sr-only">Preview zoom</legend>
+          <Button
+            size="icon-sm"
+            variant="ghost"
+            aria-label="Zoom out"
+            disabled={zoom <= 0.75}
+            onClick={() => setZoom((level) => Math.max(0.75, level - 0.25))}
+          >
+            <Minus aria-hidden="true" />
+          </Button>
+          <span className={styles.zoomLevel}>{Math.round(scale * 100)}%</span>
+          <Button
+            size="icon-sm"
+            variant="ghost"
+            aria-label="Zoom in"
+            disabled={zoom >= 2}
+            onClick={() => setZoom((level) => Math.min(2, level + 0.25))}
+          >
+            <Plus aria-hidden="true" />
+          </Button>
+          <Button
+            size="icon-sm"
+            variant="ghost"
+            aria-label="Fit to width"
+            onClick={() => setZoom(1)}
+          >
+            <Maximize2 aria-hidden="true" />
+          </Button>
+        </fieldset>
+        <CustomizePanel />
       </div>
 
-      {/* Scrollable Area */}
-      <ScrollArea className="flex-1 bg-muted/20 p-6">
-        <div
-          ref={scrollWrapperRef}
-          className="relative mx-auto"
-          style={{ width: "100%", maxWidth: "210mm" }}
-        >
-          {/* Placeholder block providing the scaled height for scrolling */}
-          <div style={{ height: scaledHeight || 0 }} />
-
-          {/* Absolutely positioned scaled content */}
+      <div className={styles.previewScroll} ref={viewportRef}>
+        <div className={styles.paperStage}>
           <div
-            ref={contentRef}
-            style={{
-              position: "absolute",
-              top: 0,
-              left: "50%",
-              transform: `translateX(-50%) scale(${scale})`,
-              transformOrigin: "top center",
-              width: "210mm",
-            }}
-            className="will-change-transform"
+            className={styles.paperFrame}
+            style={{ width: paperWidth * scale, height: contentHeight * scale }}
           >
             <div
-              className="bg-white shadow-2xl print:shadow-none"
+              ref={paperRef}
+              className={styles.paper}
               style={{
-                width: "210mm",
-                minHeight: "297mm",
+                width: paperWidth,
+                minHeight: paperHeight,
+                transform: `scale(${scale})`,
               }}
             >
-              {renderTemplate()}
+              <Template cvData={cvData} settings={settings} />
             </div>
           </div>
-
-          <TextSelectionToolbar
-            selection={selection}
-            onAction={handleTextAction}
-          />
         </div>
-      </ScrollArea>
+      </div>
     </div>
   );
 }

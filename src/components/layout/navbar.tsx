@@ -4,7 +4,6 @@ import {
   CreditCard,
   HelpCircle,
   LogOut,
-  Menu,
   Moon,
   Plus,
   Search,
@@ -13,6 +12,7 @@ import {
   User,
   Video,
 } from "lucide-react";
+import dynamic from "next/dynamic";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useTheme } from "next-themes";
@@ -29,13 +29,16 @@ import {
 import { Skeleton } from "@/components/ui/skeleton";
 import { signOut, useSession } from "@/lib/auth-client";
 
-interface NavbarProps {
-  onSidebarToggle: () => void;
-  sidebarOpen?: boolean;
-}
+const MobileWorkspaceHeader = dynamic(
+  () => import("./mobile-navigation").then((m) => m.MobileWorkspaceHeader),
+  { ssr: false },
+);
 
 const ROUTE_LABELS: Record<string, string> = {
   "/dashboard": "Dashboard",
+  "/more": "More",
+  "/interview": "Interview Studio",
+  "/code-challenge/onboarding": "Code Challenge Setup",
   "/mock-interview": "Mock Interview",
   "/mock-interview/questions": "Question Bank",
   "/interview-room": "Interview Room",
@@ -59,7 +62,7 @@ const ROUTE_LABELS: Record<string, string> = {
   "/settings/billing": "Billing",
 };
 
-export function Navbar({ onSidebarToggle, sidebarOpen }: NavbarProps) {
+export function Navbar({ onBack }: { onBack?: () => void }) {
   const pathname = usePathname();
   const router = useRouter();
   const { data: session, isPending } = useSession();
@@ -88,24 +91,27 @@ export function Navbar({ onSidebarToggle, sidebarOpen }: NavbarProps) {
     );
   };
 
-  const pageLabel = ROUTE_LABELS[pathname] || "Workspace";
+  const pageLabel =
+    ROUTE_LABELS[pathname] ??
+    (pathname.startsWith("/saved-interviews/")
+      ? "Interview Transcript"
+      : "Workspace");
 
   return (
     <header className="sticky top-0 z-30 w-full border-b border-border bg-background/90 backdrop-blur-md">
-      <div className="flex h-14 items-center justify-between gap-4 px-4 lg:px-6">
-        {/* Left: Mobile toggle + section breadcrumb */}
-        <div className="flex items-center gap-3 min-w-0">
-          <Button
-            type="button"
-            variant="ghost"
-            size="icon-sm"
-            onClick={onSidebarToggle}
-            aria-label="Toggle navigation menu"
-            aria-expanded={sidebarOpen}
-            className="lg:hidden"
-          >
-            <Menu className="size-4" />
-          </Button>
+      <div className="lg:hidden">
+        <MobileWorkspaceHeader
+          title={pageLabel}
+          onBack={onBack}
+          isDark={mounted && resolvedTheme === "dark"}
+          onToggleTheme={() =>
+            setTheme(resolvedTheme === "dark" ? "light" : "dark")
+          }
+          onSearch={triggerCommandPalette}
+        />
+      </div>
+      <div className="hidden h-14 items-center justify-between gap-4 px-6 lg:flex">
+        <div className="flex min-w-0 items-center gap-3">
           <span className="truncate text-sm font-medium text-muted-foreground">
             {pageLabel}
           </span>

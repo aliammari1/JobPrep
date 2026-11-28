@@ -253,7 +253,7 @@ export default function CodeChallengeOnboardingImproved() {
   };
 
   return (
-    <div className="min-h-[calc(100vh-3.5rem)] bg-background">
+    <div className="min-h-full bg-background">
       <div className="container max-w-2xl mx-auto px-4 py-8 md:py-12">
         {/* Header */}
         <motion.div
@@ -265,7 +265,7 @@ export default function CodeChallengeOnboardingImproved() {
             <div className="p-3 bg-primary rounded-lg">
               <Brain className="w-6 h-6 text-primary-foreground" />
             </div>
-            <h1 className="text-3xl md:text-4xl font-bold tracking-tight text-foreground">
+            <h1 className="sr-only font-display lg:not-sr-only lg:text-3xl lg:font-bold lg:tracking-tight lg:text-foreground">
               Code Challenge Setup
             </h1>
           </div>
@@ -727,6 +727,7 @@ export default function CodeChallengeOnboardingImproved() {
                       ] as const
                     ).map((option) => (
                       <button
+                        type="button"
                         key={option.level}
                         onClick={() => setDifficulty(option.level)}
                         className={cn(

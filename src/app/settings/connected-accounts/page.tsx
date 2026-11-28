@@ -1,8 +1,13 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useSession, authClient } from "@/lib/auth-client";
+import { useEffect, useState } from "react";
+import { ConfirmDialog } from "@/components/custom/confirm-dialog";
+import { Icons } from "@/components/custom/icons";
+import { UserNav } from "@/components/custom/user-nav";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -11,13 +16,9 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Icons } from "@/components/custom/icons";
-import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import Link from "next/link";
-import { UserNav } from "@/components/custom/user-nav";
+import { authClient, useSession } from "@/lib/auth-client";
 
 interface Account {
   id: string;
@@ -75,10 +76,19 @@ export default function ConnectedAccountsPage() {
     }
   };
 
-  const handleUnlinkAccount = async (providerId: string, accountId: string) => {
-    if (!confirm("Are you sure you want to unlink this account?")) {
-      return;
-    }
+  const [pendingUnlink, setPendingUnlink] = useState<{
+    providerId: string;
+    accountId: string;
+  } | null>(null);
+
+  const handleUnlinkAccount = (providerId: string, accountId: string) => {
+    setPendingUnlink({ providerId, accountId });
+  };
+
+  const confirmUnlinkAccount = async () => {
+    if (!pendingUnlink) return;
+    const { providerId, accountId } = pendingUnlink;
+    setPendingUnlink(null);
 
     setError(null);
     setSuccess(null);
@@ -104,11 +114,9 @@ export default function ConnectedAccountsPage() {
 
   if (isPending || isLoading) {
     return (
-      <div className="min-h-screen bg-linear-to-br from-background via-background to-muted/20">
-        <div className="container mx-auto p-4 md:p-8 max-w-4xl">
-          <Skeleton className="h-12 w-full mb-4" />
-          <Skeleton className="h-64 w-full" />
-        </div>
+      <div className="space-y-4">
+        <Skeleton className="h-12 w-full" />
+        <Skeleton className="h-64 w-full" />
       </div>
     );
   }
@@ -118,69 +126,16 @@ export default function ConnectedAccountsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-linear-to-br from-background via-background to-muted/20">
-      <div className="container mx-auto p-4 md:p-8 max-w-4xl">
-        <div className="mb-8">
-          <div className="flex items-center justify-between mb-4">
-            <Link href="/dashboard">
-              <Button variant="ghost" size="sm">
-                <Icons.arrowLeft className="mr-2 h-4 w-4" />
-                Back to Dashboard
-              </Button>
-            </Link>
-            <UserNav />
-          </div>
-          <h1 className="text-4xl font-bold">Connected Accounts</h1>
-          <p className="text-muted-foreground mt-2">
+    <div className="min-w-0">
+      <div className="space-y-6">
+        <div>
+          <h1 className="sr-only font-display lg:not-sr-only lg:text-3xl lg:font-semibold lg:tracking-tight">
+            Connected Accounts
+          </h1>
+          <p className="text-sm text-muted-foreground lg:mt-1">
             Link your social accounts for easier sign-in
           </p>
         </div>
-
-        {/* Navigation Tabs */}
-        <Tabs defaultValue="connected-accounts" className="w-full">
-          <TabsList className="grid w-full grid-cols-7">
-            <TabsTrigger value="profile" asChild className="text-xs sm:text-sm">
-              <Link href="/settings/profile">Profile</Link>
-            </TabsTrigger>
-            <TabsTrigger
-              value="security"
-              asChild
-              className="text-xs sm:text-sm"
-            >
-              <Link href="/settings/security">Security</Link>
-            </TabsTrigger>
-            <TabsTrigger
-              value="sessions"
-              asChild
-              className="text-xs sm:text-sm"
-            >
-              <Link href="/settings/sessions">Sessions</Link>
-            </TabsTrigger>
-            <TabsTrigger
-              value="two-factor"
-              asChild
-              className="text-xs sm:text-sm"
-            >
-              <Link href="/settings/two-factor">Two-Factor</Link>
-            </TabsTrigger>
-            <TabsTrigger
-              value="passkeys"
-              asChild
-              className="text-xs sm:text-sm"
-            >
-              <Link href="/settings/passkeys">Passkeys</Link>
-            </TabsTrigger>
-            <TabsTrigger
-              value="connected-accounts"
-              className="text-xs sm:text-sm"
-            >
-              Connected
-            </TabsTrigger>
-            <TabsTrigger value="phone" asChild className="text-xs sm:text-sm">
-              <Link href="/settings/phone">Phone</Link>
-            </TabsTrigger>
-          </TabsList>
-        </Tabs>
 
         {error && (
           <Alert variant="destructive" className="mb-6">
@@ -230,12 +185,15 @@ export default function ConnectedAccountsPage() {
               {isAccountLinked("google") ? (
                 <div className="flex items-center justify-between">
                   <p className="text-sm text-muted-foreground">
-                    Linked on{" "}
-                    {new Date(
-                      accounts.find(
+                    {(() => {
+                      const raw = accounts.find(
                         (a) => a.providerId.toLowerCase() === "google",
-                      )?.createdAt || "",
-                    ).toLocaleDateString()}
+                      )?.createdAt;
+                      const parsed = raw ? new Date(raw) : null;
+                      return parsed && !Number.isNaN(parsed.getTime())
+                        ? `Linked on ${parsed.toLocaleDateString()}`
+                        : "Connected account";
+                    })()}
                   </p>
                   <Button
                     variant="outline"
@@ -279,6 +237,17 @@ export default function ConnectedAccountsPage() {
           </Alert>
         </div>
       </div>
+      <ConfirmDialog
+        open={pendingUnlink !== null}
+        onOpenChange={(open) => {
+          if (!open) setPendingUnlink(null);
+        }}
+        title="Unlink account"
+        description="Are you sure you want to unlink this connected account?"
+        confirmLabel="Unlink"
+        destructive
+        onConfirm={confirmUnlinkAccount}
+      />
     </div>
   );
 }

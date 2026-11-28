@@ -1,10 +1,9 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { toast } from "sonner";
 
 interface UploadRecordingOptions {
   file: File | Blob;
   interviewId: string;
-  roomName?: string;
   onProgress?: (progress: number) => void;
 }
 
@@ -23,89 +22,89 @@ interface UploadRecordingResult {
 export function useRecordingUpload() {
   const [isUploading, setIsUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
+  const uploadIds = useRef(new WeakMap<Blob, string>());
+  const active = useRef(false);
 
   const uploadRecording = async ({
     file,
     interviewId,
-    roomName,
     onProgress,
   }: UploadRecordingOptions): Promise<UploadRecordingResult> => {
+    if (active.current)
+      return { success: false, error: "An upload is already running" };
+    if (file.size > 90 * 1024 * 1024) {
+      const error = "Recordings larger than 90 MiB must be saved locally";
+      toast.error(error);
+      return { success: false, error };
+    }
+
+    let uploadId = uploadIds.current.get(file);
+    if (!uploadId) {
+      uploadId = crypto.randomUUID();
+      uploadIds.current.set(file, uploadId);
+    }
+    active.current = true;
     setIsUploading(true);
     setUploadProgress(0);
 
     try {
-      const formData = new FormData();
-
-      // Convert Blob to File if needed
-      if (file instanceof Blob && !(file instanceof File)) {
-        const fileName = `recording-${Date.now()}.webm`;
-        file = new File([file], fileName, { type: file.type || "video/webm" });
-      }
-
-      formData.append("file", file);
-      formData.append("interviewId", interviewId);
-      if (roomName) {
-        formData.append("roomName", roomName);
-      }
-
-      // Create XMLHttpRequest for progress tracking
-      return new Promise((resolve, reject) => {
-        const xhr = new XMLHttpRequest();
-
-        xhr.upload.addEventListener("progress", (event) => {
-          if (event.lengthComputable) {
-            const progress = Math.round((event.loaded / event.total) * 100);
+      const query = new URLSearchParams({
+        interviewId,
+        uploadId,
+        size: String(file.size),
+      });
+      const result = await new Promise<UploadRecordingResult>(
+        (resolve, reject) => {
+          const request = new XMLHttpRequest();
+          request.open("POST", `/api/recordings/upload?${query}`);
+          request.responseType = "json";
+          request.timeout = 300_000;
+          request.setRequestHeader("Content-Type", file.type || "video/webm");
+          request.upload.addEventListener("progress", (event) => {
+            if (!event.lengthComputable) return;
+            const progress = Math.min(
+              99,
+              Math.round((event.loaded / event.total) * 100),
+            );
             setUploadProgress(progress);
             onProgress?.(progress);
-          }
-        });
-
-        xhr.addEventListener("load", () => {
-          if (xhr.status === 200) {
-            const response = JSON.parse(xhr.responseText);
-            setIsUploading(false);
-            setUploadProgress(100);
-            toast.success("Recording uploaded successfully!");
-            resolve({
-              success: true,
-              recording: response.recording,
-            });
-          } else {
-            const error = xhr.responseText || "Upload failed";
-            setIsUploading(false);
-            toast.error("Failed to upload recording");
-            reject({
-              success: false,
-              error,
-            });
-          }
-        });
-
-        xhr.addEventListener("error", () => {
-          setIsUploading(false);
-          toast.error("Network error during upload");
-          reject({
-            success: false,
-            error: "Network error",
           });
-        });
-
-        xhr.open("POST", "/api/recordings/upload");
-        xhr.send(formData);
-      });
-    } catch (error: any) {
+          request.addEventListener("load", () => {
+            const response = request.response as UploadRecordingResult | null;
+            if (request.status === 200 && response?.recording) {
+              resolve(response);
+            } else {
+              reject(
+                new Error(response?.error || "Failed to upload recording"),
+              );
+            }
+          });
+          request.addEventListener("error", () =>
+            reject(new Error("Recording upload lost its connection")),
+          );
+          request.addEventListener("timeout", () =>
+            reject(new Error("Recording upload timed out")),
+          );
+          request.addEventListener("abort", () =>
+            reject(new Error("Recording upload was canceled")),
+          );
+          request.send(file);
+        },
+      );
+      setUploadProgress(100);
+      onProgress?.(100);
+      toast.success("Recording uploaded");
+      return result;
+    } catch (cause) {
+      const error =
+        cause instanceof Error ? cause.message : "Failed to upload recording";
+      toast.error(error);
+      return { success: false, error };
+    } finally {
+      active.current = false;
       setIsUploading(false);
-      toast.error(error.message || "Failed to upload recording");
-      return {
-        success: false,
-        error: error.message,
-      };
     }
   };
 
-  return {
-    uploadRecording,
-    isUploading,
-    uploadProgress,
-  };
+  return { uploadRecording, isUploading, uploadProgress };
 }

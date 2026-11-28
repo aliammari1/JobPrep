@@ -32,5 +32,24 @@ services:
       timeout: 5s
       retries: 10
 
+  # Full self-hosted stack: `docker compose --profile app up -d --build`
+  # Reads secrets from .env; DATABASE_URL is overridden to reach the db service.
+  app:
+    profiles: ["app"]
+    build: .
+    container_name: jobprep-app
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    env_file: .env
+    environment:
+      DATABASE_URL: postgresql://jobprep:jobprep@db:5432/jobprep
+      BETTER_AUTH_URL: ${BETTER_AUTH_URL:-http://localhost:3000}
+      NEXT_PUBLIC_APP_URL: ${NEXT_PUBLIC_APP_URL:-http://localhost:3000}
+    ports:
+      - "3000:3000"
+    command: ["sh", "-c", "bunx prisma migrate deploy && bun run start"]
+
 volumes:
   pgdata:

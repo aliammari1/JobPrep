@@ -1,15 +1,7 @@
 "use client";
 
 import { AnimatePresence, motion } from "framer-motion";
-import {
-  Check,
-  Code2,
-  Cpu,
-  Gauge,
-  Play,
-  RotateCcw,
-  ShieldCheck,
-} from "lucide-react";
+import { Check, Code2, Cpu, Gauge, ShieldCheck } from "lucide-react";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
 
@@ -21,25 +13,21 @@ const TABS: {
   id: TabId;
   label: string;
   icon: React.ElementType;
-  path: string;
 }[] = [
   {
     id: "mock",
     label: "Mock Interview Rubric",
     icon: Gauge,
-    path: "jobprep.app/mock-interview",
   },
   {
     id: "code",
     label: "Code Challenge Arena",
     icon: Code2,
-    path: "jobprep.app/code-challenge",
   },
   {
     id: "models",
     label: "BYOK & Local Ollama",
     icon: Cpu,
-    path: "jobprep.app/settings/ai-provider",
   },
 ];
 
@@ -66,7 +54,7 @@ const ANSWER_VARIANTS: Record<
     note: "Too high-level. Name the exact bottleneck, quantify latency before and after, and explain the cache invalidation trade-off.",
   },
   refined: {
-    label: "After 1 coaching pass",
+    label: "Revised answer",
     score: 91,
     transcript:
       "Checkout p95 spiked to 420ms during flash sales due to an unindexed composite lookup. I added a covering index and write-through Redis cache with a 60s TTL, cutting p95 to 98ms with zero stale-price incidents.",
@@ -75,7 +63,7 @@ const ANSWER_VARIANTS: Record<
       { label: "Technical depth", score: 90 },
       { label: "Quantified impact", score: 92 },
     ],
-    note: "Crisp 40-second delivery with concrete p95 numbers and an explicit consistency trade-off. Ready for staff-level follow-ups.",
+    note: "The before-and-after latency makes the result concrete. A follow-up could explain how writes kept the cache current.",
   },
 };
 
@@ -94,34 +82,33 @@ const PROVIDERS: Record<
     name: "Anthropic",
     model: "claude-sonnet-4",
     mode: "Bring your own key",
-    cost: "Pay provider directly · $0 markup",
-    privacy: "Direct API call — never stored by third-party proxy",
-    envLine: 'AI_PROVIDER="anthropic"  ANTHROPIC_API_KEY="sk-ant-..."',
+    cost: "Provider pricing applies",
+    privacy: "Selected provider receives the prompt",
+    envLine: 'ANTHROPIC_API_KEY="..."',
   },
   openai: {
     name: "OpenAI",
     model: "gpt-4o / o3-mini",
     mode: "Bring your own key",
-    cost: "Pay provider directly · $0 markup",
-    privacy: "Direct API call — zero platform subscription",
-    envLine: 'AI_PROVIDER="openai"     OPENAI_API_KEY="sk-..."',
+    cost: "Provider pricing applies",
+    privacy: "Selected provider receives the prompt",
+    envLine: 'OPENAI_API_KEY="..."',
   },
   gemini: {
     name: "Google Gemini",
     model: "gemini-2.5-pro",
     mode: "Bring your own key",
-    cost: "Free tier available via AI Studio",
-    privacy: "Direct API call — swap per session",
-    envLine: 'AI_PROVIDER="gemini"     GOOGLE_GENERATIVE_AI_API_KEY="..."',
+    cost: "Provider pricing applies",
+    privacy: "Selected provider receives the prompt",
+    envLine: 'GEMINI_API_KEY="..."',
   },
   ollama: {
     name: "Local Ollama",
     model: "llama3.1 / qwen2.5-coder",
-    mode: "100% offline on your machine",
-    cost: "$0 forever",
-    privacy: "Zero bytes leave localhost — air-gapped ready",
-    envLine:
-      'AI_PROVIDER="ollama"     OLLAMA_BASE_URL="http://localhost:11434"',
+    mode: "Self-hosted inference",
+    cost: "Uses your hardware",
+    privacy: "Prompts go to the configured Ollama server",
+    envLine: 'OLLAMA_HOST="http://localhost:11434/v1"',
   },
 };
 
@@ -129,11 +116,10 @@ const EASE_OUT_EXPO: [number, number, number, number] = [0.16, 1, 0.3, 1];
 
 export function HeroShowcase() {
   const [activeTab, setActiveTab] = useState<TabId>("mock");
-  const [answerVariant, setAnswerVariant] = useState<AnswerVariant>("refined");
-  const [testsRun, setTestsRun] = useState(true);
+  const [answerVariant, setAnswerVariant] = useState<AnswerVariant>("raw");
+  const [showTestResults, setShowTestResults] = useState(false);
   const [provider, setProvider] = useState<ProviderId>("ollama");
 
-  const currentTab = TABS.find((t) => t.id === activeTab) ?? TABS[0];
   const currentAnswer = ANSWER_VARIANTS[answerVariant];
   const currentProvider = PROVIDERS[provider];
 
@@ -146,7 +132,7 @@ export function HeroShowcase() {
           <span className="size-2.5 rounded-full bg-foreground/15" />
           <span className="size-2.5 rounded-full bg-primary" />
           <span className="ml-2 hidden font-mono text-xs text-muted-foreground sm:inline">
-            {currentTab.path}
+            Interactive preview
           </span>
         </div>
 
@@ -287,7 +273,7 @@ export function HeroShowcase() {
                 <div className="flex items-center justify-between gap-3">
                   <div>
                     <p className="text-xs font-medium text-muted-foreground">
-                      Medium · Sliding Window
+                      Medium · Token Bucket
                     </p>
                     <h3 className="mt-0.5 font-display text-xl font-semibold tracking-tight text-foreground">
                       Rate Limiter Token Bucket
@@ -295,20 +281,12 @@ export function HeroShowcase() {
                   </div>
                   <button
                     type="button"
-                    onClick={() => setTestsRun((v) => !v)}
+                    onClick={() => setShowTestResults((visible) => !visible)}
                     className="inline-flex items-center gap-1.5 rounded-lg bg-primary px-3.5 py-2 text-xs font-semibold text-primary-foreground transition-colors hover:bg-primary/90"
                   >
-                    {testsRun ? (
-                      <>
-                        <RotateCcw className="size-3.5" />
-                        Re-run tests
-                      </>
-                    ) : (
-                      <>
-                        <Play className="size-3.5" />
-                        Run tests
-                      </>
-                    )}
+                    {showTestResults
+                      ? "Hide sample results"
+                      : "Show sample results"}
                   </button>
                 </div>
 
@@ -329,7 +307,9 @@ export function HeroShowcase() {
               <div className="space-y-3 rounded-xl border border-border bg-muted/25 p-6 lg:col-span-5">
                 <div className="flex items-center justify-between border-b border-border pb-3 text-xs">
                   <span className="font-semibold text-foreground">
-                    {testsRun ? "4 / 4 test cases passing" : "Ready to execute"}
+                    {showTestResults
+                      ? "Sample results · 4 passed"
+                      : "Example test cases"}
                   </span>
                   <span className="font-medium text-primary tabular-nums">
                     O(1) time · O(1) space
@@ -349,7 +329,7 @@ export function HeroShowcase() {
                       <span
                         className={cn(
                           "grid size-4 shrink-0 place-items-center rounded-full",
-                          testsRun
+                          showTestResults
                             ? "bg-primary text-primary-foreground"
                             : "bg-muted text-muted-foreground",
                         )}
@@ -380,7 +360,7 @@ export function HeroShowcase() {
                   </h3>
                   <p className="mt-1.5 text-sm leading-relaxed text-muted-foreground">
                     Connect Anthropic, OpenAI, or Gemini with your own key, or
-                    run completely offline with Ollama.
+                    run inference on your own Ollama server.
                   </p>
                 </div>
 
@@ -407,7 +387,7 @@ export function HeroShowcase() {
 
                 <div className="flex items-center gap-2 text-xs text-muted-foreground">
                   <ShieldCheck className="size-4 shrink-0 text-primary" />
-                  <span>Keys stay in your own environment. Never logged.</span>
+                  <span>Set provider keys on the JobPrep server.</span>
                 </div>
               </div>
 

@@ -1,18 +1,18 @@
-import { useMockInterviewStore } from "@/store/mock-interview-store";
-import { Card, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import {
-  Play,
-  Pause,
-  SkipBack,
-  SkipForward,
-  StopCircle,
   Clock,
   Mic,
   MicOff,
+  Pause,
+  Play,
+  SkipBack,
+  SkipForward,
+  StopCircle,
 } from "lucide-react";
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import { useMockInterviewStore } from "@/store/mock-interview-store";
 
 export function SessionControlsComponent() {
   const {

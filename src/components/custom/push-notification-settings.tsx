@@ -5,16 +5,6 @@
 
 "use client";
 
-import { useEffect, useState } from "react";
-import { usePushNotifications } from "@/hooks/use-push-notifications";
-import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
 import {
   AlertCircle,
   Bell,
@@ -23,8 +13,18 @@ import {
   Clock,
   Zap,
 } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { usePushNotifications } from "@/hooks/use-push-notifications";
+import { cn } from "@/lib/utils";
 
 interface PushNotificationSettingsProps {
   onStatusChange?: (isSubscribed: boolean) => void;

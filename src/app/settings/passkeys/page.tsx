@@ -1,8 +1,13 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useSession, authClient } from "@/lib/auth-client";
+import { useEffect, useState } from "react";
+import { ConfirmDialog } from "@/components/custom/confirm-dialog";
+import { Icons } from "@/components/custom/icons";
+import { UserNav } from "@/components/custom/user-nav";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -11,14 +16,6 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Icons } from "@/components/custom/icons";
-import { Skeleton } from "@/components/ui/skeleton";
-import { Badge } from "@/components/ui/badge";
-import Link from "next/link";
-import { UserNav } from "@/components/custom/user-nav";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import {
   Dialog,
   DialogContent,
@@ -27,6 +24,10 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Skeleton } from "@/components/ui/skeleton";
+import { authClient, useSession } from "@/lib/auth-client";
 
 interface Passkey {
   id: string;
@@ -99,10 +100,16 @@ export default function PasskeysPage() {
     }
   };
 
-  const handleDeletePasskey = async (passkeyId: string) => {
-    if (!confirm("Are you sure you want to delete this passkey?")) {
-      return;
-    }
+  const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null);
+
+  const handleDeletePasskey = (passkeyId: string) => {
+    setPendingDeleteId(passkeyId);
+  };
+
+  const confirmDeletePasskey = async () => {
+    if (!pendingDeleteId) return;
+    const passkeyId = pendingDeleteId;
+    setPendingDeleteId(null);
 
     setError(null);
     setSuccess(null);
@@ -115,18 +122,16 @@ export default function PasskeysPage() {
       setSuccess("Passkey deleted successfully");
       loadPasskeys();
       setTimeout(() => setSuccess(null), 3000);
-    } catch (err) {
+    } catch {
       setError("Failed to delete passkey");
     }
   };
 
   if (isPending || isLoading) {
     return (
-      <div className="min-h-screen bg-linear-to-br from-background via-background to-muted/20">
-        <div className="container mx-auto p-4 md:p-8 max-w-4xl">
-          <Skeleton className="h-12 w-full mb-4" />
-          <Skeleton className="h-64 w-full" />
-        </div>
+      <div className="space-y-4">
+        <Skeleton className="h-12 w-full" />
+        <Skeleton className="h-64 w-full" />
       </div>
     );
   }
@@ -136,47 +141,15 @@ export default function PasskeysPage() {
   }
 
   return (
-    <div className="min-h-screen bg-linear-to-br from-background via-background to-muted/20">
-      <div className="container mx-auto p-4 md:p-8 max-w-4xl">
-        <div className="mb-8">
-          <div className="flex items-center justify-between mb-4">
-            <Link href="/dashboard">
-              <Button variant="ghost" size="sm">
-                <Icons.arrowLeft className="mr-2 h-4 w-4" />
-                Back to Dashboard
-              </Button>
-            </Link>
-            <UserNav />
-          </div>
-          <h1 className="text-4xl font-bold">Passkeys</h1>
-          <p className="text-muted-foreground mt-2">
+    <div className="min-w-0">
+      <div className="space-y-6">
+        <div>
+          <h1 className="sr-only font-display lg:not-sr-only lg:text-3xl lg:font-semibold lg:tracking-tight">
+            Passkeys
+          </h1>
+          <p className="text-sm text-muted-foreground lg:mt-1">
             Manage your biometric and security key authentication
           </p>
-        </div>
-
-        {/* Navigation Tabs */}
-        <div className="flex gap-4 mb-6 overflow-x-auto pb-2">
-          <Link href="/settings/profile">
-            <Button variant="outline">Profile</Button>
-          </Link>
-          <Link href="/settings/security">
-            <Button variant="outline">Security</Button>
-          </Link>
-          <Link href="/settings/sessions">
-            <Button variant="outline">Sessions</Button>
-          </Link>
-          <Link href="/settings/two-factor">
-            <Button variant="outline">Two-Factor</Button>
-          </Link>
-          <Link href="/settings/passkeys">
-            <Button variant="default">Passkeys</Button>
-          </Link>
-          <Link href="/settings/connected-accounts">
-            <Button variant="outline">Connected</Button>
-          </Link>
-          <Link href="/settings/phone">
-            <Button variant="outline">Phone</Button>
-          </Link>
         </div>
 
         {error && (
@@ -272,7 +245,7 @@ export default function PasskeysPage() {
 
       {/* Add Passkey Dialog */}
       <Dialog open={showAddDialog} onOpenChange={setShowAddDialog}>
-        <DialogContent>
+        <DialogContent mobileSheet>
           <DialogHeader>
             <DialogTitle>Add a New Passkey</DialogTitle>
             <DialogDescription>
@@ -308,6 +281,17 @@ export default function PasskeysPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+      <ConfirmDialog
+        open={pendingDeleteId !== null}
+        onOpenChange={(open) => {
+          if (!open) setPendingDeleteId(null);
+        }}
+        title="Delete passkey"
+        description="Are you sure you want to delete this passkey? You will no longer be able to sign in with it."
+        confirmLabel="Delete passkey"
+        destructive
+        onConfirm={confirmDeletePasskey}
+      />
     </div>
   );
 }

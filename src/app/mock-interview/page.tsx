@@ -1,6 +1,5 @@
 "use client";
 
-import dynamic from "next/dynamic";
 import { AnimatePresence, motion } from "framer-motion";
 import {
   AlertTriangle,
@@ -50,9 +49,14 @@ import {
   VolumeX,
   Zap,
 } from "lucide-react";
+
+import dynamic from "next/dynamic";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
+import { toast } from "sonner";
+import { useWakeLock } from "@/hooks/use-wake-lock";
+
 const HeyGenAvatar = dynamic(
   () => import("@/components/interview/HeyGenAvatar"),
   { ssr: false, loading: () => null },
@@ -65,6 +69,7 @@ const QuestionDetailedView = dynamic(
     ),
   { ssr: false },
 );
+
 import { SpeechPacingCoach } from "@/components/interview/SpeechPacingCoach";
 import {
   AnimatedContainer,
@@ -383,7 +388,7 @@ export default function MockInterview() {
   const toggleVoiceRecording = () => {
     if (!recognitionRef.current) {
       console.error("Speech recognition not initialized");
-      alert(
+      toast.error(
         "Speech recognition is not supported in your browser. Please use Chrome, Edge, or Safari.",
       );
       return;
@@ -410,7 +415,7 @@ export default function MockInterview() {
         console.log("🎤 Started voice recording");
       } catch (error) {
         console.error("Failed to start recording:", error);
-        alert(
+        toast.error(
           "Failed to start voice recording. Please allow microphone access.",
         );
         setIsRecording(false);
@@ -819,8 +824,8 @@ export default function MockInterview() {
   const handleSetupComplete = async () => {
     // Validate inputs - ONLY check for job description and skills
     if (!jobDescriptionText.trim() || !skillsText.trim()) {
-      alert(
-        "Please provide job description (via LinkedIn) and employee skills (via PDF) before starting the interview.",
+      toast.error(
+        "Please provide a job description and skills before starting the interview.",
       );
       return;
     }
@@ -966,7 +971,7 @@ export default function MockInterview() {
         error instanceof Error
           ? error.message
           : "Failed to generate interview questions. Please try again.";
-      alert(errorMessage);
+      toast.error(errorMessage);
     } finally {
       setIsGeneratingQuestions(false);
     }
@@ -974,7 +979,7 @@ export default function MockInterview() {
 
   const handleSubmitAnswer = async () => {
     if (!currentAnswer.trim()) {
-      alert("Please provide an answer before submitting.");
+      toast.warning("Please provide an answer before submitting.");
       return;
     }
 
@@ -1227,7 +1232,7 @@ export default function MockInterview() {
     currentQuestionIndex >= generatedQuestions.length - 1
   ) {
     return (
-      <div className="min-h-screen bg-linear-to-br from-primary/20 via-primary/10 to-secondary/10 flex items-center justify-center p-6">
+      <div className="min-h-full bg-linear-to-br from-primary/20 via-primary/10 to-secondary/10 flex items-center justify-center p-6">
         <div className="max-w-2xl w-full">
           <Card className="bg-background/80 backdrop-blur-xl border-border shadow-2xl">
             <CardContent className="p-6 sm:p-8 lg:p-12 text-center space-y-6 sm:space-y-8">
@@ -1343,118 +1348,54 @@ export default function MockInterview() {
       };
 
       return (
-        <div className="min-h-screen bg-linear-to-br from-background via-primary/5 to-muted/10 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
-          <div className="container mx-auto p-6 md:p-8 lg:p-12 space-y-8">
-            {/* Premium Header with Celebration */}
+        <div className="bg-background">
+          <div className="mx-auto max-w-5xl space-y-6 p-4 sm:p-6 lg:p-8">
+            {/* Compact, High-Clarity Completion Summary */}
             <AnimatedContainer>
-              <div className="text-center space-y-6 relative">
-                {/* Celebration Badge */}
-                <div className="relative inline-block">
-                  <div className="absolute inset-0 bg-linear-to-r from-primary/40 to-secondary/40 blur-3xl opacity-50 animate-pulse" />
-                  <div className="relative w-20 h-20 sm:w-32 sm:h-32 bg-linear-to-br from-primary/20 to-secondary/20 dark:from-primary/30 dark:to-secondary/30 rounded-full flex items-center justify-center mx-auto border-4 border-white dark:border-gray-800 shadow-2xl">
-                    <Award className="w-10 h-10 sm:w-16 sm:h-16 text-primary dark:text-primary" />
+              <div className="space-y-4 rounded-2xl border border-border bg-card p-5 sm:p-6">
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="grid size-11 shrink-0 place-items-center rounded-xl bg-primary/10 text-primary">
+                      <Award className="size-6" />
+                    </div>
+                    <div>
+                      <h1 className="font-display text-2xl font-bold tracking-tight text-foreground sm:text-3xl">
+                        Interview complete
+                      </h1>
+                      <p className="text-sm text-muted-foreground">
+                        {finalAssessment.overallRating} ·{" "}
+                        {finalAssessment.hiringRecommendation}
+                      </p>
+                    </div>
                   </div>
                 </div>
 
-                {/* Title */}
-                <div className="space-y-3">
-                  <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold bg-linear-to-b from-foreground to-muted-foreground/70 bg-clip-text text-transparent">
-                    Interview complete
-                  </h1>
-                  <p className="text-xl text-gray-600 dark:text-gray-300 max-w-2xl mx-auto leading-relaxed">
-                    {finalAssessment.summary}
-                  </p>
-                </div>
+                <p className="text-sm leading-relaxed text-muted-foreground sm:text-base">
+                  {finalAssessment.summary}
+                </p>
 
-                {/* Quick Stats Banner */}
-                <div className="flex items-center justify-center gap-6 pt-6">
-                  <div className="text-center">
-                    <div className="text-3xl font-bold text-primary">
-                      {interviewResults.length}
-                    </div>
-                    <div className="text-sm text-gray-600 dark:text-gray-400">
-                      Questions
-                    </div>
-                  </div>
-                  <div className="w-px h-12 bg-gray-300 dark:bg-gray-700" />
-                  <div className="text-center">
-                    <div className="text-3xl font-bold text-primary">
+                <div className="grid grid-cols-3 gap-2.5 border-t border-border pt-4 sm:gap-4">
+                  <div className="rounded-xl border border-border bg-background p-3">
+                    <p className="text-xs text-muted-foreground">Score</p>
+                    <p className="mt-1 font-display text-2xl font-bold text-primary tabular-nums sm:text-3xl">
                       {stats.percentage}%
-                    </div>
-                    <div className="text-sm text-gray-600 dark:text-gray-400">
-                      Score
-                    </div>
+                    </p>
                   </div>
-                  <div className="w-px h-12 bg-gray-300 dark:bg-gray-700" />
-                  <div className="text-center">
-                    <div className="text-3xl font-bold text-primary">
+                  <div className="rounded-xl border border-border bg-background p-3">
+                    <p className="text-xs text-muted-foreground">Confidence</p>
+                    <p className="mt-1 font-display text-2xl font-bold text-foreground tabular-nums sm:text-3xl">
                       {finalAssessment.confidenceLevel}%
-                    </div>
-                    <div className="text-sm text-gray-600 dark:text-gray-400">
-                      Confidence
-                    </div>
+                    </p>
+                  </div>
+                  <div className="rounded-xl border border-border bg-background p-3">
+                    <p className="text-xs text-muted-foreground">Questions</p>
+                    <p className="mt-1 font-display text-2xl font-bold text-foreground tabular-nums sm:text-3xl">
+                      {interviewResults.length}
+                    </p>
                   </div>
                 </div>
               </div>
             </AnimatedContainer>
-
-            {/* Premium Score Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <AnimatedContainer delay={0.1}>
-                <Card className="bg-linear-to-br from-primary to-primary/60 border-0 shadow-2xl text-white overflow-hidden">
-                  <div className="absolute top-0 right-0 w-40 h-40 bg-white/10 rounded-full -mr-20 -mt-20" />
-                  <CardHeader className="relative">
-                    <CardTitle className="text-white/90 text-lg">
-                      Overall Score
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="relative pb-8">
-                    <div className="text-4xl sm:text-5xl lg:text-6xl font-bold mb-3">
-                      {stats.percentage}%
-                    </div>
-                    <div className="inline-block px-4 py-1.5 bg-white/20 backdrop-blur-sm rounded-full text-sm font-semibold">
-                      {finalAssessment.overallRating}
-                    </div>
-                  </CardContent>
-                </Card>
-              </AnimatedContainer>
-
-              <AnimatedContainer delay={0.2}>
-                <Card className="bg-linear-to-br from-primary to-primary/60 border-0 shadow-2xl text-white overflow-hidden">
-                  <div className="absolute top-0 right-0 w-40 h-40 bg-white/10 rounded-full -mr-20 -mt-20" />
-                  <CardHeader className="relative">
-                    <CardTitle className="text-white/90 text-lg">
-                      AI Confidence
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="relative pb-8">
-                    <div className="text-4xl sm:text-5xl lg:text-6xl font-bold mb-3">
-                      {finalAssessment.confidenceLevel}%
-                    </div>
-                    <p className="text-white/80 text-sm">Analysis Certainty</p>
-                  </CardContent>
-                </Card>
-              </AnimatedContainer>
-
-              <AnimatedContainer delay={0.3}>
-                <Card className="bg-linear-to-br from-secondary to-secondary/70 border-0 shadow-2xl text-white overflow-hidden">
-                  <div className="absolute top-0 right-0 w-40 h-40 bg-white/10 rounded-full -mr-20 -mt-20" />
-                  <CardHeader className="relative">
-                    <CardTitle className="text-white/90 text-lg">
-                      Recommendation
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="relative pb-8">
-                    <div className="text-3xl font-bold mb-3">
-                      {finalAssessment.hiringRecommendation}
-                    </div>
-                    <p className="text-white/80 text-sm">
-                      Based on {interviewResults.length} responses
-                    </p>
-                  </CardContent>
-                </Card>
-              </AnimatedContainer>
-            </div>
 
             {/* Key Strengths */}
             <Card>
@@ -1581,7 +1522,7 @@ export default function MockInterview() {
 
     // Fallback to default completion screen
     return (
-      <div className="min-h-screen bg-linear-to-br from-background via-primary/5 to-muted/10 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
+      <div className="min-h-full bg-linear-to-br from-background via-primary/5 to-muted/10 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
         <div className="container mx-auto p-6 space-y-8">
           <AnimatedContainer>
             <div className="text-center space-y-4">
@@ -1792,7 +1733,7 @@ export default function MockInterview() {
     const currentQuestion = generatedQuestions[currentQuestionIndex];
 
     return (
-      <div className="min-h-screen bg-linear-to-br from-background via-primary/5 to-muted/10 relative overflow-hidden p-4 md:p-6">
+      <div className="min-h-full bg-linear-to-br from-background via-primary/5 to-muted/10 relative overflow-hidden p-4 md:p-6">
         <div className="absolute inset-0 -z-10 bg-linear-to-br from-primary/5 via-primary/10 to-transparent" />
         <div className="max-w-7xl mx-auto">
           <AnimatedContainer>
@@ -1812,12 +1753,15 @@ export default function MockInterview() {
                   variant="outline"
                   size="sm"
                   onClick={() => {
-                    if (
-                      confirm("Are you sure you want to end the interview?")
-                    ) {
-                      setGeneratedQuestions([]);
-                      setIsSessionActive(false);
-                    }
+                    toast("End this mock interview?", {
+                      action: {
+                        label: "End",
+                        onClick: () => {
+                          setGeneratedQuestions([]);
+                          setIsSessionActive(false);
+                        },
+                      },
+                    });
                   }}
                   className="border-destructive/30 hover:bg-destructive/10"
                 >
@@ -2081,7 +2025,7 @@ export default function MockInterview() {
                         </div>
                       </div>
                     </CardHeader>
-                    <CardContent className="flex-1 p-6 flex flex-col justify-between overflow-y-auto max-h-[calc(100vh-300px)]">
+                    <CardContent className="flex-1 p-6 flex flex-col justify-between overflow-y-auto max-min-h-[420px]">
                       <div className="space-y-5">
                         {/* Main Question */}
                         <div>
@@ -2288,13 +2232,14 @@ export default function MockInterview() {
   // If showing setup flow, render that instead
   if (showSetup) {
     return (
-      <div className="min-h-screen bg-linear-to-br from-background via-primary/5 to-muted/10 relative overflow-hidden">
+      <div className="min-h-full bg-linear-to-br from-background via-primary/5 to-muted/10 relative overflow-hidden">
         <div className="absolute inset-0 -z-10 bg-linear-to-br from-primary/5 via-primary/10 to-transparent" />
 
         <div className="py-8 md:py-10 px-4 sm:px-6">
           <div className="max-w-3xl mx-auto">
             {/* Back Button */}
             <button
+              type="button"
               onClick={() => setShowSetup(false)}
               className="mb-8 inline-flex items-center gap-2 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
             >
@@ -2685,7 +2630,7 @@ export default function MockInterview() {
 
   // Landing page before interview starts
   return (
-    <div className="mx-auto flex min-h-[calc(100vh-3.5rem)] max-w-4xl items-center justify-center p-6 lg:p-10">
+    <div className="mx-auto flex min-h-full max-w-4xl items-center justify-center p-6 lg:p-10">
       <Card className="w-full overflow-hidden border border-border bg-card py-0 shadow-none">
         <div className="grid lg:grid-cols-12">
           {/* Left: Crisp Black + Blue Studio Intro */}

@@ -17,9 +17,11 @@ import {
   Link2,
   Loader2,
   Mail,
+  Maximize2,
   Monitor,
   Network,
   Play,
+  Plus,
   RotateCcw,
   Save,
   Server,
@@ -40,6 +42,12 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Progress } from "@/components/ui/progress";
@@ -399,9 +407,13 @@ export default function SystemDesignPage() {
   const [savingSession, setSavingSession] = useState(false);
   const [saveNotice, setSaveNotice] = useState<string | null>(null);
 
+  const [canvasViewportWidth, setCanvasViewportWidth] = useState(CANVAS_WIDTH);
+  const [canvasZoomed, setCanvasZoomed] = useState(false);
+  const canvasViewportRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLDivElement | null>(null);
   const dragStateRef = useRef<{
     nodeId: string;
+    pointerId: number;
     offsetX: number;
     offsetY: number;
   } | null>(null);
@@ -499,6 +511,24 @@ export default function SystemDesignPage() {
     [nodes, selectedNodeId],
   );
 
+  const studioReady = !isPending && Boolean(session);
+
+  useEffect(() => {
+    if (!studioReady) return;
+    const viewport = canvasViewportRef.current;
+    if (!viewport) return;
+
+    const updateWidth = () => setCanvasViewportWidth(viewport.clientWidth);
+    const observer = new ResizeObserver(updateWidth);
+    updateWidth();
+    observer.observe(viewport);
+    return () => observer.disconnect();
+  }, [studioReady]);
+
+  const canvasWidth = Math.max(CANVAS_WIDTH, canvasViewportWidth);
+  const fitScale = canvasViewportWidth / canvasWidth;
+  const canvasScale = canvasZoomed ? 1 : fitScale;
+
   const nodeById = useMemo(
     () => new Map(nodes.map((node) => [node.id, node])),
     [nodes],
@@ -590,23 +620,20 @@ export default function SystemDesignPage() {
   };
 
   const handlePointerDownNode = (
-    e: React.PointerEvent<HTMLDivElement>,
+    e: React.PointerEvent<HTMLButtonElement>,
     node: CanvasNode,
   ) => {
-    if (connectMode) {
-      e.stopPropagation();
-      handleNodeClick(node.id);
-      return;
-    }
+    if (connectMode || !e.isPrimary || e.button !== 0) return;
 
     const canvasRect = canvasRef.current?.getBoundingClientRect();
     if (!canvasRect) return;
 
-    const pointerX = e.clientX - canvasRect.left;
-    const pointerY = e.clientY - canvasRect.top;
+    const pointerX = (e.clientX - canvasRect.left) / canvasScale;
+    const pointerY = (e.clientY - canvasRect.top) / canvasScale;
 
     dragStateRef.current = {
       nodeId: node.id,
+      pointerId: e.pointerId,
       offsetX: pointerX - node.x,
       offsetY: pointerY - node.y,
     };
@@ -615,21 +642,21 @@ export default function SystemDesignPage() {
     e.currentTarget.setPointerCapture(e.pointerId);
   };
 
-  const handlePointerMoveNode = (e: React.PointerEvent<HTMLDivElement>) => {
+  const handlePointerMoveNode = (e: React.PointerEvent<HTMLButtonElement>) => {
     const drag = dragStateRef.current;
-    if (!drag || !canvasRef.current) return;
+    if (!drag || drag.pointerId !== e.pointerId || !canvasRef.current) return;
 
     const canvasRect = canvasRef.current.getBoundingClientRect();
-    const rawX = e.clientX - canvasRect.left - drag.offsetX;
-    const rawY = e.clientY - canvasRect.top - drag.offsetY;
+    const rawX = (e.clientX - canvasRect.left) / canvasScale - drag.offsetX;
+    const rawY = (e.clientY - canvasRect.top) / canvasScale - drag.offsetY;
 
     const clampedX = Math.max(
       12,
-      Math.min(canvasRect.width - NODE_WIDTH - 12, rawX),
+      Math.min(canvasWidth - NODE_WIDTH - 12, rawX),
     );
     const clampedY = Math.max(
       12,
-      Math.min(canvasRect.height - NODE_HEIGHT - 12, rawY),
+      Math.min(CANVAS_HEIGHT - NODE_HEIGHT - 12, rawY),
     );
 
     setNodes((prev) =>
@@ -641,8 +668,8 @@ export default function SystemDesignPage() {
     );
   };
 
-  const handlePointerUpNode = (e: React.PointerEvent<HTMLDivElement>) => {
-    if (dragStateRef.current) {
+  const handlePointerUpNode = (e: React.PointerEvent<HTMLButtonElement>) => {
+    if (dragStateRef.current?.pointerId === e.pointerId) {
       dragStateRef.current = null;
       if (e.currentTarget.hasPointerCapture(e.pointerId)) {
         e.currentTarget.releasePointerCapture(e.pointerId);
@@ -693,14 +720,16 @@ export default function SystemDesignPage() {
         }),
       });
       if (res.ok) {
-        const json = (await res.json()) as { session?: SavedDesignSession };
-        if (json.session) {
-          setActiveSessionId(json.session.id);
+        const { session: saved } = (await res.json()) as {
+          session?: SavedDesignSession;
+        };
+        if (saved) {
+          setActiveSessionId(saved.id);
           setSavedSessions((prev) =>
-            [
-              json.session!,
-              ...prev.filter((item) => item.id !== json.session!.id),
-            ].slice(0, 12),
+            [saved, ...prev.filter((item) => item.id !== saved.id)].slice(
+              0,
+              12,
+            ),
           );
           setSaveNotice(
             activeSessionId ? "Updated in PostgreSQL" : "Saved to PostgreSQL",
@@ -829,11 +858,11 @@ export default function SystemDesignPage() {
     }
   };
 
-  if (isPending || !session) {
+  if (!studioReady) {
     return (
       <div className="mx-auto max-w-7xl space-y-6 p-6 lg:p-8">
-        <Skeleton className="h-12 w-80" />
-        <div className="grid gap-6 lg:grid-cols-12">
+        <Skeleton className="h-12 w-80 max-w-full" />
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-12">
           <Skeleton className="h-[540px] rounded-xl lg:col-span-8" />
           <Skeleton className="h-[540px] rounded-xl lg:col-span-4" />
         </div>
@@ -842,14 +871,14 @@ export default function SystemDesignPage() {
   }
 
   return (
-    <div className="mx-auto max-w-7xl space-y-6 p-5 sm:p-6 lg:p-8">
+    <div className="mx-auto min-w-0 max-w-7xl space-y-4 p-4 sm:space-y-6 sm:p-6 lg:p-8">
       {/* Header */}
-      <div className="flex flex-col gap-4 border-b border-border pb-6 sm:flex-row sm:items-end sm:justify-between">
-        <div>
-          <h1 className="font-display text-3xl font-bold tracking-tight text-foreground">
+      <div className="flex flex-col gap-4 border-b border-border pb-3 lg:pb-6 sm:flex-row sm:items-end sm:justify-between">
+        <div className="sr-only lg:not-sr-only">
+          <h1 className="sr-only font-display lg:not-sr-only lg:text-3xl lg:font-bold lg:tracking-tight lg:text-foreground">
             System Design Studio
           </h1>
-          <p className="mt-1 text-sm text-muted-foreground">
+          <p className="mt-1 hidden text-sm text-muted-foreground sm:block">
             Sketch distributed architectures, connect data flows, and run an
             instant staff-level architecture critique.
           </p>
@@ -867,7 +896,7 @@ export default function SystemDesignPage() {
             size="sm"
             onClick={() => void persistSession()}
             disabled={savingSession}
-            className="gap-1.5"
+            className="min-h-10 gap-1.5 sm:min-h-0"
           >
             {savingSession ? (
               <Loader2 className="size-3.5 animate-spin" />
@@ -881,24 +910,31 @@ export default function SystemDesignPage() {
             variant="outline"
             size="sm"
             onClick={handleExportJson}
-            className="gap-1.5"
+            aria-label="Export JSON"
+            className="min-h-10 gap-1.5 sm:min-h-0"
           >
             <Download className="size-3.5" />
-            Export JSON
+            <span>
+              Export <span className="hidden min-[380px]:inline">JSON</span>
+            </span>
           </Button>
           <Button
             type="button"
             size="sm"
             onClick={handleRunCritique}
+            aria-label="Run critique"
             disabled={critiqueLoading}
-            className="gap-1.5"
+            className="min-h-10 gap-1.5 sm:min-h-0"
           >
             {critiqueLoading ? (
               <Loader2 className="size-3.5 animate-spin" />
             ) : (
               <Play className="size-3.5" />
             )}
-            Run AI Critique
+            <span>
+              <span className="hidden min-[380px]:inline">Run </span>
+              Critique
+            </span>
           </Button>
         </div>
       </div>
@@ -925,10 +961,35 @@ export default function SystemDesignPage() {
       )}
 
       {/* Scenario Switcher + Prompt */}
-      <div className="grid gap-4 lg:grid-cols-12">
-        <div className="space-y-2 lg:col-span-5">
-          <Label>Preset scenarios</Label>
-          <div className="flex flex-wrap gap-2">
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-12">
+        <div className="min-w-0 space-y-2 lg:col-span-5">
+          <Label htmlFor="design-scenario" className="sm:hidden">
+            Scenario
+          </Label>
+          <select
+            id="design-scenario"
+            value={activeScenarioId}
+            onChange={(event) => {
+              const scenario = SCENARIOS.find(
+                ({ id }) => id === event.target.value,
+              );
+              if (scenario) handleSelectScenario(scenario);
+            }}
+            className="min-h-11 w-full rounded-lg border border-border bg-card px-3 text-sm sm:hidden"
+          >
+            {activeScenarioId === "custom" && (
+              <option value="custom">Custom diagram</option>
+            )}
+            {SCENARIOS.map(({ id, name }) => (
+              <option key={id} value={id}>
+                {name}
+              </option>
+            ))}
+          </select>
+          <span className="hidden text-sm font-medium sm:block">
+            Preset scenarios
+          </span>
+          <div className="hidden flex-wrap gap-2 sm:flex">
             {SCENARIOS.map((scenario) => {
               const active = scenario.id === activeScenarioId;
               return (
@@ -946,18 +1007,18 @@ export default function SystemDesignPage() {
           </div>
         </div>
 
-        <div className="space-y-1.5 lg:col-span-7">
+        <div className="min-w-0 space-y-2 lg:col-span-7">
           <div className="flex flex-wrap items-center justify-between gap-2">
             <Label htmlFor="architecture-prompt">System design prompt</Label>
-            <div className="flex items-center gap-2">
+            <div className="flex w-full min-w-0 flex-wrap items-center gap-2 sm:w-auto">
               {applicationsList.length > 0 && (
                 <select
                   aria-label="Link to target role"
                   value={linkedApp?.id ?? ""}
                   onChange={(e) => handleSwitchRole(e.target.value)}
-                  className="h-7 rounded-md border border-border bg-background px-2 text-xs text-foreground"
+                  className="min-h-10 min-w-0 max-w-full flex-1 truncate rounded-md border border-border bg-background px-2 text-xs text-foreground sm:min-h-8 sm:max-w-56"
                 >
-                  <option value="">Standalone canvas</option>
+                  <option value="">Standalone</option>
                   {applicationsList.map((app) => (
                     <option key={app.id} value={app.id}>
                       {app.company} · {app.role}
@@ -971,7 +1032,7 @@ export default function SystemDesignPage() {
                 size="sm"
                 onClick={() => void handleGenerateFromPrompt()}
                 disabled={generatingDiagram || prompt.trim().length < 5}
-                className="h-7 gap-1.5 px-2.5 text-xs border-primary/30 text-primary hover:bg-primary/10 hover:text-primary"
+                className="min-h-10 shrink-0 gap-1.5 border-primary/30 px-2.5 text-xs text-primary hover:bg-primary/10 hover:text-primary sm:min-h-8"
               >
                 {generatingDiagram ? (
                   <>
@@ -998,17 +1059,43 @@ export default function SystemDesignPage() {
       </div>
 
       {/* Main Studio Workspace */}
-      <div className="grid gap-6 lg:grid-cols-12">
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-12">
         {/* Left: Palette + Interactive Canvas */}
-        <div className="space-y-4 lg:col-span-8">
+        <div className="min-w-0 space-y-4 lg:col-span-8">
           {/* Component Palette & Mode Controls */}
-          <Card className="shadow-none">
-            <CardContent className="space-y-3 p-4">
+          <Card className="py-0 shadow-none">
+            <CardContent className="space-y-3 p-3 sm:p-4">
               <div className="flex flex-wrap items-center justify-between gap-2">
-                <span className="text-xs font-semibold text-foreground">
-                  Component palette — click to add
+                <span className="hidden text-xs font-semibold text-foreground sm:inline">
+                  Components
                 </span>
                 <div className="flex flex-wrap items-center gap-2">
+                  <div className="sm:hidden">
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button
+                          type="button"
+                          size="sm"
+                          variant="outline"
+                          className="min-h-10"
+                          aria-label="Add component"
+                        >
+                          <Plus aria-hidden="true" /> Add
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="start">
+                        {PALETTE.map(({ type, label, icon: Icon }) => (
+                          <DropdownMenuItem
+                            key={type}
+                            onSelect={() => handleAddNode(type)}
+                            className="min-h-10"
+                          >
+                            <Icon aria-hidden="true" /> {label}
+                          </DropdownMenuItem>
+                        ))}
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </div>
                   <Button
                     type="button"
                     size="sm"
@@ -1017,7 +1104,7 @@ export default function SystemDesignPage() {
                       setConnectMode((prev) => !prev);
                       setConnectSourceId(null);
                     }}
-                    className="h-8 gap-1.5 text-xs"
+                    className="min-h-10 gap-1.5 text-xs sm:min-h-0"
                   >
                     <Link2 className="size-3.5" />
                     {connectMode ? "Connecting…" : "Connect"}
@@ -1032,7 +1119,7 @@ export default function SystemDesignPage() {
                       setSelectedNodeId(null);
                       setConnectSourceId(null);
                     }}
-                    className="h-8 gap-1.5 text-xs"
+                    className="min-h-10 gap-1.5 text-xs sm:min-h-0"
                   >
                     <RotateCcw className="size-3.5" />
                     Clear
@@ -1040,7 +1127,7 @@ export default function SystemDesignPage() {
                 </div>
               </div>
 
-              <div className="flex flex-wrap gap-1.5">
+              <div className="hidden flex-wrap gap-1.5 sm:flex">
                 {PALETTE.map((item) => {
                   const Icon = item.icon;
                   return (
@@ -1062,13 +1149,13 @@ export default function SystemDesignPage() {
                   <span className="font-medium">
                     {connectSourceId
                       ? `Select target component to connect from "${nodeById.get(connectSourceId)?.label ?? "node"}"`
-                      : "Click a source component, then click a target component to draw a directional edge."}
+                      : "Select a source component, then a target component to draw a directional edge."}
                   </span>
                   <Input
                     value={edgeLabelDraft}
                     onChange={(e) => setEdgeLabelDraft(e.target.value)}
                     placeholder="Optional edge label (e.g. gRPC, Read)"
-                    className="h-7 w-56 bg-background text-xs"
+                    className="h-8 w-56 max-w-full bg-background text-xs"
                   />
                 </div>
               )}
@@ -1076,152 +1163,193 @@ export default function SystemDesignPage() {
           </Card>
 
           {/* Interactive SVG + HTML Node Canvas */}
-          <div className="overflow-x-auto rounded-xl border border-border bg-card">
-            <div
-              ref={canvasRef}
-              className="relative min-w-[780px] select-none bg-[radial-gradient(circle,_var(--border)_1px,_transparent_1px)] [background-size:20px_20px]"
-              style={{ height: CANVAS_HEIGHT }}
-              onClick={() => {
-                if (!connectMode) setSelectedNodeId(null);
-              }}
-            >
-              {/* Directional Edges Layer */}
-              <svg
-                className="pointer-events-none absolute inset-0 size-full"
-                aria-label="Architecture connections"
+          <section
+            aria-label="Diagram"
+            className="min-w-0 rounded-xl border border-border bg-card"
+          >
+            <div className="flex min-h-10 items-center justify-between gap-2 border-b border-border px-3">
+              <h2 className="text-sm font-semibold">Diagram</h2>
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                onClick={() => {
+                  setCanvasZoomed((zoomed) => !zoomed);
+                  canvasViewportRef.current?.scrollTo(0, 0);
+                }}
+                className="min-h-10 gap-1.5 text-xs"
+                disabled={fitScale === 1}
               >
-                <defs>
-                  <marker
-                    id="arrow-head"
-                    viewBox="0 0 10 10"
-                    refX="9"
-                    refY="5"
-                    markerWidth="6"
-                    markerHeight="6"
-                    orient="auto-start-reverse"
-                  >
-                    <path d="M 0 1 L 10 5 L 0 9 z" className="fill-primary" />
-                  </marker>
-                </defs>
-
-                {edges.map((edge) => {
-                  const source = nodeById.get(edge.from);
-                  const target = nodeById.get(edge.to);
-                  if (!source || !target) return null;
-
-                  const { startX, startY, endX, endY } = getAnchorPoints(
-                    source,
-                    target,
-                  );
-                  const midX = (startX + endX) / 2;
-                  const midY = (startY + endY) / 2;
-                  const ctrlX = startX + (endX - startX) * 0.5;
-                  const pathD = `M ${startX} ${startY} Q ${ctrlX} ${startY}, ${midX} ${midY} T ${endX} ${endY}`;
-
-                  return (
-                    <g key={edge.id}>
-                      <path
-                        d={pathD}
-                        fill="none"
-                        strokeWidth={2}
-                        className="stroke-primary/70"
-                        markerEnd="url(#arrow-head)"
-                      />
-                      {edge.label && (
-                        <g transform={`translate(${midX}, ${midY})`}>
-                          <rect
-                            x={-36}
-                            y={-10}
-                            width={72}
-                            height={20}
-                            rx={6}
-                            className="fill-background stroke-border"
-                          />
-                          <text
-                            textAnchor="middle"
-                            dominantBaseline="central"
-                            className="fill-muted-foreground text-[10px] font-medium"
-                          >
-                            {edge.label.length > 13
-                              ? `${edge.label.slice(0, 12)}…`
-                              : edge.label}
-                          </text>
-                        </g>
-                      )}
-                    </g>
-                  );
-                })}
-              </svg>
-
-              {/* Draggable Nodes Layer */}
-              {nodes.map((node) => {
-                const meta = PALETTE_MAP.get(node.type);
-                const Icon = meta?.icon ?? Server;
-                const isSelected = selectedNodeId === node.id;
-                const isConnectSource = connectSourceId === node.id;
-
-                return (
-                  <div
-                    key={node.id}
-                    role="button"
-                    tabIndex={0}
-                    onPointerDown={(e) => handlePointerDownNode(e, node)}
-                    onPointerMove={handlePointerMoveNode}
-                    onPointerUp={handlePointerUpNode}
-                    onClick={(e) => e.stopPropagation()}
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter" || e.key === " ") {
-                        e.preventDefault();
-                        handleNodeClick(node.id);
-                      }
-                    }}
-                    style={{
-                      left: node.x,
-                      top: node.y,
-                      width: NODE_WIDTH,
-                      height: NODE_HEIGHT,
-                    }}
-                    className={cn(
-                      "absolute flex touch-none items-center gap-2.5 rounded-xl border bg-card px-3 py-2 shadow-xs transition-colors",
-                      connectMode
-                        ? "cursor-crosshair"
-                        : "cursor-grab active:cursor-grabbing",
-                      isConnectSource
-                        ? "border-primary bg-accent ring-2 ring-primary/35"
-                        : isSelected
-                          ? "border-primary ring-1 ring-primary/30"
-                          : "border-border hover:border-foreground/40",
-                    )}
-                  >
-                    <div className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
-                      <Icon className="size-4" />
-                    </div>
-                    <div className="min-w-0 flex-1">
-                      <p className="truncate text-xs font-semibold text-foreground">
-                        {node.label}
-                      </p>
-                      <p className="truncate text-[11px] text-muted-foreground">
-                        {meta?.shortLabel ?? node.type}
-                      </p>
-                    </div>
-                  </div>
-                );
-              })}
-
-              {nodes.length === 0 && (
-                <div className="pointer-events-none flex h-full flex-col items-center justify-center p-6 text-center">
-                  <Cpu className="size-6 text-primary" />
-                  <p className="mt-2 text-sm font-medium text-foreground">
-                    Blank architecture canvas
-                  </p>
-                  <p className="mt-1 max-w-sm text-xs text-muted-foreground">
-                    Click components in the palette above to place them, drag to
-                    arrange, and use Connect to trace request paths.
-                  </p>
-                </div>
-              )}
+                <Maximize2 aria-hidden="true" />
+                {canvasZoomed && fitScale < 1 ? "Fit to screen" : "Actual size"}
+              </Button>
             </div>
-          </div>
+            <div
+              ref={canvasViewportRef}
+              className="overflow-auto overscroll-x-contain rounded-b-xl"
+            >
+              <div
+                style={{
+                  width: canvasWidth * canvasScale,
+                  height: CANVAS_HEIGHT * canvasScale,
+                }}
+                className="relative overflow-hidden"
+              >
+                <div
+                  ref={canvasRef}
+                  className="absolute top-0 left-0 origin-top-left select-none bg-[radial-gradient(circle,_var(--border)_1px,_transparent_1px)] [background-size:20px_20px]"
+                  style={{
+                    width: canvasWidth,
+                    height: CANVAS_HEIGHT,
+                    transform: `scale(${canvasScale})`,
+                  }}
+                >
+                  {selectedNodeId && !connectMode && (
+                    <button
+                      type="button"
+                      aria-label="Clear component selection"
+                      className="absolute inset-0 rounded-lg focus-visible:outline-offset-[-4px]"
+                      onClick={() => setSelectedNodeId(null)}
+                    />
+                  )}
+                  {/* Directional Edges Layer */}
+                  <svg
+                    className="pointer-events-none absolute inset-0 size-full"
+                    aria-label="Architecture connections"
+                  >
+                    <defs>
+                      <marker
+                        id="arrow-head"
+                        viewBox="0 0 10 10"
+                        refX="9"
+                        refY="5"
+                        markerWidth="6"
+                        markerHeight="6"
+                        orient="auto-start-reverse"
+                      >
+                        <path
+                          d="M 0 1 L 10 5 L 0 9 z"
+                          className="fill-primary"
+                        />
+                      </marker>
+                    </defs>
+
+                    {edges.map((edge) => {
+                      const source = nodeById.get(edge.from);
+                      const target = nodeById.get(edge.to);
+                      if (!source || !target) return null;
+
+                      const { startX, startY, endX, endY } = getAnchorPoints(
+                        source,
+                        target,
+                      );
+                      const midX = (startX + endX) / 2;
+                      const midY = (startY + endY) / 2;
+                      const ctrlX = startX + (endX - startX) * 0.5;
+                      const pathD = `M ${startX} ${startY} Q ${ctrlX} ${startY}, ${midX} ${midY} T ${endX} ${endY}`;
+
+                      return (
+                        <g key={edge.id}>
+                          <path
+                            d={pathD}
+                            fill="none"
+                            strokeWidth={2}
+                            className="stroke-primary/70"
+                            markerEnd="url(#arrow-head)"
+                          />
+                          {edge.label && (
+                            <g transform={`translate(${midX}, ${midY})`}>
+                              <rect
+                                x={-36}
+                                y={-10}
+                                width={72}
+                                height={20}
+                                rx={6}
+                                className="fill-background stroke-border"
+                              />
+                              <text
+                                textAnchor="middle"
+                                dominantBaseline="central"
+                                className="fill-muted-foreground text-[10px] font-medium"
+                              >
+                                {edge.label.length > 13
+                                  ? `${edge.label.slice(0, 12)}…`
+                                  : edge.label}
+                              </text>
+                            </g>
+                          )}
+                        </g>
+                      );
+                    })}
+                  </svg>
+
+                  {/* Draggable Nodes Layer */}
+                  {nodes.map((node) => {
+                    const meta = PALETTE_MAP.get(node.type);
+                    const Icon = meta?.icon ?? Server;
+                    const isSelected = selectedNodeId === node.id;
+                    const isConnectSource = connectSourceId === node.id;
+
+                    return (
+                      <button
+                        key={node.id}
+                        type="button"
+                        aria-pressed={isSelected}
+                        aria-label={node.label}
+                        onPointerDown={(e) => handlePointerDownNode(e, node)}
+                        onPointerMove={handlePointerMoveNode}
+                        onPointerUp={handlePointerUpNode}
+                        onPointerCancel={handlePointerUpNode}
+                        onClick={() => handleNodeClick(node.id)}
+                        style={{
+                          left: node.x,
+                          top: node.y,
+                          width: NODE_WIDTH,
+                          height: NODE_HEIGHT,
+                        }}
+                        className={cn(
+                          "absolute flex touch-none items-center gap-2.5 rounded-xl border bg-card px-3 py-2 text-left shadow-xs transition-colors",
+                          connectMode
+                            ? "cursor-crosshair"
+                            : "cursor-grab active:cursor-grabbing",
+                          isConnectSource
+                            ? "border-primary bg-accent ring-2 ring-primary/35"
+                            : isSelected
+                              ? "border-primary ring-1 ring-primary/30"
+                              : "border-border hover:border-foreground/40",
+                        )}
+                      >
+                        <div className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
+                          <Icon className="size-4" />
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <p className="truncate text-xs font-semibold text-foreground">
+                            {node.label}
+                          </p>
+                          <p className="truncate text-[11px] text-muted-foreground">
+                            {meta?.shortLabel ?? node.type}
+                          </p>
+                        </div>
+                      </button>
+                    );
+                  })}
+
+                  {nodes.length === 0 && (
+                    <div className="pointer-events-none flex h-full flex-col items-center justify-center p-6 text-center">
+                      <Cpu className="size-6 text-primary" />
+                      <p className="mt-2 text-sm font-medium text-foreground">
+                        Blank architecture canvas
+                      </p>
+                      <p className="mt-1 max-w-sm text-xs text-muted-foreground">
+                        Click components in the palette above to place them,
+                        drag to arrange, and use Connect to trace request paths.
+                      </p>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          </section>
 
           {/* Selected Node & Connections Inspector */}
           <Card className="shadow-none">
@@ -1298,7 +1426,7 @@ export default function SystemDesignPage() {
                       <Badge
                         key={edge.id}
                         variant="secondary"
-                        className="gap-1.5 pr-1.5 text-[11px] font-normal"
+                        className="h-auto max-w-full gap-1.5 pr-1.5 text-[11px] font-normal"
                       >
                         <span className="max-w-[100px] truncate">
                           {fromLabel}
@@ -1308,7 +1436,7 @@ export default function SystemDesignPage() {
                           {toLabel}
                         </span>
                         {edge.label && (
-                          <span className="text-muted-foreground">
+                          <span className="min-w-0 truncate text-muted-foreground">
                             ({edge.label})
                           </span>
                         )}
@@ -1330,7 +1458,7 @@ export default function SystemDesignPage() {
         </div>
 
         {/* Right: Architecture Critique Panel */}
-        <div className="lg:col-span-4">
+        <div className="min-w-0 lg:col-span-4">
           <Card className="h-full shadow-none">
             <CardHeader className="border-b border-border pb-4">
               <div className="flex items-center justify-between gap-2">
@@ -1493,12 +1621,12 @@ export default function SystemDesignPage() {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
               {savedSessions.slice(0, 6).map((item) => (
                 <div
                   key={item.id}
                   className={cn(
-                    "group flex flex-col justify-between gap-2 rounded-xl border bg-background p-3.5 transition-colors",
+                    "group flex min-w-0 flex-col justify-between gap-2 rounded-xl border bg-background p-3.5 transition-colors",
                     activeSessionId === item.id
                       ? "border-primary ring-1 ring-primary/25"
                       : "border-border hover:border-primary/40 hover:bg-muted/40",
@@ -1518,7 +1646,7 @@ export default function SystemDesignPage() {
                     className="flex w-full flex-col items-start gap-1.5 text-left"
                   >
                     <div className="flex w-full items-center justify-between gap-2">
-                      <span className="truncate text-sm font-semibold text-foreground">
+                      <span className="min-w-0 truncate text-sm font-semibold text-foreground">
                         {item.title}
                       </span>
                       {typeof item.score === "number" && (

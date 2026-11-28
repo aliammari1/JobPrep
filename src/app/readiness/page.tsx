@@ -210,7 +210,7 @@ export default function ReadinessPage() {
       {/* Header */}
       <div className="flex flex-col gap-4 border-b border-border pb-6 sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <h1 className="font-display text-3xl font-bold tracking-tight text-foreground">
+          <h1 className="sr-only font-display lg:not-sr-only lg:text-3xl lg:font-bold lg:tracking-tight lg:text-foreground">
             Verified Practice Evidence
           </h1>
           <p className="mt-1 text-sm text-muted-foreground">
@@ -489,10 +489,10 @@ export default function ReadinessPage() {
       )}
 
       {/* Markdown Preview & Next Actions */}
-      <div className="grid gap-6 lg:grid-cols-12">
-        <Card className="shadow-none lg:col-span-7">
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-12">
+        <Card className="min-w-0 shadow-none lg:col-span-7">
           <CardHeader className="pb-3">
-            <div className="flex items-center justify-between gap-2">
+            <div className="flex flex-wrap items-center justify-between gap-2">
               <CardTitle className="font-display text-lg">
                 Markdown Summary
               </CardTitle>
@@ -505,13 +505,13 @@ export default function ReadinessPage() {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <pre className="overflow-x-auto rounded-xl border border-border bg-muted/40 p-4 font-mono text-xs leading-relaxed text-foreground">
+            <pre className="whitespace-pre-wrap [overflow-wrap:anywhere] rounded-xl border border-border bg-muted/40 p-4 font-mono text-xs leading-relaxed text-foreground">
               {markdownSummary}
             </pre>
           </CardContent>
         </Card>
 
-        <Card className="shadow-none lg:col-span-5">
+        <Card className="min-w-0 shadow-none lg:col-span-5">
           <CardHeader className="pb-3">
             <CardTitle className="font-display text-lg">
               Build More Evidence

@@ -1,9 +1,9 @@
+import { headers } from "next/headers";
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
-import prisma from "@/lib/prisma";
 import { auth } from "@/lib/auth";
-import { headers } from "next/headers";
 import { createGoogleCalendarEvent } from "@/lib/google-calendar";
+import prisma from "@/lib/prisma";
 
 function safeParseSettings(settings: unknown): Record<string, any> {
   if (!settings) return {};
@@ -371,7 +371,6 @@ export async function PATCH(req: NextRequest) {
       startedAt,
       completedAt,
       duration,
-      videoRecordingUrl,
       audioRecordingUrl,
       aiAnalysisReport,
       overallScore,
@@ -414,7 +413,6 @@ export async function PATCH(req: NextRequest) {
         ...(startedAt && { startedAt: new Date(startedAt) }),
         ...(completedAt && { completedAt: new Date(completedAt) }),
         ...(duration !== undefined && { duration }),
-        ...(videoRecordingUrl && { videoRecordingUrl }),
         ...(audioRecordingUrl && { audioRecordingUrl }),
         ...(aiAnalysisReport && { aiAnalysisReport }),
         ...(overallScore !== undefined && { overallScore }),

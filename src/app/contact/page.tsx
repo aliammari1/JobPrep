@@ -10,7 +10,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
-import { toast } from "react-hot-toast";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -128,7 +128,7 @@ export default function ContactPage() {
       `;
 
       const result = await sendEmail({
-        to: "ammari.ali.0001@gmail.com",
+        to: "contact@aliammari.dev",
         subject: `Contact Form: ${formData.subject.trim()}`,
         html: emailHtml,
         text: [

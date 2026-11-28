@@ -1,5 +1,298 @@
 @import "tailwindcss";
 @import "tw-animate-css";
+@import "@ionic/react/css/core.css" layer(components);
+
+@font-face {
+  font-family: "JobPrep Material Symbols";
+  src: url("/fonts/material-symbols-rounded.woff2") format("woff2");
+  font-style: normal;
+  font-weight: 400;
+  font-display: block;
+}
+
+@layer components {
+  .jobprep-mobile-toolbar,
+  .jobprep-mobile-tabs,
+  .jobprep-mobile-menu {
+    --background: var(--background);
+    --color: var(--foreground);
+    --ion-color-primary: var(--primary);
+    --ion-font-family: var(--font-sans);
+  }
+
+  .jobprep-mobile-toolbar {
+    --min-height: 3.25rem;
+    padding-top: env(safe-area-inset-top, 0px);
+  }
+
+  .jobprep-mobile-toolbar.md {
+    --min-height: 3.5rem;
+  }
+
+  .jobprep-workspace-toolbar {
+    --padding-start: 1rem;
+    --padding-end: 0.5rem;
+  }
+
+  .jobprep-workspace-toolbar.md ion-title {
+    padding-inline: 0;
+    font-size: 1.375rem;
+    font-weight: 500;
+  }
+
+  .jobprep-workspace-toolbar.ios ion-title {
+    font-weight: 600;
+    letter-spacing: -0.02em;
+  }
+
+  .jobprep-mobile-toolbar ion-button {
+    min-width: 2.75rem;
+    min-height: 2.75rem;
+  }
+
+  .jobprep-mobile-tabs {
+    --border: 1px solid var(--border);
+    --color: var(--muted-foreground);
+    --color-selected: var(--primary);
+  }
+
+  .jobprep-mobile-tabs ion-tab-button {
+    --color: var(--muted-foreground);
+    --color-selected: var(--primary);
+    flex: 1 1 0;
+    min-width: 0;
+    min-height: 3.25rem;
+  }
+
+  .jobprep-mobile-tabs.md {
+    --background: color-mix(in oklab, var(--primary) 5%, var(--background));
+    --border: none;
+  }
+
+  .jobprep-mobile-tabs.md ion-tab-button {
+    min-height: 4.25rem;
+    padding-block: 0.5rem;
+  }
+
+  .jobprep-tab-icon {
+    display: grid;
+    width: 3.5rem;
+    height: 1.75rem;
+    margin: 0 auto;
+    place-items: center;
+    border-radius: 999px;
+  }
+
+  .jobprep-tab-icon ion-icon {
+    width: 1.5rem;
+    height: 1.5rem;
+    font-size: 1.5rem;
+  }
+
+  .jobprep-mobile-tabs.md ion-tab-button.tab-selected .jobprep-tab-icon {
+    background: color-mix(in oklab, var(--primary) 16%, transparent);
+  }
+
+  .jobprep-mobile-tabs ion-label {
+    font-size: 0.6875rem;
+    font-weight: 500;
+    letter-spacing: 0;
+  }
+
+  .jobprep-mobile-tabs.md ion-label {
+    margin-top: 0.25rem;
+    font-size: 0.75rem;
+  }
+
+  .jobprep-mobile-tabs ion-tab-button.tab-selected ion-label {
+    font-weight: 650;
+  }
+
+  .jobprep-material-icon {
+    display: inline-grid;
+    flex: none;
+    width: 1em;
+    height: 1em;
+    place-items: center;
+    overflow: hidden;
+    font-family: "JobPrep Material Symbols", sans-serif;
+    font-size: 1.5rem;
+    font-weight: 400;
+    font-feature-settings: "liga";
+    font-variation-settings: "FILL" 0;
+    letter-spacing: normal;
+    line-height: 1;
+    text-transform: none;
+    white-space: nowrap;
+  }
+
+  .tab-selected .jobprep-material-icon {
+    font-variation-settings: "FILL" 1;
+  }
+
+  .jobprep-mobile-menu {
+    --height: min(31rem, 85dvh);
+    --width: min(100%, 32rem);
+    --border-radius: 1.25rem 1.25rem 0 0;
+  }
+
+  .jobprep-mobile-menu-content {
+    box-sizing: border-box;
+    height: 100%;
+    overflow-y: auto;
+    padding: 1.25rem 1rem max(1rem, env(safe-area-inset-bottom, 0px));
+  }
+}
+
+@media (width < 40rem) {
+  html[data-jobprep-platform="android"]
+    :is(.jobprep-dashboard, .jobprep-mobile-toolbar, .jobprep-mobile-tabs) {
+    --jobprep-platform-font: Roboto, "Noto Sans", system-ui, sans-serif;
+    --ion-font-family: var(--jobprep-platform-font);
+    font-family: var(--jobprep-platform-font);
+  }
+
+  html[data-jobprep-platform="ios"]
+    :is(.jobprep-dashboard, .jobprep-mobile-toolbar, .jobprep-mobile-tabs) {
+    --jobprep-platform-font:
+      -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+    --ion-font-family: var(--jobprep-platform-font);
+    font-family: var(--jobprep-platform-font);
+  }
+
+  .jobprep-dashboard :is(.font-display, [data-slot="card-title"]) {
+    font-family: var(--jobprep-platform-font, var(--font-display));
+  }
+
+  html[data-jobprep-platform="ios"] .jobprep-dashboard-greeting {
+    font-size: 2.125rem;
+    font-weight: 700;
+  }
+
+  html[data-jobprep-platform="ios"] .jobprep-dashboard-role-list {
+    overflow: hidden;
+    border: 1px solid var(--border);
+    border-radius: 1rem;
+    background: var(--card);
+  }
+
+  html[data-jobprep-platform="ios"]
+    .jobprep-dashboard-role-list
+    > .jobprep-dashboard-role {
+    margin: 0;
+    border: 0;
+    border-radius: 0;
+  }
+
+  html[data-jobprep-platform="ios"]
+    .jobprep-dashboard-role
+    + .jobprep-dashboard-role {
+    border-top: 1px solid var(--border);
+  }
+
+  html[data-jobprep-platform="android"]
+    :is(.jobprep-dashboard-role, .jobprep-dashboard-metrics) {
+    border-color: transparent;
+    border-radius: 1rem;
+    background: var(--jobprep-mobile-card-tonal);
+  }
+}
+
+@media (width < 64rem) {
+  html[data-jobprep-platform="ios"] {
+    --jobprep-mobile-control-radius: 0.75rem;
+    --jobprep-mobile-control-height: 2.75rem;
+    --jobprep-mobile-button-radius: 0.875rem;
+    --jobprep-mobile-surface-radius: 1rem;
+    --jobprep-mobile-field-background: color-mix(
+      in oklab,
+      var(--muted) 65%,
+      var(--background)
+    );
+  }
+
+  html[data-jobprep-platform="android"] {
+    --jobprep-mobile-control-radius: 0.5rem;
+    --jobprep-mobile-control-height: 3rem;
+    --jobprep-mobile-button-radius: 9999px;
+    --jobprep-mobile-surface-radius: 1.25rem;
+    --jobprep-mobile-field-background: color-mix(
+      in oklab,
+      var(--primary) 4%,
+      var(--background)
+    );
+    --jobprep-mobile-card-tonal: color-mix(
+      in oklab,
+      var(--primary) 3.5%,
+      var(--card)
+    );
+  }
+
+  html:is([data-jobprep-platform="ios"], [data-jobprep-platform="android"])
+    :is(
+      [data-slot="input"],
+      [data-slot="textarea"],
+      [data-slot="select-trigger"],
+      :is(
+        input:not([type="checkbox"], [type="radio"], [type="range"]),
+        textarea,
+        button[role="combobox"]
+      )[data-slot="form-control"]
+    ) {
+    border-radius: var(--jobprep-mobile-control-radius);
+    background-color: var(--jobprep-mobile-field-background);
+  }
+
+  html:is([data-jobprep-platform="ios"], [data-jobprep-platform="android"])
+    :is(
+      [data-slot="input"],
+      [data-slot="select-trigger"][data-size="default"],
+      :is(
+        input:not([type="checkbox"], [type="radio"], [type="range"]),
+        button[role="combobox"]
+      )[data-slot="form-control"]
+    ) {
+    min-height: var(--jobprep-mobile-control-height);
+  }
+
+  html[data-jobprep-platform="ios"]
+    :is(
+      [data-slot="input"],
+      [data-slot="textarea"],
+      :is(
+        input:not([type="checkbox"], [type="radio"], [type="range"]),
+        textarea
+      )[data-slot="form-control"]
+    ) {
+    font-size: 1rem;
+  }
+
+  html:is([data-jobprep-platform="ios"], [data-jobprep-platform="android"])
+    [data-slot="button"]:is([data-size="default"], [data-size="lg"]):not(
+      [data-variant="link"]
+    ) {
+    min-height: var(--jobprep-mobile-control-height);
+    border-radius: var(--jobprep-mobile-button-radius);
+  }
+
+  html:is([data-jobprep-platform="ios"], [data-jobprep-platform="android"])
+    :is(
+      [data-slot="card"],
+      [data-slot="dialog-content"],
+      [data-slot="alert-dialog-content"]
+    ) {
+    border-radius: var(--jobprep-mobile-surface-radius);
+  }
+
+  html[data-jobprep-platform="android"] [data-slot="card"] {
+    --card: var(--jobprep-mobile-card-tonal);
+  }
+
+  html[data-jobprep-platform="android"] .jobprep-mobile-menu {
+    --background: var(--jobprep-mobile-card-tonal);
+    --border-radius: 1.75rem 1.75rem 0 0;
+  }
+}
 
 @custom-variant dark (&:is(.dark *));
 
@@ -166,6 +459,24 @@
 
   html {
     scroll-behavior: smooth;
+    scroll-padding-top: 4.5rem;
+    scroll-padding-bottom: 5.5rem;
+    overscroll-behavior-y: none;
+  }
+
+  input:user-invalid,
+  textarea:user-invalid,
+  select:user-invalid {
+    border-color: var(--destructive);
+  }
+
+  @media (pointer: coarse) {
+    button:not([data-size="xs"]):not([role="switch"]):not(
+        [role="checkbox"]
+      ):not([role="radio"]),
+    [role="tab"] {
+      min-height: 2.75rem;
+    }
   }
 
   ::-webkit-scrollbar {
@@ -226,9 +537,7 @@
   flex-shrink: 0;
 }
 
-progress.progress-ring {
-  appearance: none;
-  -webkit-appearance: none;
+.progress-ring {
   --ring-size: 44px;
   --ring-thickness: 4px;
   --ring-track: var(--border);
@@ -240,27 +549,22 @@ progress.progress-ring {
     var(--ring-fill) calc(var(--progress-value) * 1%),
     var(--ring-track) 0
   );
-  background-clip: border-area;
-  background-origin: border-box;
-  border: var(--ring-thickness) solid transparent;
+  mask-image: radial-gradient(
+    farthest-side,
+    transparent calc(100% - var(--ring-thickness)),
+    black 0
+  );
   transition: --progress-value 0s ease-out;
 }
 
 @media (prefers-reduced-motion: no-preference) {
-  progress.progress-ring {
+  .progress-ring {
     transition-duration: 0.45s;
   }
 }
 
-progress.progress-ring::-webkit-progress-bar,
-progress.progress-ring::-webkit-progress-value,
-progress.progress-ring::-moz-progress-bar {
-  display: none;
-  background: none;
-}
-
 @media (forced-colors: active) {
-  progress.progress-ring {
+  .progress-ring {
     forced-color-adjust: none;
     --ring-fill: CanvasText;
     --ring-track: Canvas;
@@ -275,4 +579,141 @@ progress.progress-ring::-moz-progress-bar {
 /* Container-aware role cards (Baseline Widely Available) */
 .role-card-container {
   container-type: inline-size;
+}
+
+@layer components {
+  .jobprep-more-groups {
+    display: grid;
+    gap: 1.5rem;
+  }
+
+  .jobprep-more-groups h2 {
+    margin: 0 0 0.5rem;
+    padding-inline: 0.75rem;
+    color: var(--muted-foreground);
+    font-size: 0.875rem;
+    font-weight: 600;
+  }
+
+  .jobprep-more-groups ul {
+    overflow: hidden;
+    border-radius: 0.75rem;
+    background: var(--card);
+  }
+
+  .jobprep-more-groups li + li a {
+    border-top: 1px solid var(--border);
+  }
+
+  .jobprep-more-groups a {
+    display: grid;
+    min-height: 3.25rem;
+    grid-template-columns: 1.25rem minmax(0, 1fr) 1rem;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.5rem 0.875rem;
+  }
+
+  .jobprep-more-groups a:active {
+    background: var(--accent);
+  }
+
+  .jobprep-more-groups a:focus-visible {
+    outline-offset: -2px;
+  }
+
+  .jobprep-more-groups svg {
+    width: 100%;
+    color: var(--primary);
+  }
+
+  .jobprep-more-groups svg:last-child {
+    color: var(--muted-foreground);
+  }
+
+  html[data-jobprep-platform="android"] .jobprep-more-groups ul {
+    border-radius: 1.25rem;
+    background: color-mix(in oklab, var(--card), var(--primary) 4%);
+  }
+
+  html[data-jobprep-platform="android"] .jobprep-more-groups a {
+    min-height: 3.5rem;
+  }
+}
+[data-slot="dialog-sheet-scroll"] {
+  display: contents;
+}
+
+@media (width < 640px) {
+  [data-slot="dialog-content"][data-mobile-sheet] {
+    top: auto;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    max-height: min(90dvh, calc(100dvh - env(safe-area-inset-top) - 1rem));
+    display: flex;
+    max-width: none;
+    flex-direction: column;
+    overflow: hidden;
+    padding: 0;
+    translate: none;
+    border-radius: 1.5rem 1.5rem 0 0;
+    overscroll-behavior: contain;
+  }
+
+  [data-slot="dialog-sheet-scroll"] {
+    display: grid;
+    min-height: 0;
+    max-height: inherit;
+    gap: 1rem;
+    overflow-y: auto;
+    padding: 0.75rem 1rem
+      max(1.25rem, env(safe-area-inset-bottom, 0px), var(--keyboard-inset, 0px));
+    overscroll-behavior: contain;
+  }
+
+  [data-slot="dialog-content"][data-mobile-sheet] [data-slot="dialog-header"] {
+    padding-inline-end: 2rem;
+    text-align: start;
+  }
+
+  [data-slot="dialog-content"][data-mobile-sheet] [data-slot="dialog-close"] {
+    display: grid;
+    width: 2.75rem;
+    height: 2.75rem;
+    top: 0.375rem;
+    right: 0.375rem;
+    place-items: center;
+    border-radius: 9999px;
+    background: var(--background);
+    opacity: 1;
+  }
+
+  html[data-jobprep-platform="ios"]
+    [data-slot="dialog-content"][data-mobile-sheet] {
+    border-radius: 1.25rem 1.25rem 0 0;
+  }
+
+  [data-slot="dialog-content"][data-mobile-sheet][data-state="open"] {
+    animation: jobprep-sheet-in 240ms cubic-bezier(0.2, 0.75, 0.3, 1);
+  }
+
+  [data-slot="dialog-content"][data-mobile-sheet][data-state="closed"] {
+    animation: jobprep-sheet-in 170ms ease-in reverse;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    [data-slot="dialog-content"][data-mobile-sheet][data-state] {
+      animation: none;
+    }
+  }
+}
+
+@keyframes jobprep-sheet-in {
+  from {
+    transform: translateY(100%);
+  }
+  to {
+    transform: translateY(0);
+  }
 }

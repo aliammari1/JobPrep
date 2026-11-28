@@ -1,10 +1,24 @@
-import { NextRequest, NextResponse } from "next/server";
-import {
-  generateWithOllamaRetry,
-  cleanJsonResponse,
-} from "@/lib/ollama-client";
+import { type NextRequest, NextResponse } from "next/server";
+import { z } from "zod";
+import { generateStructured, resolveRequestModel } from "@/lib/ai/generate";
 
 export const runtime = "nodejs";
+
+const finalAssessmentSchema = z.object({
+  overallRating: z.string(),
+  hiringRecommendation: z.string(),
+  summary: z.string(),
+  keyStrengths: z.array(z.string()),
+  keyWeaknesses: z.array(z.string()),
+  detailedFeedback: z.object({
+    technical: z.string(),
+    behavioral: z.string(),
+    communication: z.string(),
+  }),
+  developmentAreas: z.array(z.string()),
+  nextSteps: z.array(z.string()),
+  confidenceLevel: z.number(),
+});
 
 interface QuestionResult {
   question: string;
@@ -15,7 +29,10 @@ interface QuestionResult {
 
 export async function POST(request: NextRequest) {
   try {
-    const { results } = (await request.json()) as { results: QuestionResult[] };
+    const { results, model } = (await request.json()) as {
+      results: QuestionResult[];
+      model?: string;
+    };
 
     if (!results || !Array.isArray(results) || results.length === 0) {
       return NextResponse.json(
@@ -23,6 +40,8 @@ export async function POST(request: NextRequest) {
         { status: 400 },
       );
     }
+
+    const modelId = resolveRequestModel(model, "reasoning");
 
     // Calculate statistics
     const totalQuestions = results.length;
@@ -93,10 +112,16 @@ Generate final assessment in this JSON format (NO markdown, NO code blocks):
 
 Return ONLY the JSON. Be HONEST - if performance was poor (low scores), say so clearly!`;
 
-    console.log("Generating final assessment with Ollama (local & fast)...");
-    let text;
+    let assessment;
     try {
-      text = await generateWithOllamaRetry(prompt);
+      assessment = await generateStructured({
+        schema: finalAssessmentSchema,
+        prompt,
+        modelId,
+        tier: "reasoning",
+        functionId: "final-assessment",
+        maxRetries: 2,
+      });
     } catch (error: any) {
       console.error("Failed to generate AI assessment after retries:", error);
 
@@ -159,47 +184,6 @@ Return ONLY the JSON. Be HONEST - if performance was poor (low scores), say so c
           confidenceLevel: 70,
         },
       });
-    }
-
-    const cleanedText = cleanJsonResponse(text);
-
-    console.log("Final assessment response length:", text.length);
-    console.log("Cleaned JSON preview:", cleanedText.substring(0, 300));
-
-    let assessment;
-    try {
-      assessment = JSON.parse(cleanedText);
-    } catch (parseError) {
-      console.error("JSON Parse Error:", parseError);
-      console.error("Full cleaned text:", cleanedText);
-
-      // Create a default assessment on parse error
-      assessment = {
-        overallRating:
-          averageScore >= 7
-            ? "Good"
-            : averageScore >= 5
-              ? "Fair"
-              : "Needs Improvement",
-        hiringRecommendation:
-          averageScore >= 7 ? "Yes" : averageScore >= 5 ? "Maybe" : "No",
-        summary: `The candidate completed ${totalQuestions} questions with an average score of ${averageScore.toFixed(1)}/10 (${percentage.toFixed(1)}%). Technical performance: ${technicalScore.toFixed(1)}/10. Behavioral performance: ${behavioralScore.toFixed(1)}/10.`,
-        keyStrengths: allStrengths.slice(0, 3),
-        keyWeaknesses: allWeaknesses.slice(0, 3),
-        detailedFeedback: {
-          technical: `Technical score was ${technicalScore.toFixed(1)}/10.`,
-          behavioral: `Behavioral score was ${behavioralScore.toFixed(1)}/10.`,
-          communication:
-            "Communication skills were evaluated throughout the interview.",
-        },
-        developmentAreas: [
-          "Continue practicing",
-          "Review feedback",
-          "Focus on weak areas",
-        ],
-        nextSteps: ["Review detailed feedback", "Practice more interviews"],
-        confidenceLevel: 70,
-      };
     }
 
     return NextResponse.json({

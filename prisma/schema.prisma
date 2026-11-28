@@ -282,7 +282,11 @@ model Interview {
   startedAt          DateTime?
   completedAt        DateTime?
   duration           Int?
-  videoRecordingUrl  String?
+  videoRecordingUrl     String?
+  recordingObjectKey    String?  @unique
+  recordingFileName     String?
+  recordingContentType  String?
+  recordingSize         Int?
   audioRecordingUrl  String?
   aiAnalysisReport   String?
   overallScore       Float?
@@ -315,6 +319,15 @@ model Interview {
 
   @@index([applicationId])
   @@map("interview")
+}
+
+model RecordingObjectCleanup {
+  objectKey   String   @id
+  deleteAfter DateTime
+  attempts    Int      @default(0)
+
+  @@index([deleteAfter])
+  @@map("recording_object_cleanup")
 }
 
 model InterviewResponse {

@@ -1,5 +1,5 @@
-import { NextRequest, NextResponse } from "next/server";
 import { jsPDF } from "jspdf";
+import { type NextRequest, NextResponse } from "next/server";
 
 export async function POST(request: NextRequest) {
   try {

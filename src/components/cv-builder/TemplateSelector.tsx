@@ -1,18 +1,18 @@
 "use client";
 
-import { useCVStore } from "@/store/cv-store";
+import { ChevronDown, Palette } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuTrigger,
   DropdownMenuLabel,
   DropdownMenuSeparator,
+  DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Palette, ChevronDown } from "lucide-react";
+import { useCVStore } from "@/store/cv-store";
 
 export function TemplateSelector() {
   const { settings, updateSettings } = useCVStore();

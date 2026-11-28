@@ -1,6 +1,6 @@
 "use client";
 
-import { CVData, CVSettings } from "@/store/cv-store";
+import type { CVData, CVSettings } from "@/store/cv-store";
 
 interface TemplateProps {
   cvData: CVData;

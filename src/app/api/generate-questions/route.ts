@@ -1,10 +1,16 @@
-import { NextRequest, NextResponse } from "next/server";
-import {
-  generateWithOllamaRetry,
-  cleanJsonResponse,
-} from "@/lib/ollama-client";
+import { type NextRequest, NextResponse } from "next/server";
+import { z } from "zod";
+import { generateStructured, resolveRequestModel } from "@/lib/ai/generate";
 
 export const runtime = "nodejs";
+
+const streamedQuestionSchema = z.object({
+  id: z.number().optional(),
+  type: z.enum(["technical", "behavioral"]).optional(),
+  question: z.string(),
+  idealAnswer: z.string(),
+  evaluationCriteria: z.array(z.string()),
+});
 
 // Retry helper function for API calls
 async function retryWithBackoff<T>(
@@ -32,7 +38,7 @@ async function retryWithBackoff<T>(
       }
 
       // Calculate exponential backoff delay
-      const delay = initialDelay * Math.pow(2, attempt);
+      const delay = initialDelay * 2 ** attempt;
       console.log(
         `Attempt ${attempt + 1} failed with 503. Retrying in ${delay}ms...`,
       );
@@ -52,6 +58,7 @@ export async function POST(request: NextRequest) {
       employeeSkills,
       technicalQuestions = 12,
       behavioralQuestions = 8,
+      model,
     } = await request.json();
 
     if (!jobDescription || !employeeSkills) {
@@ -60,6 +67,8 @@ export async function POST(request: NextRequest) {
         { status: 400 },
       );
     }
+
+    const modelId = resolveRequestModel(model, "fast");
 
     // Validate and calculate totals
     const numTechnical = Math.min(Math.max(technicalQuestions, 0), 40);
@@ -110,15 +119,13 @@ Return ONLY valid JSON (no markdown):
             const startTime = Date.now();
 
             try {
-              const text = await generateWithOllamaRetry(questionPrompt);
-              const cleanedText = cleanJsonResponse(text);
-
-              // Log the cleaned text for debugging
-              console.log(
-                `📝 Cleaned response (first 200 chars): ${cleanedText.substring(0, 200)}`,
-              );
-
-              const questionData = JSON.parse(cleanedText);
+              const questionData = await generateStructured({
+                schema: streamedQuestionSchema,
+                prompt: questionPrompt,
+                modelId,
+                tier: "fast",
+                functionId: "generate-technical-question",
+              });
 
               const genTime = Date.now() - startTime;
               console.log(`✅ Technical Q${i + 1} generated in ${genTime}ms`);
@@ -150,8 +157,6 @@ Return ONLY valid JSON (no markdown):
               console.error(
                 `Raw text: ${error instanceof Error ? error.message : "Unknown"}`,
               );
-              // Continue with next question on error
-              continue;
             }
           }
 
@@ -172,9 +177,13 @@ Return ONLY valid JSON (no markdown):
             const startTime = Date.now();
 
             try {
-              const text = await generateWithOllamaRetry(questionPrompt);
-              const cleanedText = cleanJsonResponse(text);
-              const questionData = JSON.parse(cleanedText);
+              const questionData = await generateStructured({
+                schema: streamedQuestionSchema,
+                prompt: questionPrompt,
+                modelId,
+                tier: "fast",
+                functionId: "generate-behavioral-question",
+              });
 
               const genTime = Date.now() - startTime;
               console.log(`✅ Behavioral Q${i + 1} generated in ${genTime}ms`);

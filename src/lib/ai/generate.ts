@@ -1,25 +1,32 @@
 /**
- * Central AI boundary for JobPrep (AI SDK 7).
+ * Central AI boundary for JobPrep (AI SDK 7 + T3Code-style ModelManifest).
  *
  * Every AI feature goes through this module (or `providers.ts` directly)
- * so model selection, timeouts, structured outputs, and telemetry come from
+ * so model selection, tier routing (`fast` | `balanced` | `reasoning`),
+ * capability-aware structured outputs, timeouts, and telemetry come from
  * one system.
- *
- * - Model selection: single `<provider>:<model>` id via `resolveModel()`.
- * - Structured outputs: `generateText` with `Output.object({ schema })`
- *   (no deprecated `generateObject`), with a resilient JSON-prompt fallback
- *   for keyless OpenAI-compatible endpoints.
- * - Telemetry: `telemetry: { functionId }` on every call.
  */
 import { generateText, Output, streamText } from "ai";
 import type { z } from "zod";
-import { DEFAULT_MODEL_ID, isKnownModel, resolveModel } from "./providers";
+import { findManifestModel } from "./model-manifest";
+import {
+  DEFAULT_MODEL_ID,
+  isKnownModel,
+  type ModelTier,
+  resolveModel,
+  resolveModelIdForTier,
+} from "./providers";
 
 /** Default ceiling for a single AI call (ms). Routes can override per call. */
 export const AI_DEFAULT_TIMEOUT_MS = 35_000;
 
-export function resolveRequestModel(model: unknown): string {
-  if (model === undefined) return DEFAULT_MODEL_ID;
+export function resolveRequestModel(
+  model: unknown,
+  tier: ModelTier = "balanced",
+): string {
+  if (model === undefined || model === null || model === "") {
+    return tier === "balanced" ? DEFAULT_MODEL_ID : resolveModelIdForTier(tier);
+  }
   if (typeof model !== "string" || !isKnownModel(model)) {
     throw new Error(`Unknown model: ${String(model)}`);
   }
@@ -51,8 +58,10 @@ export interface StructuredCallOptions<T> {
   schema: z.ZodType<T>;
   prompt: string;
   instructions?: string;
-  /** Model id of the form "<provider>:<model>". Defaults to DEFAULT_MODEL_ID. */
+  /** Model id of the form "<provider>:<model>" (or manifest alias). */
   modelId?: string;
+  /** Optional routing tier when no explicit modelId is provided. */
+  tier?: ModelTier;
   functionId: string;
   timeoutMs?: number;
   maxRetries?: number;
@@ -61,15 +70,18 @@ export interface StructuredCallOptions<T> {
 /**
  * Generate a Zod-validated structured object using AI SDK 7's
  * `generateText({ output: Output.object({ schema }) })`, falling back to
- * strict JSON text parsing when a free OpenAI-compatible provider does not
- * honor `json_schema` response_format.
+ * strict JSON text parsing when the manifest marks a model as lacking native
+ * `json_schema` support (or if a provider rejects `response_format`).
  */
 export async function generateStructured<T>(
   options: StructuredCallOptions<T>,
 ): Promise<T> {
-  const modelId = options.modelId ?? DEFAULT_MODEL_ID;
+  const modelId =
+    options.modelId ??
+    (options.tier ? resolveModelIdForTier(options.tier) : DEFAULT_MODEL_ID);
   const timeoutMs = options.timeoutMs ?? AI_DEFAULT_TIMEOUT_MS;
   const model = resolveModel(modelId);
+  const manifestEntry = findManifestModel(modelId);
 
   const runJsonTextFallback = async (): Promise<T> => {
     const { text } = await generateText({
@@ -89,9 +101,11 @@ export async function generateStructured<T>(
     return options.schema.parse(parsed);
   };
 
-  // Keyless Pollinations lane does not expose OpenAI `json_schema` responseFormat;
-  // go straight to strict JSON prompting to avoid AI SDK warnings and extra round-trips.
-  if (modelId.startsWith("pollinations:")) {
+  const supportsNativeStructured =
+    manifestEntry?.capabilities.structuredOutput ??
+    !modelId.startsWith("pollinations:");
+
+  if (!supportsNativeStructured) {
     return runJsonTextFallback();
   }
 
@@ -117,6 +131,7 @@ export interface TextCallOptions {
   prompt: string;
   instructions?: string;
   modelId?: string;
+  tier?: ModelTier;
   functionId: string;
   timeoutMs?: number;
   maxRetries?: number;
@@ -125,7 +140,9 @@ export interface TextCallOptions {
 export async function generateModelText(
   options: TextCallOptions,
 ): Promise<string> {
-  const modelId = options.modelId ?? DEFAULT_MODEL_ID;
+  const modelId =
+    options.modelId ??
+    (options.tier ? resolveModelIdForTier(options.tier) : DEFAULT_MODEL_ID);
   const { text } = await generateText({
     model: resolveModel(modelId),
     ...(options.instructions !== undefined
@@ -144,7 +161,9 @@ export async function generateModelText(
  * `.toTextStreamResponse()`.
  */
 export function streamModelText(options: TextCallOptions) {
-  const modelId = options.modelId ?? DEFAULT_MODEL_ID;
+  const modelId =
+    options.modelId ??
+    (options.tier ? resolveModelIdForTier(options.tier) : DEFAULT_MODEL_ID);
   return streamText({
     model: resolveModel(modelId),
     ...(options.instructions !== undefined

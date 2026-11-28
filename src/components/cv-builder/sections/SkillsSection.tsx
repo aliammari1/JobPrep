@@ -100,6 +100,7 @@ export function SkillsSection() {
                       <Badge key={idx} variant="secondary">
                         {item}
                         <button
+                          type="button"
                           onClick={() => handleRemoveSkillItem(skill.id, idx)}
                           className="ml-1 hover:text-destructive"
                           aria-label="Remove skill item"

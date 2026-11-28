@@ -1,73 +1,55 @@
 "use client";
 
-import dynamic from "next/dynamic";
-import { useState, useEffect, useRef, useCallback } from "react";
 import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-  CardDescription,
-} from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Label } from "@/components/ui/label";
-import { toast } from "sonner";
-import { useRecordingUpload } from "@/hooks/use-recording-upload";
-import { useLiveKitChat } from "@/hooks/use-livekit-chat";
-import { SettingsPanel } from "@/components/interview/settings-panel";
-import {
-  TemplateManager,
-  type Template,
-} from "@/components/interview/template-manager";
-import { PerformanceAnalyticsPanel } from "@/components/interview/performance-analytics-panel";
-import {
-  PhoneOff,
-  CircleDot,
-  Square,
-  MessageSquare,
-  FileText,
-  Settings,
-  Maximize,
-  Minimize,
-  Download,
-  Clock,
-  Brain,
-  Star,
-  CheckCircle2,
   AlertTriangle,
-  Send,
-  Paperclip,
-  Lightbulb,
-  TrendingUp,
+  ArrowRight,
   BookOpen,
-  Zap,
-  Loader2,
-  Target,
-  Video,
-  Users,
-  Copy,
+  Brain,
   Check,
-  Plus,
+  CheckCircle2,
+  CircleDot,
+  Clock,
+  Copy,
+  Download,
+  FileText,
+  Info,
+  Lightbulb,
+  Loader2,
   LogIn,
+  Mail,
+  Maximize,
+  MessageSquare,
   Mic,
   MicOff,
-  Videotape,
-  Share2,
-  Mail,
-  ArrowRight,
-  Shield,
-  Wifi,
+  Minimize,
+  Paperclip,
+  PhoneOff,
+  Plus,
   RefreshCw,
-  Info,
+  Send,
+  Settings,
+  Share2,
+  Shield,
+  Square,
+  Star,
+  Target,
+  TrendingUp,
+  Users,
+  Video,
+  Videotape,
+  Wifi,
+  Zap,
 } from "lucide-react";
-import { cn } from "@/lib/utils";
-import { useInterviewStore } from "@/hooks/use-interview-store";
-import { useAITranscription } from "@/hooks/use-ai-transcription";
-import { useSession } from "@/lib/auth-client";
+
+import dynamic from "next/dynamic";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { toast } from "sonner";
+import { PerformanceAnalyticsPanel } from "@/components/interview/performance-analytics-panel";
+import { SettingsPanel } from "@/components/interview/settings-panel";
+import {
+  type Template,
+  TemplateManager,
+} from "@/components/interview/template-manager";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -78,6 +60,15 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import {
   Dialog,
   DialogContent,
@@ -86,6 +77,17 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Textarea } from "@/components/ui/textarea";
+import { useAITranscription } from "@/hooks/use-ai-transcription";
+import { useInterviewStore } from "@/hooks/use-interview-store";
+import { useLiveKitChat } from "@/hooks/use-livekit-chat";
+import { useRecordingUpload } from "@/hooks/use-recording-upload";
+import { useWakeLock } from "@/hooks/use-wake-lock";
+import { useSession } from "@/lib/auth-client";
+import { cn } from "@/lib/utils";
 
 const InterviewLiveKitConference = dynamic(
   () =>
@@ -146,7 +148,7 @@ export default function InterviewRoom() {
   const [mediaPermissionsChecked, setMediaPermissionsChecked] = useState(false);
 
   // Browser recording state
-  const [recordedChunks, setRecordedChunks] = useState<Blob[]>([]);
+  const [pendingRecording, setPendingRecording] = useState<Blob | null>(null);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const recordingStreamRef = useRef<MediaStream | null>(null);
   const recordedChunksRef = useRef<Blob[]>([]); // Use ref to track chunks
@@ -537,7 +539,7 @@ export default function InterviewRoom() {
     }
   };
 
-  // Start browser recording with Appwrite upload
+  // Capture the selected screen or camera in the browser.
   const startLiveKitRecording = async () => {
     if (!roomName) {
       toast.error("No active room to record");
@@ -566,32 +568,24 @@ export default function InterviewRoom() {
 
       recordingStreamRef.current = stream;
 
-      // Create MediaRecorder
-      const options = { mimeType: "video/webm;codecs=vp9,opus" };
-      const mediaRecorder = new MediaRecorder(stream, options);
-
-      // Clear previous chunks
+      const mimeType = [
+        "video/webm;codecs=vp9,opus",
+        "video/webm",
+        "video/mp4",
+      ].find((type) => MediaRecorder.isTypeSupported(type));
+      const mediaRecorder = new MediaRecorder(
+        stream,
+        mimeType ? { mimeType } : undefined,
+      );
       recordedChunksRef.current = [];
-
       mediaRecorder.ondataavailable = (event) => {
-        if (event.data.size > 0) {
-          recordedChunksRef.current.push(event.data);
-          console.log(
-            `Recorded chunk: ${event.data.size} bytes. Total chunks: ${recordedChunksRef.current.length}`,
-          );
-        }
-      };
-
-      mediaRecorder.onstop = () => {
-        console.log(
-          `Recording stopped. Total chunks collected: ${recordedChunksRef.current.length}`,
-        );
-        setRecordedChunks([...recordedChunksRef.current]);
+        if (event.data.size) recordedChunksRef.current.push(event.data);
       };
 
       mediaRecorderRef.current = mediaRecorder;
       mediaRecorder.start(1000); // Collect data every second
 
+      setRecordingUrl(null);
       storeStartRecording();
       startTranscription();
 
@@ -608,90 +602,57 @@ export default function InterviewRoom() {
     }
   };
 
-  // Stop browser recording and upload to Appwrite
-  const stopLiveKitRecording = async () => {
-    setIsProcessingRecording(true);
-    try {
-      if (
-        mediaRecorderRef.current &&
-        mediaRecorderRef.current.state !== "inactive"
-      ) {
-        mediaRecorderRef.current.stop();
-
-        // Stop all tracks
-        if (recordingStreamRef.current) {
-          recordingStreamRef.current
-            .getTracks()
-            .forEach((track) => track.stop());
-          recordingStreamRef.current = null;
-        }
-
-        // Wait a bit for chunks to be collected
-        await new Promise((resolve) => setTimeout(resolve, 500));
-
-        storeStopRecording();
-        stopTranscription();
-
-        toast.info("Processing recording...");
-
-        // Upload to Appwrite after stopping
-        setTimeout(async () => {
-          await uploadRecordingToAppwrite();
-        }, 1000);
-      }
-    } catch (error) {
-      console.error("Failed to stop browser recording:", error);
-      toast.error("Error stopping recording");
-      storeStopRecording();
-      stopTranscription();
-    } finally {
-      setIsProcessingRecording(false);
-    }
-  };
-
-  // Upload recorded video to Appwrite
-  const uploadRecordingToAppwrite = async () => {
-    const chunks = recordedChunksRef.current;
-
-    console.log(`Attempting to upload ${chunks.length} chunks`);
-
-    if (chunks.length === 0) {
-      toast.warning("No recording data to upload");
-      return;
-    }
-
+  const uploadCapturedRecording = async (file: Blob) => {
     const interviewId = localStorage.getItem(`interview_${roomName}`);
     if (!interviewId) {
-      toast.error("Interview ID not found");
-      return;
+      toast.error(
+        "This room is not linked to a saved interview. Download the recording locally.",
+      );
+      return false;
     }
+    const result = await uploadRecording({ file, interviewId });
+    if (result.success && result.recording) {
+      setRecordingUrl(result.recording.fileUrl);
+      setPendingRecording(null);
+      return true;
+    }
+    return false;
+  };
 
+  const stopLiveKitRecording = async () => {
+    const recorder = mediaRecorderRef.current;
+    if (!recorder || recorder.state === "inactive") return true;
+
+    setIsProcessingRecording(true);
     try {
-      const blob = new Blob(chunks, { type: "video/webm" });
-      console.log(`Created blob of size: ${blob.size} bytes`);
-
-      toast.info("Uploading recording to cloud storage...");
-
-      const result = await uploadRecording({
-        file: blob,
-        interviewId,
-        roomName,
-        onProgress: (progress) => {
-          console.log(`Upload progress: ${progress}%`);
-        },
+      await new Promise<void>((resolve, reject) => {
+        recorder.addEventListener("stop", () => resolve(), { once: true });
+        recorder.addEventListener(
+          "error",
+          () => reject(new Error("Recording ended unexpectedly")),
+          { once: true },
+        );
+        recorder.stop();
       });
-
-      if (result.success && result.recording) {
-        setRecordingUrl(result.recording.fileUrl);
-        toast.success("Recording uploaded successfully!");
-
-        // Clear chunks after successful upload
+      if (recordedChunksRef.current.length) {
+        const file = new Blob(recordedChunksRef.current, {
+          type: recorder.mimeType || "video/webm",
+        });
+        setPendingRecording(file);
         recordedChunksRef.current = [];
-        setRecordedChunks([]);
+        return await uploadCapturedRecording(file);
       }
+      return true;
     } catch (error) {
-      console.error("Failed to upload recording:", error);
-      toast.error("Failed to upload recording to cloud storage");
+      console.error("Failed to stop browser recording", error);
+      toast.error("Failed to stop the recording");
+      return false;
+    } finally {
+      recordingStreamRef.current?.getTracks().forEach((track) => track.stop());
+      recordingStreamRef.current = null;
+      storeStopRecording();
+      stopTranscription();
+      setIsProcessingRecording(false);
     }
   };
 
@@ -756,9 +717,6 @@ export default function InterviewRoom() {
       setGeneratedRoomCode(generateRoomName());
     }
   }, [joinMode, generatedRoomCode]);
-
-  // Note: Browser-based AI interviewer replaced with LiveKit avatar agent
-  // The avatar agent runs via Appwrite serverless function and joins the room directly
 
   const formatTime = (seconds: number) => {
     const hours = Math.floor(seconds / 3600);
@@ -1031,10 +989,15 @@ export default function InterviewRoom() {
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
               onClick={async () => {
                 try {
-                  // Stop recording if active
-                  if (isRecording) {
-                    await stopLiveKitRecording();
+                  if (isProcessingRecording || isUploading) {
+                    toast.info("Wait for the recording upload to finish.");
+                    return;
                   }
+                  if (pendingRecording) {
+                    toast.info("Save or retry the recording before leaving.");
+                    return;
+                  }
+                  if (isRecording && !(await stopLiveKitRecording())) return;
 
                   // Persist interview data to database before leaving
                   const interviewId = localStorage.getItem(
@@ -1050,9 +1013,6 @@ export default function InterviewRoom() {
                           status: "completed",
                           completedAt: new Date().toISOString(),
                           duration: Math.floor(callDuration / 60), // Convert seconds to minutes
-                          ...(recordingUrl && {
-                            videoRecordingUrl: recordingUrl,
-                          }),
                         }),
                       });
                       toast.success("Interview data saved successfully");
@@ -1085,7 +1045,7 @@ export default function InterviewRoom() {
 
       {/* Email Invitation Dialog */}
       <Dialog open={showEmailDialog} onOpenChange={setShowEmailDialog}>
-        <DialogContent className="sm:max-w-[500px] z-[9999]">
+        <DialogContent mobileSheet className="sm:max-w-[500px]">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <Mail className="h-5 w-5" />
@@ -1167,7 +1127,7 @@ export default function InterviewRoom() {
     return (
       <>
         {renderDialogs()}
-        <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="min-h-full bg-background flex items-center justify-center">
           <Card className="max-w-md w-full mx-4">
             <CardContent className="pt-6">
               <div className="flex flex-col items-center justify-center space-y-4">
@@ -1199,7 +1159,7 @@ export default function InterviewRoom() {
     return (
       <>
         {renderDialogs()}
-        <div className="min-h-screen bg-background flex items-center justify-center p-4">
+        <div className="min-h-full bg-background flex items-center justify-center p-4">
           <div className="w-full max-w-4xl space-y-6">
             {/* Header */}
             <div className="text-center space-y-3">
@@ -1500,7 +1460,7 @@ export default function InterviewRoom() {
   return (
     <>
       {renderDialogs()}
-      <div className="min-h-screen bg-background text-foreground">
+      <div className="min-h-full bg-background text-foreground">
         <div className="container mx-auto p-4 space-y-4">
           {/* Header */}
           <div className="flex items-center justify-between bg-card border border-border rounded-lg p-4">
@@ -1585,7 +1545,7 @@ export default function InterviewRoom() {
             </div>
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-4 gap-4 min-h-[calc(100vh-200px)]">
+          <div className="grid grid-cols-1 lg:grid-cols-4 gap-4 min-h-[480px]">
             {/* Settings Panel Overlay */}
             {showSettings && (
               <div className="lg:col-span-1 h-fit">
@@ -1611,7 +1571,11 @@ export default function InterviewRoom() {
                       variant={isRecording ? "destructive" : "outline"}
                       size="sm"
                       onClick={handleRecording}
-                      disabled={isProcessingRecording}
+                      disabled={
+                        isProcessingRecording ||
+                        isUploading ||
+                        !!pendingRecording
+                      }
                       title={isRecording ? "Stop recording" : "Start recording"}
                     >
                       {isProcessingRecording ? (
@@ -1627,12 +1591,50 @@ export default function InterviewRoom() {
                       <Button
                         variant="outline"
                         size="sm"
-                        onClick={() => window.open(recordingUrl, "_blank")}
+                        asChild
                         title="Download recording"
                       >
-                        <Download className="w-4 h-4 mr-1" />
-                        Recording
+                        <a href={`${recordingUrl}?download=1`}>
+                          <Download className="w-4 h-4 mr-1" />
+                          Recording
+                        </a>
                       </Button>
+                    )}
+
+                    {pendingRecording && !isProcessingRecording && (
+                      <>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          disabled={isUploading}
+                          onClick={() =>
+                            uploadCapturedRecording(pendingRecording)
+                          }
+                        >
+                          {isUploading
+                            ? `Uploading ${uploadProgress}%`
+                            : "Retry upload"}
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => {
+                            const url = URL.createObjectURL(pendingRecording);
+                            const link = document.createElement("a");
+                            link.href = url;
+                            link.download = pendingRecording.type.startsWith(
+                              "video/mp4",
+                            )
+                              ? "interview.mp4"
+                              : "interview.webm";
+                            link.click();
+                            setTimeout(() => URL.revokeObjectURL(url), 30_000);
+                            setPendingRecording(null);
+                          }}
+                        >
+                          Download local copy
+                        </Button>
+                      </>
                     )}
 
                     <Button

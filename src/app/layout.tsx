@@ -1,7 +1,9 @@
 import type { Metadata, Viewport } from "next";
 import { DM_Sans, JetBrains_Mono, Outfit } from "next/font/google";
+import { NuqsAdapter } from "nuqs/adapters/next/app";
 import "./globals.css";
 import { AppLayout } from "@/components/layout/app-layout";
+import { PlatformAppearance } from "@/components/layout/platform-appearance";
 import { DeferredClientWidgets } from "@/components/providers/deferred-client-widgets";
 import { ReactQueryProvider } from "@/components/providers/query-client-provider";
 import { ThemeProvider } from "@/components/theme-provider";
@@ -27,11 +29,11 @@ const jetbrainsMono = JetBrains_Mono({
 export const metadata: Metadata = {
   title: "JobPrep — Interview Practice & Career Studio",
   description:
-    "Run realistic mock interviews, get structured feedback on every answer, build tailored resumes, and track your readiness. Bring your own AI key or run offline.",
+    "Run realistic mock interviews, get structured feedback on every answer, build tailored resumes, and track your readiness. Use a cloud AI provider or run model inference locally with Ollama.",
   manifest: "/manifest.json",
   appleWebApp: {
     capable: true,
-    statusBarStyle: "default",
+    statusBarStyle: "black-translucent",
     title: "JobPrep",
   },
   icons: {
@@ -57,6 +59,8 @@ export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
   maximumScale: 5,
+  viewportFit: "cover",
+  interactiveWidget: "resizes-content",
   themeColor: [
     { media: "(prefers-color-scheme: light)", color: "#fcfdff" },
     { media: "(prefers-color-scheme: dark)", color: "#090b10" },
@@ -75,16 +79,19 @@ export default function RootLayout({
       className={`${dmSans.variable} ${outfit.variable} ${jetbrainsMono.variable}`}
     >
       <body className="font-sans antialiased bg-background text-foreground">
+        <PlatformAppearance />
         <ThemeProvider
           attribute="class"
           defaultTheme="system"
           enableSystem
           storageKey="jobprep-theme"
         >
-          <ReactQueryProvider>
-            <AppLayout>{children}</AppLayout>
-            <DeferredClientWidgets />
-          </ReactQueryProvider>
+          <NuqsAdapter>
+            <ReactQueryProvider>
+              <AppLayout>{children}</AppLayout>
+              <DeferredClientWidgets />
+            </ReactQueryProvider>
+          </NuqsAdapter>
         </ThemeProvider>
       </body>
     </html>

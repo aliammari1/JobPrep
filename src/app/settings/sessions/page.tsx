@@ -1,8 +1,13 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useSession, authClient } from "@/lib/auth-client";
+import { useCallback, useEffect, useState } from "react";
+import { ConfirmDialog } from "@/components/custom/confirm-dialog";
+import { Icons } from "@/components/custom/icons";
+import { UserNav } from "@/components/custom/user-nav";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -11,12 +16,8 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Icons } from "@/components/custom/icons";
-import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import Link from "next/link";
-import { UserNav } from "@/components/custom/user-nav";
+import { authClient, useSession } from "@/lib/auth-client";
 
 interface Session {
   id: string;
@@ -42,26 +43,28 @@ export default function SessionsPage() {
       if (result.error) {
         setError("Failed to load sessions");
       } else {
+        setError(null);
         setSessions(result.data || []);
       }
+    } catch {
+      setError("Failed to load sessions");
     } finally {
       setIsLoading(false);
     }
   }, []);
 
+  const signedIn = Boolean(session);
   useEffect(() => {
-    if (session) {
-      loadSessions();
-    }
-  }, [session, loadSessions]);
+    if (signedIn) void loadSessions();
+  }, [signedIn, loadSessions]);
 
-  const handleRevokeSession = async (sessionId: string) => {
+  const handleRevokeSession = async (sessionToken: string) => {
     setError(null);
     setSuccess(null);
 
     try {
       const result = await authClient.revokeSession({
-        token: sessionId,
+        token: sessionToken,
       });
 
       if (result.error) {
@@ -76,17 +79,16 @@ export default function SessionsPage() {
     }
   };
 
-  const handleRevokeAllOtherSessions = async () => {
+  const [showRevokeAllConfirm, setShowRevokeAllConfirm] = useState(false);
+
+  const handleRevokeAllOtherSessions = () => {
+    setShowRevokeAllConfirm(true);
+  };
+
+  const confirmRevokeAllOtherSessions = async () => {
+    setShowRevokeAllConfirm(false);
     setError(null);
     setSuccess(null);
-
-    if (
-      !confirm(
-        "Are you sure you want to revoke all other sessions? You will be logged out from all other devices.",
-      )
-    ) {
-      return;
-    }
 
     try {
       const result = await authClient.revokeOtherSessions();
@@ -105,11 +107,9 @@ export default function SessionsPage() {
 
   if (isPending || isLoading) {
     return (
-      <div className="min-h-screen bg-linear-to-br from-background via-background to-muted/20">
-        <div className="container mx-auto p-4 md:p-8 max-w-4xl">
-          <Skeleton className="h-12 w-full mb-4" />
-          <Skeleton className="h-64 w-full" />
-        </div>
+      <div className="space-y-4">
+        <Skeleton className="h-12 w-full" />
+        <Skeleton className="h-64 w-full" />
       </div>
     );
   }
@@ -122,71 +122,41 @@ export default function SessionsPage() {
   const parseUserAgent = (ua?: string | null) => {
     if (!ua) return { browser: "Unknown", os: "Unknown" };
 
-    const browser = ua.includes("Chrome")
-      ? "Chrome"
-      : ua.includes("Firefox")
-        ? "Firefox"
-        : ua.includes("Safari")
-          ? "Safari"
-          : ua.includes("Edge")
-            ? "Edge"
+    const browser = /Edg(?:A|iOS)?\//.test(ua)
+      ? "Edge"
+      : /(?:Chrome|CriOS)\//.test(ua)
+        ? "Chrome"
+        : /(?:Firefox|FxiOS)\//.test(ua)
+          ? "Firefox"
+          : ua.includes("Safari")
+            ? "Safari"
             : "Unknown";
 
-    const os = ua.includes("Windows")
-      ? "Windows"
-      : ua.includes("Mac")
-        ? "macOS"
-        : ua.includes("Linux")
-          ? "Linux"
-          : ua.includes("Android")
-            ? "Android"
-            : ua.includes("iOS")
-              ? "iOS"
+    const os = ua.includes("Android")
+      ? "Android"
+      : /iPhone|iPad|iPod/.test(ua)
+        ? "iOS"
+        : ua.includes("Windows")
+          ? "Windows"
+          : ua.includes("Mac")
+            ? "macOS"
+            : ua.includes("Linux")
+              ? "Linux"
               : "Unknown";
 
     return { browser, os };
   };
 
   return (
-    <div className="min-h-screen bg-linear-to-br from-background via-background to-muted/20">
-      <div className="container mx-auto p-4 md:p-8 max-w-4xl">
-        {/* Header */}
-        <div className="mb-8">
-          <div className="flex items-center justify-between mb-4">
-            <Link href="/dashboard">
-              <Button variant="ghost" size="sm">
-                <Icons.arrowLeft className="mr-2 h-4 w-4" />
-                Back to Dashboard
-              </Button>
-            </Link>
-            <UserNav />
-          </div>
-          <h1 className="text-4xl font-bold">Active Sessions</h1>
-          <p className="text-muted-foreground mt-2">
-            Manage devices where you're currently signed in
+    <div className="min-w-0">
+      <div className="space-y-6">
+        <div>
+          <h1 className="sr-only font-display lg:not-sr-only lg:text-3xl lg:font-semibold lg:tracking-tight">
+            Active Sessions
+          </h1>
+          <p className="text-sm text-muted-foreground lg:mt-1">
+            Manage devices where you&apos;re currently signed in
           </p>
-        </div>
-
-        {/* Navigation Tabs */}
-        <div className="flex gap-4 mb-6 overflow-x-auto pb-2">
-          <Link href="/settings/profile">
-            <Button variant="outline">Profile</Button>
-          </Link>
-          <Link href="/settings/security">
-            <Button variant="outline">Security</Button>
-          </Link>
-          <Link href="/settings/sessions">
-            <Button variant="default">Sessions</Button>
-          </Link>
-          <Link href="/settings/two-factor">
-            <Button variant="outline">Two-Factor</Button>
-          </Link>
-          <Link href="/settings/passkeys">
-            <Button variant="outline">Passkeys</Button>
-          </Link>
-          <Link href="/settings/connected-accounts">
-            <Button variant="outline">Connected Accounts</Button>
-          </Link>
         </div>
 
         {success && (
@@ -231,24 +201,24 @@ export default function SessionsPage() {
           ) : (
             sessions.map((sess) => {
               const { browser, os } = parseUserAgent(sess.userAgent);
-              const isCurrentSession = session.session?.token === sess.token;
+              const isCurrentSession = session.session?.id === sess.id;
 
               return (
-                <Card key={sess.id} className="shadow-lg">
+                <Card key={sess.id} className="min-w-0 shadow-none">
                   <CardHeader>
-                    <div className="flex items-start justify-between">
-                      <div className="flex items-center gap-3">
-                        <div className="h-12 w-12 rounded-lg bg-blue-100 dark:bg-blue-900/20 flex items-center justify-center">
+                    <div className="flex flex-wrap items-start justify-between gap-3">
+                      <div className="flex min-w-0 items-center gap-3">
+                        <div className="h-10 w-10 shrink-0 rounded-lg bg-blue-100 dark:bg-blue-900/20 flex items-center justify-center">
                           <Icons.key className="h-6 w-6 text-blue-600 dark:text-blue-400" />
                         </div>
                         <div>
-                          <CardTitle className="text-lg flex items-center gap-2">
+                          <CardTitle className="flex flex-wrap items-center gap-2 text-base">
                             {browser} on {os}
                             {isCurrentSession && (
                               <Badge variant="default">Current Session</Badge>
                             )}
                           </CardTitle>
-                          <CardDescription>
+                          <CardDescription className="[overflow-wrap:anywhere]">
                             {sess.ipAddress || "Unknown IP"}
                           </CardDescription>
                         </div>
@@ -257,7 +227,7 @@ export default function SessionsPage() {
                         <Button
                           variant="destructive"
                           size="sm"
-                          onClick={() => handleRevokeSession(sess.id)}
+                          onClick={() => handleRevokeSession(sess.token)}
                         >
                           Revoke
                         </Button>
@@ -266,27 +236,27 @@ export default function SessionsPage() {
                   </CardHeader>
                   <CardContent>
                     <div className="grid gap-3 text-sm">
-                      <div className="flex items-center justify-between">
+                      <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1">
                         <span className="text-muted-foreground">Created</span>
                         <span className="font-medium">
                           {new Date(sess.createdAt).toLocaleString()}
                         </span>
                       </div>
-                      <div className="flex items-center justify-between">
+                      <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1">
                         <span className="text-muted-foreground">Expires</span>
                         <span className="font-medium">
                           {new Date(sess.expiresAt).toLocaleString()}
                         </span>
                       </div>
                       {sess.userAgent && (
-                        <div className="pt-2 border-t">
-                          <span className="text-muted-foreground text-xs">
-                            User Agent
-                          </span>
-                          <p className="text-xs font-mono mt-1 break-all">
+                        <details className="border-t">
+                          <summary className="min-h-11 cursor-pointer py-3 text-muted-foreground">
+                            Browser details
+                          </summary>
+                          <p className="break-all text-xs font-mono">
                             {sess.userAgent}
                           </p>
-                        </div>
+                        </details>
                       )}
                     </div>
                   </CardContent>
@@ -313,6 +283,15 @@ export default function SessionsPage() {
           </CardContent>
         </Card>
       </div>
+      <ConfirmDialog
+        open={showRevokeAllConfirm}
+        onOpenChange={setShowRevokeAllConfirm}
+        title="Revoke all other sessions"
+        description="You will be signed out on all other devices immediately."
+        confirmLabel="Revoke all"
+        destructive
+        onConfirm={confirmRevokeAllOtherSessions}
+      />
     </div>
   );
 }

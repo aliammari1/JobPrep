@@ -1,33 +1,10 @@
 /**
- * Email Service with Google Gmail API
+ * Email Service — Cloudflare Workers-first (Resend HTTP API) with lazy
+ * Nodemailer SMTP fallback for local Node.js development.
  *
- * Real email service implementation using Google Gmail API.
- * Supports verification, password reset, interview reminders, and more.
+ * Outbound raw SMTP sockets are blocked on Cloudflare Workers, so production
+ * Cloudflare deployments send via Resend's HTTP API (`RESEND_API_KEY`).
  */
-
-import nodemailer from "nodemailer";
-
-// Initialize Gmail transporter
-let emailTransporter: nodemailer.Transporter | null = null;
-
-async function getGmailTransporter() {
-  if (emailTransporter) return emailTransporter;
-
-  try {
-    emailTransporter = nodemailer.createTransport({
-      service: "gmail",
-      auth: {
-        user: process.env.GMAIL_USER_EMAIL,
-        pass: process.env.GMAIL_APP_PASSWORD,
-      },
-    });
-
-    return emailTransporter;
-  } catch (error) {
-    console.error("Failed to initialize Gmail transporter:", error);
-    return null;
-  }
-}
 
 export interface EmailOptions {
   to: string | string[];
@@ -39,53 +16,94 @@ export interface EmailOptions {
   scheduledAt?: string; // ISO 8601 format
 }
 
-export async function sendEmail({
-  to,
-  subject,
-  html,
-  text,
-  replyTo,
-  tags,
-  scheduledAt,
-}: EmailOptions) {
-  // Development mode: Log to console
-  if (process.env.NODE_ENV === "development" && !process.env.GMAIL_USER_EMAIL) {
-    console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
-    console.log("📧 Email Service (Development Mode - No Gmail Credentials)");
-    console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
-    console.log(`To: ${Array.isArray(to) ? to.join(", ") : to}`);
-    console.log(`Subject: ${subject}`);
-    console.log(`HTML: ${html.substring(0, 200)}...`);
-    if (text) console.log(`Text: ${text}`);
-    if (replyTo) console.log(`Reply-To: ${replyTo}`);
-    if (tags) console.log(`Tags:`, tags);
-    if (scheduledAt) console.log(`Scheduled At: ${scheduledAt}`);
-    console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n");
-    return { success: true, emailId: "dev-" + Date.now() };
+async function sendViaResend(options: EmailOptions) {
+  const apiKey = process.env.RESEND_API_KEY?.trim();
+  if (!apiKey) return null;
+
+  const from =
+    process.env.RESEND_FROM_EMAIL?.trim() || "JobPrep <noreply@jobprep.app>";
+
+  const res = await fetch("https://api.resend.com/emails", {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${apiKey}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      from,
+      to: Array.isArray(options.to) ? options.to : [options.to],
+      subject: options.subject,
+      html: options.html,
+      ...(options.text ? { text: options.text } : {}),
+      ...(options.replyTo ? { reply_to: options.replyTo } : {}),
+      ...(options.tags ? { tags: options.tags } : {}),
+      ...(options.scheduledAt ? { scheduled_at: options.scheduledAt } : {}),
+    }),
+  });
+
+  if (!res.ok) {
+    const body = await res.text().catch(() => "");
+    console.error("Resend HTTP API error:", res.status, body);
+    return {
+      success: false as const,
+      error: "Failed to send email via Resend",
+    };
   }
 
-  // Production mode: Use Google Gmail
+  const data = (await res.json()) as { id?: string };
+  return { success: true as const, emailId: data.id || `resend-${Date.now()}` };
+}
+
+export async function sendEmail(options: EmailOptions) {
+  const { to, subject, html, text, replyTo, tags, scheduledAt } = options;
+
+  // 1. Cloudflare Workers-native HTTP transport (Resend)
+  if (process.env.RESEND_API_KEY?.trim()) {
+    try {
+      const result = await sendViaResend(options);
+      if (result) return result;
+    } catch (error) {
+      console.error("Resend email error:", error);
+      return { success: false, error: "Failed to send email" };
+    }
+  }
+
+  // 2. Development mode without credentials: log safely to console
+  if (process.env.NODE_ENV === "development" && !process.env.GMAIL_USER_EMAIL) {
+    console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
+    console.log("📧 Email Service (Development Mode - No Credentials)");
+    console.log(`To: ${Array.isArray(to) ? to.join(", ") : to}`);
+    console.log(`Subject: ${subject}`);
+    if (tags) console.log("Tags:", tags);
+    if (scheduledAt) console.log(`Scheduled At: ${scheduledAt}`);
+    console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n");
+    return { success: true, emailId: `dev-${Date.now()}` };
+  }
+
+  // 3. Local Node.js SMTP fallback (not available on Cloudflare Workers)
   if (!process.env.GMAIL_USER_EMAIL) {
-    console.error("Gmail credentials not configured");
+    console.error("Email credentials not configured (set RESEND_API_KEY)");
     return { success: false, error: "Email service not configured" };
   }
 
   try {
-    const transporter = await getGmailTransporter();
-    if (!transporter) {
-      return { success: false, error: "Failed to initialize email service" };
-    }
+    const nodemailer = await import("nodemailer");
+    const transporter = nodemailer.default.createTransport({
+      service: "gmail",
+      auth: {
+        user: process.env.GMAIL_USER_EMAIL,
+        pass: process.env.GMAIL_APP_PASSWORD,
+      },
+    });
 
-    const mailOptions = {
+    const info = await transporter.sendMail({
       from: process.env.GMAIL_USER_EMAIL,
       to: Array.isArray(to) ? to.join(", ") : to,
       subject,
       html,
       text: text || html,
       replyTo: replyTo || process.env.GMAIL_USER_EMAIL,
-    };
-
-    const info = await transporter.sendMail(mailOptions);
+    });
 
     return { success: true, emailId: info.messageId };
   } catch (error) {
@@ -95,35 +113,15 @@ export async function sendEmail({
 }
 
 export async function sendBatchEmails(emails: EmailOptions[]) {
-  if (!process.env.GMAIL_USER_EMAIL) {
-    console.error("Gmail credentials not configured");
-    return { success: false, error: "Email service not configured" };
-  }
-
-  try {
-    const transporter = await getGmailTransporter();
-    if (!transporter) {
-      return { success: false, error: "Failed to initialize email service" };
-    }
-
-    const results = await Promise.all(
-      emails.map((email) =>
-        transporter.sendMail({
-          from: process.env.GMAIL_USER_EMAIL,
-          to: Array.isArray(email.to) ? email.to.join(", ") : email.to,
-          subject: email.subject,
-          html: email.html,
-          text: email.text || email.html,
-          replyTo: email.replyTo || process.env.GMAIL_USER_EMAIL,
-        }),
-      ),
-    );
-
-    return { success: true, data: results };
-  } catch (error) {
-    console.error("Batch email service error:", error);
-    return { success: false, error: "Failed to send batch emails" };
-  }
+  const results = await Promise.all(emails.map((email) => sendEmail(email)));
+  const allOk = results.every((r) => r.success);
+  return allOk
+    ? { success: true, data: results }
+    : {
+        success: false,
+        error: "One or more batch emails failed",
+        data: results,
+      };
 }
 
 // Email Templates

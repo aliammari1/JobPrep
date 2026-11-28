@@ -1,20 +1,18 @@
 /**
  * Rate limiting for expensive endpoints (AI inference, LiveKit token mint).
  *
- * Backed by Upstash Redis (`@upstash/ratelimit`) when
- * `UPSTASH_REDIS_REST_URL` + `UPSTASH_REDIS_REST_TOKEN` are configured;
- * otherwise it degrades to a permissive no-op so local/self-host setups run
- * with zero extra infrastructure. This is the "BYOK / self-host first" stance:
- * the protection is opt-in via env, not a hard dependency.
- *
- * Usage in a route handler:
- *
- *   const { success, ...info } = await rateLimit(req, "ai");
- *   if (!success) return rateLimitResponse(info);
+ * Resolution order (Cloudflare-first):
+ *  1. Native Cloudflare Workers Rate Limiting binding (`AI_RATE_LIMITER`,
+ *     `LIVEKIT_RATE_LIMITER`, `DEFAULT_RATE_LIMITER` in `wrangler.jsonc`) —
+ *     zero external network round-trips.
+ *  2. Upstash Redis (`@upstash/ratelimit`) when `UPSTASH_REDIS_REST_URL` +
+ *     `UPSTASH_REDIS_REST_TOKEN` are configured.
+ *  3. Permissive no-op for local/self-host development.
  */
 import { Ratelimit } from "@upstash/ratelimit";
 import { Redis } from "@upstash/redis";
 import { NextResponse } from "next/server";
+import { cloudflareContext } from "./cloudflare";
 
 type Bucket = "ai" | "livekit" | "default";
 
@@ -25,6 +23,12 @@ interface LimitResult {
   reset: number;
 }
 
+const BUCKET_LIMITS: Record<Bucket, number> = {
+  ai: 20,
+  livekit: 10,
+  default: 60,
+};
+
 const redisUrl = process.env.UPSTASH_REDIS_REST_URL;
 const redisToken = process.env.UPSTASH_REDIS_REST_TOKEN;
 const enabled = Boolean(redisUrl && redisToken);
@@ -33,31 +37,30 @@ const redis = enabled
   ? new Redis({ url: redisUrl as string, token: redisToken as string })
   : null;
 
-/** Per-bucket windows. AI/LiveKit are paid fan-outs, so they're stricter. */
 const LIMITERS: Record<Bucket, Ratelimit | null> = redis
   ? {
       ai: new Ratelimit({
         redis,
-        limiter: Ratelimit.slidingWindow(20, "1 m"),
+        limiter: Ratelimit.slidingWindow(BUCKET_LIMITS.ai, "1 m"),
         prefix: "rl:ai",
         analytics: true,
       }),
       livekit: new Ratelimit({
         redis,
-        limiter: Ratelimit.slidingWindow(10, "1 m"),
+        limiter: Ratelimit.slidingWindow(BUCKET_LIMITS.livekit, "1 m"),
         prefix: "rl:livekit",
         analytics: true,
       }),
       default: new Ratelimit({
         redis,
-        limiter: Ratelimit.slidingWindow(60, "1 m"),
+        limiter: Ratelimit.slidingWindow(BUCKET_LIMITS.default, "1 m"),
         prefix: "rl:default",
         analytics: true,
       }),
     }
   : { ai: null, livekit: null, default: null };
 
-/** Best-effort client identifier from forwarding headers. */
+/** Best-effort client identifier from Cloudflare / forwarding headers. */
 function clientId(req: Request): string {
   const h = req.headers;
   return (
@@ -69,20 +72,43 @@ function clientId(req: Request): string {
 }
 
 /**
- * Check the rate limit for a request. When Upstash is not configured this
- * always succeeds (no-op), so the endpoint behaves exactly as before.
+ * Check the rate limit for a request. Prefers native Cloudflare Workers
+ * Rate Limiting bindings, then Upstash Redis, then permissive no-op locally.
  */
 export async function rateLimit(
   req: Request,
   bucket: Bucket = "default",
   identifier?: string,
 ): Promise<LimitResult> {
+  const id = identifier ?? clientId(req);
+  const key = `${bucket}:${id}`;
+
+  // 1. Native Cloudflare Workers Rate Limiter binding
+  const cfEnv = cloudflareContext()?.env;
+  const cfLimiter =
+    bucket === "ai"
+      ? cfEnv?.AI_RATE_LIMITER
+      : bucket === "livekit"
+        ? cfEnv?.LIVEKIT_RATE_LIMITER
+        : cfEnv?.DEFAULT_RATE_LIMITER;
+
+  if (cfLimiter) {
+    const { success } = await cfLimiter.limit({ key });
+    const max = BUCKET_LIMITS[bucket];
+    return {
+      success,
+      limit: max,
+      remaining: success ? Math.max(0, max - 1) : 0,
+      reset: Date.now() + 60_000,
+    };
+  }
+
+  // 2. Upstash Redis fallback
   const limiter = LIMITERS[bucket];
   if (!limiter) {
     return { success: true, limit: 0, remaining: 0, reset: 0 };
   }
-  const id = identifier ?? clientId(req);
-  const res = await limiter.limit(`${bucket}:${id}`);
+  const res = await limiter.limit(key);
   return {
     success: res.success,
     limit: res.limit,

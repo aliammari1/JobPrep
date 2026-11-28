@@ -42,9 +42,9 @@ export function ProgressRing({
         max={100}
         aria-label={label}
         aria-valuetext={shown}
-        className="progress-ring"
-        style={ringStyle}
+        className="sr-only"
       />
+      <span aria-hidden="true" className="progress-ring" style={ringStyle} />
       <span
         aria-hidden="true"
         className="progress-ring-label font-display text-[11px] font-semibold text-foreground tabular-nums"

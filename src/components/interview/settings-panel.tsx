@@ -1,6 +1,8 @@
 "use client";
 
+import { Bell, Eye, Mic, Video, Volume2 } from "lucide-react";
 import { useState } from "react";
+import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
@@ -8,7 +10,6 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import {
   Select,
@@ -18,7 +19,6 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
-import { Volume2, Video, Mic, Bell, Eye } from "lucide-react";
 
 interface SettingsPanelProps {
   onClose: () => void;

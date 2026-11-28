@@ -248,7 +248,7 @@ export default function QuestionsPage() {
   };
 
   return (
-    <div className="min-h-screen bg-background p-6">
+    <div className="min-h-full bg-background p-6">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <motion.div
@@ -258,7 +258,7 @@ export default function QuestionsPage() {
         >
           <div className="flex items-center justify-between mb-6">
             <div>
-              <h1 className="text-4xl font-bold text-foreground flex items-center gap-3">
+              <h1 className="sr-only font-display lg:not-sr-only lg:flex lg:items-center lg:gap-3 lg:text-3xl lg:font-bold lg:text-foreground">
                 <BookOpen className="w-8 h-8 text-primary" />
                 Interview Questions History
               </h1>

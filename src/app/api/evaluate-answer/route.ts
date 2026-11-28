@@ -1,14 +1,22 @@
-import { NextRequest, NextResponse } from "next/server";
-import {
-  generateWithOllamaRetry,
-  cleanJsonResponse,
-} from "@/lib/ollama-client";
+import { type NextRequest, NextResponse } from "next/server";
+import { z } from "zod";
+import { generateStructured, resolveRequestModel } from "@/lib/ai/generate";
 
 export const runtime = "nodejs";
 
+const evaluationSchema = z.object({
+  score: z.number().min(0).max(10),
+  strengths: z.array(z.string()),
+  weaknesses: z.array(z.string()),
+  suggestions: z.array(z.string()),
+  feedback: z.string(),
+  keyPointsCovered: z.array(z.string()),
+  keyPointsMissed: z.array(z.string()),
+});
+
 export async function POST(request: NextRequest) {
   try {
-    const { question, userAnswer, idealAnswer, evaluationCriteria } =
+    const { question, userAnswer, idealAnswer, evaluationCriteria, model } =
       await request.json();
 
     if (!question || !userAnswer || !idealAnswer) {
@@ -17,6 +25,8 @@ export async function POST(request: NextRequest) {
         { status: 400 },
       );
     }
+
+    const modelId = resolveRequestModel(model, "reasoning");
 
     const prompt = `You are a STRICT interview evaluator. Compare the candidate's answer against the ideal answer and give HONEST scores.
 
@@ -56,21 +66,17 @@ Return ONLY this JSON (NO markdown, NO code blocks):
 
 Be STRICT and HONEST. If the answer is bad, give score 0-3. Don't be generous!`;
 
-    console.log("Evaluating answer with Ollama (local & fast)...");
-    const text = await generateWithOllamaRetry(prompt);
-    const cleanedText = cleanJsonResponse(text);
-
-    console.log("Raw response length:", text.length);
-    console.log("Cleaned JSON preview:", cleanedText.substring(0, 200));
-
     let evaluation;
     try {
-      evaluation = JSON.parse(cleanedText);
+      evaluation = await generateStructured({
+        schema: evaluationSchema,
+        prompt,
+        modelId,
+        tier: "reasoning",
+        functionId: "evaluate-answer",
+      });
     } catch (parseError) {
-      console.error("JSON Parse Error:", parseError);
-      console.error("Full cleaned text:", cleanedText);
-
-      // Return a default evaluation on parse error
+      console.error("Evaluation error:", parseError);
       evaluation = {
         score: 5,
         strengths: ["Answer provided"],

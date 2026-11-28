@@ -1,0 +1,312 @@
+.workspace {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+  container: cv / inline-size;
+  background: var(--background);
+}
+
+.commandBar {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: end;
+  gap: 0.5rem;
+  padding: 0.625rem 0.75rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.title {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+.roleControl {
+  min-width: 0;
+}
+
+.rolePicker,
+.sectionPicker {
+  display: grid;
+  gap: 0.25rem;
+  min-width: 0;
+  color: var(--muted-foreground);
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.rolePicker select,
+.sectionPicker select {
+  width: 100%;
+  padding: 0.45rem 0.625rem;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: 0.5rem;
+  background: var(--background);
+  color: var(--foreground);
+  text-overflow: ellipsis;
+  font-size: 0.875rem;
+}
+
+.actions,
+.zoomControls {
+  display: flex;
+  align-items: center;
+  gap: 0.125rem;
+}
+
+.actions button[data-size="sm"] {
+  padding-inline: 0.625rem;
+}
+
+.actions button[data-size="sm"] svg,
+.previewBar button[data-size="sm"] svg {
+  margin: 0;
+}
+
+.mobileModes {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  padding-inline: 0.75rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.mobileModes button {
+  min-height: 2.75rem;
+  border-bottom: 2px solid transparent;
+  color: var(--muted-foreground);
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+.mobileModes button[aria-pressed="true"] {
+  border-bottom-color: var(--primary);
+  color: var(--primary);
+}
+
+.mobileModes button:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: -2px;
+}
+
+.panes {
+  display: grid;
+  flex: 1;
+  grid-template-columns: minmax(0, 1fr);
+  min-height: 0;
+}
+
+.editorPane,
+.previewPane {
+  min-width: 0;
+  min-height: 0;
+}
+
+.toolTabs {
+  width: 100%;
+  height: auto;
+  padding: 0.25rem 0.75rem;
+  border-bottom: 1px solid var(--border);
+  border-radius: 0;
+  background: var(--background);
+}
+
+.toolTabs button {
+  min-width: 0;
+  min-height: 2.25rem;
+  padding-inline: 0.25rem;
+  font-size: 0.75rem;
+}
+
+html[data-jobprep-platform="ios"] .mobileModes {
+  gap: 0.125rem;
+  margin: 0.5rem 0.75rem;
+  padding: 0.1875rem;
+  border: 0;
+  border-radius: 0.625rem;
+  background: var(--muted);
+}
+
+html[data-jobprep-platform="ios"] .mobileModes button {
+  min-height: 2.5rem;
+  border: 0;
+  border-radius: 0.4375rem;
+}
+
+html[data-jobprep-platform="ios"] .mobileModes button[aria-pressed="true"] {
+  background: var(--background);
+  color: var(--foreground);
+  box-shadow: 0 1px 2px color-mix(in oklab, var(--foreground) 12%, transparent);
+}
+
+html[data-jobprep-platform="android"] .mobileModes button {
+  min-height: 3rem;
+}
+
+.previewPane,
+.workspace[data-view="preview"] .editorPane,
+.workspace[data-view="edit"] .toolTabs,
+.editTool {
+  display: none;
+}
+
+.workspace[data-view="preview"] .previewPane {
+  display: block;
+}
+
+.panel {
+  flex: 1;
+  min-width: 0;
+  min-height: 0;
+  overflow: auto;
+  padding: 1rem;
+  overscroll-behavior: contain;
+}
+
+.panel[data-state="inactive"] {
+  display: none;
+}
+
+.editorContent {
+  display: grid;
+  gap: 1.25rem;
+  max-width: 42rem;
+  margin-inline: auto;
+}
+
+.sectionPicker {
+  max-width: 24rem;
+}
+
+.sectionPicker select {
+  min-height: 2.75rem;
+}
+
+.formFields {
+  min-width: 0;
+}
+
+.preview {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+}
+
+.previewBar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.5rem 0.75rem;
+  border-bottom: 1px solid var(--border);
+  background: var(--background);
+}
+
+.paperLabel {
+  margin-right: auto;
+  color: var(--muted-foreground);
+  font-size: 0.75rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.zoomLevel {
+  min-width: 2.5rem;
+  color: var(--muted-foreground);
+  font-size: 0.75rem;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}
+
+.previewScroll {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  background: color-mix(in oklab, var(--muted) 78%, var(--background));
+  overscroll-behavior: contain;
+}
+
+.paperStage {
+  display: grid;
+  width: max-content;
+  min-width: 100%;
+  padding: 0.75rem;
+  justify-items: center;
+}
+
+.paperFrame {
+  position: relative;
+  overflow: hidden;
+  background: white;
+  box-shadow:
+    0 1px 2px color-mix(in oklab, var(--foreground) 12%, transparent),
+    0 8px 28px color-mix(in oklab, var(--foreground) 8%, transparent);
+}
+
+.paper {
+  position: absolute;
+  inset: 0 auto auto 0;
+  background: white;
+  transform-origin: top left;
+}
+
+@container cv (min-width: 800px) {
+  .commandBar {
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 1.25rem;
+    padding: 0.75rem 1.25rem;
+  }
+
+  .title {
+    position: static;
+    width: auto;
+    height: auto;
+    clip-path: none;
+    font-family: var(--font-display);
+    font-size: 1.5rem;
+    font-weight: 650;
+    letter-spacing: -0.03em;
+  }
+
+  .rolePicker {
+    grid-template-columns: max-content minmax(0, 17rem);
+    justify-content: start;
+    align-items: center;
+    gap: 0.625rem;
+  }
+
+  .mobileModes {
+    display: none;
+  }
+
+  .panes {
+    grid-template-columns: minmax(0, 45fr) minmax(0, 55fr);
+  }
+
+  .editorPane {
+    border-right: 1px solid var(--border);
+  }
+
+  .editorPane,
+  .workspace[data-view="preview"] .editorPane,
+  .previewPane {
+    display: block;
+  }
+
+  .workspace[data-view="edit"] .toolTabs,
+  .editTool {
+    display: flex;
+  }
+
+  .panel {
+    padding: 1.25rem;
+  }
+}

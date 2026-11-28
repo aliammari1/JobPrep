@@ -29,9 +29,9 @@ export function CopyCommand({ command, className }: CopyCommandProps) {
         className,
       )}
     >
-      <div className="flex min-w-0 items-center gap-2.5 overflow-x-auto">
+      <div className="flex min-w-0 items-center gap-2.5">
         <Terminal className="size-4 shrink-0 text-[#60a5fa]" />
-        <code className="whitespace-nowrap font-mono text-xs text-white/90 sm:text-[13px]">
+        <code className="min-w-0 bg-transparent font-mono text-xs wrap-anywhere text-white/90 sm:text-[13px]">
           {command}
         </code>
       </div>

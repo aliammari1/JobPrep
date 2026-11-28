@@ -1,24 +1,24 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Progress } from "@/components/ui/progress";
-import { Badge } from "@/components/ui/badge";
-import { Textarea } from "@/components/ui/textarea";
+import { AnimatePresence, motion } from "framer-motion";
 import {
-  Clock,
-  CheckCircle,
   AlertCircle,
   Brain,
-  Lightbulb,
-  TrendingUp,
-  Target,
-  MessageSquare,
+  CheckCircle,
+  Clock,
   Code,
+  Lightbulb,
+  MessageSquare,
   PenTool,
+  Target,
+  TrendingUp,
 } from "lucide-react";
+import { useEffect, useState } from "react";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Progress } from "@/components/ui/progress";
+import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
 
 interface Question {

@@ -3,14 +3,11 @@ import {
   ArrowUpRight,
   BookOpen,
   CalendarCheck,
-  Check,
   Code2,
   FileEdit,
   Gauge,
   Github,
-  Minus,
   MonitorPlay,
-  Star,
 } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
@@ -23,26 +20,10 @@ const GITHUB_REPO = "aliammari1/JobPrep";
 const GITHUB_URL = `https://github.com/${GITHUB_REPO}`;
 
 export const metadata: Metadata = {
-  title: "JobPrep — Open-Source AI Interview Prep & Career Studio",
+  title: "JobPrep — Interview Practice and Résumé Builder",
   description:
-    "Practice interviews with structured rubrics, timed code challenges, live rooms, and ATS-ready resumes. Bring your own AI key or run 100% offline with Ollama.",
+    "Practice interviews, review feedback on your answers, and tailor your résumé. Self-host JobPrep with a cloud AI provider or local Ollama inference.",
 };
-
-async function getGitHubStars(): Promise<number | null> {
-  try {
-    const res = await fetch(`https://api.github.com/repos/${GITHUB_REPO}`, {
-      headers: { Accept: "application/vnd.github+json" },
-      next: { revalidate: 3600 },
-    });
-    if (!res.ok) return null;
-    const data = (await res.json()) as { stargazers_count?: unknown };
-    return typeof data.stargazers_count === "number"
-      ? data.stargazers_count
-      : null;
-  } catch {
-    return null;
-  }
-}
 
 const WORKSPACES = [
   {
@@ -89,37 +70,7 @@ const WORKSPACES = [
   },
 ];
 
-const COMPARISON_ROWS = [
-  {
-    feature: "Monthly cost",
-    jobprep: "$0 — self-host or BYOK",
-    paid: "$96 – $149 / month",
-  },
-  {
-    feature: "AI models",
-    jobprep: "Claude, GPT, Gemini, or local Ollama",
-    paid: "Single locked vendor",
-  },
-  {
-    feature: "Offline mode",
-    jobprep: "100% local inference via Ollama",
-    paid: "Cloud-only",
-  },
-  {
-    feature: "Data ownership",
-    jobprep: "Your PostgreSQL — export or purge anytime",
-    paid: "Stored on vendor servers",
-  },
-  {
-    feature: "Career suite",
-    jobprep: "Mocks, LiveKit rooms, Code Arena, CV (PDF & DOCX)",
-    paid: "Split across 3–4 subscriptions",
-  },
-];
-
-export default async function Home() {
-  const starCount = await getGitHubStars();
-
+export default function Home() {
   return (
     <div className="flex flex-col">
       {/* Airy Centered Hero */}
@@ -132,9 +83,9 @@ export default async function Home() {
           </h1>
 
           <p className="mx-auto mt-6 max-w-2xl text-base leading-relaxed text-muted-foreground sm:text-lg">
-            The open-source interview studio with structured rubrics, timed code
-            challenges, and ATS-ready resumes. Bring your own AI key or run 100%
-            offline with Ollama.
+            Rehearse interview answers, review feedback against a rubric, and
+            tailor your résumé to the role. Use a cloud AI provider or run
+            inference locally with Ollama.
           </p>
 
           <div className="mt-9 flex flex-wrap items-center justify-center gap-3">
@@ -143,8 +94,8 @@ export default async function Home() {
               size="lg"
               className="h-12 px-7 text-sm font-semibold"
             >
-              <Link href="/sign-up">
-                Start practicing free
+              <Link href="#sample">
+                Try the sample
                 <ArrowRight className="size-4" />
               </Link>
             </Button>
@@ -155,23 +106,28 @@ export default async function Home() {
               size="lg"
               className="h-12 gap-2 px-6 text-sm font-semibold"
             >
-              <a href={GITHUB_URL} target="_blank" rel="noopener noreferrer">
-                <Star className="size-4 text-primary" />
-                <span>Star on GitHub</span>
-                {starCount !== null && (
-                  <span className="rounded-md bg-muted px-2 py-0.5 text-xs font-semibold text-foreground tabular-nums">
-                    {starCount.toLocaleString()}
-                  </span>
-                )}
-              </a>
+              <Link href="/sign-up">Create an account</Link>
             </Button>
           </div>
         </div>
 
-        {/* Full-Width Interactive Product Showcase */}
-        <div className="mx-auto mt-14 max-w-5xl sm:mt-16">
+        <section
+          id="sample"
+          aria-labelledby="sample-heading"
+          className="mx-auto mt-14 max-w-5xl scroll-mt-24 sm:mt-16"
+        >
+          <h2
+            id="sample-heading"
+            className="text-lg font-semibold text-foreground"
+          >
+            Sample interview
+          </h2>
+          <p className="mt-1 mb-4 text-sm text-muted-foreground">
+            Compare two example answers and see how the rubric works. The scores
+            and feedback are illustrative.
+          </p>
           <HeroShowcase />
-        </div>
+        </section>
       </section>
 
       {/* Distilled Workspaces Grid — Clean Hairlines, No Heavy Cards */}
@@ -212,48 +168,6 @@ export default async function Home() {
                   </p>
                 </div>
               </Link>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Clean Architectural Comparison Table */}
-      <section className="mx-auto w-full max-w-6xl px-4 py-20 sm:px-6 sm:py-24 lg:px-8">
-        <div className="mb-12 flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
-          <h2 className="max-w-xl font-display text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
-            Why teams and candidates self-host JobPrep
-          </h2>
-          <p className="max-w-md text-sm leading-relaxed text-muted-foreground sm:text-base">
-            No vendor lock-in, no $149/mo subscription, and your recordings
-            never leave your database.
-          </p>
-        </div>
-
-        <div className="overflow-hidden rounded-2xl border border-border bg-card">
-          <div className="grid grid-cols-12 border-b border-border bg-muted/45 px-5 py-4 text-xs font-semibold text-muted-foreground sm:px-6">
-            <div className="col-span-4">Capability</div>
-            <div className="col-span-4 text-primary">JobPrep (Open Source)</div>
-            <div className="col-span-4">Paid Interview SaaS</div>
-          </div>
-
-          <div className="divide-y divide-border">
-            {COMPARISON_ROWS.map((row) => (
-              <div
-                key={row.feature}
-                className="grid grid-cols-12 items-center gap-3 px-5 py-4 text-xs sm:px-6 sm:text-sm"
-              >
-                <div className="col-span-4 font-medium text-foreground">
-                  {row.feature}
-                </div>
-                <div className="col-span-4 flex items-start gap-2 font-medium text-foreground">
-                  <Check className="mt-0.5 size-4 shrink-0 text-primary" />
-                  <span>{row.jobprep}</span>
-                </div>
-                <div className="col-span-4 flex items-start gap-2 text-muted-foreground">
-                  <Minus className="mt-0.5 size-4 shrink-0 text-muted-foreground/50" />
-                  <span>{row.paid}</span>
-                </div>
-              </div>
             ))}
           </div>
         </div>
@@ -305,17 +219,16 @@ export default async function Home() {
         </div>
       </section>
 
-      {/* Self-Host & Open-Source Closing Section */}
       <section className="mx-auto w-full max-w-6xl px-4 py-20 sm:px-6 sm:py-24 lg:px-8">
         <div className="grid gap-10 lg:grid-cols-12 lg:items-center">
           <div className="space-y-4 lg:col-span-6">
             <h2 className="font-display text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
-              Run it locally in under a minute.
+              Run JobPrep on your own server
             </h2>
             <p className="max-w-lg text-base leading-relaxed text-muted-foreground">
-              Built on Next.js 15, PostgreSQL, and Prisma. Clone the repo, bring
-              your own AI key or local Ollama model, and keep every recording
-              under your control.
+              JobPrep is source-available. The setup guide covers PostgreSQL,
+              authentication, and optional integrations. Commercial use requires
+              a separate license.
             </p>
             <div className="flex flex-wrap items-center gap-3 pt-2">
               <Button
@@ -323,10 +236,12 @@ export default async function Home() {
                 size="lg"
                 className="h-11 px-6 text-sm font-semibold"
               >
-                <Link href="/sign-up">
-                  Create free account
+                <a
+                  href={`${GITHUB_URL}/blob/main/CONTRIBUTING.md#getting-started-web-app`}
+                >
+                  Local setup guide
                   <ArrowRight className="size-4" />
-                </Link>
+                </a>
               </Button>
               <Button
                 asChild
@@ -336,22 +251,16 @@ export default async function Home() {
               >
                 <a href={GITHUB_URL} target="_blank" rel="noopener noreferrer">
                   <Github className="size-4" />
-                  <span>Star on GitHub</span>
-                  {starCount !== null && (
-                    <span className="rounded bg-muted px-2 py-0.5 text-xs tabular-nums">
-                      {starCount.toLocaleString()}
-                    </span>
-                  )}
+                  <span>View on GitHub</span>
                 </a>
               </Button>
             </div>
           </div>
 
           <div className="min-w-0 space-y-3 lg:col-span-6">
-            <CopyCommand command="git clone https://github.com/aliammari1/JobPrep && cd JobPrep && docker compose up -d" />
+            <CopyCommand command="git clone https://github.com/aliammari1/JobPrep.git" />
             <p className="text-xs text-muted-foreground">
-              Includes local PostgreSQL, Better Auth passkeys &amp; 2FA, and
-              pluggable Anthropic / OpenAI / Gemini / Ollama providers.
+              See the setup guide for the remaining steps.
             </p>
           </div>
         </div>

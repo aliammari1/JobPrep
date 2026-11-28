@@ -3,7 +3,7 @@
  * POST /api/notifications/dismiss - Track dismissed notifications
  */
 
-import { NextRequest, NextResponse } from "next/server";
+import { type NextRequest, NextResponse } from "next/server";
 
 /**
  * Handle POST requests to record a dismissed notification.

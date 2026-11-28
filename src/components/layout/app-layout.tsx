@@ -2,8 +2,8 @@
 
 import dynamic from "next/dynamic";
 import { usePathname } from "next/navigation";
-import { useEffect, useState } from "react";
 import { useSession } from "@/lib/auth-client";
+import { useWorkspaceNavigation } from "./use-workspace-navigation";
 
 const Sidebar = dynamic(() => import("./sidebar").then((m) => m.Sidebar), {
   ssr: false,
@@ -12,6 +12,11 @@ const Sidebar = dynamic(() => import("./sidebar").then((m) => m.Sidebar), {
 const Navbar = dynamic(() => import("./navbar").then((m) => m.Navbar), {
   ssr: false,
 });
+
+const MobileWorkspaceNavigation = dynamic(
+  () => import("./mobile-navigation").then((m) => m.MobileWorkspaceNavigation),
+  { ssr: false },
+);
 
 const LandingNavbar = dynamic(
   () =>
@@ -36,17 +41,14 @@ interface AppLayoutProps {
 }
 
 export function AppLayout({ children }: AppLayoutProps) {
-  const [sidebarOpen, setSidebarOpen] = useState(() => {
-    if (typeof window !== "undefined") {
-      return window.innerWidth >= 1024;
-    }
-    return false;
-  });
   const pathname = usePathname();
   const { data: session, isPending } = useSession();
 
   const isDashboardRoute =
     pathname.startsWith("/dashboard") ||
+    pathname === "/more" ||
+    pathname === "/interview" ||
+    pathname.startsWith("/saved-interviews/") ||
     pathname.startsWith("/settings") ||
     pathname.startsWith("/interview-scheduler") ||
     pathname.startsWith("/interview-room") ||
@@ -73,41 +75,39 @@ export function AppLayout({ children }: AppLayoutProps) {
     pathname.startsWith("/phone-signin") ||
     pathname.startsWith("/verify-2fa");
 
-  const showDashboardLayout = !isPending && session && isDashboardRoute;
+  const isFocusRoute =
+    pathname.startsWith("/interview-room") ||
+    pathname.startsWith("/code-challenge") ||
+    pathname.startsWith("/system-design");
+
+  const showDashboardLayout =
+    !isPending && Boolean(session) && isDashboardRoute;
+  const { mainRef, onBack } = useWorkspaceNavigation(
+    pathname,
+    showDashboardLayout,
+  );
   const showLandingNavbar = !isDashboardRoute && !isAuthRoute;
   const showLandingFooter = showLandingNavbar && !isToolRoute;
 
-  useEffect(() => {
-    if (typeof window !== "undefined" && window.innerWidth < 1024) {
-      setSidebarOpen(false);
-    }
-  }, [pathname]);
-
-  useEffect(() => {
-    const handleResize = () => {
-      setSidebarOpen(window.innerWidth >= 1024);
-    };
-
-    handleResize();
-    window.addEventListener("resize", handleResize);
-    return () => window.removeEventListener("resize", handleResize);
-  }, []);
-
-  const toggleSidebar = () => setSidebarOpen((prev) => !prev);
-  const closeSidebar = () => setSidebarOpen(false);
-
   if (showDashboardLayout) {
     return (
-      <div className="flex h-screen overflow-hidden bg-background">
-        <Sidebar
-          isOpen={sidebarOpen}
-          onToggle={toggleSidebar}
-          onClose={closeSidebar}
-        />
+      <div className="flex h-dvh overflow-hidden bg-background">
+        <Sidebar />
 
-        <div className="flex flex-1 flex-col overflow-hidden">
-          <Navbar onSidebarToggle={toggleSidebar} sidebarOpen={sidebarOpen} />
-          <main className="flex-1 overflow-y-auto">{children}</main>
+        <div className="flex min-w-0 flex-1 flex-col overflow-hidden">
+          <Navbar onBack={onBack} />
+          <main
+            ref={mainRef}
+            tabIndex={-1}
+            className="jobprep-workspace-main min-h-0 min-w-0 flex-1 overflow-y-auto focus:outline-none"
+          >
+            {children}
+          </main>
+          {!isFocusRoute && (
+            <div className="shrink-0 lg:hidden">
+              <MobileWorkspaceNavigation />
+            </div>
+          )}
         </div>
 
         <CommandPalette />

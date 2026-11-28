@@ -1,8 +1,8 @@
-import { useState, useRef, useCallback } from "react";
+import { Circle, Loader2, Square, Upload } from "lucide-react";
+import { useCallback, useRef, useState } from "react";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
-import { Circle, Square, Upload, Loader2 } from "lucide-react";
-import { toast } from "sonner";
 import { useRecordingUpload } from "@/hooks/use-recording-upload";
 
 interface BrowserRecorderProps {
@@ -13,13 +13,13 @@ interface BrowserRecorderProps {
 
 export function BrowserRecorder({
   interviewId,
-  roomName,
   onRecordingComplete,
 }: BrowserRecorderProps) {
   const [isRecording, setIsRecording] = useState(false);
   const [recordedChunks, setRecordedChunks] = useState<Blob[]>([]);
   const [recordingDuration, setRecordingDuration] = useState(0);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+  const pendingUploadRef = useRef<{ chunks: Blob[]; file: Blob } | null>(null);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
   const streamRef = useRef<MediaStream | null>(null);
 
@@ -99,26 +99,24 @@ export function BrowserRecorder({
       return;
     }
 
-    const blob = new Blob(recordedChunks, { type: "video/webm" });
-
+    if (pendingUploadRef.current?.chunks !== recordedChunks) {
+      pendingUploadRef.current = {
+        chunks: recordedChunks,
+        file: new Blob(recordedChunks, { type: "video/webm" }),
+      };
+    }
     const result = await uploadRecording({
-      file: blob,
+      file: pendingUploadRef.current.file,
       interviewId,
-      roomName,
     });
 
     if (result.success && result.recording) {
       onRecordingComplete?.(result.recording.fileUrl);
+      pendingUploadRef.current = null;
       setRecordedChunks([]);
       setRecordingDuration(0);
     }
-  }, [
-    recordedChunks,
-    interviewId,
-    roomName,
-    uploadRecording,
-    onRecordingComplete,
-  ]);
+  }, [recordedChunks, interviewId, uploadRecording, onRecordingComplete]);
 
   const formatDuration = (seconds: number) => {
     const hours = Math.floor(seconds / 3600);

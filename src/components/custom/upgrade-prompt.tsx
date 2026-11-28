@@ -1,5 +1,8 @@
 "use client";
 
+import { Crown } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
@@ -8,9 +11,6 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
-import { Crown } from "lucide-react";
-import { useRouter } from "next/navigation";
 
 interface UpgradePromptProps {
   open: boolean;
@@ -29,7 +29,7 @@ export function UpgradePrompt({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent>
+      <DialogContent mobileSheet>
         <DialogHeader>
           <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-primary/10">
             <Crown className="h-6 w-6 text-primary" />

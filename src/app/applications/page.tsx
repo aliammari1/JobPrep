@@ -1,6 +1,7 @@
 "use client";
 
 import {
+  ArrowLeft,
   ArrowRight,
   Briefcase,
   Check,
@@ -18,7 +19,15 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useQueryState } from "nuqs";
+import {
+  Suspense,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -117,15 +126,23 @@ const STAGES: { id: Stage; label: string }[] = [
   { id: "offer", label: "Offer" },
 ];
 
-export default function ApplicationsPage() {
+function ApplicationsContent() {
   const router = useRouter();
   const { data: session, isPending } = useSession();
   const cvData = useCVStore((s) => s.cvData);
 
   const [applications, setApplications] = useState<JobApplication[]>([]);
   const [loading, setLoading] = useState(true);
+  const [urlRoleId, setUrlRoleId] = useQueryState("role", { history: "push" });
   const [selectedId, setSelectedId] = useState<string | null>(null);
+  const mobileDetailOpen = Boolean(urlRoleId);
   const [stageFilter, setStageFilter] = useState<Stage | "all">("all");
+
+  useEffect(() => {
+    if (urlRoleId) {
+      setSelectedId(urlRoleId);
+    }
+  }, [urlRoleId]);
   const [searchQuery, setSearchQuery] = useState("");
 
   const [dossierArtifacts, setDossierArtifacts] =
@@ -422,7 +439,7 @@ export default function ApplicationsPage() {
     return (
       <div className="mx-auto max-w-7xl space-y-6 p-6 lg:p-8">
         <Skeleton className="h-12 w-72" />
-        <div className="grid gap-6 lg:grid-cols-12">
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-12">
           <Skeleton className="h-[540px] rounded-2xl lg:col-span-4" />
           <Skeleton className="h-[540px] rounded-2xl lg:col-span-8" />
         </div>
@@ -431,14 +448,19 @@ export default function ApplicationsPage() {
   }
 
   return (
-    <div className="mx-auto max-w-7xl space-y-6 p-5 sm:p-6 lg:p-8">
+    <div className="mx-auto max-w-7xl space-y-5 p-4 sm:space-y-6 sm:p-6 lg:p-8">
       {/* Header */}
-      <div className="flex flex-col gap-4 border-b border-border pb-5 sm:flex-row sm:items-end sm:justify-between">
+      <div
+        className={cn(
+          "flex flex-col gap-3 border-b border-border pb-4 sm:flex-row sm:items-end sm:justify-between sm:pb-5",
+          mobileDetailOpen && "hidden lg:flex",
+        )}
+      >
         <div>
-          <h1 className="font-display text-3xl font-bold tracking-tight text-foreground">
+          <h1 className="sr-only font-display lg:not-sr-only lg:text-3xl lg:font-bold lg:tracking-tight lg:text-foreground">
             Role Dossiers
           </h1>
-          <p className="mt-1 text-sm text-muted-foreground">
+          <p className="hidden text-sm text-muted-foreground sm:block lg:mt-1">
             Every target role connects your tailored CV, cover letter, mock
             interviews, and system design drafts in one place.
           </p>
@@ -451,7 +473,7 @@ export default function ApplicationsPage() {
               Add target role
             </Button>
           </DialogTrigger>
-          <DialogContent className="sm:max-w-lg">
+          <DialogContent mobileSheet className="sm:max-w-lg">
             <form onSubmit={handleAddApplication} className="space-y-4">
               <DialogHeader>
                 <DialogTitle className="font-display">
@@ -463,7 +485,7 @@ export default function ApplicationsPage() {
                 </DialogDescription>
               </DialogHeader>
 
-              <div className="grid gap-3 sm:grid-cols-2">
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                 <div className="space-y-1.5">
                   <Label htmlFor="app-company">Company</Label>
                   <Input
@@ -490,7 +512,7 @@ export default function ApplicationsPage() {
                 </div>
               </div>
 
-              <div className="grid gap-3 sm:grid-cols-2">
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                 <div className="space-y-1.5">
                   <Label htmlFor="app-location">Location</Label>
                   <Input
@@ -567,13 +589,18 @@ export default function ApplicationsPage() {
 
       {/* Pipeline Filter Strip + Search */}
       {applications.length > 0 && (
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-          <div className="flex flex-wrap items-center gap-1.5">
+        <div
+          className={cn(
+            "flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between",
+            mobileDetailOpen && "hidden lg:flex",
+          )}
+        >
+          <div className="-mx-4 flex flex-nowrap items-center gap-1.5 overflow-x-auto px-4 pb-1 sm:mx-0 sm:flex-wrap sm:px-0 sm:pb-0">
             <button
               type="button"
               onClick={() => setStageFilter("all")}
               className={cn(
-                "rounded-full border px-3 py-1 text-xs font-medium transition-colors",
+                "shrink-0 rounded-full border px-3 py-1.5 text-xs font-medium transition-colors",
                 stageFilter === "all"
                   ? "border-foreground bg-foreground text-background"
                   : "border-border bg-card text-muted-foreground hover:text-foreground",
@@ -587,7 +614,7 @@ export default function ApplicationsPage() {
                 type="button"
                 onClick={() => setStageFilter(s.id)}
                 className={cn(
-                  "rounded-full border px-3 py-1 text-xs font-medium transition-colors tabular-nums",
+                  "shrink-0 rounded-full border px-3 py-1.5 text-xs font-medium transition-colors tabular-nums",
                   stageFilter === s.id
                     ? "border-primary bg-primary text-primary-foreground"
                     : "border-border bg-card text-muted-foreground hover:text-foreground",
@@ -636,9 +663,14 @@ export default function ApplicationsPage() {
           </CardContent>
         </Card>
       ) : (
-        <div className="grid gap-6 lg:grid-cols-12">
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-12">
           {/* Left Rail: Role List */}
-          <aside className="space-y-2.5 lg:col-span-4">
+          <aside
+            className={cn(
+              "min-w-0 space-y-2.5 lg:col-span-4",
+              mobileDetailOpen ? "hidden lg:block" : "block",
+            )}
+          >
             {filteredApplications.length === 0 ? (
               <div className="rounded-xl border border-dashed border-border p-6 text-center text-xs text-muted-foreground">
                 No roles match this filter.
@@ -663,7 +695,10 @@ export default function ApplicationsPage() {
                   <button
                     key={app.id}
                     type="button"
-                    onClick={() => setSelectedId(app.id)}
+                    onClick={() => {
+                      setSelectedId(app.id);
+                      void setUrlRoleId(app.id);
+                    }}
                     className={cn(
                       "role-card-container w-full rounded-xl border p-4 text-left transition-all",
                       isSelected
@@ -717,7 +752,24 @@ export default function ApplicationsPage() {
           </aside>
 
           {/* Right Pane: Selected Role Dossier */}
-          <div className="space-y-6 lg:col-span-8">
+          <div
+            className={cn(
+              "min-w-0 space-y-6 lg:col-span-8",
+              mobileDetailOpen ? "block" : "hidden lg:block",
+            )}
+          >
+            <div className="lg:hidden">
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                className="min-h-10 gap-1.5"
+                onClick={() => void setUrlRoleId(null)}
+              >
+                <ArrowLeft className="size-4" />
+                All roles ({filteredApplications.length})
+              </Button>
+            </div>
             {selectedApp && (
               <>
                 {/* Role Header + Stage Stepper */}
@@ -798,7 +850,7 @@ export default function ApplicationsPage() {
                 </Card>
 
                 {/* Interconnected Preparation Matrix (Real Prisma Relations) */}
-                <div className="grid gap-3 sm:grid-cols-2">
+                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                   {/* Tailored CV */}
                   <Card className="shadow-none">
                     <CardContent className="flex h-full flex-col justify-between gap-3 p-4">
@@ -839,7 +891,7 @@ export default function ApplicationsPage() {
                         asChild
                         size="sm"
                         variant="outline"
-                        className="w-full justify-between"
+                        className="h-auto min-h-10 w-full justify-between whitespace-normal text-left"
                       >
                         <Link
                           href={`/cv-builder?applicationId=${selectedApp.id}`}
@@ -883,7 +935,7 @@ export default function ApplicationsPage() {
                         asChild
                         size="sm"
                         variant="outline"
-                        className="w-full justify-between"
+                        className="h-auto min-h-10 w-full justify-between whitespace-normal text-left"
                       >
                         <Link
                           href={`/cover-letter?applicationId=${selectedApp.id}`}
@@ -942,7 +994,7 @@ export default function ApplicationsPage() {
                       <Button
                         asChild
                         size="sm"
-                        className="w-full justify-between"
+                        className="h-auto min-h-10 w-full justify-between whitespace-normal text-left"
                       >
                         <Link
                           href={`/mock-interview?applicationId=${selectedApp.id}&role=${encodeURIComponent(selectedApp.role)}&company=${encodeURIComponent(selectedApp.company)}`}
@@ -1001,7 +1053,7 @@ export default function ApplicationsPage() {
                         asChild
                         size="sm"
                         variant="outline"
-                        className="w-full justify-between"
+                        className="h-auto min-h-10 w-full justify-between whitespace-normal text-left"
                       >
                         <Link
                           href={`/system-design?applicationId=${selectedApp.id}`}
@@ -1025,7 +1077,7 @@ export default function ApplicationsPage() {
                       Builder.
                     </CardDescription>
                   </CardHeader>
-                  <CardContent className="grid gap-6 md:grid-cols-2">
+                  <CardContent className="grid grid-cols-1 gap-6 md:grid-cols-2">
                     <div className="space-y-3">
                       <div className="space-y-1.5">
                         <Label htmlFor="dossier-jd">Job description</Label>
@@ -1149,5 +1201,23 @@ export default function ApplicationsPage() {
         </div>
       )}
     </div>
+  );
+}
+
+export default function ApplicationsPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="mx-auto max-w-7xl space-y-6 p-4 sm:p-6 lg:p-8">
+          <Skeleton className="h-10 w-56" />
+          <div className="grid grid-cols-1 gap-6 lg:grid-cols-12">
+            <Skeleton className="h-[480px] rounded-2xl lg:col-span-4" />
+            <Skeleton className="hidden h-[480px] rounded-2xl lg:col-span-8 lg:block" />
+          </div>
+        </div>
+      }
+    >
+      <ApplicationsContent />
+    </Suspense>
   );
 }

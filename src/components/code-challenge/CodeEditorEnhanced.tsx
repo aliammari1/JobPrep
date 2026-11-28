@@ -1,17 +1,30 @@
 "use client";
 
-import { useState, useRef } from "react";
-import { motion } from "framer-motion";
-import CodeMirror, { EditorView } from "@uiw/react-codemirror";
+import { cpp } from "@codemirror/lang-cpp";
+import { java } from "@codemirror/lang-java";
 import { javascript } from "@codemirror/lang-javascript";
 import { python } from "@codemirror/lang-python";
-import { java } from "@codemirror/lang-java";
-import { cpp } from "@codemirror/lang-cpp";
 import { oneDark } from "@codemirror/theme-one-dark";
+import CodeMirror, { EditorView } from "@uiw/react-codemirror";
+import { motion } from "framer-motion";
+import {
+  Clock,
+  Copy,
+  FileCode,
+  Maximize2,
+  MemoryStick,
+  Minimize2,
+  RotateCcw,
+  Save,
+  Terminal,
+  Zap,
+} from "lucide-react";
 import { useTheme } from "next-themes";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
+import { useRef, useState } from "react";
+import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Select,
   SelectContent,
@@ -19,20 +32,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import {
-  FileCode,
-  Save,
-  RotateCcw,
-  Copy,
-  Maximize2,
-  Minimize2,
-  Terminal,
-  Zap,
-  Clock,
-  MemoryStick,
-} from "lucide-react";
 import { cn } from "@/lib/utils";
-import { toast } from "sonner";
 
 interface CodeEditorEnhancedProps {
   code: string;
@@ -85,6 +85,22 @@ export function CodeEditorEnhanced({
   const { theme } = useTheme();
   const [isFullscreen, setIsFullscreen] = useState(false);
   const editorRef = useRef<HTMLDivElement>(null);
+  const editorViewRef = useRef<EditorView | null>(null);
+
+  const insertCodeSnippet = (snippet: string, cursorOffset = 0) => {
+    const view = editorViewRef.current;
+    if (!view) {
+      onCodeChange(code + snippet);
+      return;
+    }
+    const { from, to } = view.state.selection.main;
+    const nextCursor = from + snippet.length + cursorOffset;
+    view.dispatch({
+      changes: { from, to, insert: snippet },
+      selection: { anchor: nextCursor },
+    });
+    view.focus();
+  };
 
   const handleCopyCode = () => {
     navigator.clipboard.writeText(code);
@@ -270,13 +286,43 @@ export function CodeEditorEnhanced({
         </CardHeader>
 
         {/* Code Editor */}
-        <CardContent className="flex-1 flex flex-col gap-4 overflow-hidden p-4">
+        <CardContent className="flex-1 flex flex-col gap-3 overflow-hidden p-3 sm:gap-4 sm:p-4">
+          {/* Mobile Code Keyboard Accessory Bar */}
+          <div
+            role="toolbar"
+            aria-label="Code symbols"
+            className="flex items-center gap-1.5 overflow-x-auto pb-1 lg:hidden"
+          >
+            {[
+              { label: "Tab", insert: "  ", offset: 0 },
+              { label: "{ }", insert: "{}", offset: -1 },
+              { label: "( )", insert: "()", offset: -1 },
+              { label: "[ ]", insert: "[]", offset: -1 },
+              { label: "=>", insert: " => ", offset: 0 },
+              { label: ";", insert: ";", offset: 0 },
+              { label: "=", insert: " = ", offset: 0 },
+              { label: '" "', insert: '""', offset: -1 },
+            ].map((item) => (
+              <button
+                key={item.label}
+                type="button"
+                onMouseDown={(e) => e.preventDefault()}
+                onClick={() => insertCodeSnippet(item.insert, item.offset)}
+                className="min-h-9 shrink-0 rounded-md border border-border bg-muted/60 px-2.5 font-mono text-xs font-medium text-foreground active:bg-accent"
+              >
+                {item.label}
+              </button>
+            ))}
+          </div>
           <div className="flex-1 border rounded-lg overflow-hidden bg-muted/30">
             <CodeMirror
               value={code}
               height={showConsole ? "60%" : "100%"}
               theme={theme === "dark" ? oneDark : undefined}
               extensions={[getLanguageExtension(), EditorView.lineWrapping]}
+              onCreateEditor={(view) => {
+                editorViewRef.current = view;
+              }}
               onChange={(value) => onCodeChange(value || "")}
               basicSetup={{
                 lineNumbers: true,

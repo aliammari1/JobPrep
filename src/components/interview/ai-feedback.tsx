@@ -1,12 +1,12 @@
 "use client";
 
+import { AlertCircle, Loader2, Sparkles } from "lucide-react";
 import { useState } from "react";
-import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { useAiAnalysis } from "@/hooks/use-ai-analysis";
-import { Loader2, Sparkles, AlertCircle } from "lucide-react";
 import ReactMarkdown from "react-markdown";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Textarea } from "@/components/ui/textarea";
+import { useAiAnalysis } from "@/hooks/use-ai-analysis";
 
 interface AIFeedbackProps {
   question: string;

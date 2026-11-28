@@ -1,5 +1,5 @@
-import { NextRequest, NextResponse } from "next/server";
 import { randomBytes } from "crypto";
+import { type NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 
 // Add CORS headers for Chrome extension

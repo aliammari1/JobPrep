@@ -1,85 +1,185 @@
-import { NextRequest, NextResponse } from "next/server";
+import { type NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
-import { headers } from "next/headers";
+import { cloudflareContext } from "@/lib/cloudflare";
 import prisma from "@/lib/prisma";
 
-export async function DELETE(
-  req: NextRequest,
-  { params }: { params: Promise<{ id: string }> },
-) {
-  try {
-    const session = await auth.api.getSession({
-      headers: await headers(),
-    });
+type Route = { params: Promise<{ id: string }> };
 
+export async function GET(request: NextRequest, { params }: Route) {
+  try {
+    const session = await auth.api.getSession({ headers: request.headers });
     if (!session) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const { id: recordingId } = await params;
-
-    // Find the interview
-    const interview = await prisma.interview.findUnique({
-      where: { id: recordingId },
+    const { id } = await params;
+    const interview = await prisma.interview.findFirst({
+      where: {
+        id,
+        OR: [
+          { candidateId: session.user.id },
+          { interviewerId: session.user.id },
+        ],
+      },
+      select: {
+        recordingObjectKey: true,
+        recordingFileName: true,
+        recordingContentType: true,
+        videoRecordingUrl: true,
+      },
     });
+    if (!interview?.videoRecordingUrl) {
+      return NextResponse.json(
+        { error: "Recording not found" },
+        { status: 404 },
+      );
+    }
+    if (!interview.recordingObjectKey) {
+      return NextResponse.json(
+        { error: "Recording is awaiting storage migration" },
+        { status: 409 },
+      );
+    }
 
-    if (!interview) {
+    const bucket = cloudflareContext()?.env.RECORDINGS_BUCKET;
+    if (!bucket) {
+      return NextResponse.json(
+        { error: "Recording storage is unavailable" },
+        { status: 503 },
+      );
+    }
+    const metadata = await bucket.head(interview.recordingObjectKey);
+    if (!metadata) {
       return NextResponse.json(
         { error: "Recording not found" },
         { status: 404 },
       );
     }
 
-    // Check if user has permission to delete
-    if (
-      interview.interviewerId !== session.user.id &&
-      interview.candidateId !== session.user.id
-    ) {
-      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    const headers = new Headers({
+      "Accept-Ranges": "bytes",
+      "Cache-Control": "private, no-store",
+      "Content-Type":
+        interview.recordingContentType ?? "application/octet-stream",
+      "X-Content-Type-Options": "nosniff",
+      ETag: metadata.httpEtag,
+    });
+    if (request.nextUrl.searchParams.has("download")) {
+      const name =
+        interview.recordingFileName?.replace(/[^a-z0-9._-]/gi, "_") ??
+        "recording";
+      headers.set("Content-Disposition", `attachment; filename="${name}"`);
     }
 
-    // Delete file from Appwrite Storage if URL exists and Appwrite is configured
-    const isAppwriteConfigured = Boolean(
-      process.env.NEXT_PUBLIC_APPWRITE_ENDPOINT &&
-        process.env.NEXT_PUBLIC_APPWRITE_PROJECT_ID &&
-        process.env.APPWRITE_API_KEY,
-    );
-
-    if (interview.videoRecordingUrl && isAppwriteConfigured) {
-      try {
-        let fileId: string | undefined = recordingId;
-        if (interview.settings) {
-          const parsed =
-            typeof interview.settings === "string"
-              ? JSON.parse(interview.settings)
-              : interview.settings;
-          fileId = parsed?.recordingFileId || recordingId;
-        }
-
-        if (fileId) {
-          const { deleteRecording } = await import("@/lib/appwrite");
-          await deleteRecording(fileId);
-        }
-      } catch (storageError) {
-        console.error(
-          "Failed to delete from storage, but removing from database:",
-          storageError,
-        );
-        // Continue with database deletion even if storage deletion fails
+    let range: { offset: number; length: number } | undefined;
+    const rangeHeader = request.headers.get("range");
+    const ifRange = request.headers.get("if-range");
+    if (rangeHeader && (!ifRange || ifRange === metadata.httpEtag)) {
+      const match = /^bytes=(\d*)-(\d*)$/i.exec(rangeHeader);
+      const start = match?.[1] ?? "";
+      const end = match?.[2] ?? "";
+      const offset = start
+        ? Number(start)
+        : Math.max(0, metadata.size - Number(end));
+      const last =
+        start && end
+          ? Math.min(Number(end), metadata.size - 1)
+          : metadata.size - 1;
+      if (
+        !match ||
+        (!start && (!end || Number(end) <= 0)) ||
+        !Number.isSafeInteger(offset) ||
+        !Number.isSafeInteger(last) ||
+        offset >= metadata.size ||
+        last < offset
+      ) {
+        headers.set("Content-Range", `bytes */${metadata.size}`);
+        return new Response(null, { status: 416, headers });
       }
+      range = { offset, length: last - offset + 1 };
+      headers.set("Content-Range", `bytes ${offset}-${last}/${metadata.size}`);
+    }
+    headers.set("Content-Length", String(range?.length ?? metadata.size));
+
+    const status = range ? 206 : 200;
+    if (request.method === "HEAD")
+      return new Response(null, { status, headers });
+
+    const object = await bucket.get(
+      interview.recordingObjectKey,
+      range ? { range } : undefined,
+    );
+    if (!object) {
+      return NextResponse.json(
+        { error: "Recording not found" },
+        { status: 404 },
+      );
     }
 
-    // Remove the URL from the database
-    await prisma.interview.update({
-      where: { id: recordingId },
+    return new Response(object.body, { status, headers });
+  } catch (error) {
+    console.error("Recording playback failed", error);
+    return NextResponse.json(
+      { error: "Failed to load recording" },
+      { status: 500 },
+    );
+  }
+}
+
+export const HEAD = GET;
+
+export async function DELETE(request: NextRequest, { params }: Route) {
+  try {
+    const session = await auth.api.getSession({ headers: request.headers });
+    if (!session) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+    const { id } = await params;
+    const participants = [
+      { candidateId: session.user.id },
+      { interviewerId: session.user.id },
+    ];
+    const interview = await prisma.interview.findFirst({
+      where: { id, OR: participants },
+      select: { recordingObjectKey: true, videoRecordingUrl: true },
+    });
+    if (!interview) {
+      return NextResponse.json(
+        { error: "Recording not found" },
+        { status: 404 },
+      );
+    }
+    const key = interview.recordingObjectKey;
+    if (!key) {
+      if (interview.videoRecordingUrl) {
+        return NextResponse.json(
+          { error: "Recording is awaiting storage migration" },
+          { status: 409 },
+        );
+      }
+      return NextResponse.json({ success: true });
+    }
+
+    // The database trigger enqueues this exact object in the same transaction.
+    const detached = await prisma.interview.updateMany({
+      where: { id, OR: participants, recordingObjectKey: key },
       data: {
         videoRecordingUrl: null,
+        recordingObjectKey: null,
+        recordingFileName: null,
+        recordingContentType: null,
+        recordingSize: null,
       },
     });
-
+    if (!detached.count) {
+      return NextResponse.json(
+        { error: "Recording changed during deletion" },
+        { status: 409 },
+      );
+    }
     return NextResponse.json({ success: true });
   } catch (error) {
-    console.error("Error deleting recording:", error);
+    console.error("Recording deletion failed", error);
     return NextResponse.json(
       { error: "Failed to delete recording" },
       { status: 500 },

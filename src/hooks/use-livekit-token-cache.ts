@@ -1,4 +1,4 @@
-import { useCallback, useRef, useEffect } from "react";
+import { useCallback, useEffect, useRef } from "react";
 import { toast } from "sonner";
 
 interface LiveKitTokenCache {
@@ -156,7 +156,7 @@ export function useLiveKitConnection(
     }
 
     reconnectAttemptsRef.current++;
-    const delayMs = Math.pow(2, reconnectAttemptsRef.current) * 1000; // Exponential backoff
+    const delayMs = 2 ** reconnectAttemptsRef.current * 1000; // Exponential backoff
 
     console.log(
       `🔄 Reconnecting to LiveKit (attempt ${reconnectAttemptsRef.current}/${MAX_RECONNECT_ATTEMPTS}) in ${delayMs}ms`,

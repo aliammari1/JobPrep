@@ -1,32 +1,23 @@
 "use client";
 
-import {
-  BarChart3,
-  Brain,
-  Download,
-  Edit3,
-  Linkedin,
-  Redo2,
-  Save,
-  Target,
-  Undo2,
-} from "lucide-react";
+import { Download, Linkedin, MoreHorizontal, Redo2, Undo2 } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useHotkeys } from "react-hotkeys-hook";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useCVStore } from "@/store/cv-store";
 import { AISuggestionPanel } from "./AISuggestionPanel";
 import { ATSMatcherPanel } from "./ATSMatcherPanel";
+import styles from "./cv-workspace.module.css";
 import { EditorPanel } from "./EditorPanel";
 import { ExportPanel } from "./ExportPanel";
 import { PreviewPanel } from "./PreviewPanel";
@@ -34,6 +25,7 @@ import { SkillsGapAnalyzer } from "./SkillsGapAnalyzer";
 
 export function CanvaLayout() {
   const [activeTab, setActiveTab] = useState("editor");
+  const [showPreview, setShowPreview] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
 
   const { cvData, settings, canUndo, canRedo, undo, redo } = useCVStore();
@@ -63,6 +55,7 @@ export function CanvaLayout() {
     const applicationId = searchParams.get("applicationId");
     if (applicationId) {
       setActiveTab("ats-matcher");
+      setShowPreview(false);
     }
 
     let active = true;
@@ -122,6 +115,7 @@ export function CanvaLayout() {
   useHotkeys("mod+k", (e) => {
     e.preventDefault();
     setActiveTab("ai-suggestions");
+    setShowPreview(false);
   });
 
   // Auto-import from LinkedIn extension via window message
@@ -425,33 +419,31 @@ export function CanvaLayout() {
     }
   };
 
-  return (
-    <TooltipProvider>
-      <div className="flex h-[calc(100vh-3.5rem)] flex-col bg-background">
-        {/* Minimal Top Toolbar */}
-        <div className="flex items-center justify-between border-b px-6 py-3 bg-background/95 backdrop-blur">
-          <div className="flex items-center gap-6">
-            <div>
-              <h1 className="text-xl font-bold">CV Builder</h1>
-              <p className="text-xs text-muted-foreground">
-                Build your professional resume
-              </p>
-            </div>
+  const view = showPreview
+    ? "preview"
+    : activeTab === "editor"
+      ? "edit"
+      : "review";
 
-            {/* Target Role Switcher */}
-            {applicationsList.length > 0 && (
+  return (
+    <div className={styles.workspace} data-view={view}>
+      <header className={styles.commandBar}>
+        <h1 className={styles.title}>CV Builder</h1>
+        <div className={styles.roleControl}>
+          {applicationsList.length > 0 && (
+            <label className={styles.rolePicker}>
+              <span id="cv-target-role-label">Target role</span>
               <select
-                aria-label="Tailor CV for target role"
+                aria-labelledby="cv-target-role-label"
                 value={searchParams.get("applicationId") ?? ""}
-                onChange={(e) => {
-                  const id = e.target.value;
+                onChange={(event) => {
+                  const id = event.target.value;
                   router.replace(
                     id
                       ? `/cv-builder?applicationId=${encodeURIComponent(id)}`
                       : "/cv-builder",
                   );
                 }}
-                className="h-8 max-w-[220px] rounded-md border border-border bg-background px-2.5 text-xs text-foreground"
               >
                 <option value="">General CV</option>
                 {applicationsList.map((app) => (
@@ -460,198 +452,110 @@ export function CanvaLayout() {
                   </option>
                 ))}
               </select>
-            )}
-
-            {/* History Controls */}
-            <div className="flex items-center gap-1 border-l pl-6">
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={undo}
-                    disabled={!canUndo()}
-                    className="h-8 w-8"
-                  >
-                    <Undo2 className="h-4 w-4" />
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent>
-                  <p>
-                    Undo <kbd className="ml-1 text-xs">⌘Z</kbd>
-                  </p>
-                </TooltipContent>
-              </Tooltip>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={redo}
-                    disabled={!canRedo()}
-                    className="h-8 w-8"
-                  >
-                    <Redo2 className="h-4 w-4" />
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent>
-                  <p>
-                    Redo <kbd className="ml-1 text-xs">⌘⇧Z</kbd>
-                  </p>
-                </TooltipContent>
-              </Tooltip>
-            </div>
-          </div>
-
-          {/* Action Buttons */}
-          <div className="flex items-center gap-2">
-            <Button variant="outline" size="sm" onClick={handleLinkedInImport}>
-              <Linkedin className="mr-2 h-4 w-4" />
-              Import
-            </Button>
-            <Button variant="outline" size="sm" onClick={handleSave}>
-              <Save className="mr-2 h-4 w-4" />
-              Save
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={handleDownload}
-              disabled={isExporting}
-            >
-              <Download className="mr-2 h-4 w-4" />
-              {isExporting ? "Exporting..." : "Quick PDF"}
-            </Button>
-            <ExportPanel />
-          </div>
+            </label>
+          )}
         </div>
-
-        {/* Main Content - 2 Panel Layout */}
-        <div className="flex min-h-0 flex-1 overflow-hidden">
-          {/* Left Panel - Vertical Tabs + Content */}
-          <div className="h-full w-[45%] min-w-[420px] shrink-0 overflow-hidden">
-            <Tabs
-              value={activeTab}
-              onValueChange={setActiveTab}
-              orientation="vertical"
-              className="h-full flex flex-row border-r"
-            >
-              <TabsList className="h-full w-16 flex-col justify-start gap-2 rounded-none border-r bg-muted/30 p-2 shrink-0">
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <TabsTrigger
-                      value="editor"
-                      className="w-full aspect-square p-0 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
-                    >
-                      <Edit3 className="h-5 w-5" />
-                    </TabsTrigger>
-                  </TooltipTrigger>
-                  <TooltipContent side="right">
-                    <p>Editor</p>
-                  </TooltipContent>
-                </Tooltip>
-
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <TabsTrigger
-                      value="ai-suggestions"
-                      className="w-full aspect-square p-0 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
-                    >
-                      <Brain className="h-5 w-5" />
-                    </TabsTrigger>
-                  </TooltipTrigger>
-                  <TooltipContent side="right">
-                    <p>
-                      AI Suggestions <kbd className="ml-1 text-xs">⌘K</kbd>
-                    </p>
-                  </TooltipContent>
-                </Tooltip>
-
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <TabsTrigger
-                      value="ats-matcher"
-                      className="w-full aspect-square p-0 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
-                    >
-                      <Target className="h-5 w-5" />
-                    </TabsTrigger>
-                  </TooltipTrigger>
-                  <TooltipContent side="right">
-                    <p>ATS JD Matcher</p>
-                  </TooltipContent>
-                </Tooltip>
-
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <TabsTrigger
-                      value="skills-gap"
-                      className="w-full aspect-square p-0 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
-                    >
-                      <BarChart3 className="h-5 w-5" />
-                    </TabsTrigger>
-                  </TooltipTrigger>
-                  <TooltipContent side="right">
-                    <p>Analytics</p>
-                  </TooltipContent>
-                </Tooltip>
-              </TabsList>
-
-              <TabsContent
-                value="editor"
-                className="flex-1 h-full m-0 p-0 border-0"
+        <div className={styles.actions}>
+          <Button variant="ghost" size="sm" onClick={handleSave}>
+            Save
+          </Button>
+          <ExportPanel />
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" size="icon" aria-label="CV actions">
+                <MoreHorizontal aria-hidden="true" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem disabled={!canUndo()} onSelect={undo}>
+                <Undo2 aria-hidden="true" /> Undo
+              </DropdownMenuItem>
+              <DropdownMenuItem disabled={!canRedo()} onSelect={redo}>
+                <Redo2 aria-hidden="true" /> Redo
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onSelect={handleLinkedInImport}>
+                <Linkedin aria-hidden="true" /> Import from LinkedIn
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                disabled={isExporting}
+                onSelect={handleDownload}
               >
-                <ScrollArea className="h-full">
-                  <EditorPanel />
-                </ScrollArea>
-              </TabsContent>
-
-              <TabsContent
-                value="ai-suggestions"
-                className="flex-1 h-full m-0 p-0 border-0"
-              >
-                <ScrollArea className="h-full">
-                  <div className="p-4">
-                    <AISuggestionPanel />
-                  </div>
-                </ScrollArea>
-              </TabsContent>
-
-              <TabsContent
-                value="ats-matcher"
-                className="flex-1 h-full m-0 p-0 border-0"
-              >
-                <ScrollArea className="h-full">
-                  <div className="p-4">
-                    <ATSMatcherPanel />
-                  </div>
-                </ScrollArea>
-              </TabsContent>
-
-              <TabsContent
-                value="skills-gap"
-                className="flex-1 h-full m-0 p-0 border-0"
-              >
-                <ScrollArea className="h-full">
-                  <div className="p-4">
-                    <SkillsGapAnalyzer />
-                  </div>
-                </ScrollArea>
-              </TabsContent>
-            </Tabs>
-          </div>
-
-          {/* Resizer Handle */}
-          <div className="relative w-1 shrink-0 bg-border" aria-hidden="true" />
-
-          {/* Preview Panel - Right Side */}
-          <div className="h-full min-w-0 flex-1 overflow-hidden">
-            <div className="h-full overflow-auto bg-muted/20">
-              <PreviewPanel />
-            </div>
-          </div>
+                <Download aria-hidden="true" /> Download PDF
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
+      </header>
+
+      <fieldset className={styles.mobileModes}>
+        <legend className="sr-only">CV workspace view</legend>
+        <button
+          type="button"
+          aria-pressed={view === "edit"}
+          onClick={() => {
+            setShowPreview(false);
+            setActiveTab("editor");
+          }}
+        >
+          Edit
+        </button>
+        <button
+          type="button"
+          aria-pressed={view === "preview"}
+          onClick={() => setShowPreview(true)}
+        >
+          Preview
+        </button>
+        <button
+          type="button"
+          aria-pressed={view === "review"}
+          onClick={() => {
+            setShowPreview(false);
+            if (activeTab === "editor") setActiveTab("ats-matcher");
+          }}
+        >
+          Review
+        </button>
+      </fieldset>
+
+      <div className={styles.panes}>
+        <section
+          className={styles.editorPane}
+          aria-label="CV editing and review"
+        >
+          <Tabs
+            value={activeTab}
+            onValueChange={setActiveTab}
+            className="flex h-full min-h-0 flex-col gap-0"
+          >
+            <TabsList aria-label="CV tools" className={styles.toolTabs}>
+              <TabsTrigger value="editor" className={styles.editTool}>
+                Edit
+              </TabsTrigger>
+              <TabsTrigger value="ats-matcher">ATS match</TabsTrigger>
+              <TabsTrigger value="ai-suggestions">Suggestions</TabsTrigger>
+              <TabsTrigger value="skills-gap">Skills gap</TabsTrigger>
+            </TabsList>
+            <TabsContent value="editor" className={styles.panel} forceMount>
+              <EditorPanel />
+            </TabsContent>
+            <TabsContent value="ats-matcher" className={styles.panel}>
+              <ATSMatcherPanel />
+            </TabsContent>
+            <TabsContent value="ai-suggestions" className={styles.panel}>
+              <AISuggestionPanel />
+            </TabsContent>
+            <TabsContent value="skills-gap" className={styles.panel}>
+              <SkillsGapAnalyzer />
+            </TabsContent>
+          </Tabs>
+        </section>
+        <section className={styles.previewPane} aria-label="CV preview">
+          <PreviewPanel />
+        </section>
       </div>
-    </TooltipProvider>
+    </div>
   );
 }
 

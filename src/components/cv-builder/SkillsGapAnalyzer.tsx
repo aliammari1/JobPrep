@@ -1,28 +1,28 @@
 "use client";
 
-import { useState } from "react";
-import { useCVStore } from "@/store/cv-store";
-import { Card } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { Progress } from "@/components/ui/progress";
-import { Textarea } from "@/components/ui/textarea";
-import { motion, AnimatePresence } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
 import {
+  AlertTriangle,
+  BookOpen,
+  Brain,
+  CheckCircle2,
+  Clock,
+  ExternalLink,
+  Lightbulb,
   Target,
   TrendingUp,
-  AlertTriangle,
-  CheckCircle2,
-  ExternalLink,
-  BookOpen,
-  Clock,
-  Lightbulb,
   Zap,
-  Brain,
 } from "lucide-react";
+import { useState } from "react";
 import { toast } from "sonner";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { Progress } from "@/components/ui/progress";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Textarea } from "@/components/ui/textarea";
 import { useSkillGapAnalysis } from "@/hooks/use-ai-skill-gap-analysis";
+import { useCVStore } from "@/store/cv-store";
 
 interface SkillGap {
   skill: string;

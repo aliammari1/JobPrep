@@ -2,6 +2,8 @@ import { FileText, MessagesSquare, Target } from "lucide-react";
 import Link from "next/link";
 import type { ReactNode } from "react";
 import { BrandMark } from "@/components/brand/brand-mark";
+import { cn } from "@/lib/utils";
+import styles from "./auth-shell.module.css";
 
 const HIGHLIGHTS = [
   {
@@ -93,13 +95,16 @@ export function AuthShell({
   footer?: ReactNode;
 }) {
   return (
-    <div className="grid min-h-screen lg:grid-cols-2 bg-background">
+    <div className="grid min-h-dvh bg-background lg:grid-cols-2">
       <BrandPanel />
-      <div className="flex flex-col px-6 py-8 sm:px-12">
+      <div className={cn(styles.panel, "flex flex-col px-6 py-8 sm:px-12")}>
         <div className="flex items-center justify-between">
           <Link
             href="/"
-            className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
+            className={cn(
+              styles.backLink,
+              "text-sm font-medium text-muted-foreground transition-colors hover:text-foreground",
+            )}
           >
             ← Back to home
           </Link>
@@ -110,7 +115,12 @@ export function AuthShell({
         <div className="flex flex-1 items-center justify-center py-8">
           <div className="w-full max-w-md space-y-6">
             <div className="space-y-2">
-              <h1 className="font-display text-3xl font-semibold tracking-tight text-foreground">
+              <h1
+                className={cn(
+                  styles.heading,
+                  "font-display text-3xl font-semibold tracking-tight text-foreground",
+                )}
+              >
                 {title}
               </h1>
               <p className="text-sm text-muted-foreground sm:text-base">

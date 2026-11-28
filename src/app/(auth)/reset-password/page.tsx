@@ -1,22 +1,15 @@
 "use client";
 
-import { useState, useEffect, Suspense } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
-import { authClient } from "@/lib/auth-client";
+import { useRouter, useSearchParams } from "next/navigation";
+import { Suspense, useEffect, useState } from "react";
+import { AuthShell } from "@/components/auth/auth-shell";
+import { Icons } from "@/components/custom/icons";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Icons } from "@/components/custom/icons";
+import { authClient } from "@/lib/auth-client";
 
 function ResetPasswordForm() {
   const router = useRouter();
@@ -97,142 +90,116 @@ function ResetPasswordForm() {
 
   if (success) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-linear-to-br from-background via-background to-muted/20 p-4">
-        <Card className="w-full max-w-md shadow-xl">
-          <CardHeader className="space-y-1">
-            <div className="flex justify-center mb-4">
-              <div className="h-16 w-16 rounded-full bg-green-100 dark:bg-green-900/20 flex items-center justify-center">
-                <Icons.check className="h-8 w-8 text-green-600 dark:text-green-400" />
-              </div>
-            </div>
-            <CardTitle className="text-2xl font-bold text-center">
-              Password Reset Successful!
-            </CardTitle>
-            <CardDescription className="text-center">
-              Your password has been updated
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <p className="text-sm text-muted-foreground text-center">
-              You can now sign in with your new password. Redirecting to sign in
-              page...
-            </p>
-          </CardContent>
-          <CardFooter>
-            <Button asChild className="w-full">
-              <Link href="/sign-in">Go to Sign In</Link>
-            </Button>
-          </CardFooter>
-        </Card>
-      </div>
+      <AuthShell
+        title="Password updated"
+        description="Your password has been reset. Redirecting to sign in..."
+        footer={
+          <Button asChild className="h-11 w-full">
+            <Link href="/sign-in">Go to sign in</Link>
+          </Button>
+        }
+      >
+        <div className="flex items-center gap-3 rounded-xl border border-border bg-card p-4">
+          <div className="grid size-10 shrink-0 place-items-center rounded-full bg-primary/10 text-primary">
+            <Icons.check className="size-5" />
+          </div>
+          <p className="text-sm text-muted-foreground">
+            You can now sign in with your new password.
+          </p>
+        </div>
+      </AuthShell>
     );
   }
 
   if (error && !token) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-linear-to-br from-background via-background to-muted/20 p-4">
-        <Card className="w-full max-w-md shadow-xl">
-          <CardHeader className="space-y-1">
-            <div className="flex justify-center mb-4">
-              <div className="h-16 w-16 rounded-full bg-red-100 dark:bg-red-900/20 flex items-center justify-center">
-                <Icons.alertCircle className="h-8 w-8 text-red-600 dark:text-red-400" />
-              </div>
-            </div>
-            <CardTitle className="text-2xl font-bold text-center">
-              Invalid Reset Link
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <Alert variant="destructive">
-              <AlertDescription>{error}</AlertDescription>
-            </Alert>
-          </CardContent>
-          <CardFooter className="flex flex-col space-y-2">
-            <Button asChild className="w-full">
-              <Link href="/forgot-password">Request New Reset Link</Link>
+      <AuthShell
+        title="Invalid reset link"
+        description="This link is missing, expired, or has already been used."
+        footer={
+          <div className="flex flex-col gap-2">
+            <Button asChild className="h-11 w-full">
+              <Link href="/forgot-password">Request new reset link</Link>
             </Button>
             <Button asChild variant="ghost" className="w-full">
-              <Link href="/sign-in">Back to Sign In</Link>
+              <Link href="/sign-in">Back to sign in</Link>
             </Button>
-          </CardFooter>
-        </Card>
-      </div>
+          </div>
+        }
+      >
+        <Alert variant="destructive">
+          <Icons.alertCircle className="size-4" />
+          <AlertDescription>{error}</AlertDescription>
+        </Alert>
+      </AuthShell>
     );
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-linear-to-br from-background via-background to-muted/20 p-4">
-      <Card className="w-full max-w-md shadow-xl">
-        <CardHeader className="space-y-1">
-          <CardTitle className="text-3xl font-bold text-center bg-linear-to-r from-primary to-primary/60 bg-clip-text text-transparent">
-            Reset Password
-          </CardTitle>
-          <CardDescription className="text-center text-base">
-            Enter your new password below
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          {error && (
-            <Alert variant="destructive">
-              <AlertDescription>{error}</AlertDescription>
-            </Alert>
-          )}
+    <AuthShell
+      title="Reset password"
+      description="Choose a new password for your JobPrep account."
+      footer={
+        <div className="text-center">
+          <Link
+            href="/sign-in"
+            className="inline-flex items-center gap-1.5 text-sm font-medium text-muted-foreground hover:text-foreground"
+          >
+            <Icons.arrowLeft className="size-4" />
+            Back to sign in
+          </Link>
+        </div>
+      }
+    >
+      <div className="space-y-4">
+        {error && (
+          <Alert variant="destructive">
+            <AlertDescription>{error}</AlertDescription>
+          </Alert>
+        )}
 
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="password">New Password</Label>
-              <Input
-                id="password"
-                type="password"
-                placeholder="Enter new password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-                disabled={isLoading}
-                className="h-11"
-                autoFocus
-              />
-              <p className="text-xs text-muted-foreground">
-                Minimum 8 characters
-              </p>
-            </div>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div className="space-y-2">
+            <Label htmlFor="password">New password</Label>
+            <Input
+              id="password"
+              type="password"
+              placeholder="Minimum 8 characters"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+              disabled={isLoading}
+              className="h-11"
+            />
+          </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="confirmPassword">Confirm New Password</Label>
-              <Input
-                id="confirmPassword"
-                type="password"
-                placeholder="Confirm new password"
-                value={confirmPassword}
-                onChange={(e) => setConfirmPassword(e.target.value)}
-                required
-                disabled={isLoading}
-                className="h-11"
-              />
-            </div>
+          <div className="space-y-2">
+            <Label htmlFor="confirmPassword">Confirm new password</Label>
+            <Input
+              id="confirmPassword"
+              type="password"
+              placeholder="Re-enter your new password"
+              value={confirmPassword}
+              onChange={(e) => setConfirmPassword(e.target.value)}
+              required
+              disabled={isLoading}
+              className="h-11"
+            />
+          </div>
 
-            <Button
-              type="submit"
-              className="w-full h-11 text-base font-semibold"
-              disabled={isLoading || !token}
-            >
-              {isLoading && (
-                <Icons.spinner className="mr-2 h-4 w-4 animate-spin" />
-              )}
-              Reset Password
-            </Button>
-          </form>
-        </CardContent>
-        <CardFooter>
-          <Button asChild variant="ghost" className="w-full">
-            <Link href="/sign-in">
-              <Icons.arrowLeft className="mr-2 h-4 w-4" />
-              Back to Sign In
-            </Link>
+          <Button
+            type="submit"
+            className="h-11 w-full"
+            disabled={isLoading || !token}
+          >
+            {isLoading && (
+              <Icons.spinner className="mr-2 size-4 animate-spin" />
+            )}
+            Reset password
           </Button>
-        </CardFooter>
-      </Card>
-    </div>
+        </form>
+      </div>
+    </AuthShell>
   );
 }
 
@@ -240,13 +207,14 @@ export default function ResetPasswordPage() {
   return (
     <Suspense
       fallback={
-        <div className="min-h-screen flex items-center justify-center bg-linear-to-br from-background via-background to-muted/20 p-4">
-          <Card className="w-full max-w-md shadow-xl">
-            <CardContent className="py-12 text-center">
-              <Icons.spinner className="h-8 w-8 animate-spin mx-auto" />
-            </CardContent>
-          </Card>
-        </div>
+        <AuthShell
+          title="Reset password"
+          description="Validating your reset link..."
+        >
+          <div className="flex justify-center py-8">
+            <Icons.spinner className="size-6 animate-spin text-muted-foreground" />
+          </div>
+        </AuthShell>
       }
     >
       <ResetPasswordForm />

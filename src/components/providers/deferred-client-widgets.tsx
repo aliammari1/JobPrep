@@ -15,11 +15,20 @@ const OfflineDetector = dynamic(
   { ssr: false },
 );
 
+const PostHogAnalytics = dynamic(
+  () =>
+    import("@/components/providers/posthog-provider").then(
+      (m) => m.PostHogAnalytics,
+    ),
+  { ssr: false },
+);
+
 export function DeferredClientWidgets() {
   return (
     <>
       <Toaster position="top-right" richColors expand />
       <OfflineDetector />
+      {process.env.NEXT_PUBLIC_POSTHOG_KEY && <PostHogAnalytics />}
     </>
   );
 }

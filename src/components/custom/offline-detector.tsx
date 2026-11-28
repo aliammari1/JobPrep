@@ -1,8 +1,8 @@
 "use client";
 
+import { Wifi, WifiOff } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
-import { WifiOff, Wifi } from "lucide-react";
 
 export function OfflineDetector() {
   const [hasShownOfflineToast, setHasShownOfflineToast] = useState(false);

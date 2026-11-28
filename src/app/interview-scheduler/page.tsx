@@ -10,11 +10,11 @@ import {
   Check,
   CheckCircle2,
   Clock,
-  Hourglass,
   Download,
   Edit3,
   Filter,
   Globe,
+  Hourglass,
   MapPin,
   MessageSquare,
   Phone,
@@ -40,6 +40,13 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Progress } from "@/components/ui/progress";
@@ -80,6 +87,11 @@ function InterviewScheduler() {
   const [selectedView, setSelectedView] = useState<"day" | "week" | "month">(
     "week",
   );
+  useEffect(() => {
+    if (window.matchMedia("(max-width: 639px)").matches)
+      setSelectedView("month");
+  }, []);
+
   const [interviews, setInterviews] = useState<Interview[]>([]);
   const [_loading, setLoading] = useState(true);
 
@@ -203,6 +215,7 @@ function InterviewScheduler() {
     fetchNotifications();
   }, [interviews]);
   const [showNewInterviewModal, setShowNewInterviewModal] = useState(false);
+  const scheduleButtonRef = useRef<HTMLButtonElement>(null);
   const [newInterviewForm, setNewInterviewForm] = useState<NewInterviewForm>({
     candidateName: "",
     position: "",
@@ -428,7 +441,7 @@ function InterviewScheduler() {
   };
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-full bg-background">
       <div className="container mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-6 md:py-8 space-y-8">
         {/* Success/Error Messages */}
         <AnimatePresence>
@@ -456,11 +469,387 @@ function InterviewScheduler() {
           )}
         </AnimatePresence>
 
+        <Dialog
+          open={showNewInterviewModal}
+          onOpenChange={setShowNewInterviewModal}
+        >
+          <DialogContent
+            mobileSheet
+            className="sm:max-w-2xl"
+            onCloseAutoFocus={(event) => {
+              event.preventDefault();
+              scheduleButtonRef.current?.focus({ preventScroll: true });
+            }}
+          >
+            <DialogHeader>
+              <DialogTitle>Schedule new interview</DialogTitle>
+              <DialogDescription>
+                Set the time and add candidate details.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              <div>
+                <Label>Candidate Name *</Label>
+                <Input
+                  value={newInterviewForm.candidateName}
+                  onChange={(e) => {
+                    setNewInterviewForm((f) => ({
+                      ...f,
+                      candidateName: e.target.value,
+                    }));
+                    if (formErrors.candidateName) {
+                      setFormErrors((prev) => ({
+                        ...prev,
+                        candidateName: "",
+                      }));
+                    }
+                  }}
+                  placeholder="Full name"
+                  className={formErrors.candidateName ? "border-red-500" : ""}
+                />
+                {formErrors.candidateName && (
+                  <p className="text-xs text-red-500 mt-1">
+                    {formErrors.candidateName}
+                  </p>
+                )}
+              </div>
+
+              <div>
+                <Label>Position *</Label>
+                <Input
+                  value={newInterviewForm.position}
+                  onChange={(e) => {
+                    setNewInterviewForm((f) => ({
+                      ...f,
+                      position: e.target.value,
+                    }));
+                    if (formErrors.position) {
+                      setFormErrors((prev) => ({
+                        ...prev,
+                        position: "",
+                      }));
+                    }
+                  }}
+                  placeholder="Position / title"
+                  className={formErrors.position ? "border-red-500" : ""}
+                />
+                {formErrors.position && (
+                  <p className="text-xs text-red-500 mt-1">
+                    {formErrors.position}
+                  </p>
+                )}
+              </div>
+
+              <div>
+                <Label>Date *</Label>
+                <Input
+                  type="date"
+                  value={newInterviewForm.scheduledAt}
+                  onChange={(e) => {
+                    setNewInterviewForm((f) => ({
+                      ...f,
+                      scheduledAt: e.target.value,
+                    }));
+                    if (formErrors.scheduledAt) {
+                      setFormErrors((prev) => ({
+                        ...prev,
+                        scheduledAt: "",
+                      }));
+                    }
+                  }}
+                  className={formErrors.scheduledAt ? "border-red-500" : ""}
+                />
+                {formErrors.scheduledAt && (
+                  <p className="text-xs text-red-500 mt-1">
+                    {formErrors.scheduledAt}
+                  </p>
+                )}
+              </div>
+
+              <div>
+                <Label>Time *</Label>
+                <Input
+                  type="time"
+                  value={newInterviewForm.time}
+                  onChange={(e) => {
+                    setNewInterviewForm((f) => ({
+                      ...f,
+                      time: e.target.value,
+                    }));
+                    if (formErrors.time) {
+                      setFormErrors((prev) => ({
+                        ...prev,
+                        time: "",
+                      }));
+                    }
+                  }}
+                  className={formErrors.time ? "border-red-500" : ""}
+                />
+                {formErrors.time && (
+                  <p className="text-xs text-red-500 mt-1">{formErrors.time}</p>
+                )}
+              </div>
+
+              <div>
+                <Label>Duration (minutes) *</Label>
+                <Input
+                  type="number"
+                  min="15"
+                  value={newInterviewForm.duration}
+                  onChange={(e) => {
+                    setNewInterviewForm((f) => ({
+                      ...f,
+                      duration: Number(e.target.value) || 30,
+                    }));
+                    if (formErrors.duration) {
+                      setFormErrors((prev) => ({
+                        ...prev,
+                        duration: "",
+                      }));
+                    }
+                  }}
+                  className={formErrors.duration ? "border-red-500" : ""}
+                />
+                {formErrors.duration && (
+                  <p className="text-xs text-red-500 mt-1">
+                    {formErrors.duration}
+                  </p>
+                )}
+              </div>
+
+              <div>
+                <Label>Type</Label>
+                <select
+                  aria-label="Interview type"
+                  className="w-full rounded border px-2 py-1 bg-transparent text-sm"
+                  value={newInterviewForm.type}
+                  onChange={(e) =>
+                    setNewInterviewForm((f) => ({
+                      ...f,
+                      type: e.target.value as Interview["type"],
+                    }))
+                  }
+                >
+                  <option value="video">Video</option>
+                  <option value="in-person">In-Person</option>
+                  <option value="phone">Phone</option>
+                </select>
+              </div>
+
+              <div>
+                <Label>Status</Label>
+                <select
+                  aria-label="Interview status"
+                  className="w-full rounded border px-2 py-1 bg-transparent text-sm"
+                  value={newInterviewForm.status}
+                  onChange={(e) =>
+                    setNewInterviewForm((f) => ({
+                      ...f,
+                      status: e.target.value as Interview["status"],
+                    }))
+                  }
+                >
+                  <option value="scheduled">Scheduled</option>
+                  <option value="confirmed">Confirmed</option>
+                  <option value="completed">Completed</option>
+                  <option value="cancelled">Cancelled</option>
+                  <option value="no-show">No-show</option>
+                </select>
+              </div>
+
+              <div>
+                <Label>Email *</Label>
+                <Input
+                  type="email"
+                  value={newInterviewForm.candidateEmail}
+                  onChange={(e) => {
+                    setNewInterviewForm((f) => ({
+                      ...f,
+                      candidateEmail: e.target.value,
+                    }));
+                    if (formErrors.candidateEmail) {
+                      setFormErrors((prev) => ({
+                        ...prev,
+                        candidateEmail: "",
+                      }));
+                    }
+                  }}
+                  placeholder="candidate@email.com"
+                  className={formErrors.candidateEmail ? "border-red-500" : ""}
+                />
+                {formErrors.candidateEmail && (
+                  <p className="text-xs text-red-500 mt-1">
+                    {formErrors.candidateEmail}
+                  </p>
+                )}
+              </div>
+
+              <div>
+                <Label>Phone</Label>
+                <Input
+                  value={newInterviewForm.candidatePhone}
+                  onChange={(e) =>
+                    setNewInterviewForm((f) => ({
+                      ...f,
+                      candidatePhone: e.target.value,
+                    }))
+                  }
+                />
+              </div>
+
+              <div className="md:col-span-2">
+                <Label>Notes</Label>
+                <Input
+                  value={newInterviewForm.notes}
+                  onChange={(e) =>
+                    setNewInterviewForm((f) => ({
+                      ...f,
+                      notes: e.target.value,
+                    }))
+                  }
+                  placeholder="Optional notes"
+                />
+              </div>
+            </div>
+
+            <div className="mt-4 flex justify-end gap-2">
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setShowNewInterviewModal(false);
+                  setFormErrors({});
+                }}
+                disabled={isSubmitting}
+              >
+                Cancel
+              </Button>
+              <Button
+                onClick={async () => {
+                  // Validate form
+                  if (!validateForm()) {
+                    return;
+                  }
+
+                  if (!session?.user?.id) {
+                    setErrorMessage(
+                      "You must be logged in to create interviews",
+                    );
+                    return;
+                  }
+
+                  setIsSubmitting(true);
+
+                  try {
+                    // Combine date and time for scheduledAt
+                    const [hours, minutes] = newInterviewForm.time.split(":");
+                    const scheduledDate = new Date(
+                      newInterviewForm.scheduledAt,
+                    );
+                    scheduledDate.setHours(parseInt(hours), parseInt(minutes));
+
+                    // Create payload (no templateId required - API creates default)
+                    const payload = {
+                      candidateId: session.user.id,
+                      interviewerId: session.user.id,
+                      scheduledAt: scheduledDate.toISOString(),
+                      time: newInterviewForm.time,
+                      duration: newInterviewForm.duration,
+                      type: newInterviewForm.type,
+                      status: newInterviewForm.status,
+                      candidateName: newInterviewForm.candidateName,
+                      position: newInterviewForm.position,
+                      candidateEmail: newInterviewForm.candidateEmail,
+                      candidatePhone: newInterviewForm.candidatePhone,
+                      notes: newInterviewForm.notes,
+                      isAIInterviewer: false,
+                      allowRecording: true,
+                      settings: {
+                        candidateName: newInterviewForm.candidateName,
+                        position: newInterviewForm.position,
+                        candidateEmail: newInterviewForm.candidateEmail,
+                        candidatePhone: newInterviewForm.candidatePhone,
+                        notes: newInterviewForm.notes,
+                        type: newInterviewForm.type,
+                        duration: newInterviewForm.duration,
+                        time: newInterviewForm.time,
+                      },
+                    };
+
+                    const response = await fetch("/api/interviews", {
+                      method: "POST",
+                      headers: {
+                        "Content-Type": "application/json",
+                      },
+                      body: JSON.stringify(payload),
+                    });
+
+                    if (!response.ok) {
+                      const error = await response.json();
+                      throw new Error(
+                        error.error || "Failed to create interview",
+                      );
+                    }
+
+                    await response.json();
+
+                    // Refetch all interviews to get the latest data from the server
+                    const refetchResponse = await fetch("/api/interviews");
+                    if (refetchResponse.ok) {
+                      const data = await refetchResponse.json();
+                      const fetchedInterviews = (data.interviews ||
+                        []) as Interview[];
+                      setInterviews(fetchedInterviews);
+                    }
+
+                    setSuccessMessage(
+                      "Interview scheduled successfully!" +
+                        (calendarConnected
+                          ? " Synced to Google Calendar."
+                          : ""),
+                    );
+                    setShowNewInterviewModal(false);
+                    setFormErrors({});
+
+                    // Reset form
+                    setNewInterviewForm({
+                      candidateName: "",
+                      position: "",
+                      scheduledAt: new Date().toISOString().slice(0, 10),
+                      time: "09:00",
+                      duration: 60,
+                      type: "video",
+                      status: "scheduled",
+                      candidateEmail: "",
+                      candidatePhone: "",
+                      notes: "",
+                    });
+
+                    setTimeout(() => setSuccessMessage(null), 5000);
+                  } catch (error) {
+                    console.error("Error creating interview:", error);
+                    setErrorMessage(
+                      error instanceof Error
+                        ? error.message
+                        : "Failed to create interview",
+                    );
+                    setTimeout(() => setErrorMessage(null), 5000);
+                  } finally {
+                    setIsSubmitting(false);
+                  }
+                }}
+                disabled={isSubmitting}
+              >
+                {isSubmitting ? "Saving..." : "Save Interview"}
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
+
         {/* Header */}
         <AnimatedContainer>
           <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
             <div>
-              <h1 className="text-3xl md:text-4xl font-bold tracking-tight text-foreground">
+              <h1 className="sr-only font-display lg:not-sr-only lg:text-3xl lg:font-bold lg:tracking-tight lg:text-foreground">
                 Interview Scheduler
               </h1>
               <p className="text-muted-foreground mt-2">
@@ -468,8 +857,9 @@ function InterviewScheduler() {
                 integration
               </p>
             </div>
-            <div className="flex items-center gap-3">
+            <div className="flex flex-wrap items-center gap-3">
               <Button
+                ref={scheduleButtonRef}
                 onClick={() => setShowNewInterviewModal(true)}
                 className="flex items-center gap-2"
               >
@@ -559,7 +949,7 @@ function InterviewScheduler() {
             <StaggeredItem>
               <Card>
                 <CardContent className="p-6">
-                  <div className="flex items-center justify-between">
+                  <div className="flex flex-wrap items-center justify-between gap-2">
                     <div>
                       <p className="text-sm font-medium text-muted-foreground">
                         Today's Interviews
@@ -589,7 +979,7 @@ function InterviewScheduler() {
             <StaggeredItem>
               <Card>
                 <CardContent className="p-6">
-                  <div className="flex items-center justify-between">
+                  <div className="flex flex-wrap items-center justify-between gap-2">
                     <div>
                       <p className="text-sm font-medium text-muted-foreground">
                         This Week
@@ -616,7 +1006,7 @@ function InterviewScheduler() {
             <StaggeredItem>
               <Card>
                 <CardContent className="p-6">
-                  <div className="flex items-center justify-between">
+                  <div className="flex flex-wrap items-center justify-between gap-2">
                     <div>
                       <p className="text-sm font-medium text-muted-foreground">
                         Success Rate
@@ -639,7 +1029,7 @@ function InterviewScheduler() {
             <StaggeredItem>
               <Card>
                 <CardContent className="p-6">
-                  <div className="flex items-center justify-between">
+                  <div className="flex flex-wrap items-center justify-between gap-2">
                     <div>
                       <p className="text-sm font-medium text-muted-foreground">
                         Avg Duration
@@ -663,14 +1053,14 @@ function InterviewScheduler() {
           </div>
         </StaggeredContainer>
 
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
+        <div className="grid grid-cols-1 gap-4 lg:grid-cols-4 lg:gap-8">
           {/* Main Content - Calendar and Interview List */}
-          <div className="lg:col-span-3 space-y-6">
+          <div className="min-w-0 space-y-4 lg:col-span-3 lg:space-y-6">
             {/* Calendar Controls */}
             <AnimatedContainer delay={0.1}>
               <Card>
                 <CardHeader>
-                  <div className="flex items-center justify-between">
+                  <div className="flex flex-wrap items-center justify-between gap-2">
                     <CardTitle className="flex items-center gap-2">
                       <Calendar className="w-5 h-5" />
                       Schedule Calendar
@@ -741,7 +1131,7 @@ function InterviewScheduler() {
                           </div>
 
                           {slot.interview ? (
-                            <div className="flex items-center justify-between flex-1 px-4 py-4">
+                            <div className="flex flex-wrap items-center justify-between gap-2 flex-1 px-4 py-4">
                               <div className="flex items-center gap-4">
                                 <div className="flex items-center justify-center w-10 h-10 bg-primary/10 rounded-lg">
                                   {getTypeIcon(slot.interview.type)}
@@ -756,7 +1146,7 @@ function InterviewScheduler() {
                                   </div>
                                 </div>
                               </div>
-                              <div className="flex items-center gap-3 shrink-0 ml-4">
+                              <div className="flex flex-wrap items-center gap-3 shrink-0 ml-4">
                                 <Badge
                                   className={getStatusColor(
                                     slot.interview.status,
@@ -778,7 +1168,7 @@ function InterviewScheduler() {
                               </div>
                             </div>
                           ) : (
-                            <div className="flex items-center gap-3 px-4 py-4 text-muted-foreground hover:text-foreground">
+                            <div className="flex flex-wrap items-center gap-3 px-4 py-4 text-muted-foreground hover:text-foreground">
                               <Plus className="w-5 h-5" />
                               <span className="font-medium">
                                 Click to schedule
@@ -871,7 +1261,7 @@ function InterviewScheduler() {
 
                   {selectedView === "month" && (
                     <div className="space-y-6">
-                      <div className="flex items-center justify-between mb-4">
+                      <div className="flex flex-wrap items-center justify-between gap-2 mb-4">
                         <h3 className="text-lg font-semibold">
                           {selectedDate.toLocaleString("default", {
                             month: "long",
@@ -904,12 +1294,12 @@ function InterviewScheduler() {
                         </div>
                       </div>
 
-                      <div className="grid min-w-[640px] grid-cols-7 gap-2 text-center mb-2">
+                      <div className="grid grid-cols-7 gap-0.5 sm:gap-2 text-center mb-2">
                         {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map(
                           (day) => (
                             <div
                               key={day}
-                              className="p-2 font-semibold text-foreground text-sm"
+                              className="py-1 text-[10px] font-semibold text-foreground sm:p-2 sm:text-sm"
                             >
                               {day}
                             </div>
@@ -917,7 +1307,7 @@ function InterviewScheduler() {
                         )}
                       </div>
 
-                      <div className="grid min-w-[640px] grid-cols-7 gap-2">
+                      <div className="grid grid-cols-7 gap-0.5 sm:gap-2">
                         {Array.from({ length: 42 }, (_, i) => {
                           const firstDay = new Date(
                             selectedDate.getFullYear(),
@@ -949,7 +1339,7 @@ function InterviewScheduler() {
                               initial={{ opacity: 0 }}
                               animate={{ opacity: 1 }}
                               className={cn(
-                                "min-h-[100px] p-2 border rounded-lg transition-all cursor-pointer",
+                                "min-h-10 rounded-md border p-0.5 text-center transition-colors sm:min-h-[100px] sm:p-2 sm:text-start",
                                 isCurrentMonth
                                   ? isToday
                                     ? "border-primary bg-primary/5"
@@ -959,7 +1349,7 @@ function InterviewScheduler() {
                               )}
                               role="button"
                               tabIndex={0}
-                              aria-label={`View ${date.toDateString()}`}
+                              aria-label={`View ${date.toDateString()}, ${dayInterviews.length} interviews`}
                               onClick={() => {
                                 setSelectedDate(date);
                                 setSelectedView("day");
@@ -974,7 +1364,7 @@ function InterviewScheduler() {
                             >
                               <div
                                 className={cn(
-                                  "text-sm font-bold mb-1",
+                                  "text-xs font-semibold sm:mb-1 sm:text-sm",
                                   isToday
                                     ? "text-primary"
                                     : "text-foreground/60",
@@ -983,7 +1373,13 @@ function InterviewScheduler() {
                               >
                                 {date.getDate()}
                               </div>
-                              <div className="space-y-1">
+                              {dayInterviews.length > 0 && (
+                                <span
+                                  className="mx-auto block size-1.5 rounded-full bg-primary sm:hidden"
+                                  aria-hidden="true"
+                                />
+                              )}
+                              <div className="hidden space-y-1 sm:block">
                                 {dayInterviews.slice(0, 2).map((interview) => (
                                   <div
                                     key={interview.id}
@@ -1012,7 +1408,7 @@ function InterviewScheduler() {
             <AnimatedContainer delay={0.2}>
               <Card>
                 <CardHeader>
-                  <div className="flex items-center justify-between">
+                  <div className="flex flex-wrap items-center justify-between gap-2">
                     <CardTitle className="flex items-center gap-2">
                       <Users className="w-5 h-5" />
                       All Interviews
@@ -1024,7 +1420,7 @@ function InterviewScheduler() {
                           placeholder="Search candidates..."
                           value={searchQuery}
                           onChange={(e) => setSearchQuery(e.target.value)}
-                          className="pl-8 w-48"
+                          className="w-full min-w-0 max-w-48 pl-8"
                         />
                       </div>
                       <Button
@@ -1038,439 +1434,6 @@ function InterviewScheduler() {
                   </div>
                 </CardHeader>
                 <CardContent>
-                  {/* New Interview Modal - simple, local modal using AnimatePresence */}
-                  <AnimatePresence>
-                    {showNewInterviewModal && (
-                      <motion.div
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        exit={{ opacity: 0 }}
-                        className="fixed inset-0 z-50 flex items-center justify-center p-4"
-                      >
-                        <button
-                          type="button"
-                          aria-label="Close modal overlay"
-                          className="absolute inset-0 bg-black/40"
-                          onClick={() => setShowNewInterviewModal(false)}
-                          onKeyDown={(e) => {
-                            if (e.key === "Escape") {
-                              setShowNewInterviewModal(false);
-                            }
-                          }}
-                        />
-
-                        <motion.div
-                          initial={{ y: 20, opacity: 0 }}
-                          animate={{ y: 0, opacity: 1 }}
-                          exit={{ y: 20, opacity: 0 }}
-                          transition={{ type: "spring", stiffness: 300 }}
-                          className="relative w-full max-w-2xl bg-background rounded-lg p-6 shadow-lg border border-border"
-                        >
-                          <h3 className="text-lg font-semibold mb-3">
-                            Schedule new interview
-                          </h3>
-
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                            <div>
-                              <Label>Candidate Name *</Label>
-                              <Input
-                                value={newInterviewForm.candidateName}
-                                onChange={(e) => {
-                                  setNewInterviewForm((f) => ({
-                                    ...f,
-                                    candidateName: e.target.value,
-                                  }));
-                                  if (formErrors.candidateName) {
-                                    setFormErrors((prev) => ({
-                                      ...prev,
-                                      candidateName: "",
-                                    }));
-                                  }
-                                }}
-                                placeholder="Full name"
-                                className={
-                                  formErrors.candidateName
-                                    ? "border-red-500"
-                                    : ""
-                                }
-                              />
-                              {formErrors.candidateName && (
-                                <p className="text-xs text-red-500 mt-1">
-                                  {formErrors.candidateName}
-                                </p>
-                              )}
-                            </div>
-
-                            <div>
-                              <Label>Position *</Label>
-                              <Input
-                                value={newInterviewForm.position}
-                                onChange={(e) => {
-                                  setNewInterviewForm((f) => ({
-                                    ...f,
-                                    position: e.target.value,
-                                  }));
-                                  if (formErrors.position) {
-                                    setFormErrors((prev) => ({
-                                      ...prev,
-                                      position: "",
-                                    }));
-                                  }
-                                }}
-                                placeholder="Position / title"
-                                className={
-                                  formErrors.position ? "border-red-500" : ""
-                                }
-                              />
-                              {formErrors.position && (
-                                <p className="text-xs text-red-500 mt-1">
-                                  {formErrors.position}
-                                </p>
-                              )}
-                            </div>
-
-                            <div>
-                              <Label>Date *</Label>
-                              <Input
-                                type="date"
-                                value={newInterviewForm.scheduledAt}
-                                onChange={(e) => {
-                                  setNewInterviewForm((f) => ({
-                                    ...f,
-                                    scheduledAt: e.target.value,
-                                  }));
-                                  if (formErrors.scheduledAt) {
-                                    setFormErrors((prev) => ({
-                                      ...prev,
-                                      scheduledAt: "",
-                                    }));
-                                  }
-                                }}
-                                className={
-                                  formErrors.scheduledAt ? "border-red-500" : ""
-                                }
-                              />
-                              {formErrors.scheduledAt && (
-                                <p className="text-xs text-red-500 mt-1">
-                                  {formErrors.scheduledAt}
-                                </p>
-                              )}
-                            </div>
-
-                            <div>
-                              <Label>Time *</Label>
-                              <Input
-                                type="time"
-                                value={newInterviewForm.time}
-                                onChange={(e) => {
-                                  setNewInterviewForm((f) => ({
-                                    ...f,
-                                    time: e.target.value,
-                                  }));
-                                  if (formErrors.time) {
-                                    setFormErrors((prev) => ({
-                                      ...prev,
-                                      time: "",
-                                    }));
-                                  }
-                                }}
-                                className={
-                                  formErrors.time ? "border-red-500" : ""
-                                }
-                              />
-                              {formErrors.time && (
-                                <p className="text-xs text-red-500 mt-1">
-                                  {formErrors.time}
-                                </p>
-                              )}
-                            </div>
-
-                            <div>
-                              <Label>Duration (minutes) *</Label>
-                              <Input
-                                type="number"
-                                min="15"
-                                value={newInterviewForm.duration}
-                                onChange={(e) => {
-                                  setNewInterviewForm((f) => ({
-                                    ...f,
-                                    duration: Number(e.target.value) || 30,
-                                  }));
-                                  if (formErrors.duration) {
-                                    setFormErrors((prev) => ({
-                                      ...prev,
-                                      duration: "",
-                                    }));
-                                  }
-                                }}
-                                className={
-                                  formErrors.duration ? "border-red-500" : ""
-                                }
-                              />
-                              {formErrors.duration && (
-                                <p className="text-xs text-red-500 mt-1">
-                                  {formErrors.duration}
-                                </p>
-                              )}
-                            </div>
-
-                            <div>
-                              <Label>Type</Label>
-                              <select
-                                aria-label="Interview type"
-                                className="w-full rounded border px-2 py-1 bg-transparent text-sm"
-                                value={newInterviewForm.type}
-                                onChange={(e) =>
-                                  setNewInterviewForm((f) => ({
-                                    ...f,
-                                    type: e.target.value as Interview["type"],
-                                  }))
-                                }
-                              >
-                                <option value="video">Video</option>
-                                <option value="in-person">In-Person</option>
-                                <option value="phone">Phone</option>
-                              </select>
-                            </div>
-
-                            <div>
-                              <Label>Status</Label>
-                              <select
-                                aria-label="Interview status"
-                                className="w-full rounded border px-2 py-1 bg-transparent text-sm"
-                                value={newInterviewForm.status}
-                                onChange={(e) =>
-                                  setNewInterviewForm((f) => ({
-                                    ...f,
-                                    status: e.target
-                                      .value as Interview["status"],
-                                  }))
-                                }
-                              >
-                                <option value="scheduled">Scheduled</option>
-                                <option value="confirmed">Confirmed</option>
-                                <option value="completed">Completed</option>
-                                <option value="cancelled">Cancelled</option>
-                                <option value="no-show">No-show</option>
-                              </select>
-                            </div>
-
-                            <div>
-                              <Label>Email *</Label>
-                              <Input
-                                type="email"
-                                value={newInterviewForm.candidateEmail}
-                                onChange={(e) => {
-                                  setNewInterviewForm((f) => ({
-                                    ...f,
-                                    candidateEmail: e.target.value,
-                                  }));
-                                  if (formErrors.candidateEmail) {
-                                    setFormErrors((prev) => ({
-                                      ...prev,
-                                      candidateEmail: "",
-                                    }));
-                                  }
-                                }}
-                                placeholder="candidate@email.com"
-                                className={
-                                  formErrors.candidateEmail
-                                    ? "border-red-500"
-                                    : ""
-                                }
-                              />
-                              {formErrors.candidateEmail && (
-                                <p className="text-xs text-red-500 mt-1">
-                                  {formErrors.candidateEmail}
-                                </p>
-                              )}
-                            </div>
-
-                            <div>
-                              <Label>Phone</Label>
-                              <Input
-                                value={newInterviewForm.candidatePhone}
-                                onChange={(e) =>
-                                  setNewInterviewForm((f) => ({
-                                    ...f,
-                                    candidatePhone: e.target.value,
-                                  }))
-                                }
-                              />
-                            </div>
-
-                            <div className="md:col-span-2">
-                              <Label>Notes</Label>
-                              <Input
-                                value={newInterviewForm.notes}
-                                onChange={(e) =>
-                                  setNewInterviewForm((f) => ({
-                                    ...f,
-                                    notes: e.target.value,
-                                  }))
-                                }
-                                placeholder="Optional notes"
-                              />
-                            </div>
-                          </div>
-
-                          <div className="mt-4 flex justify-end gap-2">
-                            <Button
-                              variant="outline"
-                              onClick={() => {
-                                setShowNewInterviewModal(false);
-                                setFormErrors({});
-                              }}
-                              disabled={isSubmitting}
-                            >
-                              Cancel
-                            </Button>
-                            <Button
-                              onClick={async () => {
-                                // Validate form
-                                if (!validateForm()) {
-                                  return;
-                                }
-
-                                if (!session?.user?.id) {
-                                  setErrorMessage(
-                                    "You must be logged in to create interviews",
-                                  );
-                                  return;
-                                }
-
-                                setIsSubmitting(true);
-
-                                try {
-                                  // Combine date and time for scheduledAt
-                                  const [hours, minutes] =
-                                    newInterviewForm.time.split(":");
-                                  const scheduledDate = new Date(
-                                    newInterviewForm.scheduledAt,
-                                  );
-                                  scheduledDate.setHours(
-                                    parseInt(hours),
-                                    parseInt(minutes),
-                                  );
-
-                                  // Create payload (no templateId required - API creates default)
-                                  const payload = {
-                                    candidateId: session.user.id,
-                                    interviewerId: session.user.id,
-                                    scheduledAt: scheduledDate.toISOString(),
-                                    time: newInterviewForm.time,
-                                    duration: newInterviewForm.duration,
-                                    type: newInterviewForm.type,
-                                    status: newInterviewForm.status,
-                                    candidateName:
-                                      newInterviewForm.candidateName,
-                                    position: newInterviewForm.position,
-                                    candidateEmail:
-                                      newInterviewForm.candidateEmail,
-                                    candidatePhone:
-                                      newInterviewForm.candidatePhone,
-                                    notes: newInterviewForm.notes,
-                                    isAIInterviewer: false,
-                                    allowRecording: true,
-                                    settings: {
-                                      candidateName:
-                                        newInterviewForm.candidateName,
-                                      position: newInterviewForm.position,
-                                      candidateEmail:
-                                        newInterviewForm.candidateEmail,
-                                      candidatePhone:
-                                        newInterviewForm.candidatePhone,
-                                      notes: newInterviewForm.notes,
-                                      type: newInterviewForm.type,
-                                      duration: newInterviewForm.duration,
-                                      time: newInterviewForm.time,
-                                    },
-                                  };
-
-                                  const response = await fetch(
-                                    "/api/interviews",
-                                    {
-                                      method: "POST",
-                                      headers: {
-                                        "Content-Type": "application/json",
-                                      },
-                                      body: JSON.stringify(payload),
-                                    },
-                                  );
-
-                                  if (!response.ok) {
-                                    const error = await response.json();
-                                    throw new Error(
-                                      error.error ||
-                                        "Failed to create interview",
-                                    );
-                                  }
-
-                                  await response.json();
-
-                                  // Refetch all interviews to get the latest data from the server
-                                  const refetchResponse =
-                                    await fetch("/api/interviews");
-                                  if (refetchResponse.ok) {
-                                    const data = await refetchResponse.json();
-                                    const fetchedInterviews =
-                                      (data.interviews || []) as Interview[];
-                                    setInterviews(fetchedInterviews);
-                                  }
-
-                                  setSuccessMessage(
-                                    "Interview scheduled successfully!" +
-                                      (calendarConnected
-                                        ? " Synced to Google Calendar."
-                                        : ""),
-                                  );
-                                  setShowNewInterviewModal(false);
-                                  setFormErrors({});
-
-                                  // Reset form
-                                  setNewInterviewForm({
-                                    candidateName: "",
-                                    position: "",
-                                    scheduledAt: new Date()
-                                      .toISOString()
-                                      .slice(0, 10),
-                                    time: "09:00",
-                                    duration: 60,
-                                    type: "video",
-                                    status: "scheduled",
-                                    candidateEmail: "",
-                                    candidatePhone: "",
-                                    notes: "",
-                                  });
-
-                                  setTimeout(
-                                    () => setSuccessMessage(null),
-                                    5000,
-                                  );
-                                } catch (error) {
-                                  console.error(
-                                    "Error creating interview:",
-                                    error,
-                                  );
-                                  setErrorMessage(
-                                    error instanceof Error
-                                      ? error.message
-                                      : "Failed to create interview",
-                                  );
-                                  setTimeout(() => setErrorMessage(null), 5000);
-                                } finally {
-                                  setIsSubmitting(false);
-                                }
-                              }}
-                              disabled={isSubmitting}
-                            >
-                              {isSubmitting ? "Saving..." : "Save Interview"}
-                            </Button>
-                          </div>
-                        </motion.div>
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
                   <div className="space-y-4">
                     {filteredInterviews.map((interview, index) => (
                       <motion.div
@@ -1478,10 +1441,10 @@ function InterviewScheduler() {
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: index * 0.1 }}
-                        className="flex items-center justify-between p-4 border rounded-lg hover:bg-muted/50 transition-colors"
+                        className="flex flex-wrap items-center justify-between gap-2 p-4 border rounded-lg hover:bg-muted/50 transition-colors"
                       >
-                        <div className="flex items-center gap-4">
-                          <div className="w-12 h-12 bg-primary rounded-lg flex items-center justify-center text-white font-medium">
+                        <div className="flex min-w-0 items-center gap-3">
+                          <div className="w-12 h-12 shrink-0 bg-primary rounded-lg flex items-center justify-center text-white font-medium">
                             {(interview.candidateName || "")
                               .split(" ")
                               .map((n) => n[0])
@@ -1495,7 +1458,7 @@ function InterviewScheduler() {
                             <p className="text-sm text-muted-foreground">
                               {interview.position}
                             </p>
-                            <div className="flex items-center gap-3 mt-1 text-xs text-muted-foreground">
+                            <div className="flex flex-wrap items-center gap-3 mt-1 text-xs text-muted-foreground">
                               <span className="flex items-center gap-1">
                                 <Calendar className="w-3 h-3" />
                                 {getInterviewDate(
@@ -1528,7 +1491,7 @@ function InterviewScheduler() {
                           </div>
                         </div>
 
-                        <div className="flex items-center gap-3">
+                        <div className="flex flex-wrap items-center gap-3">
                           <Badge className={getStatusColor(interview.status)}>
                             {interview.status}
                           </Badge>
@@ -1598,7 +1561,7 @@ function InterviewScheduler() {
                             initial={{ opacity: 0, x: 20 }}
                             animate={{ opacity: 1, x: 0 }}
                             transition={{ delay: index * 0.1 }}
-                            className="flex items-center gap-3 p-3 border rounded-lg"
+                            className="flex flex-wrap items-center gap-3 p-3 border rounded-lg"
                           >
                             <div className="w-10 h-10 bg-primary rounded-lg flex items-center justify-center text-white text-sm font-medium">
                               {(interview.candidateName || "")
@@ -1905,7 +1868,7 @@ function InterviewScheduler() {
                 transition={{ type: "spring", stiffness: 300 }}
                 className="relative w-full max-w-2xl bg-background rounded-lg p-6 shadow-lg border border-border"
               >
-                <div className="flex items-center justify-between mb-4">
+                <div className="flex flex-wrap items-center justify-between gap-2 mb-4">
                   <h3 className="text-lg font-semibold">Edit interview</h3>
                   <Button
                     variant="ghost"
@@ -2252,7 +2215,7 @@ function InterviewScheduler() {
                 exit={{ y: 20, opacity: 0 }}
                 className="relative w-full max-w-sm bg-background rounded-lg p-6 shadow-lg border border-border"
               >
-                <div className="flex items-center justify-between mb-4">
+                <div className="flex flex-wrap items-center justify-between gap-2 mb-4">
                   <h3 className="text-lg font-semibold">Filter interviews</h3>
                   <Button
                     variant="ghost"
@@ -2315,7 +2278,7 @@ function InterviewScheduler() {
                 exit={{ y: 20, opacity: 0 }}
                 className="relative w-full max-w-2xl bg-background rounded-lg p-6 shadow-lg border border-border"
               >
-                <div className="flex items-center justify-between mb-4">
+                <div className="flex flex-wrap items-center justify-between gap-2 mb-4">
                   <h3 className="text-lg font-semibold">Interview notes</h3>
                   <Button
                     variant="ghost"
@@ -2411,7 +2374,7 @@ function InterviewScheduler() {
                 exit={{ y: 20, opacity: 0 }}
                 className="relative w-full max-w-sm bg-background rounded-lg p-6 shadow-lg border border-border"
               >
-                <div className="flex items-center justify-between mb-4">
+                <div className="flex flex-wrap items-center justify-between gap-2 mb-4">
                   <h3 className="text-lg font-semibold">Interview settings</h3>
                   <Button
                     variant="ghost"
@@ -2427,11 +2390,11 @@ function InterviewScheduler() {
                     <div className="text-sm font-semibold text-muted-foreground">
                       Notifications
                     </div>
-                    <div className="flex items-center justify-between">
+                    <div className="flex flex-wrap items-center justify-between gap-2">
                       <Label>Auto-send reminders</Label>
                       <input type="checkbox" className="w-4 h-4" />
                     </div>
-                    <div className="flex items-center justify-between">
+                    <div className="flex flex-wrap items-center justify-between gap-2">
                       <Label>Send confirmations</Label>
                       <input
                         type="checkbox"
@@ -2439,7 +2402,7 @@ function InterviewScheduler() {
                         defaultChecked
                       />
                     </div>
-                    <div className="flex items-center justify-between">
+                    <div className="flex flex-wrap items-center justify-between gap-2">
                       <Label>Show in-app notifications</Label>
                       <input
                         type="checkbox"
@@ -2454,7 +2417,7 @@ function InterviewScheduler() {
                       Calendar Integration
                     </div>
                     <div className="space-y-3">
-                      <div className="flex items-center justify-between p-3 border rounded-lg hover:bg-muted/50">
+                      <div className="flex flex-wrap items-center justify-between gap-2 p-3 border rounded-lg hover:bg-muted/50">
                         <div>
                           <div className="text-sm font-medium">
                             Google Calendar
@@ -2492,7 +2455,7 @@ function InterviewScheduler() {
                           {calendarConnected ? "Disconnect" : "Connect"}
                         </Button>
                       </div>
-                      <div className="flex items-center justify-between gap-3">
+                      <div className="flex flex-wrap items-center justify-between gap-2 gap-3">
                         <div>
                           <Label>Auto-sync interviews to calendar</Label>
                           {!calendarConnected && (
