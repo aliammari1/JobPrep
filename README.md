@@ -17,8 +17,6 @@
 
 </div>
 
-![JobPrep's sample interview showing a revised answer, coaching feedback, and rubric scores](docs/screenshots/desktop.png)
-
 > **License note:** JobPrep is [source-available](LICENSE.md), not OSI open source. Personal, educational and research use is free, and contributions are welcome. Commercial use needs a separate license.
 
 ## Watch the tour
