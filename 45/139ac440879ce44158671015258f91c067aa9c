@@ -1,0 +1,761 @@
+src/hooks/useTextSelection.ts
+  s_c0603f2d63f43d::t_3053ee1695597b 3
+src/app/api/integrations/google/calendar/events/route.ts
+  s_c0603f2d63f43d::t_3053ee1695597b 3-5
+src/hooks/use-livekit-chat.ts
+  s_c0603f2d63f43d::t_3053ee1695597b 2
+src/components/interview/QuestionDetailedView.tsx
+  s_c0603f2d63f43d::t_3053ee1695597b 3-6,11-12
+cloudflare-worker.mjs
+  s_8de24d303a8509::t_8d39b78a34bb8d 1-6,18-20,24,28-29,35-70,80-83,88-99
+  s_8de24d303a8509::t_f573c2f854eb72 21-23,25-27,30-34,71,79,84-87
+  s_c0603f2d63f43d::t_3053ee1695597b 77
+  s_c0603f2d63f43d::t_a26e5810f02d75 7-17,72-76,78
+src/components/providers/posthog-provider.tsx
+  s_6ad7a97f335419::t_3f1b9969329773 29-30
+  s_6ad7a97f335419::t_954ee735351824 42
+  s_6ad7a97f335419::t_27bcaae31f02bf 50-53
+  s_6ad7a97f335419::t_532d30077e3103 3-28,31-37,39-41,43-49,54-61
+  s_6ad7a97f335419::t_e3a786233b6617 38
+  s_6ad7a97f335419::t_8f6ea3acdea3d3 1-2,62
+src/components/custom/user-nav.tsx
+  s_c0603f2d63f43d::t_3053ee1695597b 4-5,15
+src/components/cv-builder/PreviewPanel.tsx
+  s_886310cc15ec2c::t_030dd28dbbf1ce 8,56-64,66-80,97-99
+  s_886310cc15ec2c::t_7cec9b3f9647ec 3-4,13-14,16-20,22-28,31-33,35-44,46-48,51-53,65,81-84,87-88,90-91,94-95,102,106
+  s_886310cc15ec2c::t_2c0ccc605bf882 54-55
+src/app/api/subscription/route.ts
+  s_c0603f2d63f43d::t_3053ee1695597b 1
+src/components/ui/navigation-menu.tsx
+  s_c0603f2d63f43d::t_3053ee1695597b 2,4-5,61,92-93,114,131,147,152,161-164
+src/components/interview/results-component.tsx
+  s_c0603f2d63f43d::t_3053ee1695597b 1,3,5
+src/middleware.ts
+  s_c0603f2d63f43d::t_3053ee1695597b 1
+  s_c0603f2d63f43d::t_ffd60ba2a4427b 21-31,35-37
+src/hooks/use-feature-access.ts
+  s_c0603f2d63f43d::t_3053ee1695597b 4-5
+src/components/ui/textarea.tsx
+  s_c0603f2d63f43d::t_3053ee1695597b 1-2
+  s_c0603f2d63f43d::t_2daac7758f0248 9
+src/components/layout/mobile-navigation.tsx
+  s_886310cc15ec2c::t_dddaf00756e47c 1-15,18,21,25-29,32-33,35-36,38,43,46-50,71-73,75,78-92,105-117,119-123,126-131,138-150,152,158,171-173,175-182,218-219,221-225,227-228,254-256
+  s_886310cc15ec2c::t_017a3b5c50470e 104,125
+  s_886310cc15ec2c::t_baed90b5faca62 16,151,153-155,157,160-162,166-170,210-216,220,226,232,234-239,243-253
+  s_886310cc15ec2c::t_78cd832b9657de 34,37,39-42,44-45,93-103
+  s_886310cc15ec2c::t_40089152103100 133-137,229-231,233
+  s_886310cc15ec2c::t_f1d97362f4f2c5 163-165
+  s_886310cc15ec2c::t_240e2c07312781 19
+  s_886310cc15ec2c::t_7f40eb1ac21893 124
+  s_886310cc15ec2c::t_37f3fb98173c49 17,20,22-24,30,51-70,74,76-77,118,159,174
+  s_886310cc15ec2c::t_15ec2eae8c7f9c 132
+  s_886310cc15ec2c::t_e1602bb22ca462 183-209,217
+  s_886310cc15ec2c::t_da9a425e8bcb55 31,156,240-242
+src/components/code-challenge/CodeEditorEnhanced.tsx
+  s_c0603f2d63f43d::t_3053ee1695597b 3-4,8-21,23-24,26-27
+  s_c0603f2d63f43d::t_91fec1a7b50bed 88-103,289-316,323-325
+src/app/api/auth/[...all]/route.ts
+  s_c0603f2d63f43d::t_3053ee1695597b 2
+src/app/api/interviews/export/route.ts
+  s_c0603f2d63f43d::t_3053ee1695597b 1,5
+src/components/cv-builder/TemplateSelector.tsx
+  s_c0603f2d63f43d::t_3053ee1695597b 3,11,15
+src/components/providers/query-client-provider.tsx
+  s_c0603f2d63f43d::t_3053ee1695597b 4,17
+src/app/settings/connected-accounts/page.tsx
+  s_c0603f2d63f43d::t_3053ee1695597b 3,5-10,21
+  s_c0603f2d63f43d::t_3a865d04c82560 79-91,117-119,129-135,188-189,191-196,240-250
+src/components/ui/message-scroller.tsx
+  s_c0603f2d63f43d::t_3053ee1695597b 1-130
+src/components/ui/breadcrumb.tsx
+  s_c0603f2d63f43d::t_3053ee1695597b 1,3-4,15,40,45,58,102,105
+src/app/globals.css
+  s_886310cc15ec2c::t_755789894b054b 654-667
+  s_886310cc15ec2c::t_cac42967b8dcc2 13-29,41-42,48-61,64,131-143,198-200,584,610,669
+  s_886310cc15ec2c::t_f8129816e22e02 118
+  s_886310cc15ec2c::t_85f497abb48989 540,552-556,561,567
+  s_886310cc15ec2c::t_ba5b74ff7a5a58 235,249,259-261,266
+  s_c0603f2d63f43d::t_3053ee1695597b 465,471,474-476,588,596,602,606,615,619,623,628,632,637,641,670-718
+  s_886310cc15ec2c::t_677f04d2f6b7e4 232-234,241,247-248,254,279-283
+  s_886310cc15ec2c::t_7eef752ff1f7d0 5-12,30-40,43-47,65-85,92-117,119-122,124,126-130,144-156,159-178,182-186,190-197,586,595,599,601,605,609
+  s_886310cc15ec2c::t_d79c32298d5d42 236-240,250-253,262-265
+  s_886310cc15ec2c::t_6862d1e6d3d0e0 123,125
+  s_886310cc15ec2c::t_e1602bb22ca462 157-158,179-181,187-189
+  s_886310cc15ec2c::t_c8cf2814344e4e 3
+  s_886310cc15ec2c::t_9797634cc5ba31 86-91
+  s_886310cc15ec2c::t_d079f060ecb3b7 201-231,242-246,255-257,270-278,284-295,642,645,719
+  s_886310cc15ec2c::t_09e443bad88079 258,267-269
+  s_c0603f2d63f43d::t_7ac5b8b6fca705 4,62-63,462-464,466-470,472-473,477-479,583,585,587,589-594,597-598,600,603-604,607-608,611-614,616-618,620-622,624-627,629-631,633-636,638-640,643-644,646-653,668
+src/app/settings/passkeys/page.tsx
+  s_c0603f2d63f43d::t_3053ee1695597b 3,5-10,27-30
+  s_c0603f2d63f43d::t_3090a4c30c8bcc 103-112,125,132-134,144-150,248,284-294
+src/app/api/stripe/portal/route.ts
+  s_c0603f2d63f43d::t_3053ee1695597b 1,5
+src/app/(auth)/sign-in/page.tsx
+  s_886310cc15ec2c::t_689b807f7d8d60 228-229,234,237-239,243-252
+  s_886310cc15ec2c::t_664d0b47b9b909 240-242
+  s_886310cc15ec2c::t_bf32e11d62699d 6,48-50,277
+  s_886310cc15ec2c::t_573bf9fd372140 191-195
+src/components/ui/menubar.tsx
+  s_c0603f2d63f43d::t_3053ee1695597b 3,5-6,16,58,81,105,123,148,190,204,231,250,260,264-266,269-270,273-274
+src/components/cv-builder/cv-workspace.module.css
+  s_886310cc15ec2c::t_030dd28dbbf1ce 248-249
+  s_886310cc15ec2c::t_7e8b531bd4899a 5-6,9,13,18,31,36,38,40,46,51,74,77,98-126,143,164-166,177,192,199,208-209,215,223,229-230,237
+  s_886310cc15ec2c::t_96a13c468d3489 10,19,28,32,42,55,62,66,71,78,86,91,96,134,140,146,150,156-157,161,170,172-175,181,185,189,193,200,210,218,226,234,242,251,258,280-281,312
+  s_886310cc15ec2c::t_9fc10356fe4054 1-4,7-8,11-12,14-17,20-27,29-30,33-35,37,39,41,43-45,47-50,52-54,56-61,63-65,67-70,72-73,75-76,79-85,87-90,92-95,97,127-133,135-139,141-142,144-145,147-149,151-155,158-160,162-163,167-169,171,176,178-180,182-184,186-188,190-191,194-198,201-207,211-214,216-217,219-222,224-225,227-228,231-233,235-236,238-241,243-247,250,252-257,259-279,282-311
+src/lib/utils.ts
+  s_c0603f2d63f43d::t_3053ee1695597b 1
+tests/lib/code-execution.test.ts
+  s_6ad7a97f335419::t_6855e54ced5063 17,73-77
+  s_6ad7a97f335419::t_3c94f5819ea5ac 1-16,18-72,78-93
+src/hooks/use-ai-transcription.ts
+  s_c0603f2d63f43d::t_3053ee1695597b 3
+src/app/settings/billing/page.tsx
+  s_c0603f2d63f43d::t_3053ee1695597b 3-4,6-7
+  s_c0603f2d63f43d::t_c96c04c18c479e 19,21-22,24
+src/components/ui/input-group.tsx
+  s_c0603f2d63f43d::t_3053ee1695597b 4-5,17,27,30,40,49,51,83,87-88,123,168
+src/components/ui/progress-ring.tsx
+  s_886310cc15ec2c::t_85f497abb48989 45,47
+src/components/ui/progress.tsx
+  s_c0603f2d63f43d::t_3053ee1695597b 3-5
+  s_c0603f2d63f43d::t_59900524ebfabc 16,23
+src/lib/email-service.ts
+  s_c0603f2d63f43d::t_3053ee1695597b 47-71,74,77,80,83,85,90-97,99,106,116-124
+  s_c0603f2d63f43d::t_5e0fa039444a30 2-3,5-6,19-46
+src/app/api/challenges/route.ts
+  s_c0603f2d63f43d::t_3053ee1695597b 2-3
+src/components/ui/item.tsx
+  s_c0603f2d63f43d::t_3053ee1695597b 2-4,34,43-44,62,75,80,82,137-138,185-187,189-190
+src/components/ui/form.tsx
+  s_c0603f2d63f43d::t_3053ee1695597b 3-5,12-14,107,112,133,151,164-167
+src/components/layout/app-layout.tsx
+  s_886310cc15ec2c::t_39213b0586ce41 16-20,49-51,78-88,94-109
+  s_886310cc15ec2c::t_9abcc523236add 110
+src/components/auth/auth-shell.tsx
+  s_886310cc15ec2c::t_3e3eda68b72652 5-6,98,100,104-107,118-123
+src/components/cv-builder/sections/PersonalInfoSection.tsx
+  s_886310cc15ec2c::t_62f59e431d4898 39,45,58,72,86,179-180,187-191,198,205,214-216,220
+  s_886310cc15ec2c::t_030dd28dbbf1ce 3-6,10,30-36,41-43,101-102,181-186,192-197,199-204,206-213,217-219
+  s_886310cc15ec2c::t_9a030ba6a93b61 221
+src/hooks/use-push-notifications.ts
+  s_c0603f2d63f43d::t_3053ee1695597b 303
+src/components/ui/resizable.tsx
+  s_c0603f2d63f43d::t_3053ee1695597b 3,52
+  s_c0603f2d63f43d::t_3c89b94f4869ef 10,15,23,31,38,44
+src/components/ui/input.tsx
+  s_c0603f2d63f43d::t_3053ee1695597b 1-2
+  s_c0603f2d63f43d::t_5f9bde543d90e7 10-12
+src/components/layout/sidebar.tsx
+  s_886310cc15ec2c::t_baed90b5faca62 22,24,63-95,97-126,128-129,132-134,136-138,140-145,148-150,157,160,163,169-183,185-191,193-194,196-197,199-211,213-223,225-232
+src/app/(auth)/reset-password/page.tsx
+  s_c0603f2d63f43d::t_3053ee1695597b 195-197
+  s_c0603f2d63f43d::t_8a7097b7e78551 4-8,12,93-110,116-122,125,127-134,139-194,198,200-202,210-217
+src/app/api/stripe/checkout/route.ts
+  s_c0603f2d63f43d::t_3053ee1695597b 1,5
+src/app/code-challenge/page.tsx
+  s_c0603f2d63f43d::t_3053ee1695597b 5,21
+  s_c0603f2d63f43d::t_524d8fa574a1eb 464,481,502,508
+src/components/ui/combobox.tsx
+  s_c0603f2d63f43d::t_3053ee1695597b 1-310
+src/hooks/use-intersection-observer.ts
+  s_c0603f2d63f43d::t_3053ee1695597b 1
+src/app/api/integrations/linkedin/auth/route.ts
+  s_c0603f2d63f43d::t_3053ee1695597b 1
+src/app/api/interviews/[id]/route.ts
+  s_c0603f2d63f43d::t_3053ee1695597b 2-4
+src/lib/cloudflare-image-loader.ts
+  s_c0603f2d63f43d::t_3053ee1695597b 20-24
+  s_c0603f2d63f43d::t_091b714f73616d 1-19,25-31
+src/components/layout/mobile-platform.ts
+  s_886310cc15ec2c::t_78cd832b9657de 5-14,17-19
+  s_886310cc15ec2c::t_6300a4d2956855 1-4,15-16
+src/app/interview-scheduler/page.tsx
+  s_886310cc15ec2c::t_1015bec0312ac8 43-49,472-475,484-847,852,860,952,982,1009,1032,1056,1058,1063,1134,1149,1171,1264,1297,1302,1310,1342,1352,1367,1376-1382,1411,1423,1444,1446-1447,1461,1494,1564,1871,2218,2281,2377,2393,2397,2405,2420,2458
+  s_c0603f2d63f43d::t_3053ee1695597b 17
+  s_886310cc15ec2c::t_8d4c5356446977 90-94,218,476-483,862
+  s_c0603f2d63f43d::t_a61fcc3c513855 444
+src/lib/ai/model-manifest.ts
+  s_c0603f2d63f43d::t_3053ee1695597b 287-288
+  s_c0603f2d63f43d::t_5d61c2ca235966 1-286,289-395
+src/components/ui/direction.tsx
+  s_c0603f2d63f43d::t_3053ee1695597b 1-22
+src/app/applications/page.tsx
+  s_886310cc15ec2c::t_1015bec0312ac8 476
+src/app/api/google/callback/route.ts
+  s_c0603f2d63f43d::t_3053ee1695597b 2-3
+src/components/ui/dialog.tsx
+  s_886310cc15ec2c::t_8d4c5356446977 42,50-53,55-56,58-59,61,71-72,85,93,127,156
+  s_886310cc15ec2c::t_1015bec0312ac8 77,91
+  s_c0603f2d63f43d::t_3053ee1695597b 3,5-6,8,54,57,60,62-70,82,84,97-107,110-123,155
+  s_c0603f2d63f43d::t_0449ec1bef9880 78,96,128,149-154,165-172,196
+src/lib/cloudflare.ts
+  s_8de24d303a8509::t_c64f88ede84a8a 1,12-19,21-24,26-42,44-45,48,50-61,63,68-69,71-76,78,92
+  s_8de24d303a8509::t_f336e6695eb688 9-11
+  s_8de24d303a8509::t_5a9a8c1661aad1 64-67
+  s_8de24d303a8509::t_8cb3432a60a957 77
+  s_8de24d303a8509::t_f86bdd8c9cecdf 89-91
+src/components/ui/toggle-group.tsx
+  s_c0603f2d63f43d::t_3053ee1695597b 3-5
+src/app/readiness/page.tsx
+  s_886310cc15ec2c::t_1015bec0312ac8 492-493,495,508,514
+src/app/(auth)/magic-link/page.tsx
+  s_c0603f2d63f43d::t_3053ee1695597b 3,6-7,11
+src/app/api/generate-questions/route.ts
+  s_c0603f2d63f43d::t_3053ee1695597b 1-3,7-14,41
+  s_c0603f2d63f43d::t_3b5efd46a7ed75 61,71-72,122-128,180-186
+src/components/ui/slider.tsx
+  s_c0603f2d63f43d::t_3053ee1695597b 3-4,41,47
+  s_c0603f2d63f43d::t_b688a58c49f99a 55
+src/app/api/integrations/linkedin/status/route.ts
+  s_c0603f2d63f43d::t_3053ee1695597b 2-3
+src/app/api/cv/import-extension/route.ts
+  s_c0603f2d63f43d::t_3053ee1695597b 2
+src/components/ui/switch.tsx
+  s_c0603f2d63f43d::t_3053ee1695597b 3-5,9,11-13,17,19,27
+src/app/system-design/page.tsx
+  s_886310cc15ec2c::t_642bfda4f1c056 416,636,647,672,876-877,913,917-919,934,937,1081,1083
+  s_886310cc15ec2c::t_f0c1f8b76f12c8 514-515,517,526,723-727,729-732,861,1066-1067,1207-1214,1303
+  s_886310cc15ec2c::t_bcaea78c8074c3 20,24,45-50,410-412,516,518-525,527-531,623,626,631-632,645,650-651,655,659,671,864-865,874,881,899,914,927,964-992,1010,1013,1019,1021,1035,1062,1064,1069-1070,1073-1080,1082,1084-1098,1107,1122,1130,1152,1158,1166-1186,1188-1189,1191-1196,1198-1206,1215-1218,1220-1258,1260-1280,1282-1302,1304-1341,1343-1345,1348,1350,1352,1429,1439,1461
+  s_886310cc15ec2c::t_a94d0ea9de280a 1624,1629,1649
+  s_886310cc15ec2c::t_e26cc2cd0dada7 878
+  s_886310cc15ec2c::t_bb3f8ee0a9e52d 935-936
+src/components/landing/copy-command.tsx
+  s_886310cc15ec2c::t_e223f1834e4433 32,34
+src/components/ui/sheet.tsx
+  s_c0603f2d63f43d::t_3053ee1695597b 3,5-6,38,50,54,62,64,66,68,70,76-81,114,127,137,139,141
+src/components/layout/platform-appearance.tsx
+  s_886310cc15ec2c::t_0dee64726010f7 5,11-12
+  s_886310cc15ec2c::t_ebba9b3e2a103f 1-3,6-10,13-16
+  s_886310cc15ec2c::t_e42c3de081d14a 4
+src/app/recordings/page.tsx
+  s_8de24d303a8509::t_8d39b78a34bb8d 85,448,499
+  s_c0603f2d63f43d::t_3053ee1695597b 317-319,323-324,366,376-378,443,488-492
+  s_8de24d303a8509::t_ae4e1564883a28 168-170,446-447,493-494,506-507
+  s_886310cc15ec2c::t_1015bec0312ac8 275,280,284
+  s_c0603f2d63f43d::t_13fa88345790e3 25,134-138,141-157,230,240,245,521,585-595
+src/app/api/livekit/start-recording/route.ts
+  s_c0603f2d63f43d::t_3053ee1695597b 2-3
+src/hooks/use-challenges.ts
+  s_c0603f2d63f43d::t_3053ee1695597b 1
+src/components/ui/alert-dialog.tsx
+  s_c0603f2d63f43d::t_3053ee1695597b 3-5,7,39,49,51-53,59,61,77-80,94,109-112,125,131,134,136-141,147-162
+  s_886310cc15ec2c::t_174dade804ea14 185-186,188,190,192,195
+  s_c0603f2d63f43d::t_060e646eeaae27 163-164,167-168,170-171,173-179,191,193
+src/components/ui/toggle.tsx
+  s_c0603f2d63f43d::t_3053ee1695597b 4-6
+  s_c0603f2d63f43d::t_62addcd5bcf807 9,18-20
+src/app/api/subscription/upgrade/route.ts
+  s_c0603f2d63f43d::t_3053ee1695597b 1-2,5
+src/hooks/use-subscription.ts
+  s_c0603f2d63f43d::t_3053ee1695597b 3
+src/lib/pdf-generator.ts
+  s_c0603f2d63f43d::t_3053ee1695597b 2
+src/components/ui/dropdown-menu.tsx
+  s_c0603f2d63f43d::t_3053ee1695597b 3,5-6,44,76,94,130,172,186,213,232,242,246-247,254-255
+src/components/ui/tooltip.tsx
+  s_c0603f2d63f43d::t_3053ee1695597b 3-5,23,44,50,56
+src/components/interview/performance-analytics-panel.tsx
+  s_c0603f2d63f43d::t_3053ee1695597b 3,5-17
+src/components/custom/icons.tsx
+  s_c0603f2d63f43d::t_3053ee1695597b 2,5,8-9,11,13-14,16-24,26-30,32-33,35-37
+src/app/interview/page.tsx
+  s_886310cc15ec2c::t_1015bec0312ac8 167-169,174,190,216
+  s_886310cc15ec2c::t_c8ad3127843451 158
+src/app/api/cv/import-extension/retrieve/route.ts
+  s_c0603f2d63f43d::t_3053ee1695597b 1
+src/components/ui/chart.tsx
+  s_c0603f2d63f43d::t_8c1bd2d1b93d65 94
+  s_c0603f2d63f43d::t_3053ee1695597b 3,5,11-16,22-23,46,53-56,59,67,73-75,85,155,159,194,203,205,209,211,252,255-259,281-284,301-302,307,309,364,372-373
+  s_c0603f2d63f43d::t_2f24a7e6e11ad7 103,140-146
+src/components/custom/subscription-manager.tsx
+  s_c0603f2d63f43d::t_3053ee1695597b 3,5-19,29-30,32-41,43,45,49
+src/app/api/integrations/google/calendar/status/route.ts
+  s_c0603f2d63f43d::t_3053ee1695597b 2-3
+src/components/ui/carousel.tsx
+  s_c0603f2d63f43d::t_3053ee1695597b 3,8,236,240
+src/app/code-challenge/onboarding/page.tsx
+  s_c0603f2d63f43d::t_8c1bd2d1b93d65 730
+  s_c0603f2d63f43d::t_9af57a7ce1f2fc 256,268
+src/app/api/cv/generate-pdf/route.ts
+  s_c0603f2d63f43d::t_3053ee1695597b 2
+src/app/api/google/oauth/route.ts
+  s_c0603f2d63f43d::t_3053ee1695597b 2-3
+src/components/auth/auth-shell.module.css
+  s_886310cc15ec2c::t_e8bf9d240144c1 2,7,13,18,23
+  s_886310cc15ec2c::t_3e3eda68b72652 1,3-6,8-12,14-17,19-22,24-26
+src/app/api/integrations/google/callback/route.ts
+  s_c0603f2d63f43d::t_3053ee1695597b 3-5
+src/app/api/templates/route.ts
+  s_c0603f2d63f43d::t_3053ee1695597b 2-4
+src/app/api/emails/send-confirmation/route.ts
+  s_c0603f2d63f43d::t_3053ee1695597b 9-10,13
+src/app/api/email/send/route.ts
+  s_c0603f2d63f43d::t_3053ee1695597b 1,3
+src/hooks/use-livekit-token-cache.ts
+  s_c0603f2d63f43d::t_3053ee1695597b 1,159
+src/app/interview-room/page.tsx
+  s_8de24d303a8509::t_ae4e1564883a28 151,542,579,582,588,605,613-616,620-623,626,628-629,635,637-641,647-648,650-655,1594,1597-1600,1604-1609,1613,1617-1624,1628-1637
+  s_8de24d303a8509::t_f573c2f854eb72 611,617-619,624,643,645,649,992-994,996-1000
+  s_c0603f2d63f43d::t_3053ee1695597b 4-6,8,10-15,19-21,24-30,33-39,41,43-52,63-71,80-90,571-578,608-610,630-634,1574-1578,1610-1612,1614-1616,1625-1627
+  s_c0603f2d63f43d::t_4174ae50e23db2 1048,1130,1162,1463,1548,1638-1639
+src/components/ui/tabs.tsx
+  s_c0603f2d63f43d::t_3053ee1695597b 3-6,10,16-21,27-41,44,46-47,51-52,66-69,90
+src/components/ui/spinner.tsx
+  s_c0603f2d63f43d::t_3053ee1695597b 1
+src/components/layout/workspace-links.ts
+  s_886310cc15ec2c::t_baed90b5faca62 1-18,20-160
+  s_886310cc15ec2c::t_201f41aaf9f90d 19
+src/app/api/code-execution/route.ts
+  s_6ad7a97f335419::t_e439070ab316dc 7,110-114,116-117,121-130,200,207,213-221,224,284
+  s_6ad7a97f335419::t_c608765c7b343b 1-4,16-18,29-31,45-46,84-88,97,102,108,184,332,337,343-364,381-389,418-420
+  s_6ad7a97f335419::t_27bcaae31f02bf 19-28,56-67,74,79,92-96,99-101,104,157,185-188,367-377,413,421
+  s_6ad7a97f335419::t_07159dda9a58ee 47-48,54-55,68-73,75-78,80-81,89-91,131-135,137-156,158-163,304,328,365-366,378-380,390-412,414-417,422
+src/components/interview/settings-panel.tsx
+  s_c0603f2d63f43d::t_3053ee1695597b 3,5
+prisma/schema.prisma
+  s_8de24d303a8509::t_8d39b78a34bb8d 324-330
+  s_8de24d303a8509::t_c64f88ede84a8a 285-289
+  s_8de24d303a8509::t_b6b44ce0223c64 331-332
+src/app/(auth)/forgot-password/page.tsx
+  s_c0603f2d63f43d::t_3053ee1695597b 134-136
+  s_c0603f2d63f43d::t_e1c82bc2108db1 4-7,11,46-50,56,59,61-82,87-100,103,107-130,132-133,137-141
+next.config.mjs
+  s_6ad7a97f335419::t_3f1b9969329773 25,28-39,43,103
+  s_886310cc15ec2c::t_7eef752ff1f7d0 46
+  s_6ad7a97f335419::t_5719ddee2d1251 26-27,40-42
+  s_8de24d303a8509::t_c64f88ede84a8a 104
+  s_6ad7a97f335419::t_6a556dc68b8cb2 1,71-72,122
+src/components/interview/browser-recorder.tsx
+  s_8de24d303a8509::t_f573c2f854eb72 22,102-107,109,115
+  s_c0603f2d63f43d::t_3053ee1695597b 1-3,119
+src/app/api/users/route.ts
+  s_c0603f2d63f43d::t_3053ee1695597b 2-4
+src/app/api/users/by-email/route.ts
+  s_c0603f2d63f43d::t_3053ee1695597b 2-4
+src/components/interview/ai-feedback.tsx
+  s_c0603f2d63f43d::t_3053ee1695597b 3,5,8
+src/components/ui/drawer.tsx
+  s_c0603f2d63f43d::t_3053ee1695597b 3-4,39,58,67,104,117,127,129-131,133
+src/components/ui/command.tsx
+  s_c0603f2d63f43d::t_3053ee1695597b 4,6,24,55,76,121,136,150,166,179,181,183
+src/components/ui/checkbox.tsx
+  s_c0603f2d63f43d::t_3053ee1695597b 3,5-6
+  s_c0603f2d63f43d::t_4b72a03e007712 16
+src/app/layout.tsx
+  s_886310cc15ec2c::t_ebba9b3e2a103f 6,82
+  s_886310cc15ec2c::t_017a3b5c50470e 62
+  s_8de24d303a8509::t_58c70018c0898d 32
+  s_8de24d303a8509::t_2bedc1dc20691d 3,36,63,89-94
+.env.example
+  s_8de24d303a8509::t_2f742bc19728ca 70
+  s_6ad7a97f335419::t_d72b0ad268fa36 82-83,86-88,103,105,111-113
+  s_8de24d303a8509::t_4500be3e7dd2f3 11-13,18-19,31
+  s_6ad7a97f335419::t_9f09b1f88f2ccb 47-53,120-121
+src/components/ui/popover.tsx
+  s_c0603f2d63f43d::t_3053ee1695597b 3-5,32,47-77,83-84,87-88
+  s_886310cc15ec2c::t_174dade804ea14 80-81,86
+  s_c0603f2d63f43d::t_137ebcb629187f 78-79,82,85
+src/app/api/code-challenge/save/route.ts
+  s_c0603f2d63f43d::t_3053ee1695597b 2-3
+src/app/api/notifications/dismiss/route.ts
+  s_c0603f2d63f43d::t_3053ee1695597b 6
+src/app/api/send-email/route.ts
+  s_c0603f2d63f43d::t_3053ee1695597b 2-4
+src/components/cv-builder/templates/MinimalTemplate.tsx
+  s_c0603f2d63f43d::t_3053ee1695597b 3
+src/components/interview/session-controls-component.tsx
+  s_c0603f2d63f43d::t_3053ee1695597b 2-4,6,11-15
+src/app/api/recordings/route.ts
+  s_8de24d303a8509::t_60c0318653f0a3 1-2,6,8,13,23,28-43,45-49,90
+  s_8de24d303a8509::t_f573c2f854eb72 14-16,20,24-27,51-84,87
+src/components/cv-builder/EditorPanel.tsx
+  s_886310cc15ec2c::t_96a13c468d3489 37,39
+  s_886310cc15ec2c::t_030dd28dbbf1ce 15-19,31-32,38,40-47
+  s_886310cc15ec2c::t_7cec9b3f9647ec 3-5,7-8,10-12,14,20-27,29-30,34-36,48-52
+src/lib/prisma.ts
+  s_8de24d303a8509::t_c64f88ede84a8a 4,10-16,20-21,23-24,28-48,51-59
+  s_8de24d303a8509::t_f573c2f854eb72 6-7,17-19
+  s_8de24d303a8509::t_f58850dc2a6aac 8
+  s_8de24d303a8509::t_2da2da9a152a7a 60
+src/components/ui/alert.tsx
+  s_c0603f2d63f43d::t_3053ee1695597b 2-3,6,12,57,65
+src/components/ui/button.tsx
+  s_c0603f2d63f43d::t_3053ee1695597b 2-4,7,13,15,24-25,28,50
+src/app/settings/sessions/page.tsx
+  s_886310cc15ec2c::t_70dc4d4bb55db5 125-132,135-144,151-153,155-156,252-256,259
+  s_886310cc15ec2c::t_1015bec0312ac8 207,209-211,215,221,239,245
+  s_886310cc15ec2c::t_755789894b054b 46,49-50,56,58-59,61,67,204,230
+  s_c0603f2d63f43d::t_3053ee1695597b 3,5-10,20
+  s_c0603f2d63f43d::t_ac2de09283b91d 82-89,110-112,154,157-158,286-294
+public/fonts/material-symbols-LICENSE.txt
+  s_886310cc15ec2c::t_ce49f972d87246 1-202
+src/components/ui/attachment.tsx
+  s_c0603f2d63f43d::t_3053ee1695597b 1-204
+src/hooks/use-livekit-room.ts
+  s_c0603f2d63f43d::t_3053ee1695597b 4-9,14
+src/app/api/recordings/[id]/route.ts
+  s_8de24d303a8509::t_60c0318653f0a3 1,3,6,8-10,15-18,23,37,42,44-45,50-52,59-61,64-67,71-80,96-104,112,119-121,126-127,129,131-137,142-145,151-154,160,165,168-171,182
+  s_8de24d303a8509::t_f573c2f854eb72 19-22,24-29,32-35,38-41,46-49,62-63,68-70,81-95,105-111,113-116,122-124,138-141,147-150,155-157,175-178
+  s_8de24d303a8509::t_8d39b78a34bb8d 31,36,163-164,174,179
+  s_8de24d303a8509::t_9ea740915c7631 146
+src/app/dashboard/page.tsx
+  s_886310cc15ec2c::t_e1602bb22ca462 340-342,353-355,366-368
+  s_886310cc15ec2c::t_9797634cc5ba31 417
+  s_886310cc15ec2c::t_a63d7af00e8aa9 285-286,289,291,293,296,298,311,328,338,343,346,356,359,369,374,384,386,388-390,392,394-395,402,410,446,448-449,467-468,479,659
+  s_c0603f2d63f43d::t_3053ee1695597b 302,308,577-580,583-586,589-592,595-598
+  s_c0603f2d63f43d::t_8c10fe876aeb84 182,301,303-307,317,484,487-512,521-522,576
+src/components/ui/hover-card.tsx
+  s_c0603f2d63f43d::t_3053ee1695597b 3-5,34,43
+package.json
+  s_886310cc15ec2c::t_aa888d5192d8d9 65,74,88,99-100
+  s_c0603f2d63f43d::t_99e7385d4c43ac 27
+  s_8de24d303a8509::t_c64f88ede84a8a 41,134
+  s_c0603f2d63f43d::t_dbe8aa9206ef9c 16,19-21,43,50,58,62,109,112,115,117,123-125,130,157
+src/app/api/interviews/import/route.ts
+  s_c0603f2d63f43d::t_3053ee1695597b 1,5
+src/components/custom/command-palette.tsx
+  s_6ad7a97f335419::t_27bcaae31f02bf 3-24,26-27,39-44,60-61,130-136,139-144,253,278-283,285-292,323-332,334-336,338-341,351
+  s_6ad7a97f335419::t_e439070ab316dc 46,64,301,318
+src/app/api/mock-interviews/[id]/route.ts
+  s_c0603f2d63f43d::t_3053ee1695597b 2-3
+src/components/ui/badge.tsx
+  s_c0603f2d63f43d::t_3053ee1695597b 2-4,7,11,13,15,17-19,30,35
+  s_c0603f2d63f43d::t_91d8f4ff253980 40
+src/app/api/analytics/route.ts
+  s_c0603f2d63f43d::t_3053ee1695597b 2-4
+src/app/api/final-assessment/route.ts
+  s_c0603f2d63f43d::t_3053ee1695597b 1
+  s_c0603f2d63f43d::t_2854b88a85852c 2-3,7-22,32-35,44-45,115,117-124
+src/components/interview/whiteboard-collaboration.tsx
+  s_c0603f2d63f43d::t_3053ee1695597b 4
+  s_c0603f2d63f43d::t_cb92ba1440ad28 3,5-7,11,14-21,27,29-30,53-61,63-65,68-80,82-85,89-105
+src/hooks/use-wake-lock.ts
+  s_c0603f2d63f43d::t_3053ee1695597b 11-15
+  s_c0603f2d63f43d::t_5a489b4ac2fdcc 1-10,16-48
+src/app/api/challenges/generate/route.ts
+  s_c0603f2d63f43d::t_3053ee1695597b 2,4-5
+  s_c0603f2d63f43d::t_c487092fb6fd9e 6,74,84-85,145,147-153
+src/components/ui/button-group.tsx
+  s_c0603f2d63f43d::t_3053ee1695597b 2-3,8,47
+  s_c0603f2d63f43d::t_7666d590fbc21a 52,70
+src/app/api/integrations/linkedin/import/route.ts
+  s_c0603f2d63f43d::t_3053ee1695597b 3-5
+src/components/ui/collapsible.tsx
+  s_c0603f2d63f43d::t_3053ee1695597b 3,33
+src/app/api/evaluate-answer/route.ts
+  s_c0603f2d63f43d::t_3053ee1695597b 1
+  s_c0603f2d63f43d::t_329ef010006214 2-3,7-16,19,29-30,71-77,79
+src/app/api/subscription/usage/route.ts
+  s_c0603f2d63f43d::t_3053ee1695597b 1
+src/components/ui/card.tsx
+  s_c0603f2d63f43d::t_3053ee1695597b 1-2,9,44,87-90
+src/components/interview/livekit-video-room.tsx
+  s_c0603f2d63f43d::t_3053ee1695597b 4,6,10,12
+src/components/ui/field.tsx
+  s_c0603f2d63f43d::t_3053ee1695597b 4-5,239,243
+  s_c0603f2d63f43d::t_903c3566e08100 207
+  s_c0603f2d63f43d::t_2a62884ff7f80e 69,120,146,148,176,229
+src/components/ui/table.tsx
+  s_c0603f2d63f43d::t_3053ee1695597b 3-4,46,59,72,100,109-110,113
+src/lib/haptics.ts
+  s_c0603f2d63f43d::t_3053ee1695597b 5-11
+  s_c0603f2d63f43d::t_be67a7cdfc6900 1-4,12-21
+src/components/ui/context-menu.tsx
+  s_c0603f2d63f43d::t_3053ee1695597b 3,5-6,68,87,104,128,146,171,198,213,227,237,239,242-244,250
+src/components/providers/deferred-client-widgets.tsx
+  s_6ad7a97f335419::t_532d30077e3103 31
+  s_6ad7a97f335419::t_3268c74a5c522d 18-25
+src/components/cv-builder/templates/ClassicTemplate.tsx
+  s_c0603f2d63f43d::t_3053ee1695597b 3
+src/instrumentation.ts
+  s_c0603f2d63f43d::t_3053ee1695597b 32-35
+  s_c0603f2d63f43d::t_2307a0c1c83492 5-7,10-13,20-31,36-37
+src/components/cv-builder/CustomizePanel.tsx
+  s_c0603f2d63f43d::t_3053ee1695597b 121-124
+  s_886310cc15ec2c::t_7e8b531bd4899a 207
+  s_886310cc15ec2c::t_e5f0ba10c9b4ba 135,139,143-144,147
+  s_c0603f2d63f43d::t_eacbeec4e0ac08 133,204
+src/components/ui/aspect-ratio.tsx
+  s_c0603f2d63f43d::t_3053ee1695597b 3
+src/app/(auth)/phone-signin/page.tsx
+  s_c0603f2d63f43d::t_3053ee1695597b 90-130,132-151,153-162,164,166-169
+  s_c0603f2d63f43d::t_d5a87c7893b872 4-8,11-17,89,170-173,175-177,179,181,184-186,188,190,192-196
+src/components/ui/native-select.tsx
+  s_c0603f2d63f43d::t_3053ee1695597b 1-61
+src/app/api/livekit/stop-recording/route.ts
+  s_c0603f2d63f43d::t_3053ee1695597b 2-3
+src/app/saved-interviews/[id]/page.tsx
+  s_886310cc15ec2c::t_1015bec0312ac8 146,151,240,254,262,271,273,285,292-293,296,299,301,304,510
+  s_c0603f2d63f43d::t_3053ee1695597b 4,7,9-11,13-14,16,28-39
+  s_c0603f2d63f43d::t_27a7f274133b77 496,580
+src/components/cv-builder/CanvaLayout.tsx
+  s_886310cc15ec2c::t_5fed11fbff0781 3,10-15,28,58,118,429-434,439-440,455-456,458-479,484-487,489-490,521-522,532,536-539,552-556,558
+  s_886310cc15ec2c::t_030dd28dbbf1ce 16,20,422-426,480-482,493-519,523-531,533-535,541-551
+  s_886310cc15ec2c::t_96a13c468d3489 435,437,540
+  s_e6594b01227267::t_d65402470f2509 427,491-492,520
+src/app/settings/profile/page.tsx
+  s_c0603f2d63f43d::t_3053ee1695597b 6,8,10,12-14,16-18,30-45
+  s_c0603f2d63f43d::t_c719159bb27508 298-300,360-367
+src/app/page.tsx
+  s_8de24d303a8509::t_6df4c2a3c2811d 239-241
+  s_8de24d303a8509::t_58c70018c0898d 23,25,73,86-88,97-98,109,114-128,130,226,229-231,242,244,254,261,263
+src/components/ui/pagination.tsx
+  s_c0603f2d63f43d::t_3053ee1695597b 1,7,9,121,123,125
+src/app/api/integrations/google/auth/route.ts
+  s_c0603f2d63f43d::t_3053ee1695597b 2
+src/app/api/subscription/downgrade/route.ts
+  s_c0603f2d63f43d::t_3053ee1695597b 1-2
+src/components/landing/testimonial.tsx
+  s_c0603f2d63f43d::t_3053ee1695597b 1,3
+prisma/migrations/20261127204000_add_private_recordings/migration.sql
+  s_8de24d303a8509::t_8d39b78a34bb8d 5,8-43
+  s_8de24d303a8509::t_c64f88ede84a8a 1-4,6-7
+src/components/landing/hero-showcase.tsx
+  s_8de24d303a8509::t_6df4c2a3c2811d 4,111,287-289,310-312
+  s_8de24d303a8509::t_40b0fb938dc369 57,66,85-87,93-95,101-103,108-110,119-120,135,276,284,332,363,390
+src/app/api/interviews/send-reminders/route.ts
+  s_c0603f2d63f43d::t_3053ee1695597b 1,5
+docker-compose.yml
+  s_c0603f2d63f43d::t_8c84e44dae1711 35-53
+src/app/contact/page.tsx
+  s_c0603f2d63f43d::t_54d11869040da4 131
+  s_c0603f2d63f43d::t_739e95a3498af1 13
+src/env.ts
+  s_6ad7a97f335419::t_d72b0ad268fa36 86,109-110,132-134,164-166
+  s_6ad7a97f335419::t_d911b22b339cb7 44-46,84-85,181-182
+src/app/api/transcribe-audio/route.ts
+  s_c0603f2d63f43d::t_3053ee1695597b 1
+src/app/settings/security/page.tsx
+  s_c0603f2d63f43d::t_3053ee1695597b 3,5-9,18-19,22-23
+  s_c0603f2d63f43d::t_aed96a85215b2b 41-43,104-105,111,113-115,117-127,129-134,139-143,145,325-334
+src/app/api/questions/route.ts
+  s_c0603f2d63f43d::t_3053ee1695597b 2-4
+src/app/api/save-interview/[id]/route.ts
+  s_c0603f2d63f43d::t_3053ee1695597b 2-3
+src/app/(auth)/verify-2fa/page.tsx
+  s_c0603f2d63f43d::t_3053ee1695597b 119-121
+  s_c0603f2d63f43d::t_90ecc88a1b342a 4-8,11-16,27,56-60,64,67,69,73,77-111,113-118,122-136,144-151
+src/app/api/ai/analyze-speech/route.ts
+  s_c0603f2d63f43d::t_3053ee1695597b 1
+src/components/custom/billing-page-wrapper.tsx
+  s_c0603f2d63f43d::t_3053ee1695597b 4-5
+src/app/api/scrape-linkedin/route.ts
+  s_c0603f2d63f43d::t_3053ee1695597b 2
+src/components/ui/avatar.tsx
+  s_c0603f2d63f43d::t_3053ee1695597b 3-5,9,11-13,17,19,48-93,101-108
+src/app/more/page.tsx
+  s_886310cc15ec2c::t_240e2c07312781 10-11
+  s_886310cc15ec2c::t_baed90b5faca62 4-9,12-31,33-39,41-44,47-48,51-57,59-67,69-93
+  s_886310cc15ec2c::t_b76b00bd4a4ad0 1-3
+  s_886310cc15ec2c::t_951e6e7536c27a 32
+  s_886310cc15ec2c::t_1402899d82c323 40
+  s_886310cc15ec2c::t_6c78bcd20686d2 45-46
+  s_886310cc15ec2c::t_676086e4ef6f8a 49-50
+  s_886310cc15ec2c::t_594976a4d76bed 58
+  s_886310cc15ec2c::t_db32dc06a8db90 68
+wrangler.jsonc
+  s_8de24d303a8509::t_8d39b78a34bb8d 13
+  s_8de24d303a8509::t_c64f88ede84a8a 25,30-34,36,40,48,56
+  s_8de24d303a8509::t_5e783656d75e9b 14
+  s_8de24d303a8509::t_ee37ba88fa64fd 24
+  s_8de24d303a8509::t_809cfe7078be89 26-29
+  s_8de24d303a8509::t_7ae888778452e7 35
+  s_8de24d303a8509::t_bacaac6c14167f 37-39
+  s_8de24d303a8509::t_086f99853c2c0a 41-43,45-47
+  s_8de24d303a8509::t_70c26689d430b6 49-51,53-55
+src/components/ui/kbd.tsx
+  s_c0603f2d63f43d::t_3053ee1695597b 1
+  s_c0603f2d63f43d::t_2b07be7beaeaf3 8
+src/components/ui/label.tsx
+  s_c0603f2d63f43d::t_3053ee1695597b 3-5
+src/components/ui/calendar.tsx
+  s_c0603f2d63f43d::t_3053ee1695597b 3,9,11
+  s_c0603f2d63f43d::t_9ee5ad294b7043 36,50,53,55,60,65,69,73,77,81,85,88,91,94,97,99,103,107,120,211
+src/app/api/integrations/linkedin/callback/route.ts
+  s_c0603f2d63f43d::t_3053ee1695597b 3-5
+src/app/api/interviews/sync-calendar/route.ts
+  s_c0603f2d63f43d::t_3053ee1695597b 1,7,9
+src/components/ui/skeleton.tsx
+  s_c0603f2d63f43d::t_3053ee1695597b 1
+  s_c0603f2d63f43d::t_fa2ec27f36f911 7
+tests/e2e/navigation.spec.ts
+  s_886310cc15ec2c::t_873820b8e03762 52-55
+  s_886310cc15ec2c::t_7f40eb1ac21893 141-143
+  s_886310cc15ec2c::t_15ec2eae8c7f9c 137-139
+  s_886310cc15ec2c::t_a941f95bf6025f 1-2,6-14,19-22,27-29,57-58,95-136,140,144-150
+  s_886310cc15ec2c::t_a3af355a1440c0 23-26
+  s_886310cc15ec2c::t_767395c695b976 70,93
+  s_886310cc15ec2c::t_53795bcc34620f 77-80
+  s_886310cc15ec2c::t_e4233294ea884e 3-5,15-18,30-38,59-69,71-76,81-92,94
+  s_886310cc15ec2c::t_0b3e6b88a980f7 39-51,56
+src/components/ui/bubble.tsx
+  s_c0603f2d63f43d::t_3053ee1695597b 1-124
+src/app/api/livekit/webhook/route.ts
+  s_c0603f2d63f43d::t_3053ee1695597b 1
+src/app/mock-interview/page.tsx
+  s_c0603f2d63f43d::t_8c1bd2d1b93d65 2242
+  s_c0603f2d63f43d::t_3053ee1695597b 52-53,57-59,72,391,418,827-828
+  s_c0603f2d63f43d::t_10b65b5c47ea85 974,982,1235,1351-1353,1355-1369,1373-1375,1377-1380,1382,1384-1386,1388-1394,1525,1736,1756-1764,2028,2235,2633
+src/components/cv-builder/ExportPanel.tsx
+  s_886310cc15ec2c::t_e5f0ba10c9b4ba 878
+  s_c0603f2d63f43d::t_3053ee1695597b 771-774
+src/components/ui/select.tsx
+  s_c0603f2d63f43d::t_3053ee1695597b 3,5-6
+  s_c0603f2d63f43d::t_41e259ebde7ca3 39,64,96,111,136
+biome.json
+  s_c0603f2d63f43d::t_8c1bd2d1b93d65 23-39
+  s_c0603f2d63f43d::t_3053ee1695597b 2,21
+src/components/ui/scroll-area.tsx
+  s_c0603f2d63f43d::t_3053ee1695597b 3-5
+  s_c0603f2d63f43d::t_3a2e6afe438f93 20,51
+src/app/settings/two-factor/page.tsx
+  s_c0603f2d63f43d::t_3053ee1695597b 3,5-10,22-23
+  s_c0603f2d63f43d::t_97f9e5f265e2d6 52-54,56-59,61-64,66-68,70-75,77-96,98-103,128,137-139,149-155,272,280,329-348
+src/components/interview/ai-interview-bot.tsx
+  s_c0603f2d63f43d::t_3053ee1695597b 3,7-9,13-14,16-21
+src/app/api/admin/stats/route.ts
+  s_c0603f2d63f43d::t_3053ee1695597b 2-4
+src/components/interview/answer-input-component.tsx
+  s_c0603f2d63f43d::t_3053ee1695597b 3-6
+src/components/cv-builder/sections/SkillsSection.tsx
+  s_c0603f2d63f43d::t_8c1bd2d1b93d65 103
+src/app/api/emails/send-reminder/route.ts
+  s_c0603f2d63f43d::t_3053ee1695597b 9-10,13
+src/components/interview/question-display-component.tsx
+  s_c0603f2d63f43d::t_3053ee1695597b 1,3,6
+src/app/cv-builder/page.tsx
+  s_886310cc15ec2c::t_5fed11fbff0781 32
+src/app/api/save-interview/route.ts
+  s_c0603f2d63f43d::t_3053ee1695597b 2-3
+public/llms.txt
+  s_8de24d303a8509::t_2f742bc19728ca 15-16
+src/app/settings/notifications/page.tsx
+  s_c0603f2d63f43d::t_3053ee1695597b 3-4,7
+  s_c0603f2d63f43d::t_618fa7ea06ef09 11,13-16
+src/components/layout/navbar.tsx
+  s_886310cc15ec2c::t_40089152103100 107-109
+  s_886310cc15ec2c::t_baed90b5faca62 39-41,65,94-98,102-105
+  s_886310cc15ec2c::t_55c855e35cb719 15,32-35,106,110-114
+src/app/api/interviews/notifications/route.ts
+  s_c0603f2d63f43d::t_3053ee1695597b 1,5
+src/components/ui/radio-group.tsx
+  s_c0603f2d63f43d::t_3053ee1695597b 3,5-6
+  s_c0603f2d63f43d::t_e22d8226e923ad 29,38
+scripts/migrate-appwrite.ts
+  s_c0603f2d63f43d::t_3053ee1695597b 9-14
+  s_8de24d303a8509::t_1506412652fcaf 1-7,15-27,40-42,50-60,65-70,76-83,88-90,95-97,110,113-115,118-122,131-140,145,148-149,152,155,161-163,174,180,193-210,225-228,232-233,238,243-247,257,262-284,289-295,300-304,309-310,314-318
+  s_8de24d303a8509::t_ddd79bce2d3aed 234-237
+  s_8de24d303a8509::t_f573c2f854eb72 8,28-39,43-49,61-64,71-75,84-87,91-94,98-109,111-112,116-117,123-130,141-144,146-147,150-151,153-154,156-160,164-173,175-179,181-192,211-224,229-231,239-242,248-256,258-261,285-288,296-299,305-308,311-313
+src/app/api/submissions/route.ts
+  s_c0603f2d63f43d::t_3053ee1695597b 2-3
+src/components/cv-builder/SkillsGapAnalyzer.tsx
+  s_c0603f2d63f43d::t_3053ee1695597b 3,7-8,10,12-13,16,18-23,25
+src/components/ui/empty.tsx
+  s_c0603f2d63f43d::t_3053ee1695597b 2,31,36,75,99-100,102
+src/components/ui/marker.tsx
+  s_c0603f2d63f43d::t_3053ee1695597b 1-68
+src/hooks/use-recording-upload.ts
+  s_8de24d303a8509::t_ae4e1564883a28 1,25-26,35-46,94-98,101-104,109
+  s_8de24d303a8509::t_f573c2f854eb72 33-34,51-68,72-93,99-100
+src/app/cover-letter/page.tsx
+  s_886310cc15ec2c::t_1015bec0312ac8 438,452,751,755
+  s_886310cc15ec2c::t_56428a8d8f775e 437
+src/components/custom/offline-detector.tsx
+  s_c0603f2d63f43d::t_3053ee1695597b 3
+src/components/custom/push-notification-settings.tsx
+  s_c0603f2d63f43d::t_3053ee1695597b 8-15,17,26
+src/app/api/cover-letter/generate-pdf/route.ts
+  s_c0603f2d63f43d::t_3053ee1695597b 2
+src/components/landing/landing-navbar.module.css
+  s_886310cc15ec2c::t_e8bf9d240144c1 16,20
+  s_886310cc15ec2c::t_399de9f6a0dc79 1-15,17-19,21-23
+src/components/landing/landing-navbar.tsx
+  s_886310cc15ec2c::t_40089152103100 16-19,137-146,148-154,156-173,175-183,185,187-188
+  s_886310cc15ec2c::t_399de9f6a0dc79 13,49-51,129-130
+  s_e6594b01227267::t_cd68ae5e66f501 3-4,14-15,20-21,131-136,190-191
+src/app/api/recordings/upload/route.ts
+  s_8de24d303a8509::t_ddd79bce2d3aed 33,101
+  s_8de24d303a8509::t_2379898d2aaa5d 1,3,6-8,10,13-16,21-24,27,38-39,44-45,50-52,59-64,77,82-83,93-94,102-104,125-134,139-144,146-153,157-160,162-164,174-184,186-190,193-195,197,199-200,205,207-209
+  s_8de24d303a8509::t_8d39b78a34bb8d 117-124,196,198
+  s_8de24d303a8509::t_f573c2f854eb72 11-12,25-26,28-31,34-37,40-43,46-49,54,65-69,78-81,84-90,96,105-115,135-138,154-156,166-173,201-204,211
+  s_8de24d303a8509::t_fa5d912fa36415 116
+  s_8de24d303a8509::t_9ad992523d442c 145
+src/app/api/interviews/route.ts
+  s_c0603f2d63f43d::t_3053ee1695597b 1,6
+src/app/api/integrations/google/calendar/export/route.ts
+  s_c0603f2d63f43d::t_3053ee1695597b 2,4-6
+src/components/custom/upgrade-prompt.tsx
+  s_c0603f2d63f43d::t_3053ee1695597b 3-5
+  s_c0603f2d63f43d::t_2ce652c6ddee3e 32
+src/components/ui/sidebar.tsx
+  s_c0603f2d63f43d::t_3053ee1695597b 4,6-7,25,141,172,189,209,246,293,296,311,328,364,400,407,421,428,476,482,510,556,563,571,588,645,679
+  s_c0603f2d63f43d::t_2db73318d99e7a 688
+src/components/ui/message.tsx
+  s_c0603f2d63f43d::t_3053ee1695597b 1-91
+src/components/ui/separator.tsx
+  s_c0603f2d63f43d::t_3053ee1695597b 3-5
+  s_c0603f2d63f43d::t_61e2ae7b6a6190 19
+src/components/ui/accordion.tsx
+  s_c0603f2d63f43d::t_3053ee1695597b 3,5-6,37,43,57,65
+src/app/api/integrations/linkedin/disconnect/route.ts
+  s_c0603f2d63f43d::t_3053ee1695597b 2-3
+src/components/ui/input-otp.tsx
+  s_c0603f2d63f43d::t_3053ee1695597b 3,6,53,61,76
+src/app/api/livekit/token/route.ts
+  s_c0603f2d63f43d::t_3053ee1695597b 3
+src/app/api/integrations/google/disconnect/route.ts
+  s_c0603f2d63f43d::t_3053ee1695597b 2-3
+src/components/layout/use-workspace-navigation.ts
+  s_886310cc15ec2c::t_deef685c36b675 1-120
+src/lib/ai/providers.ts
+  s_c0603f2d63f43d::t_98979f82c95291 2,4-9,15-35,43-61,66-69,75-76,80-83,87-102,106,108-109,111-113,119-120,122-123,126-127,133-145,149-151,153-177,179-201
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "45139ac440879ce44158671015258f91c067aa9c",
+  "prompts": {},
+  "sessions": {
+    "s_6ad7a97f335419": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a21f7c-8bc8-7502-8417-49cc39497012",
+        "model": "gpt-6.2-sol"
+      },
+      "human_author": "Ali Ammari <ammari.ali.0001@gmail.com>"
+    },
+    "s_886310cc15ec2c": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a21612-7160-7712-a7ea-f567fad75189",
+        "model": "gpt-6.2-sol"
+      },
+      "human_author": "Ali Ammari <ammari.ali.0001@gmail.com>"
+    },
+    "s_8de24d303a8509": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a21efe-29cc-79d2-ae7f-9c7515f6106c",
+        "model": "gpt-6.2-sol"
+      },
+      "human_author": "Ali Ammari <ammari.ali.0001@gmail.com>"
+    },
+    "s_c0603f2d63f43d": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "d0f84d23-c2df-4be3-a831-8ab6585d0b6d",
+        "model": "claude-sonnet-5-5"
+      },
+      "human_author": "Ali Ammari <ammari.ali.0001@gmail.com>"
+    },
+    "s_e6594b01227267": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "6c470c0c-01f6-4c14-94b6-20f5b2dde93b",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Ali Ammari <ammari.ali.0001@gmail.com>"
+    }
+  }
+}
