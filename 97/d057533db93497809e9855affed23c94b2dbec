@@ -1,0 +1,144 @@
+docs-mintlify/deployment.mdx
+  s_8de24d303a8509::t_2f742bc19728ca 3,7
+  s_8de24d303a8509::t_f573c2f854eb72 8-9
+.editorconfig
+  s_c0603f2d63f43d::t_99ec711159207c 1-12
+docs/DEPLOYMENT.md
+  s_6ad7a97f335419::t_76adba480d934a 105
+  s_8de24d303a8509::t_2f742bc19728ca 1,3,30-37,96,98-100,107,109,112-116,119-121,130-133
+  s_6ad7a97f335419::t_c037d2d978fe97 102,104
+  s_8de24d303a8509::t_ddd79bce2d3aed 44-46,85-88,134-136
+  s_8de24d303a8509::t_f573c2f854eb72 6,15-17,22,39-43,47-84,89-94,137-138
+  s_6ad7a97f335419::t_c33fc10bb77afd 38
+docs/ARCHITECTURE.md
+  s_8de24d303a8509::t_2f742bc19728ca 4,26-27,45-46
+  s_8de24d303a8509::t_f573c2f854eb72 47-50
+docs/AI_AND_PRIVACY.md
+  s_c0603f2d63f43d::t_8c84e44dae1711 1-49
+docs/TRENDING.md
+  s_8de24d303a8509::t_6df4c2a3c2811d 1,3,5,7-10,12,14-17,19,21
+CONTRIBUTING.md
+  s_c0603f2d63f43d::t_54d11869040da4 27
+  s_8de24d303a8509::t_2f742bc19728ca 163,168
+  s_c0603f2d63f43d::t_99e7385d4c43ac 136
+  s_c0603f2d63f43d::t_99ec711159207c 20-22,174,176-180,202-223,225,227-228
+  s_8de24d303a8509::t_4500be3e7dd2f3 3,31-46,55-62,69-70,76-78,83-84,86-90,92-96,99-103,105,107-117,133,139-149,199
+  s_8de24d303a8509::t_56041bf55273d5 71-72
+  s_8de24d303a8509::t_27f56c80b67e1f 17,48-50,82,131,175
+  s_8de24d303a8509::t_0c4fcb0b00e2d6 200-201
+  s_c0603f2d63f43d::t_9017d47da7ab9a 47
+AGENTS.md
+  s_c0603f2d63f43d::t_99e7385d4c43ac 9
+  s_c0603f2d63f43d::t_f3f628e42c78bc 1-8,10-30
+README.md
+  s_c0603f2d63f43d::t_99e7385d4c43ac 10-12,152,154-155,157
+  s_c0603f2d63f43d::t_bc9f79f118a22b 49,51-53,75,77-79,82,84,86,135-137,156
+  s_c0603f2d63f43d::t_5a8209b9b53ecf 5,9,13-14,16,18,20,22,32,34,36,38-47,55,57,59,61,64-70,73,88,90,92-97,99,101,103,105,108-116,119,122-127,130,132-134,138-141,143,145-150,163
+  s_c0603f2d63f43d::t_78f05841bdc436 24,26,28,30
+  s_c0603f2d63f43d::t_54d11869040da4 161
+  s_8de24d303a8509::t_6df4c2a3c2811d 159
+.github/PULL_REQUEST_TEMPLATE.md
+  s_c0603f2d63f43d::t_f3f628e42c78bc 1,3,7,11,15,19-24
+  s_8de24d303a8509::t_aaf53731be508b 5,9,13
+docs/SELF_HOSTING.md
+  s_c0603f2d63f43d::t_8c84e44dae1711 1-51
+CODE_OF_CONDUCT.md
+  s_c0603f2d63f43d::t_54d11869040da4 63
+.github/workflows/scorecard.yml
+  s_c0603f2d63f43d::t_54d11869040da4 1-32
+wiki/01-project-overview.md
+  s_8de24d303a8509::t_ddd79bce2d3aed 120
+docs-mintlify/features/interviews.mdx
+  s_8de24d303a8509::t_2f742bc19728ca 12-13
+.github/workflows/dependency-review.yml
+  s_c0603f2d63f43d::t_54d11869040da4 1-19
+wiki/use-cases/README.md
+  s_c0603f2d63f43d::t_54d11869040da4 301
+.github/CODEOWNERS
+  s_c0603f2d63f43d::t_99ec711159207c 1-9
+SECURITY.md
+  s_8de24d303a8509::t_23c59c90ab3b0b 190
+  s_c0603f2d63f43d::t_54d11869040da4 22,301,306
+  s_8de24d303a8509::t_ddd79bce2d3aed 219-222
+.github/workflows/stale.yml
+  s_c0603f2d63f43d::t_54d11869040da4 1-30
+GOVERNANCE.md
+  s_c0603f2d63f43d::t_99ec711159207c 1-26
+docs/ROADMAP.md
+  s_c0603f2d63f43d::t_8c84e44dae1711 1-28
+docs-mintlify/introduction.mdx
+  s_8de24d303a8509::t_23c59c90ab3b0b 17
+  s_8de24d303a8509::t_2f742bc19728ca 18
+SUPPORT.md
+  s_c0603f2d63f43d::t_99ec711159207c 1-14
+.nvmrc
+  s_c0603f2d63f43d::t_54d11869040da4 1
+.github/labels.yml
+  s_c0603f2d63f43d::t_54d11869040da4 1-12
+.github/ISSUE_TEMPLATE/config.yml
+  s_8de24d303a8509::t_0c4fcb0b00e2d6 6-8
+  s_c0603f2d63f43d::t_54d11869040da4 16
+  s_c0603f2d63f43d::t_f3f628e42c78bc 9-11
+LICENSE.md
+  s_c0603f2d63f43d::t_54d11869040da4 63
+wiki/README.md
+  s_c0603f2d63f43d::t_54d11869040da4 92
+docs-mintlify/architecture.mdx
+  s_8de24d303a8509::t_2f742bc19728ca 7,13-14
+docs/OPEN_SOURCE_GROWTH_PLAN.md
+  s_8de24d303a8509::t_6df4c2a3c2811d 1,3,5,7-11
+docs/architecture/decisions/0003-ci-reproducibility.md
+  s_8de24d303a8509::t_6ae148cb28bfe4 34-38
+.github/ISSUE_TEMPLATE/bug_report.yml
+  s_c0603f2d63f43d::t_f3f628e42c78bc 9,41,43,45,47,49
+  s_8de24d303a8509::t_3ac0e73fa8e19e 1-2,14-15,20,22-23,28,30-32,35,37-38
+.github/workflows/deploy-cloudflare.yml
+  s_6ad7a97f335419::t_76adba480d934a 42-43
+  s_8de24d303a8509::t_f573c2f854eb72 20-21,33-34,40-41
+  s_8de24d303a8509::t_2f742bc19728ca 5
+  s_6ad7a97f335419::t_754b9fb90c9486 44-45
+chrome-extension/CHROMEWEBSTORE.md
+  s_e6594b01227267::t_219a8965800b1d 1-42
+docs/TWA_SETUP.md
+  s_e6594b01227267::t_cc4bb55c7682f0 1-38
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "97d057533db93497809e9855affed23c94b2dbec",
+  "prompts": {},
+  "sessions": {
+    "s_6ad7a97f335419": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a21f7c-8bc8-7502-8417-49cc39497012",
+        "model": "gpt-6.2-sol"
+      },
+      "human_author": "Ali Ammari <ammari.ali.0001@gmail.com>"
+    },
+    "s_8de24d303a8509": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a21efe-29cc-79d2-ae7f-9c7515f6106c",
+        "model": "gpt-6.2-sol"
+      },
+      "human_author": "Ali Ammari <ammari.ali.0001@gmail.com>"
+    },
+    "s_c0603f2d63f43d": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "d0f84d23-c2df-4be3-a831-8ab6585d0b6d",
+        "model": "claude-sonnet-5-5"
+      },
+      "human_author": "Ali Ammari <ammari.ali.0001@gmail.com>"
+    },
+    "s_e6594b01227267": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "6c470c0c-01f6-4c14-94b6-20f5b2dde93b",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Ali Ammari <ammari.ali.0001@gmail.com>"
+    }
+  }
+}
