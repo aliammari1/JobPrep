@@ -38,12 +38,6 @@
       "matchManagers": ["github-actions"],
       "groupName": "github-actions",
       "pinDigests": true
-    },
-    {
-      "description": "Python agent (uv) updates",
-      "matchManagers": ["pep621"],
-      "matchFileNames": ["functions/**"],
-      "groupName": "python-agent"
     }
   ]
 }

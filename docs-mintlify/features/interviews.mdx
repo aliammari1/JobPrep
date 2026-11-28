@@ -9,11 +9,5 @@ JobPrep runs realistic mock interviews end to end.
   `/api/generate-questions` produce role/difficulty-tagged questions.
 - **Answer evaluation** — `/api/evaluate-answer` scores a candidate answer
   against an ideal answer with structured feedback.
-- **Live video avatar** — the interview room uses LiveKit for real-time media
-  and a Simli avatar driven by the Python agent in `functions/`.
-
-<Warning>
-The Python LiveKit/Simli avatar agent is a long-running container workload. It
-**cannot** run on Cloudflare Workers — deploy it on a small container/VM. The
-Next.js app itself targets Cloudflare (see Deployment).
-</Warning>
+- **Live rooms** use LiveKit for real-time video and audio.
+- **Video avatar** is available in mock interviews when HeyGen is configured.

@@ -19,7 +19,7 @@ We provide security updates for the following versions:
 
 Instead, please report security vulnerabilities via email:
 
-**Email**: security@aliammari.com
+**Email**: contact@aliammari.dev
 **Subject**: [SECURITY] Brief description of the issue
 
 ### What to Include
@@ -187,7 +187,7 @@ We appreciate security researchers who responsibly disclose vulnerabilities. Con
 - ✅ **Security Headers**: CSP, HSTS, X-Frame-Options, etc.
 - ⚠️ **HTTPS redirect**: Configure this at the Cloudflare zone/edge; it is not enforced by this repository alone
 - ✅ **Environment Isolation**: Separate dev/staging/production
-- ✅ **Secure Deployment**: Cloudflare's edge network (TLS at the edge, DDoS protection); the Python avatar agent runs on an isolated container
+- ✅ **Secure Deployment**: Cloudflare's edge network (TLS at the edge, DDoS protection)
 
 ### Monitoring & Logging
 
@@ -216,10 +216,10 @@ JobPrep AI integrates with several third-party services. While we implement secu
    - No credit card data stored on our servers
    - Stripe's security guarantees apply
 
-4. **Appwrite** (File Storage)
-   - Files stored with access controls
-   - Signed URLs with expiration
-   - Review Appwrite security settings
+4. **Cloudflare R2** (Interview recordings)
+   - Recordings are stored in a private bucket.
+   - Playback and downloads require a session belonging to an interview participant.
+   - The recording URL points to the application and carries no bucket credential.
 
 ### Self-Hosting Considerations
 
@@ -298,12 +298,12 @@ Permissions-Policy: geolocation=(), microphone=(), camera=()
 ## 📧 Contact
 
 For security concerns:
-- **Email**: security@aliammari.com
+- **Email**: contact@aliammari.dev
 - **Response Time**: Within 48 hours
 - **Public Key**: Available upon request
 
 For general questions:
-- **Email**: contact@aliammari.com
+- **Email**: contact@aliammari.dev
 - **GitHub Discussions**: For non-security issues
 
 ## 📄 Legal

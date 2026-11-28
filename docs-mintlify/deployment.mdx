@@ -1,12 +1,12 @@
 ---
 title: "Deployment"
-description: "Cloudflare for the app, a container for the avatar agent."
+description: "Deploy JobPrep with Cloudflare Workers and PostgreSQL."
 ---
 
 The Next.js app deploys to **Cloudflare** via `@opennextjs/cloudflare`, with
-PostgreSQL reached through **Hyperdrive**. The Python LiveKit/Simli avatar agent
-is a long-running container workload and **cannot** run on Cloudflare Workers, so
-it is hosted separately.
+PostgreSQL reached through **Hyperdrive**. Configure LiveKit for live rooms
+and HeyGen if you want a video avatar in mock interviews. Browser recordings
+use a private Cloudflare R2 bucket.
 
 Deployment is gated behind a manual workflow that only runs when the Cloudflare
 secrets and `ENABLE_CLOUDFLARE_DEPLOY=true` are configured.

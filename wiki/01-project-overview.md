@@ -117,7 +117,7 @@ One-click LinkedIn profile import for instant CV creation.
 
 ### Infrastructure
 - **Vercel** - Deployment and hosting
-- **Appwrite** - File storage
+- **Cloudflare R2** - Private interview recording storage
 - **Cloudinary** - Image optimization
 - **Stripe** - Payments
 

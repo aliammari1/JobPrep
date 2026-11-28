@@ -1,0 +1,12 @@
+# Reference list of labels used by issue templates, Renovate and the stale bot.
+# Create them once in the GitHub UI or with `gh label create`.
+- {name: bug, color: d73a4a, description: Something is not working}
+- {name: enhancement, color: a2eeef, description: New feature or request}
+- {name: documentation, color: 0075ca, description: Docs improvements}
+- {name: good first issue, color: 7057ff, description: Good for newcomers}
+- {name: help wanted, color: 008672, description: Extra attention is needed}
+- {name: dependencies, color: 0366d6, description: Dependency updates}
+- {name: security, color: b60205, description: Security related}
+- {name: needs-triage, color: fbca04, description: Awaiting maintainer review}
+- {name: stale, color: ededed, description: No recent activity}
+- {name: pinned, color: 5319e7, description: Exempt from the stale bot}

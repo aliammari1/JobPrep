@@ -1,0 +1,9 @@
+# Default reviewer
+*                       @aliammari1
+
+# Sensitive areas always get maintainer review
+/.github/               @aliammari1
+/prisma/                @aliammari1
+/src/lib/auth*          @aliammari1
+/SECURITY.md            @aliammari1
+/LICENSE.md             @aliammari1

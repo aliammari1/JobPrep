@@ -1,60 +1,21 @@
-# Launch & discovery checklist
+# Sharing JobPrep
 
-Maintainer notes for getting JobPrep in front of the right people. The honest
-hook is **multi-AI + self-host/Ollama**: most interview-prep tools lock you to
-one vendor; JobPrep runs Claude, GPT, Gemini, **or a fully local Ollama model**.
+Describe the project with a workflow people can try: **practice an interview answer, review the rubric, and prepare for a specific role.** JobPrep is source-available and supports self-hosted Ollama inference. Cloud AI and video integrations have separate requirements.
 
-## GitHub repo settings
+## GitHub
 
-- **Social preview**: set `assets/banner.png` (Settings → Social preview) — see
-  [`BANNER.md`](../BANNER.md).
-- **About box**: short description + website + the topics below.
-- **Topics** (Settings → Topics):
-  `ai`, `interview-preparation`, `career`, `nextjs`, `typescript`,
-  `livekit`, `webrtc`, `ai-agents`, `ollama`, `self-hosted`, `claude`, `openai`,
-  `gemini`, `cv-builder`, `resume`, `chrome-extension`, `cloudflare`, `prisma`,
-  `bun`.
+- Set the About description to “Practice interview answers, review rubric feedback, and tailor your résumé. Self-host with cloud AI or Ollama.”
+- Use topics that describe the app, such as `interview-preparation`, `mock-interview`, `resume-builder`, `self-hosted`, and `ollama`.
+- Use a real screenshot of the [sample interview](screenshots/desktop.png) for the social preview. Keep the README’s setup and contribution links visible.
+- Add a homepage link after verifying it serves JobPrep and opens the sample in a signed-out browser.
 
-## Chrome Web Store
+## Share an update people can try
 
-Publish the extension — see [`CHROME_WEB_STORE.md`](CHROME_WEB_STORE.md). A live
-store listing is itself a discovery channel and a credibility signal.
+1. Open the demo in a clean browser on desktop and mobile. Link directly to the sample and disclose that the feedback is illustrative. Use synthetic answers, résumés, and recordings in any screenshots.
+2. Pick a community where the workflow is relevant. Read its self-promotion rules, disclose that you maintain the project, and ask one specific question. For example, “Does the rubric make it clear what to change in your next answer?”
+3. Put the source-available license and any account, provider, or infrastructure requirements in the post when they matter. Use directory categories that explicitly accept the license.
+4. Stay around to respond. Turn reproducible feedback into issues and share what you fixed when you have something new to show.
 
-## Product Hunt
+For [Show HN](https://news.ycombinator.com/showhn.html), wait until a public sample is working and link to the thing people can try. Share it for feedback and follow the community’s voting rules. For other communities, use their designated showcase thread or ask moderators when the rules are unclear.
 
-- Category: **AI / Developer Tools / Career**.
-- Tagline: *"Multi-AI interview prep — practice with a live AI avatar, build an
-  ATS CV, and run it all on your own Ollama model."*
-- Assets: the triptych banner + 3 GIFs (CV builder, live mock interview, code
-  arena). Have the two-part deploy story ready (CF for web, container for the
-  agent) — technical hunters reward honest architecture.
-
-## Show HN / Hacker News
-
-- Title angle: *"Show HN: JobPrep – open-ish interview prep you can run fully
-  local with Ollama (Next.js + a Python LiveKit avatar agent)."*
-- Lead with the **self-host / privacy** angle and the **provider-agnostic AI
-  Coach** (`<provider>:<model>` switch). Link the architecture + deployment docs
-  and be upfront about the source-available license and the Workers-can't-run-
-  Python limitation.
-
-## Awesome lists
-
-- **awesome-ai-tools** — submit under interview/career or AI assistants. Note the
-  multi-provider + Ollama support.
-- **awesome-selfhosted** — only borderline: it favors OSI-licensed projects, and
-  JobPrep is **source-available**, so submit to the self-host-friendly subsections
-  / "non-free" notes rather than the core list, and disclose the license.
-- Niche: any "awesome-interview" / "awesome-career" lists.
-
-## Reddit / communities
-
-- r/cscareerquestions, r/leetcode (code arena), r/LocalLLaMA (the Ollama/self-host
-  angle plays very well here), r/nextjs (the CF + opennext + LiveKit stack).
-
-## Talking points (engineering judgment)
-
-- Provider-agnostic AI via a model registry (`src/lib/ai/providers.ts`).
-- Right-primitive-per-workload: edge for the app, container for the WebRTC agent.
-- Honest CF Workers limits + LiveKit Cloud free tier for realtime.
-- Bun + Biome single toolchain; release-please; CodeQL/gitleaks/Trivy/Scorecard.
+Use GitHub traffic, useful feedback, and repeat visits to decide whether the message is reaching the right people. Keep star requests optional and off channels that prohibit soliciting votes.

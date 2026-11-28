@@ -298,7 +298,7 @@ Interested in using JobPrep AI for your organization?
 - **Universities**: contact+edu@aliammari.com
 - **Bootcamps**: contact+bootcamp@aliammari.com
 - **Corporations**: contact+enterprise@aliammari.com
-- **General**: contact@aliammari.com
+- **General**: contact@aliammari.dev
 
 ## 📧 Share Your Story
 

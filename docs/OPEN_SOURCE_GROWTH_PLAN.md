@@ -1,41 +1,11 @@
-# Open Source Growth Plan
+# JobPrep discovery and feedback
 
-This plan turns the repository review into a practical backlog for JobPrep.
+JobPrep is [source-available](../LICENSE.md). The [sharing guide](TRENDING.md) covers repository presentation, a public demo, and posting in relevant communities.
 
-## Quick wins
+## Product work that helps discovery
 
-- Add screenshots and a short demo video for mock interviews, CV builder, coding challenges, and analytics.
-- Add Playwright or Cypress coverage for the interview flow, CV flow, and code challenge flow.
-- Add unit tests for AI provider fallback behavior.
-- Add clear documentation for model-provider environment variables.
-- Add prompt-injection and rate-limit handling guidance for AI endpoints.
-- Add `good first issue` tasks for docs, accessibility, test coverage, and UI states.
-
-## Bugs and bad practices to watch
-
-- API keys or model-provider secrets exposed to browser bundles.
-- Unvalidated AI responses flowing directly into UI or persistence layers.
-- Missing fallback behavior when a model provider is unavailable.
-- Prompt-injection risks in CV, interview, and cover-letter flows.
-- Analytics calculations tightly coupled to UI components.
-
-## Star growth strategy
-
-1. Add a live demo with synthetic profiles and interview scenarios.
-2. Put value-oriented screenshots above the fold in the README.
-3. Add GitHub topics such as `nextjs`, `ai`, `interview-prep`, `career`, and `typescript`.
-4. Publish a technical guide about multi-provider LLM integration.
-5. Add public roadmap items for voice, analytics, and coding interview improvements.
-
-## Trending-library opportunities
-
-- Use Pydantic-AI-style schemas for validated AI outputs.
-- Use LangExtract-style extraction for structured interview transcript insights.
-- Use Data-Formulator-style dashboards for candidate progress analytics.
-- Use GPT-Pilot-style code explanation features for challenges.
-
-## Suggested next PRs
-
-- Add provider abstraction tests and fallback fixtures.
-- Add Playwright smoke tests for the main user journey.
-- Add AI security and prompt-injection checklist.
+1. Deploy the public sample and verify it from a clean browser without creating an account.
+2. Record a short real walkthrough with synthetic data. Show an interview question, the answer, and what the feedback suggests changing.
+3. Ask a few job seekers to try the sample. Write down where they get stuck and turn the clearest problem into a small issue with steps and an expected result.
+4. Keep one or two scoped newcomer issues available. Include a file or route to start from and a way to verify the fix.
+5. Share a follow-up when feedback leads to a shipped improvement.

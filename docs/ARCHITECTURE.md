@@ -1,8 +1,7 @@
 # Architecture
 
 JobPrep is a Next.js 15 (App Router) application with a Prisma/PostgreSQL data
-layer, Better-Auth authentication, the Vercel AI SDK for multi-provider AI, and
-a separate Python container for the live video interview avatar.
+layer, Better Auth authentication, and the Vercel AI SDK for multi-provider AI.
 
 ## High-level
 
@@ -24,8 +23,8 @@ a separate Python container for the live video interview avatar.
                             ▼        └───────────────┘
                      Stripe (billing)
 
-   Live interview (real-time, NOT on Workers):
-   Browser ⇄ LiveKit (WebRTC) ⇄ Python agent container ⇄ Simli avatar API
+   Live interview: Browser ⇄ LiveKit (WebRTC) ⇄ Other participants
+   Mock interview: Browser ⇄ HeyGen (optional video avatar)
 ```
 
 ## Components
@@ -43,9 +42,12 @@ a separate Python container for the live video interview avatar.
   build doesn't require a key).
 - **Chrome extension (`chrome-extension/`)** — imports LinkedIn profile data
   into the CV builder. Zipped into release assets on tag.
-- **Python avatar agent (`functions/LiveKit Avatar Agent`)** — LiveKit + Simli
-  avatar; managed with uv, tested with pytest, linted with ruff. **Container
-  workload, not a Worker.**
+- **Video** — LiveKit connects users in interview rooms. Mock interviews
+  can use HeyGen for a video avatar.
+- **Recording storage** — Private Cloudflare R2 holds the video. PostgreSQL
+  associates it with an interview. Playback and download use the authenticated
+  recording route, which supports HTTP ranges. A Worker cron drains the
+  PostgreSQL cleanup table for detached and abandoned recording objects.
 
 ## API documentation
 
@@ -61,4 +63,3 @@ Conceptual docs live in `docs-mintlify/` for publishing on Mintlify.
   schema) with a ratcheting threshold floor.
 - **E2E** — Playwright smoke flows (landing, sign-in form, CV builder) that
   don't require a backend.
-- **Python** — pytest/ruff via uv for the avatar agent.

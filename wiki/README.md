@@ -89,7 +89,7 @@ If you can't find what you're looking for:
 
 - Check [GitHub Discussions](https://github.com/aliammari1/JobPrep/discussions)
 - Open an [issue](https://github.com/aliammari1/JobPrep/issues/new/choose)
-- Email: contact@aliammari.com
+- Email: contact@aliammari.dev
 
 ---
 

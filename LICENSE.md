@@ -60,7 +60,7 @@ If Your use of the Licensed Work does not comply with the requirements of this L
 To obtain a Commercial License, contact the Licensor at:
 
 ```
-Email: ammari.ali.0001@gmail.com
+Email: contact@aliammari.dev
 Subject: "Commercial License Request — JobPrep AI"
 
 Include in your request:

@@ -31,3 +31,8 @@ Pinned caches may need occasional refreshes, but avoid debugging failures caused
 ## Revisit triggers
 
 Revisit when the full-repository lint is clean or when runtime support windows require a new pinned baseline.
+
+## November 2026 update
+
+The avatar service was retired and its uv checks were removed from CI. The Bun
+pin and frozen lockfile policy still apply.

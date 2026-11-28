@@ -39,7 +39,6 @@ env:
   # ---------------------------------------------------------------------------
 
   BUN_VERSION: "1.4.3"
-  UV_VERSION: "0.12.15"
 
   # Disable framework / CLI telemetry in CI.
   NEXT_TELEMETRY_DISABLED: "1"
@@ -132,6 +131,9 @@ jobs:
       - name: Lint full repository
         run: bun run lint:ci
         continue-on-error: true
+
+      - name: Verify Cloudflare Worker types
+        run: bun run cf:typegen:check
 
       - name: TypeScript type check
         run: bun run typecheck
@@ -353,6 +355,18 @@ jobs:
       - name: Build for Cloudflare Workers
         run: bun run cf:build
 
+      - name: Validate Cloudflare Worker bundle (dry-run)
+        run: bun run cf:dry-run
+
+      - name: Test local Miniflare R2 emulation
+        shell: bash
+        run: |
+          set -euo pipefail
+          printf "ci-miniflare-r2-ok" | bunx wrangler r2 object put jobprep-recordings/ci-smoke.txt --local --pipe
+          BODY="$(bunx wrangler r2 object get jobprep-recordings/ci-smoke.txt --local --pipe)"
+          test "$BODY" = "ci-miniflare-r2-ok"
+          bunx wrangler r2 object delete jobprep-recordings/ci-smoke.txt --local
+
 
   # ===========================================================================
   # Browser / end-to-end tests
@@ -407,6 +421,9 @@ jobs:
       - name: Install Playwright Chromium
         run: bunx playwright install --with-deps chromium
 
+      - name: Apply Prisma migrations to test database
+        run: bunx prisma migrate deploy
+
       - name: Build and start the Worker preview
         run: |
           cat <<EOF > .dev.vars
@@ -419,7 +436,8 @@ jobs:
           SKIP_ENV_VALIDATION=1
           EOF
           bun run cf:build
-          bun run cf:preview -- --port 3000 > "$RUNNER_TEMP/opennext-preview.log" 2>&1 &
+          CLOUDFLARE_HYPERDRIVE_LOCAL_CONNECTION_STRING_HYPERDRIVE="${DATABASE_URL}" \
+            bun run cf:preview -- --port 3000 --test-scheduled > "$RUNNER_TEMP/opennext-preview.log" 2>&1 &
           echo $! > "$RUNNER_TEMP/opennext-preview.pid"
           for attempt in {1..30}; do
             if curl --fail --silent http://127.0.0.1:3000/api/health > /dev/null; then
@@ -429,6 +447,14 @@ jobs:
           done
           cat "$RUNNER_TEMP/opennext-preview.log"
           exit 1
+
+      - name: Cloudflare Worker runtime smoke checks
+        shell: bash
+        run: |
+          set -euo pipefail
+          curl --fail --silent --show-error -I http://127.0.0.1:3000/ | grep -iq "x-opennext: 1"
+          curl --fail --silent --show-error http://127.0.0.1:3000/api/ai/models | grep -q "defaultModelId"
+          curl --fail --silent --show-error "http://127.0.0.1:3000/__scheduled?cron=*/15+*+*+*+*"
 
       - name: Run Playwright tests
         run: bunx playwright test
@@ -452,54 +478,3 @@ jobs:
           else
             echo "No Worker preview log was produced (failure occurred before startup)."
           fi
-
-
-  # ===========================================================================
-  # Python / LiveKit Avatar Agent
-  #
-  # Treat this as an independent service.
-  #
-  # Its dependency graph, formatting, lint and tests are checked independently
-  # from the Next.js application.
-  # ===========================================================================
-
-  python-agent:
-    name: Python Agent
-    runs-on: ubuntu-latest
-    timeout-minutes: 20
-
-    defaults:
-      run:
-        working-directory: functions/LiveKit Avatar Agent
-
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
-        with:
-          persist-credentials: false
-
-      # setup-uv v10.1.0 pinned to its full immutable commit SHA.
-      - name: Setup uv
-        uses: astral-sh/setup-uv@bec219d24cd3e171d82865faccec33120bb574f4
-        with:
-          version: ${{ env.UV_VERSION }}
-          enable-cache: true
-          working-directory: functions/LiveKit Avatar Agent
-          cache-dependency-glob: |
-            uv.lock
-            pyproject.toml
-
-      - name: Show uv version
-        run: uv --version
-
-      - name: Sync Python dependencies
-        run: uv sync --dev --frozen
-
-      - name: Ruff lint
-        run: uv run ruff check .
-
-      - name: Ruff format check
-        run: uv run ruff format --check .
-
-      - name: Run Python tests
-        run: uv run pytest -q
