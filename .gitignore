@@ -24,9 +24,24 @@
 # production
 /build
 
+# generated demo videos (see openscreen-demo-plan.md)
+/demo/
+
+# Android TWA: build output and signing/release artifacts. Keep the source project.
+/android-twa/.gradle/
+/android-twa/build/
+/android-twa/app/build/
+/android-twa/local.properties
+/android-twa/*.keystore
+/android-twa/*.jks
+/android-twa/*.apk
+/android-twa/*.aab
+/android-twa/*.idsig
+
 # misc
 .DS_Store
 *.pem
+/.serena/
 
 # debug
 npm-debug.log*
@@ -53,6 +68,7 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+cloudflare-env.d.ts
 
 # Sentry
 .sentryclirc
@@ -71,7 +87,8 @@ next-env.d.ts
 # Serwist
 public/sw*
 public/swe-worker*
-# Internal growth/marketing notes (not for public)
+# Internal notes (not for public)
+openscreen-demo-plan.md
 GROWTH.md
 BANNER.md
 SUBMITTING_TO_AWESOME.md
